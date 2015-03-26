@@ -1,4 +1,6 @@
 <div class="mapcache">
   <div leaflet></div>
-  <div>derp</div>
+  <div ng-repeat="cache in caches" class="row">
+    <div class="col-md-12">cache : {{cache.name}}</div>
+  </div>
 </div>

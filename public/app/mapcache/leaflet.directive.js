@@ -14,9 +14,9 @@ function leaflet() {
   return directive;
 }
 
-LeafletController.$inject = ['$rootScope', '$scope', '$interval'];
+LeafletController.$inject = ['$rootScope', '$scope', '$interval', 'CacheService'];
 
-function LeafletController($rootScope, $scope, $interval) {
+function LeafletController($rootScope, $scope, $interval, CacheService) {
   var layers = {};
 
   var map = L.map("map", {
@@ -26,9 +26,7 @@ function LeafletController($rootScope, $scope, $interval) {
     maxZoom: 18
   });
 
-  L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png').addTo(map);
 
   // TODO move into leaflet service, this and map clip both use it
   function createRasterLayer(layerInfo) {
@@ -54,4 +52,21 @@ function LeafletController($rootScope, $scope, $interval) {
 
     if (layerInfo.options && layerInfo.options.selected) layerInfo.layer.addTo(map);
   }
+
+  CacheService.getAllCaches().success(function(caches) {
+    $scope.caches = caches;
+  });
+
+  $scope.$watch('caches', function(caches) {
+    if (!caches) return;
+    for (var i = 0; i < caches.length; i++) {
+      var cache = caches[i];
+      var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];
+
+      // create an orange rectangle
+      L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(map);
+
+      console.log(caches[i]);
+    }
+  });
 }
