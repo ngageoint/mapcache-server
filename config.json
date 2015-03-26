@@ -1,0 +1,41 @@
+{
+  "api": {
+    "name": "Map Cache",
+    "version": {
+      "major": 1,
+      "minor": 1,
+      "micro": 0
+    },
+    "authentication": {
+      "strategy": "local",
+      "passwordMinLength": 1
+    },
+    "provision": {
+      "strategy": "uid"
+    },
+    "apk": {
+      "version": "3.0.0",
+      "supportedVersions": [
+        "4.0",
+        "4.3"
+      ]
+    }
+  },
+  "server": {
+    "token": {
+      "expiration": 28800
+    },
+    "mongodb": {
+      "host": "localhost",
+      "port": 27017,
+      "db": "mapcachedb",
+      "poolSize": 5
+    },
+    "cacheDirectory": {
+      "path": "/data/mapcache/"
+    },   
+    "zipDirectory": {
+      "path": "./zip/"
+    }  
+  }
+}

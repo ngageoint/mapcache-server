@@ -1,0 +1,1 @@
+{"migrations":[{"title":"migrations/001-create-device.js"},{"title":"migrations/002-create-user-role.js"},{"title":"migrations/003-create-admin-role.js"},{"title":"migrations/004-create-admin-user.js"},{"title":"migrations/005-create-osm-layer.js"},{"title":"migrations/006-create-feature-layer.js"}],"path":"migrations/.migrate","pos":6,"_events":{}}

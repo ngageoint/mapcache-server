@@ -1,0 +1,98 @@
+<div class="container top-gap-xl">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Account Information</h2>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <form ng-submit="saveUser()" class="form-horizontal">
+
+          <div avatar-user="user"/>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4">Username</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="i.e. jappleseed" ng-model="user.username" autocapitalize="off" class="form-control"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4">First Name</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="Johnny" ng-model="user.firstname" name="firstname" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Last Name</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="Appleseed" ng-model="user.lastname" name="lastname" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Email</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="johnny@appleseed.com" ng-model="user.email" name="email" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Phone</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="(xxx) xxx-xxxx" ng-model="user.phone" name="phone" class="form-control">
+            </div>
+          </div>
+
+          <span class="pull-right">
+            <button type="button" class="btn btn-default btn-inverse" ng-click="cancel()" ngmtap="cancel()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </span>
+      </form>
+    </div>
+
+    <div class="col-md-6" ng-show="showUserStatus">
+      <div class="alert alert-block" ng-class="statusLevel">
+        <button type="button" class="close" ng-click="showUserStatus = false">&times;</button>
+        <h4>{{statusTitle}}</h4>
+        {{statusMessage}}
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Update Password</h2>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+
+      <form ng-submit="updatePassword()" class="form-horizontal">
+        <div class="form-group" ng-class="{error: 'has-error', success: 'hs-success'}[passwordStatus.status]">
+          <label class="control-label col-sm-4">Password</label>
+          <div class="col-sm-8">
+            <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.password" name="password" class="form-control">
+            <span class="help-inline" ng-show="passwordStatus.status">{{passwordStatus.msg}}</span>
+          </div>
+        </div>
+
+        <div class="form-group" ng-class="{error: 'has-error', success: 'has-success'}[passwordStatus.status]">
+          <label class="control-label col-sm-4">Confirm Password</label>
+          <div class="col-sm-8">
+            <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.passwordconfirm" name="passwordconfirm" class="form-control">
+            <span class="help-inline" ng-show="passwordStatus.status">{{passwordStatus.msg}}</span>
+          </div>
+        </div>
+
+        <span class="pull-right">
+          <button type="submit" class="btn btn-primary">Change password</button>
+        </span>
+      </form>
+
+    </div>
+  </div>
+</div>

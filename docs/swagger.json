@@ -1,0 +1,442 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "User Management",
+        "description": "User Management API",
+        "contact": {
+            "name": "Benjamin Tuttle",
+            "email": "benjamin.t.tuttle@nga.mil"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "http://opensource.org/licenses/MIT"
+        }
+    },
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "description": "login",
+                "operationId": "login",
+                "tags": [
+                    "Authentication"
+                ],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "login request body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "login response",
+                        "schema": {
+                            "$ref": "#/definitions/LoginResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "description": "logout",
+                "operationId": "logout",
+                "tags": [
+                    "Authentication"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "logout response"
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "description": "Returns all users",
+                "operationId": "getUsers",
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Users"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new user.  Duplicates usernames are not allowed",
+                "operationId": "addUser",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "user create body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserCreate"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user response",
+                        "schema": {
+                            "$ref": "#/definitions/Users"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "description": "Returns a single user based on id",
+                "operationId": "getUserById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of user to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user response",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "update a single user based on id",
+                "operationId": "updateUserById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of user to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "user update body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserCreate"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user update response",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "deletes a single user based on id",
+                "operationId": "deleteUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of user to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "user deleted"
+                    }
+                }
+            }
+        },
+        "/api/users/myself": {
+            "get": {
+                "description": "Returns user currently logged",
+                "operationId": "getMyself",
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user currently logged in",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "update myself",
+                "operationId": "updateMyself",
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user update response",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/roles": {
+            "get": {
+                "description": "get all roles",
+                "operationId": "getRoles",
+                "tags": [
+                    "Role"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "role response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Role"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/roles/{id}": {
+            "get": {
+                "description": "get role by id",
+                "operationId": "getRoleById",
+                "tags": [
+                    "Role"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "id of role to fetch",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "role response",
+                        "schema": {
+                            "$ref": "#/definitions/Role"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "LoginRequest": {
+            "required": [
+                "username",
+                "uid",
+                "password"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "LoginResponse": {
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "expirationDate": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/User"
+                },
+                "role": {
+                    "$ref": "#/definitions/Role"
+                }
+            }
+        },
+        "Role": {
+            "required": [
+                "id",
+                "name",
+                "description",
+                "permissions"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "UserCreate": {
+            "required": [
+                "username",
+                "firstname",
+                "lastname"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "active": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "passwordConfirm": {
+                    "type": "string"
+                }
+            }
+        },
+        "User": {
+            "required": [
+                "id",
+                "username",
+                "firstname",
+                "lastname",
+                "active",
+                "role"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "active": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "$ref": "#/definitions/Role"
+                },
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "Users": {
+            "required": [
+                "id",
+                "username",
+                "firstname",
+                "lastname",
+                "active",
+                "role"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "active": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "avatarUrl": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

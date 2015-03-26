@@ -1,0 +1,36 @@
+<div class="container top-gap-l">
+  <div class="row">
+    <div class="col-md-3">
+      <h3 class="top-gap-l">mapcache</h3>
+
+      <form class="form">
+        <div class="form-group" ng-class="{'has-error': status > 399}">
+          <label>Username</label>
+          <input ng-model="username" class="form-control" name="username" type="text" autocapitalize="off"/>
+        </div>
+
+        <div class="form-group" ng-class="{'has-error': status > 399}">
+          <label>Password</label>
+          <input ng-model="password" class="form-control" name="password" type="password" autocapitalize="off"/>
+        </div>
+
+        <span>
+          <button class="btn btn-primary" ng-click="signin()" ngm-tap="signin()">Login</button>
+        </span>
+      </form>
+
+      <div class="top-gap">
+        <p>Don't have an account? <a href="/#/signup">Create one here.</a></p>
+
+        <div class="top-gap-s alert alert-danger" ng-show="status > 399">
+          <strong>Failed login</strong>
+          <p>Please check your username, UID, and password and try again.</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="col-md-7 col-md-offset-2 top-gap-xl">
+      <i class="fa fa-globe icon-brand-l"></i>
+    </div>
+  </div>
+</div>

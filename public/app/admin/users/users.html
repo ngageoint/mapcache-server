@@ -1,0 +1,133 @@
+<div class="row" ng-controller="AdminUsersController">
+  <div class="col-md-2">
+    <div class="row admin-header">
+      <div class="col-md-12">
+        <span ng-click="refresh()"><i class="fa fa-refresh icon-spacer pointer"></i></span>
+        <h3 style="display: inline">Users ({{filteredUsers.length}})</h3>
+        <a class="btn btn-primary pull-right" ng-click="newUser()"><i class="fa fa-plus"></i> New User</a>
+
+        <hr>
+      </div>
+    </div>
+    <div class="row bottom-gap">
+      <div class="btn-group col-md-12">
+        <label class="btn btn-default col-md-4" ng-model="filter" ng-change="page = 0" btn-radio="'all'" uncheckable>All</label>
+        <label class="btn btn-default col-md-4" ng-model="filter" ng-change="page = 0" btn-radio="'active'" uncheckable>Active</label>
+        <label class="btn btn-default col-md-4" ng-model="filter" ng-change="page = 0" btn-radio="'inactive'" uncheckable>Inactive</label>
+      </div>
+    </div>
+
+    <div class="form-horizontal">
+      <input type="text" class="search-query col-md-12 form-control" placeholder="Search users" ng-model="userSearch" ng-change="page=0">
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <ul class="pager">
+          <li class="previous" ng-show="page != 0">
+            <a ng-click="page=page-1">&larr; Previous</a>
+          </li>
+          <li class="next" ng-show="page < (filteredUsers.length/itemsPerPage) - 1">
+            <a ng-click="page=page+1">Next &rarr;</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pointer bottom-gap-s"
+        ng-class="{'admin-active': user.id == u.id}"
+        ng-click="editUser(u)"
+        ng-repeat="u in (filteredUsers = (users | user:['username','firstname','lastname','email']:userSearch | filter:filterActive)) | orderBy:'username' | offset: page*itemsPerPage | limitTo:itemsPerPage" >
+      <div class="admin-row row">
+        <div class="col-md-10">
+          <div class="strong">{{u.username}}</div>
+          <div class="muted">{{u.firstname}} {{u.lastname}}</div>
+        </div>
+        <div class="col-md-2" ng-hide="u.active">
+          <a class="btn btn-mini btn-success pull-right" ng-click="activateUser(u)">Activate</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-10" ng-show="user">
+    <div style="position: fixed; top: 84px; left: 35%" class="fade alert alert-success" ng-class="{'in': saved, 'out': !saved}">
+      Successfully Saved {{user.username}}
+    </div>
+    <div style="position: fixed; top: 84px; left: 35%" class="fade alert alert-error" ng-class="{'in': error, 'out': !error}">
+      Error saving user: {{error}}
+    </div>
+
+    <div class="row">
+      <div class="col-md-5">
+        <form ng-submit="saveUser()" class="form-horizontal">
+
+          <div avatar-user="user"></div>
+          <div icon-user="user" class="top-gap-xl"></div>
+
+          <div class="top-gap-l form-group">
+            <label class="control-label col-sm-4" for="type">Username</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="i.e. jappleseed" ng-model="user.username" name="username" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">First Name</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="Johnny" ng-model="user.firstname" name="firstname" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Last Name</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="Appleseed" ng-model="user.lastname" name="lastname" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Email</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="johnny@appleseed.com" ng-model="user.email" name="email" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Phone</label>
+            <div class="col-sm-8">
+              <input type="text" placeholder="(xxx) xxx-xxxx" ng-model="user.phone" name="phone" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Password</label>
+            <div class="col-sm-8">
+              <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.password" name="password" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Confirm Password</label>
+            <div class="col-sm-8">
+              <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.passwordconfirm" name="passwordconfirm" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="control-label col-sm-4" for="type">Role</label>
+            <div class="col-sm-8">
+              <select class="form-control" ng-model="user.roleId" ng-options="role.id as role.name for role in roles"></select>
+            </div>
+          </div>
+
+          <span class="pull-right">
+            <a class="btn btn-danger" ng-show="user.id" ng-click="deleteUser(user)"> <i class="fa fa-trash-o"></i> Delete User</a>
+            <a class="btn btn-success" ng-class="{'disabled': saving}" ng-hide="user.id" ng-click="saveUser(user)"> <i class="fa fa-check"></i> Create User</a>
+            <a class="btn btn-success" ng-class="{'disabled': saving}" ng-show="user.id" ng-click="saveUser(user)"> <i class="fa fa-check"></i> Save User</a>
+          </span>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

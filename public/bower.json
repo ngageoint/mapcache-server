@@ -1,0 +1,38 @@
+{
+  "name": "User Management",
+  "version": "3.0.0",
+  "description": "User Management",
+  "main": "index.html",
+  "keywords": [
+    "User Management"
+  ],
+  "license": "Apache 2",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "apps"
+  ],
+  "dependencies": {
+    "angular": "1.3.14",
+    "angular-resource": "1.3.14",
+    "angular-sanitize": "1.3.14",
+    "angular-route": "1.3.14",
+    "angular-ui-select": "0.11.1",
+    "bootstrap": "3.3.4",
+    "font-awesome": "4.3.0",
+    "jquery": "1.9.1",
+    "jquery-file-upload": "9.3.0",
+    "jquery-file-download": "latest",
+    "leaflet": "0.7.3",
+    "Leaflet.awesome-markers": "2.0.2",
+    "leaflet.markercluster": "0.4.0",
+    "leaflet-sidebar": "0.1.6",
+    "leaflet-groupedlayercontrol": "0.3.0",
+    "moment": "2.9.0",
+    "underscore": "1.8.2"
+  }
+}
