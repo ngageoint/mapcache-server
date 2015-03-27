@@ -48,7 +48,6 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
       layerInfo.layer = new L.TileLayer.WMS(layerInfo.url, options);
     }
 
-    layers[layerInfo.name] = layerInfo;
     layerControl.addBaseLayer(layerInfo.layer, layerInfo.name);
 
     if (layerInfo.options && layerInfo.options.selected) layerInfo.layer.addTo(map);
@@ -74,6 +73,14 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     createRectangle(cache, "#ff7800");
   });
 
+  $rootScope.$on('showCacheTiles', function(event, cache) {
+    showCacheTiles(cache);
+  });
+
+  $rootScope.$on('hideCacheTiles', function(event, cache) {
+    removeCacheTiles(cache);
+  });
+
   function createRectangle(cache, color) {
     var rectangle = cacheFootprints[cache._id];
     if (rectangle) {
@@ -84,5 +91,20 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     var rectangle = L.rectangle(bounds, {color: color, weight: 1});
     cacheFootprints[cache._id] = rectangle;
     rectangle.addTo(map);
+  }
+
+  function showCacheTiles(cache) {
+    removeCacheTiles(cache);
+    // going to old server for now
+    var layer = L.tileLayer("https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
+    layers[cache._id] = layer;
+    layer.addTo(map);
+  }
+
+  function removeCacheTiles(cache) {
+    var layer = layers[cache._id];
+    if (layer) {
+      map.removeLayer(layer);
+    }
   }
 }

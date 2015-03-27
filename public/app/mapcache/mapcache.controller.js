@@ -26,4 +26,15 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, LocalStorage
     console.log("mouse out " + cache.name);
     $rootScope.$broadcast('cacheUnhighlight', cache);
   }
+
+  $scope.toggleCacheTiles = function(cache) {
+    if (cache.showingTiles) {
+      cache.showingTiles = false;
+      $rootScope.$broadcast('hideCacheTiles', cache);
+    } else {
+      cache.showingTiles = true;
+      $rootScope.$broadcast('showCacheTiles', cache);
+    }
+  }
+
 };

@@ -3,7 +3,9 @@
   <div ng-repeat="cache in caches" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
     <div class="row">
       <div class="col-md-12">
-        <h3>{{cache.name}}<h3>
+        <div class="cache-name">{{cache.name}}
+          <button class="btn btn-default btn-sm" ng-click="toggleCacheTiles(cache)">show/hide tiles</button>
+        </div>
       </div>
     </div>
     <div class="row">
@@ -16,10 +18,10 @@
         <div class="cache-size">9.0 MB</div>
       </div>
     </div>
-    <div class="row">
+    <!-- <div class="row">
       <div class="col-md-12">
         <pre>{{cache | json}}<pre>
       </div>
-    </div>
+    </div> -->
   </div>
 </div>
