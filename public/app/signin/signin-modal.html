@@ -12,11 +12,6 @@
         </div>
 
         <div class="form-group" ng-class="{'has-error': status > 399}">
-          <label>UID</label>
-          <input ng-model="uid" name="uid" type="text" autocapitalize="off" class="form-control"/>
-        </div>
-
-        <div class="form-group" ng-class="{'has-error': status > 399}">
           <label>Password</label>
           <input ng-model="password" name="password" type="password" class="form-control"/>
         </div>
@@ -31,6 +26,6 @@
   </div>
 
   <div class="modal-footer">
-    <button class="btn btn-default" type="submit" ng-click="login({username: username, uid: uid, password: password})">Login</button>
+    <button class="btn btn-default" type="submit" ng-click="signin()">Login</button>
   </div>
 </form>

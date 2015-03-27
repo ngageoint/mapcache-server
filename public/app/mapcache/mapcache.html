@@ -1,6 +1,20 @@
 <div class="mapcache">
   <div leaflet></div>
-  <div ng-repeat="cache in caches" class="row">
-    <div class="col-md-12">cache : {{cache.name}}</div>
+  <div ng-repeat="cache in caches">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>{{cache.name}}<h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2 cache-type-details">
+        <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=XYZ">XYZ</a></div>
+        <div class="cache-size">9.0 MB</div>
+      </div>
+      <div class="col-md-2 cache-type-details">
+        <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=TMS">TMS</a></div>
+        <div class="cache-size">9.0 MB</div>
+      </div>
+    </div>
   </div>
 </div>
