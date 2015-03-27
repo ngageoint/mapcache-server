@@ -90,6 +90,11 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];
     var rectangle = L.rectangle(bounds, {color: color, weight: 1});
     cacheFootprints[cache._id] = rectangle;
+    rectangle.on('click', function(e) {
+      $rootScope.$broadcast('cacheFootprintClick', cache);
+      $scope.$apply();
+    });
+
     rectangle.addTo(map);
   }
 

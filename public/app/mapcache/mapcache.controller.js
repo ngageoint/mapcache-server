@@ -37,4 +37,8 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, LocalStorage
     }
   }
 
+  $rootScope.$on('cacheFootprintClick', function(event, cache) {
+    $scope.cacheFilter = cache.name;
+  });
+
 };
