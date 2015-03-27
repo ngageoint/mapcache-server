@@ -1,6 +1,12 @@
 <div class="mapcache">
   <div leaflet></div>
-  <div ng-repeat="cache in caches" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
+
+  <div class="form-group">
+      <label>Filter Caches</label>
+      <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
+    </div>
+
+  <div ng-repeat="cache in caches | filter:cacheFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
     <div class="row">
       <div class="col-md-12">
         <div class="cache-name">{{cache.name}}
