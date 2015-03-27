@@ -18,12 +18,10 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, LocalStorage
   });
 
   $scope.mouseOver = function(cache) {
-    console.log("mouse over " + cache.name);
     $rootScope.$broadcast('cacheHighlight', cache);
   }
 
   $scope.mouseOut = function(cache) {
-    console.log("mouse out " + cache.name);
     $rootScope.$broadcast('cacheUnhighlight', cache);
   }
 
