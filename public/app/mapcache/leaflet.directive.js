@@ -90,11 +90,15 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];
     var rectangle = L.rectangle(bounds, {color: color, weight: 1});
     cacheFootprints[cache._id] = rectangle;
-    rectangle.on('click', function(e) {
-      $rootScope.$broadcast('cacheFootprintClick', cache);
+    rectangle.on('popupopen', function(e) {
+      $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
       $scope.$apply();
     });
-
+    rectangle.on('popupclose', function(e) {
+      $rootScope.$broadcast('cacheFootprintPopupClose', cache);
+      $scope.$apply();
+    });
+    rectangle.bindPopup("<h5>" + cache.name + "</h5>");
     rectangle.addTo(map);
   }
 

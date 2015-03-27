@@ -1,5 +1,5 @@
 .mapcache {
-  padding-top: 50px;
+  padding-top: 60px;
 }
 
 #map {
@@ -15,4 +15,19 @@
 .cache-name {
   font-size: 24px;
   color: #777777;
+}
+
+.cache-type-details {
+  border-width: 1px;
+  border-color: #DDDDDD;
+  border-style: solid;
+  text-align: center;
+}
+
+.cache-row {
+  margin: 5px;
+}
+
+.cache-types-row {
+  margin-top: 5px;
 }
