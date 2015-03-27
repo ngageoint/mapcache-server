@@ -18,6 +18,7 @@ LeafletController.$inject = ['$rootScope', '$scope', '$interval', 'CacheService'
 
 function LeafletController($rootScope, $scope, $interval, CacheService) {
   var layers = {};
+  var cacheFootprints = {};
 
   var map = L.map("map", {
     center: [0,0],
@@ -61,12 +62,27 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     if (!caches) return;
     for (var i = 0; i < caches.length; i++) {
       var cache = caches[i];
-      var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];
-
-      // create an orange rectangle
-      L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(map);
-
-      console.log(caches[i]);
+      createRectangle(cache, "#ff7800");
     }
   });
+
+  $rootScope.$on('cacheHighlight', function(event, cache) {
+    createRectangle(cache, "#007800");
+  });
+
+  $rootScope.$on('cacheUnhighlight', function(event, cache) {
+    createRectangle(cache, "#ff7800");
+  });
+
+  function createRectangle(cache, color) {
+    var rectangle = cacheFootprints[cache._id];
+    if (rectangle) {
+      map.removeLayer(rectangle);
+    }
+
+    var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];
+    var rectangle = L.rectangle(bounds, {color: color, weight: 1});
+    cacheFootprints[cache._id] = rectangle;
+    rectangle.addTo(map);
+  }
 }
