@@ -1,30 +1,43 @@
 <div class="mapcache container-fluid">
-  <div leaflet></div>
 
   <div class="container">
-  <div class="form-group">
-      <label>Filter Caches</label>
-      <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
-    </div>
-
-  <div class="cache-row" ng-repeat="cache in caches | filter:cacheFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
-    <div class="row">
+    <div class="row top-gap bottom-gap">
       <div class="col-md-12">
-        <div class="cache-name">{{cache.name}}
-          <button class="btn btn-default btn-sm" ng-click="toggleCacheTiles(cache)">show/hide tiles</button>
-        </div>
-      </div>
-    </div>
-    <div class="row cache-types-row">
-      <div class="col-md-2 cache-type-details">
-        <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=XYZ">XYZ</a></div>
-        <div class="cache-size">9.0 MB</div>
-      </div>
-      <div class="col-md-2 cache-type-details">
-        <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=TMS">TMS</a></div>
-        <div class="cache-size">9.0 MB</div>
+        <div class="mapcache-header-description">Use mapcache to save tiles for offline use in mobile applications. <button class="btn btn-default" ng-click="createNewCache()">Create Cache</button></div>
       </div>
     </div>
   </div>
-</div>
+
+  <div class="row top-gap bottom-gap">
+    <div class="col-md-12">
+      <div leaflet></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="form-group">
+        <label>Filter Caches</label>
+        <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
+      </div>
+
+    <div class="cache-row" ng-repeat="cache in caches | filter:cacheFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="cache-name">{{cache.name}}
+            <button class="btn btn-default btn-sm" ng-click="toggleCacheTiles(cache)">show/hide tiles</button>
+          </div>
+        </div>
+      </div>
+      <div class="row cache-types-row">
+        <div class="col-md-2 cache-type-details">
+          <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=XYZ">XYZ</a></div>
+          <div class="cache-size">9.0 MB</div>
+        </div>
+        <div class="col-md-2 cache-type-details">
+          <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=TMS">TMS</a></div>
+          <div class="cache-size">9.0 MB</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
