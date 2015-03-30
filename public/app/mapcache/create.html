@@ -3,7 +3,15 @@
     <div class="col-md-12">
       <div class="form-group">
         <label>Name Your Cache</label>
-        <input class="form-control" ng-model="name" placeholder="e.g. Denver, CO">
+        <input class="form-control" ng-model="cache.name" placeholder="e.g. Denver, CO">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label>Source URL</label>
+        <input class="form-control" ng-model="cache.url" placeholder="e.g. http://osm.geointapps.org">
       </div>
     </div>
   </div>
@@ -24,7 +32,12 @@
         </div>
       </div>
       <div class="col-sm-5">
-        <div style="height:300px; background-color: #369;"></div>
+        <div leaflet-create options="cache"></div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
+          </label>
+        </div>
       </div>
       <div class="col-sm-3">
         <div class="form-group">
@@ -45,7 +58,7 @@
   <div class="visible-xs-block">
     <div class="row">
       <div class="col-xs-12">
-        <div style="height:300px; background-color: #369;"></div>
+        <!-- <div leaflet-create></div> -->
       </div>
     </div>
     <div class="row">
@@ -80,5 +93,10 @@
         </div>
       </div>
     </div>
-  <div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <button class="btn btn-primary pull-right">Create Cache</button>
+    </div>
+  </div>
 </div>

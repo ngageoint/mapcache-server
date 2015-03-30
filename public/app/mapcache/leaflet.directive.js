@@ -6,7 +6,7 @@ function leaflet() {
   var directive = {
     restrict: "A",
     replace: true,
-    template: '<div id="map"></div>',
+    template: '<div style="height:450px"></div>',
     controller: LeafletController,
     bindToController: true
   };
@@ -14,13 +14,13 @@ function leaflet() {
   return directive;
 }
 
-LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', 'CacheService'];
+LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService'];
 
-function LeafletController($rootScope, $scope, $interval, $filter, CacheService) {
+function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService) {
   var layers = {};
   var cacheFootprints = {};
 
-  var map = L.map("map", {
+  var map = L.map($element[0], {
     center: [0,0],
     zoom: 3,
     minZoom: 0,
