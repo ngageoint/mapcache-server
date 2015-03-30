@@ -3,7 +3,7 @@
   <div class="container">
     <div class="row top-gap bottom-gap">
       <div class="col-md-12">
-        <div class="mapcache-header-description">Use mapcache to save maps for offline use in mobile applications. <button class="btn btn-default" ng-click="createNewCache()">Create Cache</button></div>
+        <div class="mapcache-header-description">Use mapcache to save maps for offline use in mobile applications. <button class="btn btn-default" ng-click="createCache()">Create Cache</button></div>
       </div>
     </div>
   </div>
@@ -16,9 +16,9 @@
 
   <div class="container">
     <div class="form-group">
-        <label>Filter Caches</label>
-        <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
-      </div>
+      <label>Filter Caches</label>
+      <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
+    </div>
 
     <div class="cache-row" ng-repeat="cache in caches | filter:cacheFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
       <div class="row">

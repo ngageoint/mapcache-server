@@ -1,6 +1,6 @@
 angular
   .module('mapcache')
-  .controller('MapcacheController', MapcacheController);
+  .controller('MapcacheCreateController', MapcacheController);
 
 MapcacheController.$inject = [
   '$scope',
