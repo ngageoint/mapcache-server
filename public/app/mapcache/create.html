@@ -58,7 +58,12 @@
   <div class="visible-xs-block">
     <div class="row">
       <div class="col-xs-12">
-        <!-- <div leaflet-create></div> -->
+        <div leaflet-create options="cache"></div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
+          </label>
+        </div>
       </div>
     </div>
     <div class="row">
