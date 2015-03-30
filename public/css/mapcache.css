@@ -69,3 +69,9 @@
 .bottom-gap-xl {
     margin-bottom: 50px;
 }
+
+.vertical-center {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}

@@ -6,7 +6,7 @@ function leafletCreate() {
   var directive = {
     restrict: "A",
     replace: true,
-    template: '<div style="height: 300px;"></div>',
+    template: '<div style="height: 500px;"></div>',
     scope: {
       options: '='
     },
