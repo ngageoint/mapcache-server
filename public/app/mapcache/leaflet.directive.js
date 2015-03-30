@@ -14,9 +14,9 @@ function leaflet() {
   return directive;
 }
 
-LeafletController.$inject = ['$rootScope', '$scope', '$interval', 'CacheService'];
+LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', 'CacheService'];
 
-function LeafletController($rootScope, $scope, $interval, CacheService) {
+function LeafletController($rootScope, $scope, $interval, $filter, CacheService) {
   var layers = {};
   var cacheFootprints = {};
 
@@ -53,12 +53,13 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     if (layerInfo.options && layerInfo.options.selected) layerInfo.layer.addTo(map);
   }
 
-  CacheService.getAllCaches().success(function(caches) {
-    $scope.caches = caches;
-  });
-
   $scope.$watch('caches', function(caches) {
     if (!caches) return;
+    // This is not optimal
+    for (var cacheId in cacheFootprints) {
+      var rectangle = cacheFootprints[cacheId];
+      rectangle.setStyle({fillColor: "#333333", color: "#333333"});
+    }
     for (var i = 0; i < caches.length; i++) {
       var cache = caches[i];
       createRectangle(cache, "#ff7800");
@@ -81,10 +82,17 @@ function LeafletController($rootScope, $scope, $interval, CacheService) {
     removeCacheTiles(cache);
   });
 
+  $rootScope.$on('cacheFilterChange', function(event, filter) {
+    CacheService.getAllCaches().success(function(caches) {
+      $scope.caches = $filter('filter')(caches, filter);
+    });
+  });
+
   function createRectangle(cache, color) {
     var rectangle = cacheFootprints[cache._id];
     if (rectangle) {
-      map.removeLayer(rectangle);
+      rectangle.setStyle({fillColor: color, color: color});
+      return;
     }
 
     var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];

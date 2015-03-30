@@ -43,4 +43,8 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, LocalStorage
     $scope.cacheFilter = null;
   });
 
+  $scope.$watch('cacheFilter', function(filter) {
+    $rootScope.$broadcast('cacheFilterChange', filter);
+  });
+
 };
