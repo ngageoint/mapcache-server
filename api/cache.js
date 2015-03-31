@@ -6,6 +6,7 @@ function Cache() {
 Cache.prototype.getAll = function(options, callback) {
 
   CacheModel.getCaches(callback);
+
   //
   // var event = this._event;
   // var filter = options.filter;

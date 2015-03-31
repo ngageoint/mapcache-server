@@ -36,6 +36,11 @@ var transform = function(cache, ret, options) {
 	ret.id = ret._id;
 	delete ret._id;
 
+	if (cache.populated('sourceId')) {
+		ret.source = ret.sourceId;
+		delete ret.sourceId;
+	}
+
 	var path = options.path ? options.path : "";
   ret.url = [path, cache.id].join("/");
 }
@@ -51,7 +56,7 @@ exports.cacheModel = Cache;
 
 exports.getCaches = function(callback) {
 	var query = {};
-	Cache.find(query).populate('source').exec(function(err, caches) {
+	Cache.find(query).populate('sourceId').exec(function(err, caches) {
 	    if (err) {
 		      console.log("Error finding caches in mongo: " + id + ', error: ' + err);
 		    }
@@ -60,7 +65,7 @@ exports.getCaches = function(callback) {
 }
 
 exports.getCacheById = function(id, callback) {
-	 Cache.findById(id).populate('source').exec(function(err, cache) {
+	 Cache.findById(id).populate('sourceId').exec(function(err, cache) {
 	    if (err) {
 	      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
 	    }

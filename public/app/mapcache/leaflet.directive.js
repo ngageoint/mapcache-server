@@ -27,7 +27,8 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     maxZoom: 18
   });
 
- L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png').addTo(map);
+ var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
+ baseLayer.addTo(map);
 
 
   // TODO move into leaflet service, this and map clip both use it
@@ -114,12 +115,14 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   function showCacheTiles(cache) {
     removeCacheTiles(cache);
     // going to old server for now
-    var layer = L.tileLayer("https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
+    baseLayer.setOpacity(.3);
+    var layer = L.tileLayer(cache.source.url + "/{z}/{x}/{y}.png");//"https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
     layers[cache.id] = layer;
     layer.addTo(map);
   }
 
   function removeCacheTiles(cache) {
+    baseLayer.setOpacity(1);
     var layer = layers[cache.id];
     if (layer) {
       map.removeLayer(layer);
