@@ -43,6 +43,7 @@
   border-style: solid;
   border-color: #777;
   background-color: #EEE;
+  border-radius: 4px;
 }
 
 .signin-jumbotron {
@@ -50,8 +51,7 @@
   left: 10px;
   right: 10px;
   top: 110px;
-  -webkit-filter: blur(2px);
-  filter: blur(2px);
+  opacity: .4;
 }
 
 .top-gap-s {
