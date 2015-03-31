@@ -91,16 +91,20 @@ function run($rootScope, $modal, UserService, $location, authService) {
         templateUrl: 'app/signin/signin-modal.html',
         controller: ['$scope', '$modalInstance', 'authService', function ($scope, $modalInstance, authService) {
           var oldUsername = UserService.myself && UserService.myself.username || undefined;
-          $scope.login = function (data) {
-            UserService.login(data).success(function(){
+          $scope.signin = function () {
+            var data = {username: this.username, password: this.password};
+            UserService.login(data).then(function (data) {
               if (data.username != oldUsername) {
                 data.newUser = true;
               }
               authService.loginConfirmed(data);
               $rootScope.loginDialogPresented = false;
               $modalInstance.close($scope);
-            }).error(function (data, status, headers, config) {
-              $scope.status = status;
+              $rootScope.$broadcast('login', data);
+
+            },
+            function (data) {
+              $scope.status = data.status;
             });
           };
 
