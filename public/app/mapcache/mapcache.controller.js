@@ -41,15 +41,15 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   }
 
   $rootScope.$on('cacheFootprintPopupOpen', function(event, cache) {
-    $scope.cacheFilter = cache.name;
+    $scope.mapFilter = cache.id;
   });
 
   $rootScope.$on('cacheFootprintPopupClose', function(event, cache) {
-    $scope.cacheFilter = null;
+    $scope.mapFilter = null;
   });
 
-  $scope.$watch('cacheFilter', function(filter) {
-    $rootScope.$broadcast('cacheFilterChange', filter);
+  $scope.$watch('cacheFilter+mapFilter', function(filter) {
+    $rootScope.$broadcast('cacheFilterChange', {cacheFilter: $scope.cacheFilter, mapFilter: $scope.mapFilter});
   });
 
 };

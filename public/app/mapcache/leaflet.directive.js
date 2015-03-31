@@ -85,7 +85,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
 
   $rootScope.$on('cacheFilterChange', function(event, filter) {
     CacheService.getAllCaches().success(function(caches) {
-      $scope.caches = $filter('filter')(caches, filter);
+      $scope.caches = $filter('filter')($filter('filter')(caches, filter.cacheFilter), filter.mapFilter);
     });
   });
 
