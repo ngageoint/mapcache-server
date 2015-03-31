@@ -10,7 +10,8 @@ function CacheService($rootScope, $q, $http, $location, $timeout, LocalStorageSe
   var resolveAllCaches = null;
 
   var service = {
-    getAllCaches: getAllCaches
+    getAllCaches: getAllCaches,
+    createCache: createCache
   };
 
   return service;
@@ -30,4 +31,14 @@ function CacheService($rootScope, $q, $http, $location, $timeout, LocalStorageSe
     return resolveAllCaches;
   };
 
+  function createCache(cache, success, error, progress) {
+
+    $http.post(
+      '/api/caches',
+      cache,
+      {headers: {"Content-Type": "application/json"}}
+    ).success(function(cache) {
+      console.log("created a cache", cache);
+    });
+  };
 }

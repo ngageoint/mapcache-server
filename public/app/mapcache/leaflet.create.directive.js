@@ -77,10 +77,7 @@ function LeafletCreateController($scope, $element) {
       drawnItems.removeLayer(cacheFootprintLayer);
       cacheFootprintLayer = null;
       $scope.$apply(function() {
-        $scope.options.north = null;
-        $scope.options.south = null;
-        $scope.options.west = null;
-        $scope.options.east = null;
+        $scope.options.geometry = null;
       });
     }
   });
@@ -91,11 +88,7 @@ function LeafletCreateController($scope, $element) {
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      var bounds = cacheFootprintLayer.getBounds();
-      $scope.options.north = bounds.getNorth();
-      $scope.options.south = bounds.getSouth();
-      $scope.options.west = bounds.getWest();
-      $scope.options.east = bounds.getEast();
+      $scope.options.geometry = cacheFootprintLayer.toGeoJSON().geometry;
     });
   });
 
@@ -105,11 +98,7 @@ function LeafletCreateController($scope, $element) {
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      var bounds = cacheFootprintLayer.getBounds();
-      $scope.options.north = bounds.getNorth();
-      $scope.options.south = bounds.getSouth();
-      $scope.options.west = bounds.getWest();
-      $scope.options.east = bounds.getEast();
+      $scope.options.geometry = cacheFootprintLayer.toGeoJSON();
     });
   });
 

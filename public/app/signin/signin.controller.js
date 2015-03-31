@@ -8,7 +8,7 @@ function SigninController($scope, $rootScope, $location, UserService) {
   $scope.status = 0;
 
   $scope.signin = function () {
-    UserService.login({username: this.username, password: this.password, uid: this.uid})
+    UserService.login({username: this.username, password: this.password})
       .then(function (data) {
         $rootScope.$broadcast('login', data);
       },

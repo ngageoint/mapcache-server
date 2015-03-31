@@ -90,37 +90,37 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   });
 
   function createRectangle(cache, color) {
-    var rectangle = cacheFootprints[cache._id];
+    var rectangle = cacheFootprints[cache.id];
     if (rectangle) {
       rectangle.setStyle({fillColor: color, color: color});
       return;
     }
 
-    var bounds = [[cache.bounds._southWest.lat, cache.bounds._southWest.lng], [cache.bounds._northEast.lat, cache.bounds._northEast.lng]];
-    var rectangle = L.rectangle(bounds, {color: color, weight: 1});
-    cacheFootprints[cache._id] = rectangle;
-    rectangle.on('popupopen', function(e) {
+    var gj = L.geoJson(cache.geometry);
+    gj.setStyle({fillColor: color, color: color});
+    gj.bindPopup("<h5>" + cache.name + "</h5>");
+    gj.on('popupopen', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
       $scope.$apply();
     });
-    rectangle.on('popupclose', function(e) {
+    gj.on('popupclose', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupClose', cache);
       $scope.$apply();
     });
-    rectangle.bindPopup("<h5>" + cache.name + "</h5>");
-    rectangle.addTo(map);
+    gj.addTo(map);
+    cacheFootprints[cache.id] = gj;
   }
 
   function showCacheTiles(cache) {
     removeCacheTiles(cache);
     // going to old server for now
     var layer = L.tileLayer("https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
-    layers[cache._id] = layer;
+    layers[cache.id] = layer;
     layer.addTo(map);
   }
 
   function removeCacheTiles(cache) {
-    var layer = layers[cache._id];
+    var layer = layers[cache.id];
     if (layer) {
       map.removeLayer(layer);
     }
