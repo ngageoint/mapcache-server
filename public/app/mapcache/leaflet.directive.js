@@ -27,7 +27,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     maxZoom: 18
   });
 
-  L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png').addTo(map);
+ L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png').addTo(map);
 
 
   // TODO move into leaflet service, this and map clip both use it

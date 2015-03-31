@@ -1,12 +1,12 @@
 {
-  "name": "User Management",
+  "name": "mapcache",
   "version": "3.0.0",
-  "description": "User Management",
+  "description": "mapcache",
   "main": "index.html",
   "keywords": [
-    "User Management"
+    "mapcache"
   ],
-  "license": "Apache 2",
+  "license": "MIT",
   "private": true,
   "ignore": [
     "**/.*",
@@ -28,10 +28,7 @@
     "jquery-file-upload": "9.3.0",
     "jquery-file-download": "latest",
     "leaflet": "0.7.3",
-    "Leaflet.awesome-markers": "2.0.2",
-    "leaflet.markercluster": "0.4.0",
-    "leaflet-sidebar": "0.1.6",
-    "leaflet-groupedlayercontrol": "0.3.0",
+    "leaflet-draw": "0.2.3",
     "moment": "2.9.0",
     "underscore": "1.8.2"
   }

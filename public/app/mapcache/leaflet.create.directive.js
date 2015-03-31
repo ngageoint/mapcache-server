@@ -38,6 +38,81 @@ function LeafletCreateController($scope, $element) {
 
   baseLayer.addTo(map);
 
+  var cacheFootprintLayer = null;
+
+  var drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
+
+  var options = {
+    draw: {
+        polyline: false,
+        polygon: false,
+        circle: false, // Turns off this drawing tool
+        rectangle: {
+            shapeOptions: {
+                clickable: false,
+                color: "#0072c5"
+            }
+        },
+        marker: false
+    },
+    edit: {
+      featureGroup: drawnItems,
+      remove: false,
+      edit: {
+        selectedPathOptions: {
+          maintainColor: true,
+          opacity: 0.5,
+          dashArray:"10, 10"
+        }
+      }
+    }
+  };
+
+  var drawControl = new L.Control.Draw(options);
+  map.addControl(drawControl);
+
+  map.on('draw:drawstart', function (e) {
+    if (cacheFootprintLayer) {
+      drawnItems.removeLayer(cacheFootprintLayer);
+      cacheFootprintLayer = null;
+      $scope.$apply(function() {
+        $scope.options.north = null;
+        $scope.options.south = null;
+        $scope.options.west = null;
+        $scope.options.east = null;
+      });
+    }
+  });
+
+  map.on('draw:created', function (e) {
+    var layer = e.layer;
+    cacheFootprintLayer = layer;
+
+    drawnItems.addLayer(cacheFootprintLayer);
+    $scope.$apply(function() {
+      var bounds = cacheFootprintLayer.getBounds();
+      $scope.options.north = bounds.getNorth();
+      $scope.options.south = bounds.getSouth();
+      $scope.options.west = bounds.getWest();
+      $scope.options.east = bounds.getEast();
+    });
+  });
+
+  map.on('draw:edited', function (e) {
+    var layer = e.layers.getLayers()[0];
+    cacheFootprintLayer = layer;
+
+    drawnItems.addLayer(cacheFootprintLayer);
+    $scope.$apply(function() {
+      var bounds = cacheFootprintLayer.getBounds();
+      $scope.options.north = bounds.getNorth();
+      $scope.options.south = bounds.getSouth();
+      $scope.options.west = bounds.getWest();
+      $scope.options.east = bounds.getEast();
+    });
+  });
+
   $scope.$watch('options.url', function(url) {
     baseLayer.setUrl(getUrl(url));
   });

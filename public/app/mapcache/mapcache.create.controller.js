@@ -14,4 +14,5 @@ MapcacheCreateController.$inject = [
 
 function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
 
+  $scope.cache = {};
 };

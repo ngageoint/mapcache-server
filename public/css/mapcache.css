@@ -38,6 +38,10 @@
   text-align: center;
 }
 
+.leaflet-draw-tooltip-subtext {
+  color: #FFF;
+}
+
 .signin-form {
   border-width: 1px;
   border-style: solid;
