@@ -2,8 +2,8 @@
     "swagger": "2.0",
     "info": {
         "version": "1.0.0",
-        "title": "User Management",
-        "description": "User Management API",
+        "title": "mapcache",
+        "description": "mapcache API",
         "contact": {
             "name": "Benjamin Tuttle",
             "email": "benjamin.t.tuttle@nga.mil"
@@ -82,7 +82,7 @@
                 }
             },
             "post": {
-                "description": "Creates a new user.  Duplicates usernames are not allowed",
+                "description": "Creates a new user.  Duplicate usernames are not allowed",
                 "operationId": "addUser",
                 "parameters": [
                     {
@@ -265,6 +265,52 @@
                     }
                 }
             }
+        },
+        "/api/caches": {
+            "get": {
+                "description": "get all caches",
+                "operationId": "getCaches",
+                "tags": [
+                    "Cache"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "cache response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Cache"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new cache.",
+                "operationId": "addCache",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "cache create body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Cache"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "cache response",
+                        "schema": {
+                            "$ref": "#/definitions/Cache"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -435,6 +481,58 @@
                 },
                 "avatarUrl": {
                     "type": "string"
+                }
+            }
+        },
+        "Source": {
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                }
+            }
+        },
+        "Cache": {
+            "required": [
+                "id",
+                "name",
+                "maxZoom",
+                "minZoom",
+                "date"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "minZoom": {
+                    "type": "number"
+                },
+                "maxZoom": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "source": {
+                    "$ref": "#/definitions/Source"
                 }
             }
         }
