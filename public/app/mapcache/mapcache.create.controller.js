@@ -25,13 +25,11 @@ function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $locat
       return;
     }
 
-    var gj = L.geoJson(geometry);
-    var bounds = gj.getLayers()[0].getBounds();
-
-    $scope.north = bounds.getNorth();
-    $scope.south = bounds.getSouth();
-    $scope.west = bounds.getWest();
-    $scope.east = bounds.getEast();
+    var extent = turf.extent(geometry);
+    $scope.north = extent[3];
+    $scope.south = extent[1];
+    $scope.west = extent[0];
+    $scope.east = extent[2];
   });
 
   $scope.createCache = function() {
