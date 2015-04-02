@@ -14,9 +14,9 @@ function leaflet() {
   return directive;
 }
 
-LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService'];
+LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService', 'LocalStorageService'];
 
-function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService) {
+function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService, LocalStorageService) {
   var layers = {};
   var cacheFootprints = {};
 
@@ -116,7 +116,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     removeCacheTiles(cache);
     // going to old server for now
     baseLayer.setOpacity(.3);
-    var layer = L.tileLayer(cache.source.url + "/{z}/{x}/{y}.png");//"https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
+    var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());//"https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
     layers[cache.id] = layer;
     layer.addTo(map);
   }
