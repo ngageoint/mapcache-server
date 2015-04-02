@@ -1,5 +1,6 @@
 var CacheModel = require('../models/cache')
   , async = require('async')
+  , turf = require('turf')
   , downloader = require('./tileDownloader');
 
 Math.radians = function(degrees) {
@@ -13,26 +14,23 @@ Math.degrees = function(radians) {
 
 function xCalculator(bbox,z) {
 		var x = [];
-		var x1 = getX(Number(bbox.SW.long), z);
-		var x2 = getX(Number(bbox.NE.long), z);
+		var x1 = getX(Number(bbox[0]), z);
+		var x2 = getX(Number(bbox[2]), z);
 		x.max = Math.max(x1, x2);
 		x.min = Math.min(x1, x2);
 		if (z == 0){
 			x.current = Math.min(x1, x2);
 		}
-
-		// console.log('Calculations- x1:'+ x1 +', x2: '+ x2 +', maxX:'+ x.max +', minX: '+ x.min);
 		return x;
 	}
 
 	function yCalculator(bbox,z) {
 		var y = [];
-		var y1 = getY(Number(bbox.SW.lat), z);
-		var y2 = getY(Number(bbox.NE.lat), z);
+		var y1 = getY(Number(bbox[1]), z);
+		var y2 = getY(Number(bbox[3]), z);
 		y.max = Math.max(y1, y2);
 		y.min = Math.min(y1, y2);
 		y.current = Math.min(y1, y2);
-		// console.log('Calculations- y1:'+ y1 +', y2: '+ y2 +', maxY:'+ y.max +', minY: '+ y.min);
 		return y;
 	}
 
@@ -70,15 +68,16 @@ Cache.prototype.create = function(cache, callback) {
     if (err) return callback(err);
     callback(err, newCache);
 
-    console.log("go do it");
-    var zoom = 0;
+    var zoom = cache.minZoom;
+    var extent = turf.extent(cache.geometry);
+
     async.whilst(
         function () {
-          return zoom < 2;
+          return zoom <= cache.maxZoom;
         },
         function (zoomLevelDone) {
-          var yRange = yCalculator({SW:{long: -105, lat: 39}, NE: {long: -103, lat: 41.2}}, zoom);
-          var xRange = xCalculator({SW:{long: -105, lat: 39}, NE: {long: -103, lat: 41.2}}, zoom);
+          var yRange = yCalculator(extent, zoom);
+          var xRange = xCalculator(extent, zoom);
 
           var currentx = xRange.min;
 
