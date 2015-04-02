@@ -74,7 +74,7 @@ exports.getCacheById = function(id, callback) {
 	}
 
 exports.createCache = function(cache, callback) {
-	cache.source.format = 'XYZ';
+	
 	Source.create(cache.source, function(err, newSource) {
 		if (err) return callback(err);
 		cache.sourceId = newSource._id;

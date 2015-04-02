@@ -311,6 +311,59 @@
                     }
                 }
             }
+        },
+        "/api/caches/{cacheId}/{z}/{x}/{y}.png": {
+            "get": {
+                "description": "get cache tile",
+                "operationId": "getCacheTile",
+                "produces": [
+                    "image/png"
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "parameters": [
+                    {
+                        "name": "cacheId",
+                        "in": "path",
+                        "description": "id of cache to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "z",
+                        "in": "path",
+                        "description": "zoom level of tile",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "x",
+                        "in": "path",
+                        "description": "x of tile",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "y",
+                        "in": "path",
+                        "description": "y of tile",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "image tile from cache",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Cache"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
