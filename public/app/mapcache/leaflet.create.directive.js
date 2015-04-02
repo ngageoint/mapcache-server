@@ -30,7 +30,7 @@ function LeafletCreateController($scope, $element) {
   var baseLayer = L.tileLayer(defaultLayer, options);
 
   var map = L.map($element[0], {
-    center: [0,0],
+    center: [45,0],
     zoom: 3,
     minZoom: 0,
     maxZoom: 18

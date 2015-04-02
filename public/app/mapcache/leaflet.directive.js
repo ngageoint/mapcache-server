@@ -21,7 +21,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   var cacheFootprints = {};
 
   var map = L.map($element[0], {
-    center: [0,0],
+    center: [45,0],
     zoom: 3,
     minZoom: 0,
     maxZoom: 18
