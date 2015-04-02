@@ -32,10 +32,10 @@
       "poolSize": 5
     },
     "cacheDirectory": {
-      "path": "/data/mapcache/"
-    },   
+      "path": "/data/mapcache"
+    },
     "zipDirectory": {
       "path": "./zip/"
-    }  
+    }
   }
 }

@@ -19,15 +19,15 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
-    "async": "0.2.x",
+    "async": "0.9.x",
     "body-parser": "1.2.x",
     "express": "4.10.6",
-    "fs-extra":"0.11.x",
+    "fs-extra": "0.11.x",
     "method-override": "1.0.x",
     "migrate": "0.1.6",
     "moment": "2.1.0",
-    "mongoose": "3.8.24",
     "mongodb-migrations": "0.2.1",
+    "mongoose": "3.8.24",
     "multer": "0.1.x",
     "optimist": "0.3.x",
     "passport": "0.1.x",
@@ -35,6 +35,7 @@
     "passport-http-bearer": "0.2.x",
     "passport-local": "1.0.0",
     "request": "2.51.x",
+    "turf": "^2.0.2",
     "walk": "2.3.4",
     "winston": "0.7.x"
   },
