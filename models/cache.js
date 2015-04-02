@@ -79,6 +79,7 @@ exports.createCache = function(cache, callback) {
 		if (err) return callback(err);
 		cache.sourceId = newSource._id;
 		Cache.create(cache, function(err, newCache) {
+			newCache.source = newSource;
 			callback(err, newCache);
 		});
 	});
