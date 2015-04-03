@@ -5,12 +5,12 @@ var config = require('../config.json');
 exports.download = function(tileInfo, callback) {
 	var filepath = getFilepath(tileInfo);
 	var dir = createDir(tileInfo.cache._id, filepath);
-	var filename = getFilename(tileInfo, 'xyz');
+	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
 
 	if (!fs.existsSync(filepath + '/' + filename)) {
-    var url;
+    var url = tileInfo.cache.source.url + '/' + filepath + filename;
 
-    console.log('downloading: '+ tileInfo.cache.source.url + '/' + filepath + filename + " to " + dir  + filename);
+    console.log('downloading: '+ url + " to " + dir  + filename);
 
 
 		var stream = fs.createWriteStream(dir + '/' + filename);
@@ -18,11 +18,11 @@ exports.download = function(tileInfo, callback) {
 			callback(null, tileInfo)
 		});
 
-    request.get({url: tileInfo.cache.source.url + '/' + filepath  + filename,
+    request.get({url: url,
 		    headers: {'Content-Type': 'image/png'},
 	    })
 		  .on('error', function(err) {
-		    console.log(err+ tileInfo.cache.source.url + '/' + filepath + filename);
+		    console.log(err+ url);
 
 			  callback(err, tileInfo);
 		  })

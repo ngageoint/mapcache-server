@@ -15,6 +15,21 @@
       </div>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <ui-select ng-model="user.selected" theme="bootstrap">
+       <ui-select-match placeholder="Select a user to add to team">{{$select.selected.username}}</ui-select-match>
+       <ui-select-choices group-by="groupLayerByType" repeat="user in nonUsers | orderBy: 'name' | filter: $select.search">
+         <div ng-bind-html="user.username | highlight: $select.search"></div>
+         <small class="muted">
+          <span ng-bind-html="''+user.firstname + ' ' + user.lastname | highlight: $select.search"></span>
+        </small>
+       </ui-select-choices>
+     </ui-select>
+    </div>
+  </div>
+
   <div class="hidden-xs">
     <div class="row">
       <div class="col-sm-2 col-sm-offset-5">
@@ -35,7 +50,7 @@
         <div leaflet-create options="cache"></div>
         <div class="checkbox">
           <label>
-            <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
+            <input type="checkbox" ng-model="cache.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
           </label>
         </div>
       </div>

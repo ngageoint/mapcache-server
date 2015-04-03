@@ -317,7 +317,7 @@
                 "description": "get cache tile",
                 "operationId": "getCacheTile",
                 "produces": [
-                    "image/png"
+                    "application/octet-stream"
                 ],
                 "tags": [
                     "Cache"
@@ -360,6 +360,68 @@
                             "items": {
                                 "$ref": "#/definitions/Cache"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sources": {
+            "get": {
+                "description": "get all sources",
+                "operationId": "getSources",
+                "tags": [
+                    "Source"
+                ],
+                "parameters": [
+                    {
+                        "name": "url",
+                        "in": "query",
+                        "description": "url to query for",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "format to query for",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "source response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Source"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new source.",
+                "operationId": "addSource",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "cache source body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Source"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "source response",
+                        "schema": {
+                            "$ref": "#/definitions/Source"
                         }
                     }
                 }

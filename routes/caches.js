@@ -15,48 +15,6 @@ module.exports = function(app, auth) {
 
     req.newCache = cache;
     next();
-    //
-    // if (!observation.type || observation.type != 'Feature' ) {
-    //   return res.status(400).send("cannot create observation 'type' param not specified, or is not set to 'Feature'");
-    // }
-    //
-    // if (!observation.geometry) {
-    //   return res.status(400).send("cannot create observation 'geometry' param not specified");
-    // }
-    //
-    // if (!observation.properties || !observation.properties.timestamp) {
-    //   return res.status(400).send("cannot create observation 'properties.timestamp' param not specified");
-    // }
-    //
-    // Team.teamsForUserInEvent(req.user, req.event, function(err, teams) {
-    //   if (err) return next(err);
-    //
-    //   if (teams.length === 0) {
-    //     return res.status(403).send('Cannot submit an observation for an event that you are not part of.');
-    //   }
-    //
-    //   observation.properties.timestamp = moment(observation.properties.timestamp).toDate();
-    //
-    //   var state = {name: 'active'};
-    //   if (userId) state.userId = userId;
-    //   observation.states = [state];
-    //
-    //   req.newObservation = {
-    //     type: observation.type,
-    //     geometry: observation.geometry,
-    //     properties: observation.properties,
-    //     states: [state],
-    //     teamIds: teams.map(function(team) { return team._id; })
-    //   };
-    //
-    //   var userId = req.user ? req.user._id : null;
-    //   if (userId) req.newObservation.userId = userId;
-    //
-    //   var deviceId = req.provisionedDeviceId ? req.provisionedDeviceId : null;
-    //   if (deviceId) req.newObservation.deviceId = deviceId;
-    //
-    //   next();
-    // });
   }
 
   var parseQueryParams = function(req, res, next) {

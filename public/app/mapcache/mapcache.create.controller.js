@@ -14,7 +14,9 @@ MapcacheCreateController.$inject = [
 
 function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
 
-  $scope.cache = {};
+  $scope.cache = {
+    format: "xyz"
+  };
 
   $scope.$watch('cache.geometry', function(geometry) {
     if (!geometry) {
