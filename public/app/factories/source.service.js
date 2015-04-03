@@ -31,8 +31,7 @@ function SourceService($q, $http) {
     return resolveAllSources;
   };
 
-  function createSources(source, success, error, progress) {
-
+  function createSource(source, success, error, progress) {
     $http.post(
       '/api/sources',
       source,

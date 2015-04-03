@@ -102,7 +102,7 @@ function LeafletCreateController($scope, $element) {
     });
   });
 
-  $scope.$watch('options.url', function(url) {
+  $scope.$watch('options.source.url', function(url) {
     baseLayer.setUrl(getUrl(url));
   });
 

@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose')
+	, Source = require('./source');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -72,16 +73,18 @@ exports.getCacheById = function(id, callback) {
 exports.createCache = function(cache, callback) {
 	if (cache.sourceId) {
 		Cache.create(cache, function(err, newCache) {
-			newCache.source = newSource;
 			callback(err, newCache);
 		});
 		return;
 	}
-	getSourceByUrlAndFormat(cache.source.url, cache.source.format, function(err, source) {
-		if (source) {
-			cache.sourceId = newSource._id;
+	console.log(cache);
+	Source.getSources({url: cache.source.url, format: cache.source.format}, function(err, sources) {
+		if (sources) {
+			console.log(sources);
+			var source = sources[0];
+			cache.sourceId = source._id;
 			Cache.create(cache, function(err, newCache) {
-				newCache.source = newSource;
+				newCache.source = source;
 				callback(err, newCache);
 			});
 		} else {

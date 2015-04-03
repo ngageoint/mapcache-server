@@ -4,19 +4,20 @@ angular
 
 MapcacheCreateController.$inject = [
   '$scope',
-  '$rootScope',
-  '$compile',
-  '$timeout',
-  '$location',
-  'LocalStorageService',
-  'CacheService'
+  'CacheService',
+  'SourceService'
 ];
 
-function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
+function MapcacheCreateController($scope, CacheService, SourceService) {
 
   $scope.cache = {
-    format: "xyz"
+    format: "xyz",
+    source: {}
   };
+
+  SourceService.getAllSources().success(function(sources) {
+    $scope.sources = sources;
+  });
 
   $scope.$watch('cache.geometry', function(geometry) {
     if (!geometry) {
@@ -36,9 +37,6 @@ function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $locat
 
   $scope.createCache = function() {
     console.log($scope.cache);
-    $scope.cache.source = {
-      url: $scope.cache.url
-    };
     CacheService.createCache($scope.cache);
   }
 };
