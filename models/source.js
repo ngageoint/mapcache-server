@@ -9,6 +9,8 @@ var SourceSchema = new Schema({
 	format: { type: String, required: true}
 });
 
+SourceSchema.index({url: 1, format: 1}, {unique: true});
+
 function transform(source, ret, options) {
 	ret.id = ret._id;
 	delete ret._id;

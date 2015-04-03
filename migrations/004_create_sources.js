@@ -14,7 +14,7 @@ exports.up = function(done) {
     format: 'xyz'
   }, {
     name: 'Mapbox Satelite Afternoon',
-    url: 'http://mapbox.geointapps.org:2999/v4/mapbox.satelite-afternoon',
+    url: 'http://mapbox.geointapps.org:2999/v4/mapbox.satellite-afternoon',
     format: 'xyz'
   }, {
     name: 'Mapbox Light',
