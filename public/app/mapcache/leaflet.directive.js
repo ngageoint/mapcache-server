@@ -64,16 +64,16 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     }
     for (var i = 0; i < caches.length; i++) {
       var cache = caches[i];
-      createRectangle(cache, "#ff7800");
+      createRectangle(cache, "#0072c5");
     }
   });
 
   $rootScope.$on('cacheHighlight', function(event, cache) {
-    createRectangle(cache, "#007800");
+    createRectangle(cache, "#ff7800");
   });
 
   $rootScope.$on('cacheUnhighlight', function(event, cache) {
-    createRectangle(cache, "#ff7800");
+    createRectangle(cache, "#0072c5");
   });
 
   $rootScope.$on('showCacheTiles', function(event, cache) {

@@ -311,6 +311,121 @@
                     }
                 }
             }
+        },
+        "/api/caches/{cacheId}/{z}/{x}/{y}.png": {
+            "get": {
+                "description": "get cache tile",
+                "operationId": "getCacheTile",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "parameters": [
+                    {
+                        "name": "cacheId",
+                        "in": "path",
+                        "description": "id of cache to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "z",
+                        "in": "path",
+                        "description": "zoom level of tile",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "x",
+                        "in": "path",
+                        "description": "x of tile",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "y",
+                        "in": "path",
+                        "description": "y of tile",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "image tile from cache",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Cache"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sources": {
+            "get": {
+                "description": "get all sources",
+                "operationId": "getSources",
+                "tags": [
+                    "Source"
+                ],
+                "parameters": [
+                    {
+                        "name": "url",
+                        "in": "query",
+                        "description": "url to query for",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "format to query for",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "source response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Source"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new source.",
+                "operationId": "addSource",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": "cache source body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Source"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "source response",
+                        "schema": {
+                            "$ref": "#/definitions/Source"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

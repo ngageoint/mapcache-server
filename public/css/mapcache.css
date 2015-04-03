@@ -58,6 +58,10 @@
   opacity: .4;
 }
 
+.ui-select-bootstrap>.ui-select-choices {
+  z-index: 1001;
+}
+
 .top-gap-s {
   margin-top: 5px;
 }

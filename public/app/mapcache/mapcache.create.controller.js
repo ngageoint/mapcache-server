@@ -4,17 +4,20 @@ angular
 
 MapcacheCreateController.$inject = [
   '$scope',
-  '$rootScope',
-  '$compile',
-  '$timeout',
-  '$location',
-  'LocalStorageService',
-  'CacheService'
+  'CacheService',
+  'SourceService'
 ];
 
-function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
+function MapcacheCreateController($scope, CacheService, SourceService) {
 
-  $scope.cache = {};
+  $scope.cache = {
+    format: "xyz",
+    source: {}
+  };
+
+  SourceService.getAllSources().success(function(sources) {
+    $scope.sources = sources;
+  });
 
   $scope.$watch('cache.geometry', function(geometry) {
     if (!geometry) {
@@ -25,20 +28,15 @@ function MapcacheCreateController($scope, $rootScope, $compile, $timeout, $locat
       return;
     }
 
-    var gj = L.geoJson(geometry);
-    var bounds = gj.getLayers()[0].getBounds();
-
-    $scope.north = bounds.getNorth();
-    $scope.south = bounds.getSouth();
-    $scope.west = bounds.getWest();
-    $scope.east = bounds.getEast();
+    var extent = turf.extent(geometry);
+    $scope.north = extent[3];
+    $scope.south = extent[1];
+    $scope.west = extent[0];
+    $scope.east = extent[2];
   });
 
   $scope.createCache = function() {
     console.log($scope.cache);
-    $scope.cache.source = {
-      url: $scope.cache.url
-    };
     CacheService.createCache($scope.cache);
   }
 };

@@ -122,29 +122,4 @@ Cache.prototype.create = function(cache, callback) {
   });
 }
 
-// Observation.prototype.update = function(observationId, observation, callback) {
-//   ObservationModel.updateObservation(this._event, observationId, observation, callback);
-// }
-//
-// Observation.prototype.addState = function(observationId, state, callback) {
-//   ObservationModel.addState(this._event, observationId, state, callback);
-// }
-//
-// Observation.prototype.delete = function(observationId, callback) {
-//   ObservationModel.removeFeature(this._event, observationId, function(err, observation) {
-//     if (observation) {
-//       observation.attachments.forEach(function(attachment) {
-//         var file = path.join(attachmentBase, attachment.relativePath);
-//         fs.remove(file, function(err) {
-//           if (err) {
-//             console.error("Could not remove attachment file " + file + ". ", err);
-//           }
-//         });
-//       });
-//     }
-//
-//     callback(err, observation);
-//   });
-// }
-
 module.exports = Cache;

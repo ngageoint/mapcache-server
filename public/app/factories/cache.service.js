@@ -2,9 +2,9 @@ angular
   .module('mapcache')
   .factory('CacheService', CacheService);
 
-CacheService.$inject = ['$rootScope', '$q', '$http', '$location', '$timeout', 'LocalStorageService'];
+CacheService.$inject = ['$q', '$http'];
 
-function CacheService($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
+function CacheService($q, $http) {
 
   var resolvedCaches = {};
   var resolveAllCaches = null;
@@ -39,6 +39,9 @@ function CacheService($rootScope, $q, $http, $location, $timeout, LocalStorageSe
       {headers: {"Content-Type": "application/json"}}
     ).success(function(cache) {
       console.log("created a cache", cache);
+      if (success) {
+        success(cache);
+      }
     });
   };
 }
