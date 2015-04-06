@@ -1,6 +1,7 @@
-var request = require('request');
-var fs = require('fs-extra');
-var config = require('../config.json');
+var request = require('request')
+	, fs = require('fs-extra')
+	, CacheModel = require('../models/cache')
+ 	, config = require('../config.json');
 
 exports.download = function(tileInfo, callback) {
 	var filepath = getFilepath(tileInfo);
@@ -15,6 +16,9 @@ exports.download = function(tileInfo, callback) {
 
 		var stream = fs.createWriteStream(dir + '/' + filename);
 		stream.on('close',function(status){
+			console.log('status on tile download is', status);
+			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+			});
 			callback(null, tileInfo)
 		});
 
@@ -29,6 +33,9 @@ exports.download = function(tileInfo, callback) {
 		  .pipe(stream);
 	} else {
     console.log('tile already exists', tileInfo);
+		CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+
+		});
     callback(null, tileInfo);
   }
 }
