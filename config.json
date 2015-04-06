@@ -35,7 +35,7 @@
       "path": "/data/mapcache"
     },
     "zipDirectory": {
-      "path": "./zip/"
+      "path": "/data/mapcache/zip/"
     }
   }
 }

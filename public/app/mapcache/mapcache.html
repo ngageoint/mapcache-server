@@ -30,11 +30,11 @@
       </div>
       <div class="row cache-types-row">
         <div class="col-md-2 cache-type-details">
-          <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=XYZ">XYZ</a></div>
+          <div class="cache-type"><a target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=XYZ&access_token={{token}}">XYZ</a></div>
           <div class="cache-size">9.0 MB</div>
         </div>
         <div class="col-md-2 cache-type-details">
-          <div class="cache-type"><a ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&type=TMS">TMS</a></div>
+          <div class="cache-type"><a target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=TMS&access_token={{token}}">TMS</a></div>
           <div class="cache-size">9.0 MB</div>
         </div>
       </div>

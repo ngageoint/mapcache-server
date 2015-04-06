@@ -14,6 +14,8 @@ MapcacheController.$inject = [
 
 function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
 
+  $scope.token = LocalStorageService.getToken();
+  
   CacheService.getAllCaches().success(function(caches) {
     $scope.caches = caches;
   });
