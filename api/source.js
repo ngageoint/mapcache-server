@@ -1,6 +1,7 @@
 var SourceModel = require('../models/source')
   , fs = require('fs-extra')
   , path = require('path')
+  , sourceProcessor = require('./sourceTypes')
   , config = require('../config.json');
 
 function Source() {
@@ -14,7 +15,8 @@ Source.prototype.getAll = function(options, callback) {
 Source.prototype.create = function(source, callback) {
   SourceModel.createSource(source, function(err, newSource) {
     if (err) return callback(err);
-    callback(err, newSource);
+
+    sourceProcessor.process(newSource, callback);
   });
 }
 
@@ -33,7 +35,7 @@ Source.prototype.import = function(source, sourceFile, callback) {
 
         newSource.filePath = file;
         newSource.save(function(err){
-          callback(err, newSource);
+          sourceProcessor.process(newSource, callback);
         });
       });
     });
