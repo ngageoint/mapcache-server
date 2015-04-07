@@ -6,15 +6,15 @@ var Schema = mongoose.Schema;
 var SourceSchema = new Schema({
 	name: { type: String, required: false },
 	url: { type: String, required: false },
-	format: { type: String, required: true}
+	format: { type: String, required: true},
+	filePath: { type: String, required: false}
 });
-
-SourceSchema.index({url: 1, format: 1}, {unique: true});
 
 function transform(source, ret, options) {
 	ret.id = ret._id;
 	delete ret._id;
 	delete ret.__v;
+	delete ret.filePath;
 }
 
 SourceSchema.set("toJSON", {

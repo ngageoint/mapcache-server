@@ -35,7 +35,7 @@ function SourceService($q, $http, LocalStorageService) {
 
     if (source.sourceFile) {
         var formData = new FormData();
-        formData.append('form', source.sourceFile);
+        formData.append('sourceFile', source.sourceFile);
         for (var key in source) {
           if (source.hasOwnProperty(key) && key != 'sourceFile' ) {
             formData.append(key, source[key]);

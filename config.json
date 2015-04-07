@@ -36,6 +36,9 @@
     },
     "zipDirectory": {
       "path": "/data/mapcache/zip/"
+    },
+    "sourceDirectory": {
+      "path": "/data/mapcache/sources"
     }
   }
 }

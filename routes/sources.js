@@ -48,6 +48,26 @@ module.exports = function(app, auth) {
     }
   );
 
+  app.post(
+    '/api/sources',
+    access.authorize('CREATE_CACHE'),
+    validateSource,
+    function(req, res, next) {
+      if (!req.is('multipart/form-data')) return next();
+
+      console.log(req);
+      
+      new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
+        if (err) return next(err);
+
+        if (!newSource) return res.status(400).send();
+
+        var response = sourceXform.transform(newSource);
+        res.location(newSource._id.toString()).json(response);
+      });
+    }
+  );
+
   // create a new source
   app.post(
     '/api/sources',

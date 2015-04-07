@@ -1,4 +1,7 @@
-var SourceModel = require('../models/source');
+var SourceModel = require('../models/source')
+  , fs = require('fs-extra')
+  , path = require('path')
+  , config = require('../config.json');
 
 function Source() {
 }
@@ -12,6 +15,28 @@ Source.prototype.create = function(source, callback) {
   SourceModel.createSource(source, function(err, newSource) {
     if (err) return callback(err);
     callback(err, newSource);
+  });
+}
+
+Source.prototype.import = function(source, sourceFile, callback) {
+  SourceModel.createSource(source, function(err, newSource) {
+    if (err) return callback(err);
+    var dir = path.join(config.server.sourceDirectory.path, newSource.id);
+    fs.mkdirp(dir, function(err) {
+      if (err) return callback(err);
+
+      var fileName = path.basename(sourceFile.path);
+      var file = path.join(dir, fileName);
+
+      fs.rename(sourceFile.path, file, function(err) {
+        if (err) return callback(err);
+
+        newSource.filePath = file;
+        newSource.save(function(err){
+          callback(err, newSource);
+        });
+      });
+    });
   });
 }
 
