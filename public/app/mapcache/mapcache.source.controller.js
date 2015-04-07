@@ -18,9 +18,8 @@ function MapcacheSourceController($scope, $location, CacheService, SourceService
   var uploadProgress = function(e) {
     if(e.lengthComputable){
       $scope.$apply(function() {
-        $scope.uploading = true;
-        $scope.uploadProgress = (e.loaded/e.total) * 100;
-        console.log('uploadprogress ' + $scope.uploadProgress);
+        $scope.progress = (e.loaded/e.total) * 100;
+        console.log('uploadprogress ' + $scope.progress);
       });
     }
   }

@@ -77,7 +77,14 @@
         </div>
       </div>
       <div class="row top-gap">
-        <div class="col-md-12">
+        <div class="col-md-6">
+          <div class="progress" ng-if="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
+              <span>{{progress}}% Complete</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
           <button class="btn btn-primary pull-right" ng-click="createSource()">Create GeoTIFF Source</button>
         </div>
       </div>
