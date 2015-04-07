@@ -41,7 +41,6 @@ function CacheService($q, $http) {
       console.log("created a cache", cache);
       if (success) {
         success(cache);
-        getAllCaches(true);
       }
     });
   };

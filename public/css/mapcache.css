@@ -60,6 +60,7 @@
 
 .ui-select-bootstrap>.ui-select-choices {
   z-index: 1001;
+  max-height: 500px;
 }
 
 .top-gap-s {
@@ -110,4 +111,36 @@
   position: relative;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.btn-file {
+  position: relative;
+  overflow: hidden;
+}
+.btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  outline: none;
+  background: white;
+  cursor: inherit;
+  display: block;
+}
+
+.create-source-map .leaflet-container:before {
+  content: "derp";
+  height: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  text-align: center;
 }

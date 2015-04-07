@@ -4,18 +4,18 @@ angular
 
 MapcacheCreateController.$inject = [
   '$scope',
+  '$location',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheCreateController($scope, CacheService, SourceService) {
+function MapcacheCreateController($scope, $location, CacheService, SourceService) {
 
   $scope.cache = {
-    format: "xyz",
-    source: {}
+    format: "xyz"
   };
 
-  SourceService.getAllSources().success(function(sources) {
+  SourceService.getAllSources(true).success(function(sources) {
     $scope.sources = sources;
   });
 
@@ -38,5 +38,9 @@ function MapcacheCreateController($scope, CacheService, SourceService) {
   $scope.createCache = function() {
     console.log($scope.cache);
     CacheService.createCache($scope.cache);
+  }
+
+  $scope.createSource = function() {
+    $location.path('/source');
   }
 };

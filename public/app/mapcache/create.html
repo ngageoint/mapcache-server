@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container top-gap-l">
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
@@ -7,130 +7,133 @@
       </div>
     </div>
   </div>
+
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label>Source URL</label>
-        <input class="form-control" ng-model="cache.source.url" placeholder="e.g. http://osm.geointapps.org">
-      </div>
+        <label>Choose the source of your cache.  This is what your map cache will be generated from.</label>
+          <ui-select ng-model="cache.source" theme="bootstrap">
+           <ui-select-match placeholder="Select a source">{{$select.selected.name}}</ui-select-match>
+           <ui-select-choices group-by="groupLayerByType" repeat="source in sources | orderBy: 'name' | filter: $select.search">
+             <div ng-bind-html="source.name | highlight: $select.search"></div>
+             <small class="muted">
+              <span ng-bind-html="''+source.name + ' ' + source.url | highlight: $select.search"></span>
+            </small>
+           </ui-select-choices>
+         </ui-select>
+       </div>
     </div>
   </div>
 
   <div class="row">
     <div class="col-md-12">
-      <ui-select ng-model="cache.source" theme="bootstrap">
-       <ui-select-match placeholder="Select a user to add to team">{{$select.selected.name}}</ui-select-match>
-       <ui-select-choices group-by="groupLayerByType" repeat="source in sources | orderBy: 'name' | filter: $select.search">
-         <div ng-bind-html="source.name | highlight: $select.search"></div>
-         <small class="muted">
-          <span ng-bind-html="''+source.name + ' ' + source.url | highlight: $select.search"></span>
-        </small>
-       </ui-select-choices>
-     </ui-select>
+      <button class="btn btn-link pull-right" ng-click="createSource()">Don't see the source you want? Click here to create one.</button>
     </div>
   </div>
 
-  <div class="hidden-xs">
+  <div ng-if="cache.source">
+    <div class="hidden-xs">
+      <div class="row">
+        <div class="col-sm-2 col-sm-offset-5">
+          <div class="form-group">
+            <label>Northern Boundary</label>
+            <input class="form-control" ng-model="north" placeholder="e.g. 39.9">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2" style="height: 500px">
+          <div class="form-group vertical-center">
+            <label>Western Boundary</label>
+            <input class="form-control" ng-model="west" placeholder="e.g. -105.2">
+          </div>
+        </div>
+        <div class="col-sm-8">
+          <div leaflet-create options="cache"></div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="cache.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-2" style="height: 500px">
+          <div class="form-group vertical-center">
+            <label>Eastern Boundary</label>
+            <input class="form-control" ng-model="east" placeholder="e.g. -104.8">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-2 col-sm-offset-5">
+          <div class="form-group">
+            <label>Southern Boundary</label>
+            <input class="form-control" ng-model="south" placeholder="e.g. 39.5">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="visible-xs-block">
+      <div class="row">
+        <div class="col-xs-12">
+          <div leaflet-create options="cache"></div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="form-group">
+            <label>Northern Boundary</label>
+            <input class="form-control" ng-model="north" placeholder="e.g. 39.9">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="form-group">
+            <label>Eastern Boundary</label>
+            <input class="form-control" ng-model="east" placeholder="e.g. -104.8">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="form-group">
+            <label>Southern Boundary</label>
+            <input class="form-control" ng-model="south" placeholder="e.g. 39.5">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="form-group">
+            <label>Western Boundary</label>
+            <input class="form-control" ng-model="west" placeholder="e.g. -105.2">
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="row">
-      <div class="col-sm-2 col-sm-offset-5">
+      <div class="col-md-6">
         <div class="form-group">
-          <label>Northern Boundary</label>
-          <input class="form-control" ng-model="north" placeholder="e.g. 39.9">
+          <label>Minimum Zoom Level</label>
+          <input class="form-control" ng-model="cache.minZoom" placeholder="e.g. 0">
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2" style="height: 500px">
-        <div class="form-group vertical-center">
-          <label>Western Boundary</label>
-          <input class="form-control" ng-model="west" placeholder="e.g. -105.2">
-        </div>
-      </div>
-      <div class="col-sm-8">
-        <div leaflet-create options="cache"></div>
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" ng-model="cache.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
-          </label>
-        </div>
-      </div>
-      <div class="col-sm-2" style="height: 500px">
-        <div class="form-group vertical-center">
-          <label>Eastern Boundary</label>
-          <input class="form-control" ng-model="east" placeholder="e.g. -104.8">
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-2 col-sm-offset-5">
+      <div class="col-md-6">
         <div class="form-group">
-          <label>Southern Boundary</label>
-          <input class="form-control" ng-model="south" placeholder="e.g. 39.5">
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="visible-xs-block">
-    <div class="row">
-      <div class="col-xs-12">
-        <div leaflet-create options="cache"></div>
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
-          </label>
+          <label>Maximum Zoom Level</label>
+          <input class="form-control" ng-model="cache.maxZoom" placeholder="e.g. 18">
         </div>
       </div>
     </div>
     <div class="row">
-      <div class="col-xs-12">
-        <div class="form-group">
-          <label>Northern Boundary</label>
-          <input class="form-control" ng-model="north" placeholder="e.g. 39.9">
-        </div>
+      <div class="col-md-12">
+        <button class="btn btn-primary pull-right" ng-click="createCache()">Create Cache</button>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="form-group">
-          <label>Eastern Boundary</label>
-          <input class="form-control" ng-model="east" placeholder="e.g. -104.8">
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="form-group">
-          <label>Southern Boundary</label>
-          <input class="form-control" ng-model="south" placeholder="e.g. 39.5">
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="form-group">
-          <label>Western Boundary</label>
-          <input class="form-control" ng-model="west" placeholder="e.g. -105.2">
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-6">
-      <div class="form-group">
-        <label>Minimum Zoom Level</label>
-        <input class="form-control" ng-model="cache.minZoom" placeholder="e.g. 0">
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="form-group">
-        <label>Maximum Zoom Level</label>
-        <input class="form-control" ng-model="cache.maxZoom" placeholder="e.g. 18">
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <button class="btn btn-primary pull-right" ng-click="createCache()">Create Cache</button>
     </div>
   </div>
 </div>
