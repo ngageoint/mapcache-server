@@ -135,9 +135,9 @@ exports.createCache = function(cache, callback) {
 }
 
 exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
-	var update = {};
-	update['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
-	Cache.findByIdAndUpdate(cache._id, {'$set':update}, callback);
+	var update = {$set: {}};
+	update.$set['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
+	Cache.findByIdAndUpdate(cache._id, update, callback);
 }
 
 exports.updateTileDownloaded = function(cache, z, x, y, callback) {
