@@ -30,10 +30,11 @@ function LeafletCreateController($scope, $element) {
   var baseLayer = L.tileLayer(defaultLayer, options);
 
   var map = L.map($element[0], {
-    center: [45,0],
+    center: [0,0],
     zoom: 3,
     minZoom: 0,
-    maxZoom: 18
+    maxZoom: 18,
+    worldCopyJump: true
   });
 
   baseLayer.addTo(map);
@@ -100,6 +101,14 @@ function LeafletCreateController($scope, $element) {
     $scope.$apply(function() {
       $scope.options.geometry = cacheFootprintLayer.toGeoJSON();
     });
+  });
+
+  $scope.$watch('options.source.geometry', function(geometry) {
+    var gj = L.geoJson({type: "FeatureCollection", features:[geometry]});
+    gj.setStyle({fill: false, color: "#308014", clickable: false});
+    gj.addTo(map);
+    gj.bringToFront();
+    map.fitBounds(gj.getBounds());
   });
 
   $scope.$watch('options.source.url', function(url) {

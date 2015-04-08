@@ -21,17 +21,16 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   var cacheFootprints = {};
 
   var map = L.map($element[0], {
-    center: [45,0],
+    center: [0,0],
     zoom: 3,
     minZoom: 0,
-    maxZoom: 18
+    maxZoom: 18,
+    worldCopyJump: true
   });
 
  var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
  baseLayer.addTo(map);
 
-
-  // TODO move into leaflet service, this and map clip both use it
   function createRasterLayer(layerInfo) {
     var baseLayer = null;
     var options = {};
