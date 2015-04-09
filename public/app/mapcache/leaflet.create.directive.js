@@ -16,9 +16,9 @@ function leafletCreate() {
   return directive;
 }
 
-LeafletCreateController.$inject = ['$scope', '$element'];
+LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService'];
 
-function LeafletCreateController($scope, $element) {
+function LeafletCreateController($scope, $element, LocalStorageService) {
 
   var options = {
     maxZoom: 18,
@@ -28,6 +28,7 @@ function LeafletCreateController($scope, $element) {
   var defaultLayer = 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png';
 
   var baseLayer = L.tileLayer(defaultLayer, options);
+  var sourceLayer;
 
   var map = L.map($element[0], {
     center: [0,0],
@@ -111,24 +112,31 @@ function LeafletCreateController($scope, $element) {
     map.fitBounds(gj.getBounds());
   });
 
-  $scope.$watch('options.source.url', function(url) {
-    baseLayer.setUrl(getUrl(url));
+  $scope.$watch('options.source', function(source) {
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer.addTo(map);
   });
 
-  $scope.$watch('options.tms', function(tms, oldTms) {
-    if (tms == oldTms) return;
+  $scope.$watch('options.source.format', function(format, oldFormat) {
+    if (format == oldFormat) return;
 
-    options.tms = tms;
-    map.removeLayer(baseLayer);
-    baseLayer = L.tileLayer(getUrl($scope.options.url), options);
-    baseLayer.addTo(map);
+    options.tms = 'tms' == format;
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer.addTo(map);
   });
 
-  function getUrl(url) {
-    if (url == null || url == "") {
+  function getUrl(source) {
+    if (source == null) {
       return defaultLayer;
     } else {
-      return url + "/{z}/{x}/{y}.png";
+
+      return '/api/sources/' + source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
     }
   }
 }

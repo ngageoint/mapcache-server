@@ -1,8 +1,10 @@
 module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
+    , fs = require('fs-extra')
     , config = require('../config.json')
-    , sourceXform = require('../transformers/source');
+    , sourceXform = require('../transformers/source')
+    , sourceProcessor = require('../api/sourceTypes');
 
   var passport = auth.authentication.passport
     , authenticationStrategy = auth.authentication.authenticationStrategy;
@@ -56,7 +58,7 @@ module.exports = function(app, auth) {
       if (!req.is('multipart/form-data')) return next();
 
       console.log(req);
-      
+
       new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
         if (err) return next(err);
 
@@ -82,6 +84,33 @@ module.exports = function(app, auth) {
 
         var response = sourceXform.transform(newSource);
         res.location(newSource._id.toString()).json(response);
+      });
+    }
+  );
+
+  app.get(
+    '/api/sources/:sourceId/:z/:x/:y.png',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var options = {
+
+      };
+
+      var source = req.source;
+
+      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), function(err, tile) {
+        if (err) return next(err);
+        if (!tile) return res.status(404).send();
+        console.log("got back the tile: ", tile);
+        // res.send(tile);
+        var stream = fs.createReadStream(tile);
+        stream.on('open', function() {
+          stream.pipe(res);
+        });
+        stream.on('error', function(err) {
+          next(err);
+        });
       });
     }
   );

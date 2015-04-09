@@ -52,7 +52,7 @@
           <div leaflet-create options="cache"></div>
           <div class="checkbox">
             <label>
-              <input type="checkbox" ng-model="cache.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
+              <input type="checkbox" ng-model="cache.source.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
             </label>
             <div class="pull-right" ng-if="cache.source.format == 'geotiff'">
               Green box indicates GeoTIFF boundaries
