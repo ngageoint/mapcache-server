@@ -212,6 +212,13 @@ var finalDestination = {
 finalDestination.x = Math.floor(256 * xRatioFromLeftEdge);
 finalDestination.y = Math.floor(256 * yRatioFromTopEdge);
 
+// stupid hack to correct
+if (xRatioFromRightEdge == 0) {
+  finalDestination.x = 256-options.buffer_width;
+}
+if (yRatioFromBottom == 0) {
+  finalDestination.y = 256-options.buffer_height;
+}
 
 // if (origin.x < 0) {
 //   realOrigin.x = 0;
