@@ -4,5 +4,6 @@ exports.process = function(source, callback) {
 }
 
 exports.getTile = function(source, z, x, y, callback) {
+  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
   callback();
 }

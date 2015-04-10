@@ -107,6 +107,18 @@ corner_names.forEach(function(corner_name) {
 
 exports.getTile = function(source, z, x, y, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
+
+  var tileBbox = tileBboxCalculator(x, y, z);
+  // does this intersect our image?
+  var tilePoly = turf.bboxPolygon([tileBbox.ul.lon, tileBbox.lr.lat, tileBbox.lr.lon, tileBbox.ul.lat]);
+  var intersection = turf.intersect(tilePoly, source.geometry);
+  console.log('intersection for ' + z + '/' + x + '/' + y, intersection);
+  if (!intersection){
+    console.log("GeoTIFF does not intersect the requested tile");
+    callback();
+    return;
+  }
+
   var ds = gdal.open(source.filePath);
 
   var tileDirectory = path.join(config.server.sourceDirectory.path, source.id, z, x);
@@ -126,13 +138,8 @@ var corners = {
 var wgs84 = gdal.SpatialReference.fromEPSG(3857);
 var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
 
-console.log("Corner Coordinates:")
-var corner_names = Object.keys(corners);
-
 var xsize = ds.geoTransform[1];
 var ysize = Math.abs(ds.geoTransform[5]);
-
-var tileBbox = tileBboxCalculator(x, y, z);
 
 var geotiffUpperLeft = {
   lat: ds.geoTransform[3],
@@ -159,6 +166,7 @@ console.log("tile bbox", tileBbox);
 console.log('origin', origin);
 console.log('shift', shift);
 console.log('lowerRight', lowerRight);
+console.log('size', size);
 
 var imageDataSizeRequestX = Math.min(lowerRight.x, size.x) - Math.max(origin.x, 0);
 var imageDataSizeRequestY = Math.min(lowerRight.y, size.y) - Math.max(origin.y, 0);
@@ -176,7 +184,9 @@ var xRatioFromLeftEdge = (imageDataSizeRequestX == totalTileSizeX) ? 0 : imageDa
 var yRatioFromTopEdge = (imageDataSizeRequestY == totalTileSizeY) ? 0 : imageDataStartY/totalTileSizeY;
 
 var xRatioFromRightEdge = (imageDataSizeRequestX == totalTileSizeX) ? 0 :(1-(imageDataEndX/totalTileSizeX));
-var yRatioFromBottom = (imageDataSizeRequestY == totalTileSizeY) ? 0 : (1-(imageDataEndY/totalTileSizeY));
+var yRatioFromBottom = (imageDataSizeRequestY == totalTileSizeY) ? 0 : (1-((totalTileSizeY-ysize)/totalTileSizeY));
+// var yRatioFromBottom = (imageDataSizeRequestY == totalTileSizeY) ? 0 : .08;//Math.abs(((imageDataEndY-lowerRight.y)/lowerRight.y));
+
 
 console.log('image data x size request ', imageDataSizeRequestX);
 console.log('image data y size request ', imageDataSizeRequestY);
@@ -195,7 +205,6 @@ console.log('yratioFromTop', yRatioFromTopEdge);
 console.log('xratioFromRightEdge', xRatioFromRightEdge);
 console.log('yratioFromBottom', yRatioFromBottom);
 
-// this is wrong figure this out, everything else seems to work at least for way zoomed out
 var realOrigin = {
   x: Math.max(0, origin.x),
   y: Math.max(0, origin.y)
@@ -204,6 +213,12 @@ var realOrigin = {
 var options = {};
 options.buffer_width = Math.floor(256 * (1-(xRatioFromLeftEdge + xRatioFromRightEdge)));
 options.buffer_height = Math.floor(256 * (1-(yRatioFromTopEdge + yRatioFromBottom)));
+
+if (options.buffer_width <= 0 || options.buffer_height <= 0) {
+  ds.close();
+  return callback();
+}
+
 var finalDestination = {
   x:0,
   y:0
@@ -220,21 +235,6 @@ if (yRatioFromBottom == 0) {
   finalDestination.y = 256-options.buffer_height;
 }
 
-// if (origin.x < 0) {
-//   realOrigin.x = 0;
-//   xRatio = (xSizeRequest + origin.x) /xSizeRequest;
-//   xSizeRequest = xSizeRequest + origin.x;
-//   // options.buffer_width = Math.floor(256 * xRatio);
-//   finalDestination.x = Math.floor(256 * xRatioFromLeftEdge);
-// }
-// if (origin.y < 0) {
-//   realOrigin.y = 0;
-//   yRatio = (ySizeRequest + origin.y) /ySizeRequest;
-//   ySizeRequest = ySizeRequest + origin.y;
-//   // options.buffer_height = Math.floor(256 * yRatio);
-//   finalDestination.y = Math.floor(256 * yRatioFromTopEdge);
-// }
-
 console.log('options', options);
 console.log('real origin', realOrigin);
 console.log("final destination", finalDestination);
@@ -242,11 +242,6 @@ console.log("final destination", finalDestination);
 var pixelRegion1 = ds.bands.get(1).pixels.read(realOrigin.x, realOrigin.y, imageDataSizeRequestX, imageDataSizeRequestY, null, options);
 var pixelRegion2 = ds.bands.get(2).pixels.read(realOrigin.x, realOrigin.y, imageDataSizeRequestX, imageDataSizeRequestY, null, options);
 var pixelRegion3 = ds.bands.get(3).pixels.read(realOrigin.x, realOrigin.y, imageDataSizeRequestX, imageDataSizeRequestY, null, options);
-
-if (options.buffer_width < 0 || options.buffer_height < 0) {
-  ds.close();
-  return callback();
-}
 
 var img = new png.PNG({
     width: options.buffer_width,
@@ -274,9 +269,10 @@ for (var i = 0; i < 256 * 256 * 4; i++) {
 console.log('dst.w ' + finalImg.width + " dst.h " + finalImg.height + " options ", options);
 img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
 
-finalImg.pack().pipe(fs.createWriteStream(tileFilename)).on('finish', function(err) {
-  callback(err, tileFilename);
-});
+callback(null, finalImg.pack());
+// finalImg.pack().pipe(fs.createWriteStream(tileFilename)).on('finish', function(err) {
+//   callback(err, tileFilename);
+// });
 
 
 ds.close();

@@ -99,18 +99,21 @@ module.exports = function(app, auth) {
 
       var source = req.source;
 
-      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), function(err, tile) {
+      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
         if (err) return next(err);
-        if (!tile) return res.status(404).send();
-        console.log("got back the tile: ", tile);
-        // res.send(tile);
-        var stream = fs.createReadStream(tile);
-        stream.on('open', function() {
-          stream.pipe(res);
-        });
-        stream.on('error', function(err) {
-          next(err);
-        });
+        if (!tileStream) return res.status(404).send();
+
+        tileStream.pipe(res);
+
+      //   console.log("got back the tile: ", tile);
+      //   // res.send(tile);
+      //   var stream = fs.createReadStream(tile);
+      //   stream.on('open', function() {
+      //     stream.pipe(res);
+      //   });
+      //   stream.on('error', function(err) {
+      //     next(err);
+      //   });
       });
     }
   );
