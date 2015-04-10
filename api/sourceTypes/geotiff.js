@@ -16,12 +16,9 @@ var gdal = require("gdal")
   };
 
   function tile2lon(x,z) {
-    console.log('tile to lon x ' + x);
     return (x/Math.pow(2,z)*360-180);
   }
   function tile2lat(y,z) {
-    console.log('tile to lat y ' + y);
-    // y = Math.pow(2,z) - y -1;
     var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
     return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
   }
@@ -163,57 +160,81 @@ console.log('origin', origin);
 console.log('shift', shift);
 console.log('lowerRight', lowerRight);
 
-var xSizeRequest = Math.min(lowerRight.x, size.x) - origin.x;
-var ySizeRequest = Math.min(lowerRight.y, size.y) - origin.y;
+var imageDataSizeRequestX = Math.min(lowerRight.x, size.x) - Math.max(origin.x, 0);
+var imageDataSizeRequestY = Math.min(lowerRight.y, size.y) - Math.max(origin.y, 0);
 
-var lostPixelsX = lowerRight.x - size.x;
-var lostPixelsY = lowerRight.y - size.y;
+var totalTileSizeX = lowerRight.x - origin.x;
+var totalTileSizeY = lowerRight.y - origin.y;
 
-var xRatio = xSizeRequest/(lowerRight.x - origin.x);
-var yRatio = ySizeRequest/(lowerRight.y - origin.y);
+var imageDataStartX = Math.max(0,origin.x * -1);
+var imageDataStartY = Math.max(0,origin.y * -1);
 
-console.log('x size request ', xSizeRequest);
-console.log('y size request ', ySizeRequest);
+var imageDataEndX = imageDataStartX + imageDataSizeRequestX;
+var imageDataEndY = imageDataStartY + imageDataSizeRequestY;
 
-console.log('original width ', lowerRight.x - origin.x);
-console.log('oroginal height ', lowerRight.y - origin.y)
+var xRatioFromLeftEdge = (imageDataSizeRequestX == totalTileSizeX) ? 0 : imageDataStartX/totalTileSizeX;
+var yRatioFromTopEdge = (imageDataSizeRequestY == totalTileSizeY) ? 0 : imageDataStartY/totalTileSizeY;
 
-console.log('lost pixels x', xRatio);
-console.log('lost pixels y', yRatio);
+var xRatioFromRightEdge = (imageDataSizeRequestX == totalTileSizeX) ? 0 :(1-(imageDataEndX/totalTileSizeX));
+var yRatioFromBottom = (imageDataSizeRequestY == totalTileSizeY) ? 0 : (1-(imageDataEndY/totalTileSizeY));
 
+console.log('image data x size request ', imageDataSizeRequestX);
+console.log('image data y size request ', imageDataSizeRequestY);
+
+console.log('total tile width ', totalTileSizeX);
+console.log('total tile height ', totalTileSizeY);
+
+console.log('image data start x ', imageDataStartX);
+console.log('image data start y ', imageDataStartY);
+
+console.log('image data end x ', imageDataEndX);
+console.log('image data end y ', imageDataEndY);
+
+console.log('xratioFromLeftEdge', xRatioFromLeftEdge);
+console.log('yratioFromTop', yRatioFromTopEdge);
+console.log('xratioFromRightEdge', xRatioFromRightEdge);
+console.log('yratioFromBottom', yRatioFromBottom);
+
+// this is wrong figure this out, everything else seems to work at least for way zoomed out
 var realOrigin = {
-  x: origin.x,
-  y: origin.y
+  x: Math.max(0, origin.x),
+  y: Math.max(0, origin.y)
 }
 
 var options = {};
-options.buffer_width = Math.floor(256 * xRatio);
-options.buffer_height = Math.floor(256 * yRatio);
+options.buffer_width = Math.floor(256 * (1-(xRatioFromLeftEdge + xRatioFromRightEdge)));
+options.buffer_height = Math.floor(256 * (1-(yRatioFromTopEdge + yRatioFromBottom)));
 var finalDestination = {
   x:0,
   y:0
 };
 
-if (origin.x < 0) {
-  realOrigin.x = 0;
-  xRatio = (xSizeRequest + origin.x) /xSizeRequest;
-  xSizeRequest = xSizeRequest + origin.x;
-  options.buffer_width = Math.floor(256 * xRatio);
-  finalDestination.x = 256 - options.buffer_width;
-}
-if (origin.y < 0) {
-  realOrigin.y = 0;
-  yRatio = (ySizeRequest + origin.y) /ySizeRequest;
-  ySizeRequest = ySizeRequest + origin.y;
-  options.buffer_height = Math.floor(256 * yRatio);
-  finalDestination.y = 256 - options.buffer_height;
-}
+finalDestination.x = Math.floor(256 * xRatioFromLeftEdge);
+finalDestination.y = Math.floor(256 * yRatioFromTopEdge);
+
+
+// if (origin.x < 0) {
+//   realOrigin.x = 0;
+//   xRatio = (xSizeRequest + origin.x) /xSizeRequest;
+//   xSizeRequest = xSizeRequest + origin.x;
+//   // options.buffer_width = Math.floor(256 * xRatio);
+//   finalDestination.x = Math.floor(256 * xRatioFromLeftEdge);
+// }
+// if (origin.y < 0) {
+//   realOrigin.y = 0;
+//   yRatio = (ySizeRequest + origin.y) /ySizeRequest;
+//   ySizeRequest = ySizeRequest + origin.y;
+//   // options.buffer_height = Math.floor(256 * yRatio);
+//   finalDestination.y = Math.floor(256 * yRatioFromTopEdge);
+// }
 
 console.log('options', options);
+console.log('real origin', realOrigin);
+console.log("final destination", finalDestination);
 
-var pixelRegion1 = ds.bands.get(1).pixels.read(realOrigin.x, realOrigin.y, xSizeRequest, ySizeRequest, null, options);
-var pixelRegion2 = ds.bands.get(2).pixels.read(realOrigin.x, realOrigin.y, xSizeRequest, ySizeRequest, null, options);
-var pixelRegion3 = ds.bands.get(3).pixels.read(realOrigin.x, realOrigin.y, xSizeRequest, ySizeRequest, null, options);
+var pixelRegion1 = ds.bands.get(1).pixels.read(realOrigin.x, realOrigin.y, imageDataSizeRequestX, imageDataSizeRequestY, null, options);
+var pixelRegion2 = ds.bands.get(2).pixels.read(realOrigin.x, realOrigin.y, imageDataSizeRequestX, imageDataSizeRequestY, null, options);
+var pixelRegion3 = ds.bands.get(3).pixels.read(realOrigin.x, realOrigin.y, imageDataSizeRequestX, imageDataSizeRequestY, null, options);
 
 if (options.buffer_width < 0 || options.buffer_height < 0) {
   ds.close();
