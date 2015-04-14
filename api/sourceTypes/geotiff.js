@@ -267,12 +267,26 @@ exports.getTile = function(source, z, x, y, callback) {
     finalImg.data[i] = 0;
   }
 
+  console.log('(ctmaxy - tmaxy)/(tmaxy-tminy)' + (ctmaxy - tmaxy)/(tmaxy-tminy));
+  console.log('(ctminx - tminx)/(tmaxx-tminx)' + (ctminx - tminx)/(tmaxx-tminx));
+
+  var xtrans = (ctminx - tminx)/(tmaxx-tminx);
+  var ytrans = (ctmaxy - tmaxy)/(tmaxy-tminy);
+
   var finalDestination = {
     x: Math.floor(256*(ctminx - tminx)/(tmaxx-tminx)),
     y: Math.floor(256*(ctmaxy - tmaxy)/(tmaxy-tminy))
   };
 
+  if (xtrans < 0) {
+    finalDestination.x = -finalDestination.x;
+  }
+  if (ytrans < 0) {
+    finalDestination.y = -finalDestination.y;
+  }
+
   console.log('final destination', finalDestination);
+  console.log('options', options);
 
   img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
   callback(null, finalImg.pack());
