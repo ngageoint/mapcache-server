@@ -40,15 +40,52 @@ var gdal = require("gdal")
 exports.process = function(source, callback) {
   console.log("geotiff");
 
-  var polygon = turf.polygon(sourceCorners(source));
+  var ds = gdal.open(source.filePath);
+  source.projection = ds.srs.getAuthorityCode("PROJCS");
+  var polygon = turf.polygon([sourceCorners(ds)]);
   source.geometry = polygon;
   source.save();
 
   callback(null, source);
+
+  ds.close();
+
+  reproject(source, 3857);
 }
 
-function sourceCorners(source) {
+function reproject(source, epsgCode) {
+  var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
   var ds = gdal.open(source.filePath);
+  var warpSuggestion = gdal.suggestedWarpOutput({
+    src: ds,
+    s_srs: ds.srs,
+    t_srs:targetSrs
+  });
+  var dir = path.join(config.server.sourceDirectory.path, source.id);
+  var fileName = path.basename(epsgCode + "_" + path.basename(source.filePath));
+  var file = path.join(dir, fileName);
+
+  console.log("translating " + source.filePath + " to " + file);
+
+  var destination = gdal.open(file, 'w', "GTiff", warpSuggestion.rasterSize.x, warpSuggestion.rasterSize.y, 3);
+  destination.srs = targetSrs;
+  destination.geoTransform = warpSuggestion.geoTransform;
+
+  gdal.reprojectImage({
+    src: ds,
+    dst: destination,
+    s_srs: ds.srs,
+    t_srs: targetSrs
+  });
+  ds.close();
+  destination.close();
+  source.projections = source.projections || {};
+  source.projections[epsgCode] = {path: file};
+  source.save(function(err){
+  });
+}
+
+function sourceCorners(ds) {
   var size = ds.rasterSize;
   var geotransform = ds.geoTransform;
 
@@ -80,7 +117,7 @@ function sourceCorners(source) {
   });
 
   coordinateCorners.push([coordinateCorners[0][0], coordinateCorners[0][1]]);
-  ds.close();
+  return coordinateCorners;
 }
 
 // direct port from gdal2tiles.py
@@ -144,7 +181,9 @@ exports.getTile = function(source, z, x, y, callback) {
     return;
   }
 
-  var out_ds = gdal.open(source.filePath);
+  var out_ds = gdal.open(source.projections["3857"].path);
+
+  gdalInfo(out_ds);
 
   // we are assuming that the output SRS is the same as the input SRS.  This will
   // normally not be the case so we will have to reproject at some point
@@ -225,7 +264,7 @@ exports.getTile = function(source, z, x, y, callback) {
   });
 
   for (var i = 0; i < 256 * 256 * 4; i++) {
-    finalImg.data[i] = 200;
+    finalImg.data[i] = 0;
   }
 
   var finalDestination = {
@@ -252,6 +291,8 @@ function gdalInfo(ds) {
   console.log('GeoTransform =');
   console.log(geotransform);
   console.log("srs: " + (ds.srs ? ds.srs.toPrettyWKT() : 'null'));
+
+  console.log("Authority EPSG:" + ds.srs.getAuthorityCode("PROJCS"));
 
   // corners
   var corners = {

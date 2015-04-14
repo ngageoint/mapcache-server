@@ -104,16 +104,6 @@ module.exports = function(app, auth) {
         if (!tileStream) return res.status(404).send();
 
         tileStream.pipe(res);
-
-      //   console.log("got back the tile: ", tile);
-      //   // res.send(tile);
-      //   var stream = fs.createReadStream(tile);
-      //   stream.on('open', function() {
-      //     stream.pipe(res);
-      //   });
-      //   stream.on('error', function(err) {
-      //     next(err);
-      //   });
       });
     }
   );

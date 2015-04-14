@@ -9,7 +9,6 @@ function Source() {
 
 Source.prototype.getAll = function(options, callback) {
   SourceModel.getSources(options, callback);
-
 }
 
 Source.prototype.create = function(source, callback) {

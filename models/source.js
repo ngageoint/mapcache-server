@@ -8,7 +8,9 @@ var SourceSchema = new Schema({
 	url: { type: String, required: false },
 	format: { type: String, required: true},
 	filePath: { type: String, required: false},
-	geometry: Schema.Types.Mixed 
+	projection: { type: String, required: false},
+	geometry: Schema.Types.Mixed,
+	projections: Schema.Types.Mixed
 });
 
 function transform(source, ret, options) {
