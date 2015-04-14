@@ -40,63 +40,47 @@ var gdal = require("gdal")
 exports.process = function(source, callback) {
   console.log("geotiff");
 
-  var ds = gdal.open(source.filePath);
-  console.log("number of bands: " + ds.bands.count());
-  var size = ds.rasterSize;
-  console.log("width: " + ds.rasterSize.x);
-  console.log("height: " + ds.rasterSize.y);
-  var geotransform = ds.geoTransform;
-  console.log('Origin = (' + geotransform[0] + ', ' + geotransform[3] + ')');
-console.log('Pixel Size = (' + geotransform[1] + ', ' + geotransform[5] + ')');
-console.log('GeoTransform =');
-console.log(geotransform);
-  console.log("srs: " + (ds.srs ? ds.srs.toPrettyWKT() : 'null'));
-
-  // corners
-var corners = {
-	'Upper Left  ' : {x: 0, y: 0},
-	'Upper Right ' : {x: size.x, y: 0},
-	'Bottom Right' : {x: size.x, y: size.y},
-	'Bottom Left ' : {x: 0, y: size.y}
-};
-
-var wgs84 = gdal.SpatialReference.fromEPSG(4326);
-var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
-
-console.log("Corner Coordinates:")
-var corner_names = Object.keys(corners);
-
-var coordinateCorners = [];
-
-corner_names.forEach(function(corner_name) {
-	// convert pixel x,y to the coordinate system of the raster
-	// then transform it to WGS84
-	var corner      = corners[corner_name];
-	var pt_orig     = {
-		x: geotransform[0] + corner.x * geotransform[1] + corner.y * geotransform[2],
-		y: geotransform[3] + corner.x * geotransform[4] + corner.y * geotransform[5]
-	}
-	var pt_wgs84    = coord_transform.transformPoint(pt_orig);
-	var description = util.format('%s (%d, %d) (%s, %s)',
-		corner_name,
-		Math.floor(pt_orig.x * 100) / 100,
-		Math.floor(pt_orig.y * 100) / 100,
-		gdal.decToDMS(pt_wgs84.x, 'Long'),
-		gdal.decToDMS(pt_wgs84.y, 'Lat')
-	);
-  coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
-	console.log(description);
-});
-
-  coordinateCorners.push([coordinateCorners[0][0], coordinateCorners[0][1]]);
-
-  var polygon = turf.polygon([coordinateCorners]);
+  var polygon = turf.polygon(sourceCorners(source));
   source.geometry = polygon;
   source.save();
 
-  ds.close();
-
   callback(null, source);
+}
+
+function sourceCorners(source) {
+  var ds = gdal.open(source.filePath);
+  var size = ds.rasterSize;
+  var geotransform = ds.geoTransform;
+
+  // corners
+  var corners = {
+  	'Upper Left  ' : {x: 0, y: 0},
+  	'Upper Right ' : {x: size.x, y: 0},
+  	'Bottom Right' : {x: size.x, y: size.y},
+  	'Bottom Left ' : {x: 0, y: size.y}
+  };
+
+  var wgs84 = gdal.SpatialReference.fromEPSG(4326);
+  var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
+
+  var corner_names = Object.keys(corners);
+
+  var coordinateCorners = [];
+
+  corner_names.forEach(function(corner_name) {
+  	// convert pixel x,y to the coordinate system of the raster
+  	// then transform it to WGS84
+  	var corner      = corners[corner_name];
+  	var pt_orig     = {
+  		x: geotransform[0] + corner.x * geotransform[1] + corner.y * geotransform[2],
+  		y: geotransform[3] + corner.x * geotransform[4] + corner.y * geotransform[5]
+  	}
+  	var pt_wgs84    = coord_transform.transformPoint(pt_orig);
+    coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
+  });
+
+  coordinateCorners.push([coordinateCorners[0][0], coordinateCorners[0][1]]);
+  ds.close();
 }
 
 // direct port from gdal2tiles.py
@@ -160,13 +144,12 @@ exports.getTile = function(source, z, x, y, callback) {
     return;
   }
 
-  var ds = gdal.open(source.filePath);
+  var out_ds = gdal.open(source.filePath);
 
   // we are assuming that the output SRS is the same as the input SRS.  This will
   // normally not be the case so we will have to reproject at some point
 
   var out_srs = gdal.SpatialReference.fromEPSG(3857);
-  var out_ds = ds;
 
   var out_gt = out_ds.geoTransform;
 
@@ -209,7 +192,6 @@ exports.getTile = function(source, z, x, y, callback) {
 
   console.log("Tile Raster Bounds", tb);
 
-
   var options = {
     buffer_width: tb.wxsize,
     buffer_height: tb.wysize
@@ -219,15 +201,6 @@ exports.getTile = function(source, z, x, y, callback) {
     buffer_width: Math.floor(256*Math.min(1,(ctmaxx-ctminx)/(tmaxx-tminx))),
     buffer_height: Math.floor(256*Math.min(1,(ctmaxy-ctminy)/(tmaxy-tminy)))
   };
-
-  console.log('width %', (tmaxx-tminx)/(omaxx-ominx));
-  console.log('height %', (tmaxy-tminy)/(omaxy-ominy));
-
-  console.log('tile width', (tmaxx-tminx));
-  console.log('tile height', (tmaxy-tminy));
-
-  console.log('output width', (omaxx-ominx));
-  console.log('output height', (omaxy-ominy));
 
   var pixelRegion1 = out_ds.bands.get(1).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
   var pixelRegion2 = out_ds.bands.get(2).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
@@ -244,7 +217,6 @@ exports.getTile = function(source, z, x, y, callback) {
     img.data[(i*4)+2] = pixelRegion3[i];
     img.data[(i*4)+3] = 255;
   }
-
 
   var finalImg = new png.PNG({
     width: 256,
