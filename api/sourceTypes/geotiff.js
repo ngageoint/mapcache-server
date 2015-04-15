@@ -237,7 +237,7 @@ exports.getTile = function(source, z, x, y, callback) {
   };
 
   var options = {
-    buffer_width: Math.floor(256*Math.min(1,(ctmaxx-ctminx)/(tmaxx-tminx))),
+    buffer_width: Math.ceil(256*Math.min(1,(ctmaxx-ctminx)/(tmaxx-tminx))),
     buffer_height: Math.floor(256*Math.min(1,(ctmaxy-ctminy)/(tmaxy-tminy)))
   };
 
