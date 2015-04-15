@@ -4,18 +4,20 @@ angular
 
 MapcacheCreateController.$inject = [
   '$scope',
+  '$location',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheCreateController($scope, CacheService, SourceService) {
+function MapcacheCreateController($scope, $location, CacheService, SourceService) {
+
+  var seenCorners;
 
   $scope.cache = {
-    format: "xyz",
-    source: {}
+    format: "xyz"
   };
 
-  SourceService.getAllSources().success(function(sources) {
+  SourceService.getAllSources(true).success(function(sources) {
     $scope.sources = sources;
   });
 
@@ -35,8 +37,30 @@ function MapcacheCreateController($scope, CacheService, SourceService) {
     $scope.east = extent[2];
   });
 
+  $scope.$watch('cache.source', function(source) {
+    if (source && source.format == 'geotiff') {
+      $scope.cache.source.url = null;
+      if (!source.geometry) {
+        $scope.north = null;
+        $scope.south = null;
+        $scope.west = null;
+        $scope.east = null;
+        return;
+      }
+      var geometry = source.geometry;
+      while(geometry.type != "Polygon" && geometry != null){
+        geometry = geometry.geometry;
+      }
+      $scope.cache.geometry = geometry;
+    }
+  });
+
   $scope.createCache = function() {
     console.log($scope.cache);
     CacheService.createCache($scope.cache);
+  }
+
+  $scope.createSource = function() {
+    $location.path('/source');
   }
 };

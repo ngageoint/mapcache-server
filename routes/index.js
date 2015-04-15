@@ -4,6 +4,7 @@ module.exports = function(app, security) {
     , User = require('../models/user')
     , Role = require('../models/role')
     , Cache = require('../models/cache')
+    , Source = require('../models/source')
     , log = require('winston');
 
   var passport = security.authentication.passport
@@ -61,6 +62,15 @@ module.exports = function(app, security) {
       Cache.getCacheById(cacheId, function(err, cache) {
         if (!cache) return res.status(404).send('Cache ' + cacheId + ' not found');
         req.cache = cache;
+        next();
+      });
+  });
+
+  // Grab the cache for any endpoint that uses cacheId
+  app.param('sourceId', function(req, res, next, sourceId) {
+      Source.getSourceById(sourceId, function(err, source) {
+        if (!source) return res.status(404).send('Source ' + sourceId + ' not found');
+        req.source = source;
         next();
       });
   });

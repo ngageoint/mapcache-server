@@ -1,8 +1,10 @@
 module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
+    , fs = require('fs-extra')
     , config = require('../config.json')
-    , sourceXform = require('../transformers/source');
+    , sourceXform = require('../transformers/source')
+    , sourceProcessor = require('../api/sourceTypes');
 
   var passport = auth.authentication.passport
     , authenticationStrategy = auth.authentication.authenticationStrategy;
@@ -48,6 +50,26 @@ module.exports = function(app, auth) {
     }
   );
 
+  app.post(
+    '/api/sources',
+    access.authorize('CREATE_CACHE'),
+    validateSource,
+    function(req, res, next) {
+      if (!req.is('multipart/form-data')) return next();
+
+      console.log(req);
+
+      new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
+        if (err) return next(err);
+
+        if (!newSource) return res.status(400).send();
+
+        var response = sourceXform.transform(newSource);
+        res.location(newSource._id.toString()).json(response);
+      });
+    }
+  );
+
   // create a new source
   app.post(
     '/api/sources',
@@ -62,6 +84,26 @@ module.exports = function(app, auth) {
 
         var response = sourceXform.transform(newSource);
         res.location(newSource._id.toString()).json(response);
+      });
+    }
+  );
+
+  app.get(
+    '/api/sources/:sourceId/:z/:x/:y.png',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var options = {
+
+      };
+
+      var source = req.source;
+
+      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+        if (err) return next(err);
+        if (!tileStream) return res.status(404).send();
+
+        tileStream.pipe(res);
       });
     }
   );

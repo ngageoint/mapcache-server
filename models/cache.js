@@ -1,8 +1,23 @@
 var mongoose = require('mongoose')
+	, fs = require('fs-extra')
+	, config = require('../config.json')
 	, Source = require('./source');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
+
+var TileFailureSchema = new Schema({
+	url: {type: String, required: true},
+	retries: {type: Number, required: true}
+});
+
+var FormatSchema = new Schema({
+	format: { type: String, required: true},
+	size: { type: Number, required: true},
+	zoomLevelSize: Schema.Types.Mixed
+},{
+	strict: true
+});
 
 // Creates the Schema for the cache objects
 var CacheSchema = new Schema({
@@ -12,7 +27,17 @@ var CacheSchema = new Schema({
 	geometry: Schema.Types.Mixed,
 	maxZoom: {type: Number, required: true },
 	minZoom: {type: Number, required: true},
+	formats: [FormatSchema],
+	tileFailures: [TileFailureSchema],
+	status: {
+		complete: {type: Boolean, required: true},
+		totalTiles: {type: Number, required: true},
+		generatedTiles: {type: Number, required: true},
+		zoomLevelStatus: Schema.Types.Mixed
+	},
 	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }
+},{
+	strict: true
 });
 
 CacheSchema.index({geometry: "2dsphere"});
@@ -22,9 +47,16 @@ function transform(cache, ret, options) {
 	ret.id = ret._id;
 	delete ret._id;
 
+	delete ret.__v;
+
 	if (cache.populated('sourceId')) {
 		ret.source = ret.sourceId;
 		delete ret.sourceId;
+	}
+
+	if (cache.populated('statusId')) {
+		ret.status = ret.statusId;
+		delete ret.status;
 	}
 
 	var path = options.path ? options.path : "";
@@ -77,13 +109,14 @@ exports.createCache = function(cache, callback) {
 		});
 		return;
 	}
-	console.log(cache);
+
 	Source.getSources({url: cache.source.url, format: cache.source.format}, function(err, sources) {
 		if (sources) {
 			console.log(sources);
 			var source = sources[0];
 			cache.sourceId = source._id;
 			Cache.create(cache, function(err, newCache) {
+				if (err) return callback(err);
 				newCache.source = source;
 				callback(err, newCache);
 			});
@@ -92,10 +125,27 @@ exports.createCache = function(cache, callback) {
 				if (err) return callback(err);
 				cache.sourceId = newSource._id;
 				Cache.create(cache, function(err, newCache) {
+					if (err) return callback(err);
 					newCache.source = newSource;
 					callback(err, newCache);
 				});
 			});
 		}
+	});
+}
+
+exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
+	var update = {$set: {}};
+	update.$set['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
+	Cache.findByIdAndUpdate(cache._id, update, callback);
+}
+
+exports.updateTileDownloaded = function(cache, z, x, y, callback) {
+	fs.stat(config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
+		var update = {$inc: {}};
+		update.$inc['status.zoomLevelStatus.'+z+'.generatedTiles'] = 1;
+		update.$inc['status.generatedTiles'] = 1;
+		update.$inc['status.zoomLevelStatus.'+z+'.size'] = stat.size;
+		Cache.findByIdAndUpdate(cache._id, update, callback);
 	});
 }
