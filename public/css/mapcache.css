@@ -22,10 +22,37 @@
   border-color: #DDDDDD;
   border-style: solid;
   text-align: center;
+  border-radius: 2px;
+  margin-right: 8px;
 }
 
 .cache-row {
   margin: 5px;
+}
+
+.cache-size {
+  color: #999;
+}
+
+.cache-size {
+  color: #999;
+}
+
+.cache-type {
+  font-weight: bold;
+  color: #888;
+}
+
+.cache-type-details:hover {
+  background-color: #F9F9F9;
+}
+
+.cache-type-details:hover > .cache-type {
+  color: #369;
+}
+
+.cache-type-details:hover > .cache-size {
+  color: #369;
 }
 
 .cache-types-row {

@@ -9,12 +9,12 @@
   </div>
   <div class="row top-gap-xl" ng-init="login=true">
     <div class="col-md-3 col-md-offset-9 top-padding-s bottom-padding-s signin-form">
-      <div class="login-tabs">
+      <!-- <div class="login-tabs">
         <ul class="nav nav-tabs">
           <li role="presentation" ng-class="{active: login}"><a href="" ng-click="login=true">Log In</a></li>
           <li role="presentation" ng-class="{active: !login}"><a href="" ng-click="login=false">Sign Up</a></li>
         </ul>
-      </div>
+      </div> -->
 
       <div ng-show="login">
         <form class="form">
@@ -31,6 +31,7 @@
           <span>
             <button class="btn btn-primary" ng-click="signin()" ngm-tap="signin()">Log In</button>
           </span>
+          <p class="top-gap-s">Don't have an account? <a ng-click="login = false">Create one here.</a></p>
         </form>
 
         <div class="top-gap">
@@ -75,7 +76,7 @@
 
           <button type="submit" class="btn btn-primary">Create my account</button>
           <div class="help-block top-gap">Your account will have to be approved by an admin before it becomes active</div>
-
+          <p class="top-gap-s pull-right"><a ng-click="login = true">Return to log in</a></p>
         </form>
 
         <!-- Status message area -->
