@@ -4,38 +4,90 @@ var gdal = require("gdal")
   , path = require('path')
   , fs = require('fs-extra')
   , png = require('pngjs')
+  , tu = require('../tileUtilities')
+  , async = require('async')
+  , CacheModel = require('../../models/cache')
   , config = require('../../config.json');
 
-  Math.radians = function(degrees) {
-    return degrees * Math.PI / 180;
-  };
-
-  // Converts from radians to degrees.
-  Math.degrees = function(radians) {
-    return radians * 180 / Math.PI;
-  };
-
-  function tile2lon(x,z) {
-    return (x/Math.pow(2,z)*360-180);
+function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
+  if (yRange.current > yRange.max) return false;
+  for (var i = yRange.current; i <= yRange.current + numberOfTasks && i <= yRange.max; i++) {
+    q.push({z:zoom, x: x, y: i, cache: cache});
   }
-  function tile2lat(y,z) {
-    var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
-    return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
-  }
+  yRange.current = yRange.current + numberOfTasks;
+  return true;
+}
 
-  function tileBboxCalculator(x, y, z) {
-    console.log('tile box calculator for ' + x + ' ' + y + ' ' + z);
-    x = Number(x);
-    y = Number(y);
-    var tileBounds = {
-      north: tile2lat(y, z),
-      east: tile2lon(x+1, z),
-      south: tile2lat(y+1, z),
-      west: tile2lon(x, z)
-    };
 
-    return tileBounds;
-  }
+exports.createCache = function(cache) {
+  var zoom = cache.minZoom;
+  var extent = turf.extent(cache.geometry);
+
+  async.whilst(
+    function () {
+      return zoom <= cache.maxZoom;
+    },
+    function (zoomLevelDone) {
+      var yRange = tu.yCalculator(extent, zoom);
+      var xRange = tu.xCalculator(extent, zoom);
+
+      var currentx = xRange.min;
+
+      async.whilst(
+        function () {
+          console.log('current x ' + currentx + ' xrange max ' + xRange.max);
+          return currentx <= xRange.max;
+        },
+        function(xRowDone) {
+          var q = async.queue(function (tileInfo, tileDone) {
+            console.log("go get the tile", tileInfo);
+            exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
+              var filepath = getFilepath(tileInfo);
+            	var dir = createDir(tileInfo.cache._id, filepath);
+            	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
+              var stream = fs.createWriteStream(dir + '/' + filename);
+          		stream.on('close',function(status){
+          			console.log('status on tile download is', status);
+          			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+                  tileDone(null, tileInfo);
+          			});
+          		});
+              tileStream.pipe(stream);
+            });
+          }, 10);
+
+          q.drain = function() {
+            // now go get the next 10 ys and keep going
+            var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+            // if there are no more ys do the callback
+            console.log("q drained");
+            if (!tasksPushed) {
+              console.log("x row " + currentx + " is done");
+              currentx++;
+              yRange.current = yRange.min;
+              xRowDone();
+            }
+          }
+
+          pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+
+        },
+        function (err) {
+          console.log("go update the zoom level status");
+          CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
+            zoom++;
+            zoomLevelDone();
+          });
+        }
+      );
+    },
+    function (err) {
+        console.log("done with all the zoom levels");
+        cache.status.complete = true;
+        cache.save();
+    }
+  );
+}
 
 exports.process = function(source, callback) {
   console.log("geotiff");
@@ -172,7 +224,7 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
 exports.getTile = function(source, z, x, y, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
-  var tileEnvelope = tileBboxCalculator(x, y, z);
+  var tileEnvelope = tu.tileBboxCalculator(x, y, z);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
   var intersection = turf.intersect(tilePoly, source.geometry);
   if (!intersection){
@@ -335,4 +387,26 @@ function gdalInfo(ds) {
     coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
   	console.log(description);
   });
+}
+
+function getFilepath(tileInfo) {
+	return tileInfo.z + '/' + tileInfo.x + '/' ;
+}
+
+function getFilename(tileInfo, type) {
+	if (type == 'tms') {
+		y = Math.pow(2,tileInfo.z) - tileInfo.y -1;
+		return y + '.png';
+	} else {
+		return tileInfo.y + '.png';
+  }
+}
+
+function createDir(cacheName, filepath){
+	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
+    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
+       if (err) console.log(err);
+     });
+	}
+  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }
