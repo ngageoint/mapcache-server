@@ -74,6 +74,20 @@
   top:800px;
 }
 
+.mapcache-sources-description {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 35px;
+  text-align: center;
+}
+
+.source-title {
+  font-family: Roboto;
+  font-weight: 300;
+  font-size: 28px;
+  text-align: center;
+}
+
 .ui-select-bootstrap>.ui-select-choices {
   z-index: 1001;
   max-height: 500px;

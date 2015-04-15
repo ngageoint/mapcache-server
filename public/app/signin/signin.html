@@ -93,5 +93,31 @@
   </div>
 </div>
 <div class="mapcache-description container">
-  
+  <div class="row">
+    <div class="col-md-12">
+      <div class="mapcache-sources-description">Generate xyz map tiles from the following sources</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mapcache-supported-source">
+      <div class="source-title">Tile Servers</div>
+      <div class="row">
+        <div class="col-md-3">
+          <i class="fa fa-cubes" style="font-size:80px"></i>
+        </div>
+        <div class="source-description">mapcache can pull tiles from a tile server such as Open Street Map and save the tiles for offline use.</div>
+      </div>
+    </div>
+    <div class="col-md-6 mapcache-supported-source">
+      <div class="source-title">GeoTIFF</div>
+      <div class="row">
+        <div class="col-md-3">
+          <i class="fa fa-file-image-o" style="font-size:80px"></i>
+        </div>
+        <div class="source-description">
+          Upload a GeoTIFF file containing georeferencing information and mapcache will create map tiles from the GeoTIFF.  mapcache utilizes GDAL to parse the GeoTIFF files and can support any projection GDAL supports.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
