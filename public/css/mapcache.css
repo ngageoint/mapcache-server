@@ -67,6 +67,13 @@
   opacity: .4;
 }
 
+.mapcache-description {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top:800px;
+}
+
 .ui-select-bootstrap>.ui-select-choices {
   z-index: 1001;
   max-height: 500px;
