@@ -33,13 +33,22 @@
 }
 
 .mapcache-header-description {
-  font-size: 22px;
+  font-size: 24px;
+  font-family: Roboto;
   color: #333333;
   text-align: center;
 }
 
 .leaflet-draw-tooltip-subtext {
   color: #FFF;
+}
+
+.leaflet-map {
+  height:450px;
+}
+
+.signin-jumbotron > .leaflet-map {
+  height: 630px;
 }
 
 .signin-form {
@@ -54,13 +63,39 @@
   position: absolute;
   left: 10px;
   right: 10px;
-  top: 110px;
+  top:140px;
   opacity: .4;
+}
+
+.mapcache-description {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top:800px;
+}
+
+.mapcache-sources-description {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 35px;
+  text-align: center;
+}
+
+.source-title {
+  font-family: Roboto;
+  font-weight: 300;
+  font-size: 28px;
+  text-align: center;
 }
 
 .ui-select-bootstrap>.ui-select-choices {
   z-index: 1001;
   max-height: 500px;
+}
+
+.login-tabs>.nav-tabs>li {
+  width: 50%;
+  text-align: center;
 }
 
 .top-gap-s {
@@ -95,6 +130,14 @@
     margin-bottom: 50px;
 }
 
+.top-padding-s {
+  padding-top: 5px;
+}
+
+.top-padding-m {
+  padding-top: 15px;
+}
+
 .top-padding-l {
   padding-top: 30px;
 }
@@ -105,6 +148,10 @@
 
 .bottom-padding-m {
   padding-bottom: 15px;
+}
+
+.bottom-padding-s {
+  padding-bottom: 5px;
 }
 
 .vertical-center {

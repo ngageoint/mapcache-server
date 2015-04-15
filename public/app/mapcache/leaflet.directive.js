@@ -6,7 +6,7 @@ function leaflet() {
   var directive = {
     restrict: "A",
     replace: true,
-    template: '<div style="height:450px"></div>',
+    template: '<div class="leaflet-map"></div>',
     controller: LeafletController,
     bindToController: true
   };
@@ -21,7 +21,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   var cacheFootprints = {};
 
   var map = L.map($element[0], {
-    center: [0,0],
+    center: [45,0],
     zoom: 3,
     minZoom: 0,
     maxZoom: 18,
