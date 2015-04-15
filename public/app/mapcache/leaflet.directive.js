@@ -97,7 +97,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     }
 
     var gj = L.geoJson(cache.geometry);
-    gj.setStyle({fillColor: color, color: color});
+    gj.setStyle({fill: false, color: color});
     gj.bindPopup("<h5>" + cache.name + "</h5>");
     gj.on('popupopen', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
