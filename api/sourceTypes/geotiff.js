@@ -183,8 +183,6 @@ exports.getTile = function(source, z, x, y, callback) {
 
   var out_ds = gdal.open(source.projections["3857"].path);
 
-  gdalInfo(out_ds);
-
   // we are assuming that the output SRS is the same as the input SRS.  This will
   // normally not be the case so we will have to reproject at some point
 
@@ -267,9 +265,6 @@ exports.getTile = function(source, z, x, y, callback) {
     finalImg.data[i] = 0;
   }
 
-  console.log('(ctmaxy - tmaxy)/(tmaxy-tminy)' + (ctmaxy - tmaxy)/(tmaxy-tminy));
-  console.log('(ctminx - tminx)/(tmaxx-tminx)' + (ctminx - tminx)/(tmaxx-tminx));
-
   var xtrans = (ctminx - tminx)/(tmaxx-tminx);
   var ytrans = (ctmaxy - tmaxy)/(tmaxy-tminy);
 
@@ -284,9 +279,6 @@ exports.getTile = function(source, z, x, y, callback) {
   if (ytrans < 0) {
     finalDestination.y = -finalDestination.y;
   }
-
-  console.log('final destination', finalDestination);
-  console.log('options', options);
 
   img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
   callback(null, finalImg.pack());
