@@ -45,10 +45,6 @@ function config($routeProvider, $locationProvider, $httpProvider) {
     controller:     "SigninController",
     resolve: checkLogin()
   });
-  $routeProvider.when('/signup', {
-    templateUrl:    'app/signup/signup.html',
-    controller:     "SignupController"
-  });
   $routeProvider.when('/admin/:adminPanel?', {
     templateUrl:    'app/admin/admin.html',
     controller:     "AdminController",

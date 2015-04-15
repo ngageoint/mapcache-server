@@ -2,13 +2,23 @@
   <div leaflet></div>
 </div>
 <div class="container">
-    <div class="row bottom-gap">
+  <div class="container">
+    <div class="row top-gap-l bottom-gap">
       <div class="col-md-12">
         <div class="mapcache-header-description">Use mapcache to save maps for offline use in mobile applications.</div>
       </div>
     </div>
-    <div class="row top-gap-l">
-      <div class="col-md-3 col-md-offset-9 top-padding-l bottom-padding-m signin-form">
+  </div>
+  <div class="row top-gap-l" ng-init="login=true">
+    <div class="col-md-3 col-md-offset-9 top-padding-s bottom-padding-s signin-form">
+      <div>
+        <ul class="nav nav-tabs">
+          <li role="presentation" ng-class="{active: login}"><a href="" ng-click="login=true">Log In</a></li>
+          <li role="presentation" ng-class="{active: !login}"><a href="" ng-click="login=false">Sign Up</a></li>
+        </ul>
+      </div>
+
+      <div ng-show="login">
         <form class="form">
           <div class="form-group" ng-class="{'has-error': status > 399}">
             <label>Username</label>
@@ -26,14 +36,59 @@
         </form>
 
         <div class="top-gap">
-          <p>Don't have an account? <a href="/#/signup">Create one here.</a></p>
-
           <div class="top-gap-s alert alert-danger" ng-show="status > 399">
             <strong>Failed login</strong>
             <p>Please check your username, UID, and password and try again.</p>
           </div>
         </div>
+      </div>
+      <div ng-hide="login">
+          <form ng-submit="signup()" id="new-user-form" class="form">
+
+            <div class="form-group">
+              <label>Username</label>
+                <input type="text" placeholder="i.e. jappleseed" ng-model="user.username" autocapitalize="off" class="form-control"/>
+            </div>
+
+            <div class="form-group">
+              <label>First Name</label>
+                <input type="text" placeholder="Johnny" ng-model="user.firstname" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Last Name</label>
+                <input type="text" placeholder="Appleseed" ng-model="user.lastname" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Email</label>
+                <input type="text" placeholder="johnny@appleseed.com" ng-model="user.email" autocapitalize="off" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Password</label>
+                <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.password" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Confirm Password</label>
+                <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.passwordconfirm" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create my account</button>
+            <div class="help-block top-gap">Your account will have to be approved by an admin before it becomes active</div>
+
+          </form>
+
+          <!-- Status message area -->
+          <div class="row top-gap" ng-show="showStatus">
+            <div class="col-md-5 alert alert-block" ng-class="statusLevel">
+              <button type="button" class="close" ng-click="showStatus = false">&times;</button>
+              <h4>{{statusTitle}}</h4>
+              {{statusMessage}}
+            </div>
+          </div>
 
       </div>
-    </div>
   </div>
+</div>
