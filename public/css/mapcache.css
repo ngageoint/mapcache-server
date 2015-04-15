@@ -72,6 +72,11 @@
   max-height: 500px;
 }
 
+.login-tabs>.nav-tabs>li {
+  width: 50%;
+  text-align: center;
+}
+
 .top-gap-s {
   margin-top: 5px;
 }
