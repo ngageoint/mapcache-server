@@ -80,7 +80,7 @@
         <div class="col-md-6">
           <div class="progress" ng-if="progress">
             <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
-              <span>{{progress}}% Complete</span>
+              <span>{{progress | number: 2}}% Complete</span>
             </div>
           </div>
         </div>

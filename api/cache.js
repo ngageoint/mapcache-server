@@ -6,6 +6,7 @@ var CacheModel = require('../models/cache')
   , config = require('../config.json')
   , tileUtilities = require('./tileUtilities')
   , sourceProcessor = require('./sourceTypes')
+  , exec = require('child_process').exec
   , downloader = require('./tileDownloader');
 
 function Cache() {
@@ -99,7 +100,7 @@ Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
   	archive.append(JSON.stringify(cache), {name: cache._id+ ".json"});
   	archive.finalize();
     callback(null, archive);
-	} else {
+	} else if (format && (format.toLowerCase() == 'xyz')) {
 		 var archive = archiver('zip');
     	archive.on('error', function(err){
     	    throw err;});
@@ -120,6 +121,14 @@ Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
     	archive.append(JSON.stringify(cache), {name: cache._id+ ".json"});
     	archive.finalize();
       callback(null, archive);
+	} else if (format && (format.toLowerCase() == 'geopackage')) {
+
+    var python = exec(
+     './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg",
+     function(error, stdout, stderr) {
+       var stream = fs.createReadStream(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg");
+       callback(null, stream);
+     });
 	}
 }
 
