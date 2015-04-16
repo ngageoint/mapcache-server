@@ -65,4 +65,8 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     $rootScope.$broadcast('cacheFilterChange', {cacheFilter: $scope.cacheFilter, mapFilter: $scope.mapFilter});
   });
 
+  $scope.cacheProgress = function(cache) {
+    return Math.min(100,100*(cache.status.generatedTiles/cache.status.totalTiles));
+  }
+
 };

@@ -15,9 +15,13 @@
   </div>
 
   <div class="container">
-    <div class="form-group">
-      <label>Filter Caches</label>
-      <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label>Filter Caches</label>
+          <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
+        </div>
+      </div>
     </div>
 
     <div class="cache-row" ng-repeat="cache in caches | filter:cacheFilter | filter: mapFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
@@ -35,21 +39,30 @@
         </div>
       </div>
       <div class="row cache-types-row" ng-show="cache.status.complete">
-        <a target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=XYZ&access_token={{token}}">
-          <div class="col-md-2 cache-type-details">
-            <div class="cache-type"><i class="fa fa-download"></i> XYZ</div>
-            <div class="cache-size">{{cacheSize(cache)}}</div>
-          </div>
-        </a>
-        <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=TMS&access_token={{token}}">
-          <div class="col-md-2 cache-type-details">
-            <div class="cache-type"><i class="fa fa-download"></i> TMS</div>
-            <div class="cache-size">{{cacheSize(cache)}}</div>
-          </div>
-        </a>
+        <div class="col-md-12">
+          <a target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=XYZ&access_token={{token}}">
+            <div class="col-md-2 cache-type-details">
+              <div class="cache-type"><i class="fa fa-download"></i> XYZ</div>
+              <div class="cache-size">{{cacheSize(cache)}}</div>
+            </div>
+          </a>
+          <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=TMS&access_token={{token}}">
+            <div class="col-md-2 cache-type-details">
+              <div class="cache-type"><i class="fa fa-download"></i> TMS</div>
+              <div class="cache-size">{{cacheSize(cache)}}</div>
+            </div>
+          </a>
+        </div>
       </div>
-      <div class="row cache-types-row" ng-show="!cache.status.complete">
-        Currently generating: {{generatedTiles}} of {{totalTiles}}
+      <div class="row cache-types-row" ng-show="cache.status.complete">
+        <div class="col-md-12">
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{cacheProgress(cache)}}%">
+              <span>{{cacheProgress(cache)}}% Complete</span>
+            </div>
+          </div>
+          Currently generating: {{cache.status.generatedTiles}} of {{cache.status.totalTiles}}
+        </div>
       </div>
     </div>
   </div>
