@@ -53,6 +53,14 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
 		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
   }
 
+  $scope.zoomSize = function(zoomStatus) {
+    var bytes = zoomStatus.size;
+    if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+			number = Math.floor(Math.log(bytes) / Math.log(1024));
+		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
+  }
+
   $rootScope.$on('cacheFootprintPopupOpen', function(event, cache) {
     $scope.mapFilter = cache.id;
   });
@@ -67,6 +75,26 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
 
   $scope.cacheProgress = function(cache) {
     return Math.min(100,100*(cache.status.generatedTiles/cache.status.totalTiles));
+  }
+  $scope.zoomProgress = function(zoomStatus) {
+    return Math.min(100,100*(zoomStatus.generatedTiles/zoomStatus.totalTiles));
+  }
+  $scope.sortedZooms = function(cache) {
+    var zoomRows = [];
+    for (var i = cache.minZoom; i <= cache.maxZoom; i=i+3) {
+      var row = [];
+      if (cache.status.zoomLevelStatus[i]) {
+        row.push({zoom: i, status:cache.status.zoomLevelStatus[i]});
+      }
+      if (cache.status.zoomLevelStatus[i+1]) {
+        row.push({zoom: i+1, status:cache.status.zoomLevelStatus[i+1]});
+      }
+      if (cache.status.zoomLevelStatus[i+2]) {
+        row.push({zoom: i+2, status:cache.status.zoomLevelStatus[i+2]});
+      }
+      zoomRows.push(row);
+    }
+    return zoomRows;
   }
 
 };
