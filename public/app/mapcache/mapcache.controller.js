@@ -16,9 +16,24 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
 
   $scope.token = LocalStorageService.getToken();
 
-  CacheService.getAllCaches().success(function(caches) {
-    $scope.caches = caches;
-  });
+  function getCaches() {
+    console.log("pull the caches");
+    CacheService.getAllCaches(true).success(function(caches) {
+      $scope.caches = caches;
+      var currentlyGenerating = false;
+      for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
+        var cache = caches[i];
+        if (!cache.status.complete) {
+          currentlyGenerating = true;
+        }
+      }
+      console.log("is a cache generating?", currentlyGenerating);
+      var delay = currentlyGenerating ? 30000 : 300000;
+      $timeout(getCaches, delay);
+    });
+  }
+
+  getCaches();
 
   $scope.createCache = function() {
     $location.path('/create');

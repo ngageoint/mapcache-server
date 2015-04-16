@@ -39,7 +39,11 @@ module.exports = function(app, auth) {
     		 if (err) {
            return res.send(400, err);
          }
-    		res.attachment(req.cache.name + ".zip");
+         if (format == "geopackage"){
+      		res.attachment(req.cache.name + ".gpkg");
+        } else {
+          res.attachment(req.cache.name + ".zip");
+        }
     	    archive.pipe(res);
     	});
   	}
