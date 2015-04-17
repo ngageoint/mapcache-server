@@ -8,15 +8,8 @@ var Schema = mongoose.Schema;
 
 var TileFailureSchema = new Schema({
 	url: {type: String, required: true},
-	retries: {type: Number, required: true}
-});
-
-var FormatSchema = new Schema({
-	format: { type: String, required: true},
-	size: { type: Number, required: true},
-	zoomLevelSize: Schema.Types.Mixed
-},{
-	strict: true
+	retries: {type: Number, required: true},
+	failureType: {type: Number, required: false}
 });
 
 // Creates the Schema for the cache objects
@@ -27,7 +20,7 @@ var CacheSchema = new Schema({
 	geometry: Schema.Types.Mixed,
 	maxZoom: {type: Number, required: true },
 	minZoom: {type: Number, required: true},
-	formats: [FormatSchema],
+	formats: Schema.Types.Mixed,
 	tileFailures: [TileFailureSchema],
 	status: {
 		complete: {type: Boolean, required: true},
@@ -148,4 +141,21 @@ exports.updateTileDownloaded = function(cache, z, x, y, callback) {
 		update.$inc['status.zoomLevelStatus.'+z+'.size'] = stat.size;
 		Cache.findByIdAndUpdate(cache._id, update, callback);
 	});
+}
+
+exports.updateFormatCreated = function(cache, formatName, callback) {
+	if (formatName == 'geopackage') {
+		var geoPackageFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg";
+		fs.stat(geoPackageFile, function(err, stat) {
+			var geoPackageFormat = {
+				size: stat.size
+			};
+			if (!cache.formats) {
+				cache.formats = {};
+			}
+			cache.formats.geopackage = geoPackageFormat;
+			cache.markModified('formats');
+			cache.save(callback);
+		});
+	}
 }

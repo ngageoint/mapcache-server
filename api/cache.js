@@ -123,12 +123,20 @@ Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
       callback(null, archive);
 	} else if (format && (format.toLowerCase() == 'geopackage')) {
 
-    var python = exec(
-     './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg",
-     function(error, stdout, stderr) {
-       var stream = fs.createReadStream(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg");
+    var geoPackageFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg";
+    if (!fs.existsSync(geoPackageFile)) {
+      var python = exec(
+       './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + geoPackageFile,
+       function(error, stdout, stderr) {
+         CacheModel.updateFormatCreated(cache, format, function(err) {
+           var stream = fs.createReadStream(geoPackageFile);
+           callback(null, stream);
+         });
+       });
+     } else {
+       var stream = fs.createReadStream(geoPackageFile);
        callback(null, stream);
-     });
+     }
 	}
 }
 

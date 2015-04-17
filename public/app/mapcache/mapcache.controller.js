@@ -68,6 +68,17 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
 		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
   }
 
+  $scope.cacheFormatSize = function(cache, format) {
+    var size = "Unknown";
+    if (cache.formats && cache.formats[format]) {
+      var bytes = cache.formats[format].size;
+      var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+  			number = Math.floor(Math.log(bytes) / Math.log(1024));
+  		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
+    }
+    return size;
+  }
+
   $scope.zoomSize = function(zoomStatus) {
     var bytes = zoomStatus.size;
     if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
