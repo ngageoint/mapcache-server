@@ -143,19 +143,19 @@ exports.updateTileDownloaded = function(cache, z, x, y, callback) {
 	});
 }
 
-exports.updateFormatCreated = function(cache, formatName, callback) {
-	if (formatName == 'geopackage') {
-		var geoPackageFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg";
-		fs.stat(geoPackageFile, function(err, stat) {
-			var geoPackageFormat = {
-				size: stat.size
-			};
-			if (!cache.formats) {
-				cache.formats = {};
-			}
-			cache.formats.geopackage = geoPackageFormat;
-			cache.markModified('formats');
-			cache.save(callback);
-		});
-	}
+exports.updateFormatCreated = function(cache, formatName, formatFile, callback) {
+	fs.stat(formatFile, function(err, stat) {
+		if (err) {
+			return callback(err);
+		}
+		var fileFormat = {
+			size: stat.size
+		};
+		if (!cache.formats) {
+			cache.formats = {};
+		}
+		cache.formats[formatName] = fileFormat;
+		cache.markModified('formats');
+		cache.save(callback);
+	});
 }

@@ -1,0 +1,13 @@
+For mbtiles:
+
+https://github.com/mapbox/mbutil
+
+git clone git://github.com/mapbox/mbutil.git
+cd mbutil
+# get usage
+./mb-util -h
+Then to install the mb-util command globally:
+
+sudo python setup.py install
+# then you can run:
+mb-util

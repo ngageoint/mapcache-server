@@ -41,10 +41,12 @@ module.exports = function(app, auth) {
          }
          if (format == "geopackage"){
       		res.attachment(req.cache.name + ".gpkg");
+        } else if (format == "mbtiles") {
+          res.attachment(req.cache.name + ".mbtiles");
         } else {
           res.attachment(req.cache.name + ".zip");
         }
-    	    archive.pipe(res);
+    	  archive.pipe(res);
     	});
   	}
   );

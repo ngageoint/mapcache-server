@@ -128,13 +128,32 @@ Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
       var python = exec(
        './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + geoPackageFile,
        function(error, stdout, stderr) {
-         CacheModel.updateFormatCreated(cache, format, function(err) {
+         CacheModel.updateFormatCreated(cache, format, geoPackageFile, function(err) {
            var stream = fs.createReadStream(geoPackageFile);
            callback(null, stream);
          });
        });
      } else {
        var stream = fs.createReadStream(geoPackageFile);
+       callback(null, stream);
+     }
+	} else if (format && (format.toLowerCase() == 'mbtiles')) {
+
+    var mbtilesFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".mbtiles";
+    if (!fs.existsSync(mbtilesFile)) {
+      console.log('running ' + 'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile);
+      var python = exec(
+       'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile,
+       function(error, stdout, stderr) {
+         console.log('done running ' + 'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile);
+         CacheModel.updateFormatCreated(cache, format, mbtilesFile, function(err) {
+           console.log('updated format created');
+           var stream = fs.createReadStream(mbtilesFile);
+           callback(null, stream);
+         });
+       });
+     } else {
+       var stream = fs.createReadStream(mbtilesFile);
        callback(null, stream);
      }
 	}
