@@ -134,7 +134,9 @@ exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
 }
 
 exports.updateTileDownloaded = function(cache, z, x, y, callback) {
+	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png');
 	fs.stat(config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
+		if (err) return callback(err);
 		var update = {$inc: {}};
 		update.$inc['status.zoomLevelStatus.'+z+'.generatedTiles'] = 1;
 		update.$inc['status.generatedTiles'] = 1;

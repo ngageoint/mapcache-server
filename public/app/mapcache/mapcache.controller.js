@@ -60,7 +60,9 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   $scope.cacheSize = function(cache) {
     var bytes = 0;
     for (var zoomLevel in cache.status.zoomLevelStatus) {
-      bytes += cache.status.zoomLevelStatus[zoomLevel].size;
+      if (cache.status.zoomLevelStatus[zoomLevel].size) {
+        bytes += cache.status.zoomLevelStatus[zoomLevel].size;
+      }
     }
 		if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
 		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
