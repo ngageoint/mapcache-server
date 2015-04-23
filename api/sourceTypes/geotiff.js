@@ -92,13 +92,16 @@ exports.createCache = function(cache) {
 exports.process = function(source, callback) {
   console.log("geotiff");
 
+  source.status="Extracting GeoTIFF data";
+  source.complete = false;
+  source.save();
+  callback(null, source);
+
   var ds = gdal.open(source.filePath);
   source.projection = ds.srs.getAuthorityCode("PROJCS");
   var polygon = turf.polygon([sourceCorners(ds)]);
   source.geometry = polygon;
   source.save();
-
-  callback(null, source);
 
   ds.close();
 
@@ -106,6 +109,8 @@ exports.process = function(source, callback) {
 }
 
 function reproject(source, epsgCode) {
+  source.status = "Reprojecting " + source.projection + " to EPSG:3857";
+  source.save();
   var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
   var ds = gdal.open(source.filePath);
   var warpSuggestion = gdal.suggestedWarpOutput({
@@ -133,6 +138,8 @@ function reproject(source, epsgCode) {
   destination.close();
   source.projections = source.projections || {};
   source.projections[epsgCode] = {path: file};
+  source.status = "Complete";
+  source.complete = true;
   source.save(function(err){
   });
 }

@@ -113,9 +113,8 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
 
   function showCacheTiles(cache) {
     removeCacheTiles(cache);
-    // going to old server for now
     baseLayer.setOpacity(.3);
-    var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());//"https://mapcache.geointapps.org/api/caches/" + cache.name + "/{z}/{x}/{y}.png");
+    var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
     layers[cache.id] = layer;
     layer.addTo(map);
   }

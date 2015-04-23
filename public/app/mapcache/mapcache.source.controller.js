@@ -5,37 +5,35 @@ angular
 MapcacheSourceController.$inject = [
   '$scope',
   '$location',
+  '$timeout',
+  '$routeParams',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheSourceController($scope, $location, CacheService, SourceService) {
+function MapcacheSourceController($scope, $location, $timeout, $routeParams, CacheService, SourceService) {
 
-  $scope.source = {
-
+  $scope.mapOptions = {
+    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    opacity: .14
   };
 
-  var uploadProgress = function(e) {
-    if(e.lengthComputable){
-      $scope.$apply(function() {
-        $scope.progress = (e.loaded/e.total) * 100;
-        console.log('uploadprogress ' + $scope.progress);
-      });
-    }
+  $scope.source = {
+    id: $routeParams.sourceId
+  };
+
+  function getSource() {
+    SourceService.refreshSource($scope.source, function(source) {
+      // success
+      $scope.source = source;
+      if (!source.complete) {
+        $timeout(getSource, 5000);
+      }
+    }, function(data) {
+      // error
+    });
   }
 
-  $scope.createSource = function() {
-    console.log($scope.cache);
-    SourceService.createSource($scope.source, function(source) {
-      console.log('source created', source);
-    }, function() {
-      console.log("error");
-    }, uploadProgress);
-  }
-
-  $scope.$on('uploadFile', function(e, uploadFile) {
-    console.log(uploadFile);
-    $scope.source.sourceFile = uploadFile;
-  });
+  getSource();
 
 };

@@ -2,15 +2,16 @@ angular
   .module('mapcache')
   .factory('SourceService', SourceService);
 
-SourceService.$inject = ['$q', '$http', 'LocalStorageService'];
+SourceService.$inject = ['$q', '$http', '$rootScope', 'LocalStorageService'];
 
-function SourceService($q, $http, LocalStorageService) {
+function SourceService($q, $http, $rootScope, LocalStorageService) {
 
   var resolvedSources = {};
   var resolveAllSources = null;
 
   var service = {
     getAllSources: getAllSources,
+    refreshSource: refreshSource,
     createSource: createSource
   };
 
@@ -30,6 +31,19 @@ function SourceService($q, $http, LocalStorageService) {
 
     return resolveAllSources;
   };
+
+  function refreshSource(source, success, error) {
+    $http.get('/api/sources/'+source.id)
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
 
   function createSource(source, success, error, progress) {
 
@@ -56,7 +70,9 @@ function SourceService($q, $http, LocalStorageService) {
             return myXhr;
           },
           success: function(response) {
-            success(source);
+            $rootScope.$apply(function() {
+              success(response);
+            });
 
             // delete self.formArchiveFile;
             // _.extend(self, response);

@@ -61,6 +61,11 @@ function config($routeProvider, $locationProvider, $httpProvider) {
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
   });
   $routeProvider.when('/source', {
+    templateUrl:    'app/mapcache/source-create.html',
+    controller:     "MapcacheSourceCreateController",
+    resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
+  });
+  $routeProvider.when('/source/:sourceId', {
     templateUrl:    'app/mapcache/source.html',
     controller:     "MapcacheSourceController",
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])

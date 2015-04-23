@@ -37,11 +37,15 @@ function CacheService($q, $http) {
       '/api/caches',
       cache,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(cache) {
+    ).success(function(cache, status, headers, config) {
       console.log("created a cache", cache);
       if (success) {
         success(cache);
       }
+    }).error(function(data, status, headers, config) {
+      if (error) {
+        error(data, status);
+      }
     });
-  };
+  }
 }

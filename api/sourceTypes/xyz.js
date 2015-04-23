@@ -15,6 +15,9 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
 
 exports.process = function(source, callback) {
   console.log("xyz");
+  source.status = "Complete";
+  source.complete = true;
+  source.save();
   callback(null, source);
 }
 

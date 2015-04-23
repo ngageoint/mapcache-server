@@ -8,7 +8,8 @@ function leafletSource() {
     replace: true,
     template: '<div style="height: 500px;"></div>',
     scope: {
-      source: '='
+      source: '=',
+      options: '='
     },
     controller: LeafletSourceController
   };
@@ -16,18 +17,27 @@ function leafletSource() {
   return directive;
 }
 
-LeafletSourceController.$inject = ['$scope', '$element'];
+LeafletSourceController.$inject = ['$scope', '$element', 'LocalStorageService'];
 
-function LeafletSourceController($scope, $element) {
+function LeafletSourceController($scope, $element, LocalStorageService) {
 
-  var options = {
+  var baseLayerOptions = $scope.options || {
     maxZoom: 18,
-    tms: false
+    tms: false,
+    opacity: 1
   };
 
-  var defaultLayer = '';//'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png';
+  var sourceLayerOptions = {
+    maxZoom: 18,
+    tms: false,
+    opacity: 1
+  };
 
-  var baseLayer = L.tileLayer(defaultLayer, options);
+
+  var defaultLayer = baseLayerOptions.baseLayerUrl;
+
+  var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
+  var sourceLayer = null;
 
   var map = L.map($element[0], {
     center: [45,0],
@@ -39,27 +49,38 @@ function LeafletSourceController($scope, $element) {
   baseLayer.addTo(map);
 
   var debounceUrl = _.debounce(function(url) {
-    baseLayer.setUrl(getUrl(url));
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
+    sourceLayer.addTo(map);
   }, 500);
 
   $scope.$watch('source.url', function(url) {
-    debounceUrl(url);
+    if (url != null) {
+      debounceUrl(url);
+    }
   });
 
   $scope.$watch('source.format', function(format, oldFormat) {
     if (format == oldFormat) return;
 
-    options.tms = 'tms' == format;
-    map.removeLayer(baseLayer);
-    baseLayer = L.tileLayer(getUrl($scope.source.url), options);
-    baseLayer.addTo(map);
+    sourceLayerOptions.tms = 'tms' == format;
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
+    sourceLayer.addTo(map);
   });
 
-  function getUrl(url) {
-    if (url == null || url == "") {
+  function getUrl(source) {
+    console.log('changing source to ', source);
+    if (source == null) {
       return defaultLayer;
+    } else if (typeof source == "string") {
+      return source + "/{z}/{x}/{y}.png";
     } else {
-      return url + "/{z}/{x}/{y}.png";
+      return '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
     }
   }
 }
