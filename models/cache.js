@@ -1,6 +1,7 @@
 var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, config = require('../config.json')
+	, hri = require('human-readable-ids').hri
 	, Source = require('./source');
 
 // Creates a new Mongoose Schema object
@@ -20,6 +21,7 @@ var CacheSchema = new Schema({
 	geometry: Schema.Types.Mixed,
 	maxZoom: {type: Number, required: true },
 	minZoom: {type: Number, required: true},
+	humanReadableId: { type: String, required: false},
 	formats: Schema.Types.Mixed,
 	tileFailures: [TileFailureSchema],
 	status: {
@@ -91,12 +93,19 @@ exports.getCacheById = function(id, callback) {
     if (err) {
       console.log("Error finding cache in mongo: " + id + ', error: ' + err);
     }
-    callback(err, cache);
+		if (cache) {
+	    return callback(err, cache);
+		}
+		// try to find by human readable
+		Cache.findOne({humanReadableId: id}, function(err, cache) {
+		  return callback(err, cache);
+		});
   });
 }
 
 exports.createCache = function(cache, callback) {
 	if (cache.sourceId) {
+		cache.humanReadableId = hri.random();
 		Cache.create(cache, function(err, newCache) {
 			callback(err, newCache);
 		});
