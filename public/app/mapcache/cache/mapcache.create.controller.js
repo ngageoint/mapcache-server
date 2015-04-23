@@ -71,7 +71,8 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
     $scope.creatingCache = true;
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
-      presentModal(cache);
+      $location.path('/cache/'+cache.id);
+      // presentModal(cache);
     }, function(error, status) {
       $scope.cacheCreationError = {error: error, status: status};
     });
@@ -81,26 +82,4 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
     $location.path('/source');
   }
 
-  function presentModal(cache) {
-    var modalInstance = $modal.open({
-      backdrop: 'static',
-      templateUrl: 'app/mapcache/cache-creation-success.html',
-      controller: ['$scope', '$modalInstance', '$location', 'UserService', function ($scope, $modalInstance, $location, UserService) {
-        var oldUsername = UserService.myself && UserService.myself.username || undefined;
-        $scope.user = UserService.myself;
-        $scope.cache = cache;
-        $scope.createAnotherCache = function() {
-          $modalInstance.dismiss('another');
-        }
-
-        $scope.returnToList = function () {
-          $modalInstance.dismiss('done');
-          $location.path('/mapcache');
-        };
-      }]
-    });
-
-    modalInstance.result.then(function () {
-    });
-  }
 };

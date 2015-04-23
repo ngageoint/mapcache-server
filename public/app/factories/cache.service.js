@@ -11,10 +11,24 @@ function CacheService($q, $http) {
 
   var service = {
     getAllCaches: getAllCaches,
-    createCache: createCache
+    createCache: createCache,
+    getCache: getCache
   };
 
   return service;
+
+  function getCache(cache, success, error) {
+    $http.get('/api/caches/'+cache.id)
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
 
   function getAllCaches(forceRefresh) {
     if (forceRefresh) {
