@@ -22,6 +22,10 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     id: $routeParams.sourceId
   };
 
+  $scope.createCacheFromSource = function() {
+    $location.path('/create/'+$routeParams.sourceId);
+  }
+
   function getSource() {
     SourceService.refreshSource($scope.source, function(source) {
       // success

@@ -5,12 +5,15 @@ angular
 MapcacheCreateController.$inject = [
   '$scope',
   '$location',
+  '$routeParams',
   '$modal',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheCreateController($scope, $location, $modal, CacheService, SourceService) {
+function MapcacheCreateController($scope, $location, $routeParams, $modal, CacheService, SourceService) {
+
+  $scope.currentAdminPanel = $routeParams.adminPanel || "user";
 
   var seenCorners;
 
@@ -20,6 +23,13 @@ function MapcacheCreateController($scope, $location, $modal, CacheService, Sourc
 
   SourceService.getAllSources(true).success(function(sources) {
     $scope.sources = sources;
+    if ($routeParams.sourceId) {
+      for (var i = 0; i < $scope.sources.length && $scope.cache.source == null; i++) {
+        if ($routeParams.sourceId == $scope.sources[i].id) {
+          $scope.cache.source = $scope.sources[i];
+        }
+      }
+    }
   });
 
   $scope.$watch('cache.geometry', function(geometry) {
