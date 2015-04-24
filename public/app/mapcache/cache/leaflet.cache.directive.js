@@ -40,21 +40,25 @@ function LeafletCacheController($scope, $element, LocalStorageService) {
 
   $scope.$watch('cache', function(cache, oldCache) {
     if (cache == oldCache) return;
+    if (!cache.status.complete) return;
     var map = L.map($element[0], {
       center: [45,0],
-      zoom: 0,
+      zoom: 3,
       minZoom: cache.minZoom,
       maxZoom: cache.maxZoom
     });
 
     baseLayer.addTo(map);
     cacheLayerOptions.tms = 'tms' == cache.source.format;
+    cacheLayerOptions.maxZoom = cache.maxZoom;
+    cacheLayerOptions.minZoom = cache.minZoom;
     if (cacheLayer) {
       map.removeLayer(cacheLayer);
     }
     cacheLayer = L.tileLayer(getUrl($scope.cache), cacheLayerOptions);
     cacheLayer.addTo(map);
     var extent = turf.extent(cache.geometry);
+    console.log('extent', extent);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]

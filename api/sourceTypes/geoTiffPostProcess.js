@@ -28,6 +28,8 @@ process.on('message', function(m) {
   console.log('got a message in child process', m);
     if(m.operation == 'process') {
       processSource(m.sourceId);
+    } else if(m.operation == 'generateCache') {
+      createCache(m.cache);
     } else if(m.operation == 'exit') {
       process.exit();
     }
@@ -108,7 +110,10 @@ function createCache(cache) {
     function (err) {
         console.log("done with all the zoom levels");
         cache.status.complete = true;
-        cache.save();
+        cache.save(function(err) {
+          console.log('done');
+          process.exit();
+        });
     }
   );
 }

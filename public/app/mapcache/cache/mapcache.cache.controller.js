@@ -14,7 +14,7 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .14
+    opacity: .25
   };
 
   $scope.createAnotherCache = function() {
@@ -34,6 +34,7 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
       return Math.min(100,100*(zoomStatus.generatedTiles/zoomStatus.totalTiles));
   }
   $scope.sortedZooms = function(cache) {
+    console.log('zoom rows', cache);
     if (!cache) return;
     var zoomRows = [];
     for (var i = cache.minZoom; i <= cache.maxZoom; i=i+3) {
@@ -49,6 +50,7 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
       }
       zoomRows.push(row);
     }
+    console.log('zoom rows', zoomRows);
     return zoomRows;
   }
 
@@ -60,6 +62,10 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     CacheService.getCache(cache, function(cache) {
       // success
       $scope.cache = cache;
+      $scope.zoomRows = $scope.sortedZooms(cache);
+      if (!cache.status.complete) {
+        $timeout(getCache, 1000);
+      }
     }, function(data) {
       // error
     });
