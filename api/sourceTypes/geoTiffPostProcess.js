@@ -128,8 +128,7 @@ function processSource(sourceId) {
       source.geometry = polygon;
       source.save(function(err) {
         ds.close();
-        reproject(source, 3857);
-        source.save(function(err){
+        reproject(source, 3857, function(err){
           console.log('done');
           process.exit();
         });
@@ -138,7 +137,7 @@ function processSource(sourceId) {
   });
 }
 
-function reproject(source, epsgCode) {
+function reproject(source, epsgCode, callback) {
   source.status = "Reprojecting " + source.projection + " to EPSG:3857";
   source.save();
   var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
@@ -170,6 +169,7 @@ function reproject(source, epsgCode) {
   source.projections[epsgCode] = {path: file};
   source.status = "Complete";
   source.complete = true;
+  source.save(callback);
 }
 
 function sourceCorners(ds) {
