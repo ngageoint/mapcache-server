@@ -49,11 +49,7 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
   baseLayer.addTo(map);
 
   var debounceUrl = _.debounce(function(url) {
-    if (sourceLayer) {
-      map.removeLayer(sourceLayer);
-    }
-    sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
-    sourceLayer.addTo(map);
+    addSourceLayer();
   }, 500);
 
   $scope.$watch('source.url', function(url) {
@@ -66,12 +62,23 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     if (format == oldFormat) return;
 
     sourceLayerOptions.tms = 'tms' == format;
+    addSourceLayer();
+  });
+
+  function addSourceLayer() {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
     sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
     sourceLayer.addTo(map);
-  });
+    if ($scope.source.geometry) {
+      var extent = turf.extent($scope.source.geometry);
+      map.fitBounds([
+        [extent[1],extent[0]],
+        [extent[3], extent[2]]
+      ]);
+    }
+  }
 
   function getUrl(source) {
     console.log('changing source to ', source);
@@ -83,4 +90,6 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
       return '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
     }
   }
+
+  addSourceLayer();
 }

@@ -62,7 +62,7 @@ function config($routeProvider, $locationProvider, $httpProvider) {
   });
   $routeProvider.when('/cache/:cacheId', {
     templateUrl:    'app/mapcache/cache/cache.html',
-    controller:     "MapcacheSourceController",
+    controller:     "MapcacheCacheController",
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
   });
   $routeProvider.when('/source', {

@@ -3,6 +3,7 @@ var gdal = require("gdal")
   , turf = require('turf')
   , path = require('path')
   , fs = require('fs-extra')
+  , mongoose = require('mongoose')
   , png = require('pngjs')
   , tu = require('../tileUtilities')
   , async = require('async')
@@ -10,6 +11,27 @@ var gdal = require("gdal")
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
   , config = require('../../config.json');
+
+var mongodbConfig = config.server.mongodb;
+
+var mongoUri = "mongodb://" + mongodbConfig.host + "/" + mongodbConfig.db;
+mongoose.connect(mongoUri, {server: {poolSize: mongodbConfig.poolSize}}, function(err) {
+  if (err) {
+    console.log('Error connecting to mongo database, please make sure mongodb is running...');
+    throw err;
+  }
+});
+mongoose.set('debug', true);
+
+
+process.on('message', function(m) {
+  console.log('got a message in child process', m);
+    if(m.operation == 'process') {
+      processSource(m.sourceId);
+    } else if(m.operation == 'exit') {
+      process.exit();
+    }
+});
 
 function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
   if (yRange.current > yRange.max) return false;
@@ -21,7 +43,7 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
 }
 
 
-exports.createCache = function(cache) {
+function createCache(cache) {
   var zoom = cache.minZoom;
   var extent = turf.extent(cache.geometry);
 
@@ -91,15 +113,29 @@ exports.createCache = function(cache) {
   );
 }
 
-exports.process = function(source, callback) {
-  console.log("geotiff");
+function processSource(sourceId) {
 
-  callback(null, source);
-  console.log('dirname in geotiff ' + __dirname);
-  var dependency = {message: 'hello there'};
-  var args = [JSON.stringify(dependency)];
-  var child = require('child_process').fork('api/sourceTypes/geoTiffPostProcess', args);
-  child.send({operation:'process', sourceId: source.id});
+  SourceModel.getSourceById(sourceId, function(err, source){
+    if (!source) {
+      console.log('did not find the source: ' + sourceId);
+    }
+    source.status="Extracting GeoTIFF data";
+    source.complete = false;
+    source.save(function(err) {
+      var ds = gdal.open(source.filePath);
+      source.projection = ds.srs.getAuthorityCode("PROJCS");
+      var polygon = turf.polygon([sourceCorners(ds)]);
+      source.geometry = polygon;
+      source.save(function(err) {
+        ds.close();
+        reproject(source, 3857);
+        source.save(function(err){
+          console.log('done');
+          process.exit();
+        });
+      });
+    });
+  });
 }
 
 function reproject(source, epsgCode) {
@@ -134,8 +170,6 @@ function reproject(source, epsgCode) {
   source.projections[epsgCode] = {path: file};
   source.status = "Complete";
   source.complete = true;
-  source.save(function(err){
-  });
 }
 
 function sourceCorners(ds) {

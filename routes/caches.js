@@ -117,4 +117,15 @@ module.exports = function(app, auth) {
       });
     }
   );
+
+  // get source
+  app.get(
+    '/api/caches/:cacheId',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var cacheJson = cacheXform.transform(req.cache);
+      res.json(cacheJson);
+    }
+  );
 }

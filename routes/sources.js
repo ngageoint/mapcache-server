@@ -56,16 +56,16 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       if (!req.is('multipart/form-data')) return next();
 
-      console.log(req);
+      // console.log(req);
 
       new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
-        console.log('new source is', newSource);
+        // console.log('new source is', newSource);
 
         var response = sourceXform.transform(newSource);
-        console.log('response is', response);
+        // console.log('response is', response);
         res.location(newSource._id.toString()).json(response);
       });
     }

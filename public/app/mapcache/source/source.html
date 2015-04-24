@@ -27,7 +27,7 @@
       <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/sources/{{source.humanReadableId}}/{z}/{x}/{y}.png</span>
     </div>
   </div>
-  <div class="row">
+  <div class="row" ng-if="source.complete">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Source tiles are shown below. (light grey map is only for geographic reference)</span>
       <div leaflet-source source="source" options="mapOptions"></div>

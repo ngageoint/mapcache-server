@@ -1,5 +1,4 @@
 var CacheModel = require('../models/cache')
-  , async = require('async')
   , turf = require('turf')
   , fs = require('fs-extra')
   , archiver = require('archiver')
