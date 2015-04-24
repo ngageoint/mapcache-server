@@ -19,7 +19,6 @@ Cache.prototype.create = function(cache, callback) {
 
   cache.status = {
     complete: false,
-    humanReadable: '',
     totalTiles: 0,
     generatedTiles: 0,
     zoomLevelStatus: {}

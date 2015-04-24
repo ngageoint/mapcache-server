@@ -13,7 +13,7 @@ MapcacheSourceCreateController.$inject = [
 function MapcacheSourceCreateController($scope, $location, $timeout, CacheService, SourceService) {
 
   $scope.source = {
-
+    format: 'xyz'
   };
 
   var uploadProgress = function(e) {

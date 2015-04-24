@@ -1,6 +1,7 @@
 var CacheModel = require('../../models/cache')
   , async = require('async')
   , turf = require('turf')
+  , request = require('request')
   , tileUtilities = require('../tileUtilities')
   , downloader = require('../tileDownloader');
 
@@ -23,7 +24,16 @@ exports.process = function(source, callback) {
 
 exports.getTile = function(source, z, x, y, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
-  callback();
+  var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
+  var req = request.get({url: url,
+    headers: {'Content-Type': 'image/png'},
+  })
+  .on('error', function(err) {
+    console.log(err+ url);
+
+    callback(err, tileInfo);
+  });
+  callback(null, req);
 }
 
 exports.createCache = function(cache) {

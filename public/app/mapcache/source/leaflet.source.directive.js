@@ -33,10 +33,6 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     opacity: 1
   };
 
-
-  var defaultLayer = baseLayerOptions.baseLayerUrl;
-
-  var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
   var sourceLayer = null;
 
   var map = L.map($element[0], {
@@ -46,10 +42,16 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     maxZoom: 18
   });
 
-  baseLayer.addTo(map);
+  if (baseLayerOptions.baseLayerUrl) {
+    var defaultLayer = baseLayerOptions.baseLayerUrl;
+    var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
+    baseLayer.addTo(map);
+  }
 
   var debounceUrl = _.debounce(function(url) {
-    addSourceLayer();
+    $scope.$apply(function() {
+      addSourceLayer();
+    });
   }, 500);
 
   $scope.$watch('source.url', function(url) {
@@ -69,6 +71,8 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
+    var url = getUrl($scope.source);
+    if (!url) return;
     sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
     sourceLayer.addTo(map);
     if ($scope.source.geometry) {
@@ -86,7 +90,9 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
       return defaultLayer;
     } else if (typeof source == "string") {
       return source + "/{z}/{x}/{y}.png";
-    } else {
+    } else if (!source.id && source.url) {
+      return source.url + "/{z}/{x}/{y}.png";
+    } else if (source.id) {
       return '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
     }
   }

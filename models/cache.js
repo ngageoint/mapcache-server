@@ -117,6 +117,7 @@ exports.createCache = function(cache, callback) {
 			console.log(sources);
 			var source = sources[0];
 			cache.sourceId = source._id;
+			cache.humanReadableId = hri.random();
 			Cache.create(cache, function(err, newCache) {
 				if (err) return callback(err);
 				newCache.source = source;
@@ -126,6 +127,7 @@ exports.createCache = function(cache, callback) {
 			Source.create(cache.source, function(err, newSource) {
 				if (err) return callback(err);
 				cache.sourceId = newSource._id;
+				cache.humanReadableId = hri.random();
 				Cache.create(cache, function(err, newCache) {
 					if (err) return callback(err);
 					newCache.source = newSource;
