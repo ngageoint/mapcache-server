@@ -46,9 +46,8 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
 
 
 function createCache(cache) {
-  SourceModel.getSourceById(id, function(err, source) {
-    cache.source = source;
-
+  CacheModel.getCacheById(cache.id, function(err, foundCache) {
+    cache = foundCache;
     var zoom = cache.minZoom;
     var extent = turf.extent(cache.geometry);
 
@@ -120,6 +119,7 @@ function createCache(cache) {
       }
     );
   });
+
 }
 
 function processSource(sourceId) {
