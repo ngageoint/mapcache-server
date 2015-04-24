@@ -94,6 +94,7 @@ exports.getCacheById = function(id, callback) {
       console.log("Error finding cache in mongo: " + id + ', error: ' + err);
     }
 		if (cache) {
+			cache.source = cache.sourceId;
 	    return callback(err, cache);
 		}
 		// try to find by human readable
@@ -141,18 +142,18 @@ exports.createCache = function(cache, callback) {
 exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
 	var update = {$set: {}};
 	update.$set['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
-	Cache.findByIdAndUpdate(cache._id, update, callback);
+	Cache.findByIdAndUpdate(cache.id, update, callback);
 }
 
 exports.updateTileDownloaded = function(cache, z, x, y, callback) {
-	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png');
-	fs.stat(config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
+	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache.id + '/' + z + '/' + x + '/' + y + '.png');
+	fs.stat(config.server.cacheDirectory.path + "/" + cache.id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
 		if (err) return callback(err);
 		var update = {$inc: {}};
 		update.$inc['status.zoomLevelStatus.'+z+'.generatedTiles'] = 1;
 		update.$inc['status.generatedTiles'] = 1;
 		update.$inc['status.zoomLevelStatus.'+z+'.size'] = stat.size;
-		Cache.findByIdAndUpdate(cache._id, update, callback);
+		Cache.findByIdAndUpdate(cache.id, update, callback);
 	});
 }
 
