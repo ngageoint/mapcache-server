@@ -14,8 +14,11 @@ Source.prototype.getAll = function(options, callback) {
 Source.prototype.create = function(source, callback) {
   SourceModel.createSource(source, function(err, newSource) {
     if (err) return callback(err);
-
-    sourceProcessor.process(newSource, callback);
+    newSource.complete = false;
+    newSource.status = "Creating";
+    newSource.save(function(err){
+      sourceProcessor.process(newSource, callback);
+    });
   });
 }
 
@@ -33,6 +36,8 @@ Source.prototype.import = function(source, sourceFile, callback) {
         if (err) return callback(err);
 
         newSource.filePath = file;
+        newSource.complete = false;
+        newSource.status = "Creating";
         newSource.save(function(err){
           sourceProcessor.process(newSource, callback);
         });

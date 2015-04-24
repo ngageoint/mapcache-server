@@ -91,6 +91,7 @@
   left: 10px;
   right: 10px;
   top:800px;
+  padding-bottom: 20px;
 }
 
 .mapcache-sources-description {
@@ -105,6 +106,34 @@
   font-weight: 300;
   font-size: 28px;
   text-align: center;
+}
+
+.source-status {
+  font-weight: bold;
+}
+
+.page-entity-title {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 28px;
+}
+
+.page-entity-label {
+  font-family: Roboto;
+  font-weight: 200;
+  font-size: 28px;
+}
+
+.page-sub-entity-title {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.page-sub-entity-label {
+  font-family: Roboto;
+  font-weight: 200;
+  font-size: 18px;
 }
 
 .ui-select-bootstrap>.ui-select-choices {

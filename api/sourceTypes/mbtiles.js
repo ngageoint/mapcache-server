@@ -1,8 +1,10 @@
 var CacheModel = require('../../models/cache')
   , async = require('async')
   , turf = require('turf')
-  , request = require('request')
+  , exec = require('child_process').exec
   , tileUtilities = require('../tileUtilities')
+  , config = require('../../config.json')
+  , fs = require('fs-extra')
   , downloader = require('../tileDownloader');
 
 function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
@@ -15,25 +17,42 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
 }
 
 exports.process = function(source, callback) {
-  console.log("xyz");
-  source.status = "Complete";
-  source.complete = true;
+  console.log("mbtiles");
+
+  console.log('running ' + 'mb-util ' + source.filePath + " .");
+  source.status = "Extracting MBTiles";
   source.save();
   callback(null, source);
+  var python = exec(
+    'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles",
+   function(error, stdout, stderr) {
+     source.status = "Complete";
+     source.complete = true;
+     source.save();
+     console.log('done running ' +   'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
+   });
 }
 
 exports.getTile = function(source, z, x, y, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
-  var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
-  var req = request.get({url: url,
-    headers: {'Content-Type': 'image/png'},
-  })
-  .on('error', function(err) {
-    console.log(err+ url);
 
-    callback(err, tileInfo);
-  });
-  callback(null, req);
+  var tile = config.server.sourceDirectory.path + "/" + source._id + "/tiles/" + z + '/' + x + '/' + y + '.png';
+
+  if (fs.existsSync(tile)) {
+    var stream = fs.createReadStream(tile);
+    callback(null, stream);
+  } else {
+    callback();
+  }
+}
+
+function createDir(cacheName, filepath){
+	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
+    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
+       if (err) console.log(err);
+     });
+	}
+  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }
 
 exports.createCache = function(cache) {
@@ -56,9 +75,14 @@ exports.createCache = function(cache) {
           return currentx <= xRange.max;
         },
         function(xRowDone) {
-          var q = async.queue(function (task, tileDone) {
-            console.log("go get the tile", task);
-              downloader.download(task, tileDone);
+          var q = async.queue(function (tileInfo, tileDone) {
+            console.log("go get the tile", tileInfo);
+            var sourceTile = config.server.sourceDirectory.path + "/" + cache.source._id + "/tiles/" + tileInfo.z + "/" + tileInfo.x + "/" + tileInfo.y + ".png";
+            var destTile = createDir(cache._id, tileInfo.z + "/" + tileInfo.x) + "/" + tileInfo.y + ".png";
+            console.log("copy tile " + sourceTile + " to " + destTile);
+            fs.copy(sourceTile, destTile, function(err) {
+              CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, tileDone);
+            });
           }, 10);
 
           q.drain = function() {

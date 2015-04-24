@@ -11,10 +11,24 @@ function CacheService($q, $http) {
 
   var service = {
     getAllCaches: getAllCaches,
-    createCache: createCache
+    createCache: createCache,
+    getCache: getCache
   };
 
   return service;
+
+  function getCache(cache, success, error) {
+    $http.get('/api/caches/'+cache.id)
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
 
   function getAllCaches(forceRefresh) {
     if (forceRefresh) {
@@ -37,11 +51,15 @@ function CacheService($q, $http) {
       '/api/caches',
       cache,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(cache) {
+    ).success(function(cache, status, headers, config) {
       console.log("created a cache", cache);
       if (success) {
         success(cache);
       }
+    }).error(function(data, status, headers, config) {
+      if (error) {
+        error(data, status);
+      }
     });
-  };
+  }
 }

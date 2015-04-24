@@ -31,8 +31,9 @@
     </div>
   </div>
 
-  <div ng-if="cache.source">
+  <div ng-if="cache.source" class="bottom-gap-l">
     <div class="hidden-xs">
+      <label>Define the cache boundaries</label>
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group">
@@ -138,7 +139,7 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        <button class="btn btn-primary pull-right" ng-click="createCache()">Create Cache</button>
+        <button class="btn btn-primary pull-right" ng-class="{disabled: creatingCache}" ng-click="createCache()">Create Cache</button>
       </div>
     </div>
   </div>

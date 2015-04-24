@@ -1,6 +1,7 @@
 var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, config = require('../config.json')
+	, hri = require('human-readable-ids').hri
 	, Source = require('./source');
 
 // Creates a new Mongoose Schema object
@@ -8,15 +9,8 @@ var Schema = mongoose.Schema;
 
 var TileFailureSchema = new Schema({
 	url: {type: String, required: true},
-	retries: {type: Number, required: true}
-});
-
-var FormatSchema = new Schema({
-	format: { type: String, required: true},
-	size: { type: Number, required: true},
-	zoomLevelSize: Schema.Types.Mixed
-},{
-	strict: true
+	retries: {type: Number, required: true},
+	failureType: {type: Number, required: false}
 });
 
 // Creates the Schema for the cache objects
@@ -27,7 +21,8 @@ var CacheSchema = new Schema({
 	geometry: Schema.Types.Mixed,
 	maxZoom: {type: Number, required: true },
 	minZoom: {type: Number, required: true},
-	formats: [FormatSchema],
+	humanReadableId: { type: String, required: false},
+	formats: Schema.Types.Mixed,
 	tileFailures: [TileFailureSchema],
 	status: {
 		complete: {type: Boolean, required: true},
@@ -98,12 +93,19 @@ exports.getCacheById = function(id, callback) {
     if (err) {
       console.log("Error finding cache in mongo: " + id + ', error: ' + err);
     }
-    callback(err, cache);
+		if (cache) {
+	    return callback(err, cache);
+		}
+		// try to find by human readable
+		Cache.findOne({humanReadableId: id}, function(err, cache) {
+		  return callback(err, cache);
+		});
   });
 }
 
 exports.createCache = function(cache, callback) {
 	if (cache.sourceId) {
+		cache.humanReadableId = hri.random();
 		Cache.create(cache, function(err, newCache) {
 			callback(err, newCache);
 		});
@@ -115,6 +117,7 @@ exports.createCache = function(cache, callback) {
 			console.log(sources);
 			var source = sources[0];
 			cache.sourceId = source._id;
+			cache.humanReadableId = hri.random();
 			Cache.create(cache, function(err, newCache) {
 				if (err) return callback(err);
 				newCache.source = source;
@@ -124,6 +127,7 @@ exports.createCache = function(cache, callback) {
 			Source.create(cache.source, function(err, newSource) {
 				if (err) return callback(err);
 				cache.sourceId = newSource._id;
+				cache.humanReadableId = hri.random();
 				Cache.create(cache, function(err, newCache) {
 					if (err) return callback(err);
 					newCache.source = newSource;
@@ -141,11 +145,30 @@ exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
 }
 
 exports.updateTileDownloaded = function(cache, z, x, y, callback) {
+	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png');
 	fs.stat(config.server.cacheDirectory.path + "/" + cache._id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
+		if (err) return callback(err);
 		var update = {$inc: {}};
 		update.$inc['status.zoomLevelStatus.'+z+'.generatedTiles'] = 1;
 		update.$inc['status.generatedTiles'] = 1;
 		update.$inc['status.zoomLevelStatus.'+z+'.size'] = stat.size;
 		Cache.findByIdAndUpdate(cache._id, update, callback);
+	});
+}
+
+exports.updateFormatCreated = function(cache, formatName, formatFile, callback) {
+	fs.stat(formatFile, function(err, stat) {
+		if (err) {
+			return callback(err);
+		}
+		var fileFormat = {
+			size: stat.size
+		};
+		if (!cache.formats) {
+			cache.formats = {};
+		}
+		cache.formats[formatName] = fileFormat;
+		cache.markModified('formats');
+		cache.save(callback);
 	});
 }

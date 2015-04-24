@@ -41,10 +41,12 @@ module.exports = function(app, auth) {
          }
          if (format == "geopackage"){
       		res.attachment(req.cache.name + ".gpkg");
+        } else if (format == "mbtiles") {
+          res.attachment(req.cache.name + ".mbtiles");
         } else {
           res.attachment(req.cache.name + ".zip");
         }
-    	    archive.pipe(res);
+    	  archive.pipe(res);
     	});
   	}
   );
@@ -113,6 +115,17 @@ module.exports = function(app, auth) {
       stream.on('error', function(err) {
         next(err);
       });
+    }
+  );
+
+  // get source
+  app.get(
+    '/api/caches/:cacheId',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var cacheJson = cacheXform.transform(req.cache);
+      res.json(cacheJson);
     }
   );
 }

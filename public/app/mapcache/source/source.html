@@ -1,0 +1,36 @@
+<div class="container top-gap-l">
+  <div class="row">
+    <div class="col-md-12">
+      <span class="page-entity-label">Source: <span class="page-entity-title">{{source.name}}</span>
+    </div>
+  </div>
+  <div class="row" ng-show="!source.complete">
+    <div class="col-md-12">
+      <p class="lead">The source is being processed.  The status of the source processing will be updated here.  If you leave this page the source will continue to be processed on the server.</p>
+      <p class="source-status">{{source.status}}</p>
+    </div>
+  </div>
+  <div class="row" ng-show="source.complete">
+    <div class="col-md-12">
+      <div class="alert alert-success" role="alert">
+        <p class="lead">The source {{source.name}} has been set up and is ready to be used to make a cache. <button class="btn btn-default pull-right" ng-click="createCacheFromSource()">Create A Cache From This Source</button></p>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <span class="page-sub-entity-label">Format: <span class="page-sub-entity-title">{{source.format}}</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/sources/{{source.humanReadableId}}/{z}/{x}/{y}.png</span>
+    </div>
+  </div>
+  <div class="row" ng-if="source.complete">
+    <div class="col-md-12">
+      <span class="page-sub-entity-label">Source tiles are shown below. (light grey map is only for geographic reference)</span>
+      <div leaflet-source source="source" options="mapOptions"></div>
+    </div>
+  </div>
+</div>

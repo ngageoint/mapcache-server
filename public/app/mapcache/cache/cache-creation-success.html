@@ -1,0 +1,24 @@
+<div>
+  <div class="modal-header">
+    <h3 class="modal-title">Your {{cache.name}} cache is being generated</h3>
+  </div>
+
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-12">
+        <p class="lead">Thank you for submitting your {{cache.name}} cache to be created.</p>
+        Feel free to return to the <a href="" ng-click="returnToList()">cache list</a> where you can also view the progress.  Don't worry, your cache will continue to be generated.
+        <!-- <div class="checkbox">
+          <label>
+            <input type="checkbox"> Please notify me via email ({{user.email}}) when my cache is done generating.
+          </label>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="createAnotherCache()">Create Another Cache</button>
+    <button class="btn btn-default" ng-click="returnToList()">Return to Cache List</button>
+  </div>
+</div>

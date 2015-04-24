@@ -1,18 +1,19 @@
 angular
   .module('mapcache')
-  .controller('MapcacheSourceController', MapcacheSourceController);
+  .controller('MapcacheSourceCreateController', MapcacheSourceCreateController);
 
-MapcacheSourceController.$inject = [
+MapcacheSourceCreateController.$inject = [
   '$scope',
   '$location',
+  '$timeout',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheSourceController($scope, $location, CacheService, SourceService) {
+function MapcacheSourceCreateController($scope, $location, $timeout, CacheService, SourceService) {
 
   $scope.source = {
-
+    format: 'xyz'
   };
 
   var uploadProgress = function(e) {
@@ -26,8 +27,11 @@ function MapcacheSourceController($scope, $location, CacheService, SourceService
 
   $scope.createSource = function() {
     console.log($scope.cache);
+    $scope.sourceSubmitted = true;
     SourceService.createSource($scope.source, function(source) {
       console.log('source created', source);
+      // now start a timer to watch the source be created
+      $location.path('/source/'+source.id);
     }, function() {
       console.log("error");
     }, uploadProgress);
@@ -37,5 +41,17 @@ function MapcacheSourceController($scope, $location, CacheService, SourceService
     console.log(uploadFile);
     $scope.source.sourceFile = uploadFile;
   });
+
+  function getSourceProgress() {
+    SourceService.refreshSource($scope.source, function(source) {
+      // success
+      $scope.source = source;
+      if (!source.complete) {
+        $timeout(getSourceProgress, 5000);
+      }
+    }, function(data) {
+      // error
+    });
+  }
 
 };

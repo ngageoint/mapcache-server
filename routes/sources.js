@@ -43,8 +43,7 @@ module.exports = function(app, auth) {
 
       new api.Source().getAll(options, function(err, sources) {
         if (err) return next(err);
-
-        var sources = sourceXform.transform(sources);
+        //var sources = sourceXform.transform({}, sources);
         res.json(sources);
       });
     }
@@ -57,14 +56,16 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       if (!req.is('multipart/form-data')) return next();
 
-      console.log(req);
+      // console.log(req);
 
       new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
+        // console.log('new source is', newSource);
 
         var response = sourceXform.transform(newSource);
+        // console.log('response is', response);
         res.location(newSource._id.toString()).json(response);
       });
     }
@@ -81,7 +82,6 @@ module.exports = function(app, auth) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
-
         var response = sourceXform.transform(newSource);
         res.location(newSource._id.toString()).json(response);
       });
@@ -105,6 +105,17 @@ module.exports = function(app, auth) {
 
         tileStream.pipe(res);
       });
+    }
+  );
+
+  // get source
+  app.get(
+    '/api/sources/:sourceId',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var sourceJson = sourceXform.transform(req.source);
+      res.json(sourceJson);
     }
   );
 }

@@ -3,6 +3,7 @@ var gdal = require("gdal")
   , turf = require('turf')
   , path = require('path')
   , fs = require('fs-extra')
+  , mongoose = require('mongoose')
   , png = require('pngjs')
   , tu = require('../tileUtilities')
   , async = require('async')
@@ -10,6 +11,29 @@ var gdal = require("gdal")
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
   , config = require('../../config.json');
+
+var mongodbConfig = config.server.mongodb;
+
+var mongoUri = "mongodb://" + mongodbConfig.host + "/" + mongodbConfig.db;
+mongoose.connect(mongoUri, {server: {poolSize: mongodbConfig.poolSize}}, function(err) {
+  if (err) {
+    console.log('Error connecting to mongo database, please make sure mongodb is running...');
+    throw err;
+  }
+});
+mongoose.set('debug', true);
+
+
+process.on('message', function(m) {
+  console.log('got a message in child process', m);
+    if(m.operation == 'process') {
+      processSource(m.sourceId);
+    } else if(m.operation == 'generateCache') {
+      createCache(m.cache);
+    } else if(m.operation == 'exit') {
+      process.exit();
+    }
+});
 
 function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
   if (yRange.current > yRange.max) return false;
@@ -21,26 +45,104 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
 }
 
 
-exports.createCache = function(cache) {
-  console.log('dirname in geotiff ' + __dirname);
-  var dependency = {message: 'hello there'};
-  var args = [JSON.stringify(dependency)];
-  var child = require('child_process').fork('api/sourceTypes/geoTiffPostProcess', args);
-  child.send({operation:'generateCache', cache: cache});
+function createCache(cache) {
+  var zoom = cache.minZoom;
+  var extent = turf.extent(cache.geometry);
+
+  async.whilst(
+    function () {
+      return zoom <= cache.maxZoom;
+    },
+    function (zoomLevelDone) {
+      var yRange = tu.yCalculator(extent, zoom);
+      var xRange = tu.xCalculator(extent, zoom);
+
+      var currentx = xRange.min;
+
+      async.whilst(
+        function () {
+          console.log('current x ' + currentx + ' xrange max ' + xRange.max);
+          return currentx <= xRange.max;
+        },
+        function(xRowDone) {
+          var q = async.queue(function (tileInfo, tileDone) {
+            console.log("go get the tile", tileInfo);
+            exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
+              var filepath = getFilepath(tileInfo);
+            	var dir = createDir(tileInfo.cache._id, filepath);
+            	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
+              var stream = fs.createWriteStream(dir + '/' + filename);
+          		stream.on('close',function(status){
+          			console.log('status on tile download is', status);
+          			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+                  tileDone(null, tileInfo);
+          			});
+          		});
+              tileStream.pipe(stream);
+            });
+          }, 10);
+
+          q.drain = function() {
+            // now go get the next 10 ys and keep going
+            var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+            // if there are no more ys do the callback
+            console.log("q drained");
+            if (!tasksPushed) {
+              console.log("x row " + currentx + " is done");
+              currentx++;
+              yRange.current = yRange.min;
+              xRowDone();
+            }
+          }
+
+          pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+
+        },
+        function (err) {
+          console.log("go update the zoom level status");
+          CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
+            zoom++;
+            zoomLevelDone();
+          });
+        }
+      );
+    },
+    function (err) {
+        console.log("done with all the zoom levels");
+        cache.status.complete = true;
+        cache.save(function(err) {
+          console.log('done');
+          process.exit();
+        });
+    }
+  );
 }
 
-exports.process = function(source, callback) {
-  console.log("geotiff");
+function processSource(sourceId) {
 
-  callback(null, source);
-  console.log('dirname in geotiff ' + __dirname);
-  var dependency = {message: 'hello there'};
-  var args = [JSON.stringify(dependency)];
-  var child = require('child_process').fork('api/sourceTypes/geoTiffPostProcess', args);
-  child.send({operation:'process', sourceId: source.id});
+  SourceModel.getSourceById(sourceId, function(err, source){
+    if (!source) {
+      console.log('did not find the source: ' + sourceId);
+    }
+    source.status="Extracting GeoTIFF data";
+    source.complete = false;
+    source.save(function(err) {
+      var ds = gdal.open(source.filePath);
+      source.projection = ds.srs.getAuthorityCode("PROJCS");
+      var polygon = turf.polygon([sourceCorners(ds)]);
+      source.geometry = polygon;
+      source.save(function(err) {
+        ds.close();
+        reproject(source, 3857, function(err){
+          console.log('done');
+          process.exit();
+        });
+      });
+    });
+  });
 }
 
-function reproject(source, epsgCode) {
+function reproject(source, epsgCode, callback) {
   source.status = "Reprojecting " + source.projection + " to EPSG:3857";
   source.save();
   var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
@@ -72,8 +174,7 @@ function reproject(source, epsgCode) {
   source.projections[epsgCode] = {path: file};
   source.status = "Complete";
   source.complete = true;
-  source.save(function(err){
-  });
+  source.save(callback);
 }
 
 function sourceCorners(ds) {

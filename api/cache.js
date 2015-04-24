@@ -1,5 +1,4 @@
 var CacheModel = require('../models/cache')
-  , async = require('async')
   , turf = require('turf')
   , fs = require('fs-extra')
   , archiver = require('archiver')
@@ -20,7 +19,6 @@ Cache.prototype.create = function(cache, callback) {
 
   cache.status = {
     complete: false,
-    humanReadable: '',
     totalTiles: 0,
     generatedTiles: 0,
     zoomLevelStatus: {}
@@ -123,12 +121,39 @@ Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
       callback(null, archive);
 	} else if (format && (format.toLowerCase() == 'geopackage')) {
 
-    var python = exec(
-     './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg",
-     function(error, stdout, stderr) {
-       var stream = fs.createReadStream(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg");
+    var geoPackageFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg";
+    if (!fs.existsSync(geoPackageFile)) {
+      var python = exec(
+       './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + geoPackageFile,
+       function(error, stdout, stderr) {
+         CacheModel.updateFormatCreated(cache, format, geoPackageFile, function(err) {
+           var stream = fs.createReadStream(geoPackageFile);
+           callback(null, stream);
+         });
+       });
+     } else {
+       var stream = fs.createReadStream(geoPackageFile);
        callback(null, stream);
-     });
+     }
+	} else if (format && (format.toLowerCase() == 'mbtiles')) {
+
+    var mbtilesFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".mbtiles";
+    if (!fs.existsSync(mbtilesFile)) {
+      console.log('running ' + 'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile);
+      var python = exec(
+       'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile,
+       function(error, stdout, stderr) {
+         console.log('done running ' + 'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile);
+         CacheModel.updateFormatCreated(cache, format, mbtilesFile, function(err) {
+           console.log('updated format created');
+           var stream = fs.createReadStream(mbtilesFile);
+           callback(null, stream);
+         });
+       });
+     } else {
+       var stream = fs.createReadStream(mbtilesFile);
+       callback(null, stream);
+     }
 	}
 }
 
