@@ -49,15 +49,15 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
   });
 
   $scope.$watch('cache.source', function(source) {
+    if (!source.geometry) {
+      $scope.north = null;
+      $scope.south = null;
+      $scope.west = null;
+      $scope.east = null;
+      $scope.cache.geometry = null;
+      return;
+    }
     if (source && source.format == 'geotiff') {
-      $scope.cache.source.url = null;
-      if (!source.geometry) {
-        $scope.north = null;
-        $scope.south = null;
-        $scope.west = null;
-        $scope.east = null;
-        return;
-      }
       var geometry = source.geometry;
       while(geometry.type != "Polygon" && geometry != null){
         geometry = geometry.geometry;
@@ -72,7 +72,6 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);
-      // presentModal(cache);
     }, function(error, status) {
       $scope.cacheCreationError = {error: error, status: status};
     });

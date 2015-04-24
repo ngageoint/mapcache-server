@@ -29,6 +29,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
 
   var baseLayer = L.tileLayer(defaultLayer, options);
   var sourceLayer;
+  var sourceBoundsLayer;
 
   var map = L.map($element[0], {
     center: [0,0],
@@ -105,11 +106,15 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   });
 
   $scope.$watch('options.source.geometry', function(geometry) {
-    var gj = L.geoJson({type: "FeatureCollection", features:[geometry]});
-    gj.setStyle({fill: false, color: "#308014", clickable: false});
-    gj.addTo(map);
-    gj.bringToFront();
-    map.fitBounds(gj.getBounds());
+    if (sourceBoundsLayer) {
+      map.removeLayer(sourceBoundsLayer);
+    }
+    if (!geometry) return;
+    sourceBoundsLayer = L.geoJson({type: "FeatureCollection", features:[geometry]});
+    sourceBoundsLayer.setStyle({fill: false, color: "#308014", clickable: false});
+    sourceBoundsLayer.addTo(map);
+    sourceBoundsLayer.bringToFront();
+    map.fitBounds(sourceBoundsLayer.getBounds());
   });
 
   $scope.$watch('options.source', function(source) {
