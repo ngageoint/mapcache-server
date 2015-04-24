@@ -38,18 +38,16 @@ function LeafletCacheController($scope, $element, LocalStorageService) {
   var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
   var cacheLayer = null;
 
-  var map = L.map($element[0], {
-    center: [45,0],
-    zoom: 0,
-    minZoom: 0,
-    maxZoom: 18
-  });
-
-  baseLayer.addTo(map);
-
   $scope.$watch('cache', function(cache, oldCache) {
     if (cache == oldCache) return;
+    var map = L.map($element[0], {
+      center: [45,0],
+      zoom: 0,
+      minZoom: cache.minZoom,
+      maxZoom: cache.maxZoom
+    });
 
+    baseLayer.addTo(map);
     cacheLayerOptions.tms = 'tms' == cache.source.format;
     if (cacheLayer) {
       map.removeLayer(cacheLayer);
