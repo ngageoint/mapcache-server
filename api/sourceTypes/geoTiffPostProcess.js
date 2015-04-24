@@ -46,76 +46,80 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
 
 
 function createCache(cache) {
-  var zoom = cache.minZoom;
-  var extent = turf.extent(cache.geometry);
+  SourceModel.getSourceById(id, function(err, source) {
+    cache.source = source;
 
-  async.whilst(
-    function () {
-      return zoom <= cache.maxZoom;
-    },
-    function (zoomLevelDone) {
-      var yRange = tu.yCalculator(extent, zoom);
-      var xRange = tu.xCalculator(extent, zoom);
+    var zoom = cache.minZoom;
+    var extent = turf.extent(cache.geometry);
 
-      var currentx = xRange.min;
+    async.whilst(
+      function () {
+        return zoom <= cache.maxZoom;
+      },
+      function (zoomLevelDone) {
+        var yRange = tu.yCalculator(extent, zoom);
+        var xRange = tu.xCalculator(extent, zoom);
 
-      async.whilst(
-        function () {
-          console.log('current x ' + currentx + ' xrange max ' + xRange.max);
-          return currentx <= xRange.max;
-        },
-        function(xRowDone) {
-          var q = async.queue(function (tileInfo, tileDone) {
-            console.log("go get the tile", tileInfo);
-            exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
-              var filepath = getFilepath(tileInfo);
-            	var dir = createDir(tileInfo.cache._id, filepath);
-            	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
-              var stream = fs.createWriteStream(dir + '/' + filename);
-          		stream.on('close',function(status){
-          			console.log('status on tile download is', status);
-          			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-                  tileDone(null, tileInfo);
-          			});
-          		});
-              tileStream.pipe(stream);
-            });
-          }, 10);
+        var currentx = xRange.min;
 
-          q.drain = function() {
-            // now go get the next 10 ys and keep going
-            var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
-            // if there are no more ys do the callback
-            console.log("q drained");
-            if (!tasksPushed) {
-              console.log("x row " + currentx + " is done");
-              currentx++;
-              yRange.current = yRange.min;
-              xRowDone();
+        async.whilst(
+          function () {
+            console.log('current x ' + currentx + ' xrange max ' + xRange.max);
+            return currentx <= xRange.max;
+          },
+          function(xRowDone) {
+            var q = async.queue(function (tileInfo, tileDone) {
+              console.log("go get the tile", tileInfo);
+              exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
+                var filepath = getFilepath(tileInfo);
+              	var dir = createDir(tileInfo.cache._id, filepath);
+              	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
+                var stream = fs.createWriteStream(dir + '/' + filename);
+            		stream.on('close',function(status){
+            			console.log('status on tile download is', status);
+            			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+                    tileDone(null, tileInfo);
+            			});
+            		});
+                tileStream.pipe(stream);
+              });
+            }, 10);
+
+            q.drain = function() {
+              // now go get the next 10 ys and keep going
+              var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+              // if there are no more ys do the callback
+              console.log("q drained");
+              if (!tasksPushed) {
+                console.log("x row " + currentx + " is done");
+                currentx++;
+                yRange.current = yRange.min;
+                xRowDone();
+              }
             }
+
+            pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+
+          },
+          function (err) {
+            console.log("go update the zoom level status");
+            CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
+              zoom++;
+              zoomLevelDone();
+            });
           }
-
-          pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
-
-        },
-        function (err) {
-          console.log("go update the zoom level status");
-          CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
-            zoom++;
-            zoomLevelDone();
+        );
+      },
+      function (err) {
+          console.log("done with all the zoom levels");
+          cache.status.complete = true;
+          cache.save(function(err) {
+            console.log('done');
+            process.exit();
           });
-        }
-      );
-    },
-    function (err) {
-        console.log("done with all the zoom levels");
-        cache.status.complete = true;
-        cache.save(function(err) {
-          console.log('done');
-          process.exit();
-        });
-    }
-  );
+      }
+    );
+  });
 }
 
 function processSource(sourceId) {
