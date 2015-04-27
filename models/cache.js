@@ -105,10 +105,19 @@ exports.getCacheById = function(id, callback) {
 }
 
 exports.createCache = function(cache, callback) {
-	if (cache.sourceId) {
+	if (cache.source) {
+		cache.sourceId = cache.source.id;
 		cache.humanReadableId = hri.random();
 		Cache.create(cache, function(err, newCache) {
-			callback(err, newCache);
+			Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
+		    if (err) {
+		      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
+		    }
+				if (cache) {
+					cache.source = cache.sourceId;
+			    return callback(err, cache);
+				}
+			});
 		});
 		return;
 	}
