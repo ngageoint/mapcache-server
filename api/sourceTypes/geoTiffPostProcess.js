@@ -80,7 +80,9 @@ function createCache(cache) {
                     tileDone(null, tileInfo);
             			});
             		});
-                tileStream.pipe(stream);
+                if (tileStream) {
+                  tileStream.pipe(stream);
+                }
               });
             }, 10);
 
@@ -266,10 +268,12 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
 }
 
 exports.getTile = function(source, z, x, y, callback) {
-  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
+  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ', source);
 
   var tileEnvelope = tu.tileBboxCalculator(x, y, z);
+  console.log("tile envelope", tileEnvelope);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
+  console.log('tile poly', tilePoly);
   var intersection = turf.intersect(tilePoly, source.geometry);
   if (!intersection){
     console.log("GeoTIFF does not intersect the requested tile");
