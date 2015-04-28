@@ -112,6 +112,10 @@
   font-weight: bold;
 }
 
+.usage-progress {
+  margin-bottom:5px;
+}
+
 .page-entity-title {
   font-family: Roboto;
   font-weight: 400;
