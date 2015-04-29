@@ -149,38 +149,41 @@ function processSource(sourceId) {
 }
 
 function reproject(source, epsgCode, callback) {
-  source.status = "Reprojecting " + source.projection + " to EPSG:3857";
-  source.save();
-  var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
-  var ds = gdal.open(source.filePath);
-  var warpSuggestion = gdal.suggestedWarpOutput({
-    src: ds,
-    s_srs: ds.srs,
-    t_srs:targetSrs
+  source.status = "Reprojecting to EPSG:3857";
+  source.save(function(err) {
+    var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
+    var ds = gdal.open(source.filePath);
+    var warpSuggestion = gdal.suggestedWarpOutput({
+      src: ds,
+      s_srs: ds.srs,
+      t_srs:targetSrs
+    });
+    var dir = path.join(config.server.sourceDirectory.path, source.id);
+    var fileName = path.basename(epsgCode + "_" + path.basename(source.filePath));
+    var file = path.join(dir, fileName);
+
+    console.log("translating " + source.filePath + " to " + file);
+
+    var destination = gdal.open(file, 'w', "GTiff", warpSuggestion.rasterSize.x, warpSuggestion.rasterSize.y, 3);
+    destination.srs = targetSrs;
+    destination.geoTransform = warpSuggestion.geoTransform;
+
+    gdal.reprojectImage({
+      src: ds,
+      dst: destination,
+      s_srs: ds.srs,
+      t_srs: targetSrs
+    });
+    ds.close();
+    destination.close();
+    fs.stat(file, function(err, stat) {
+      source.projections = source.projections || {};
+      source.projections[epsgCode] = {path: file, size: stat.size};
+      source.status = "Complete";
+      source.complete = true;
+      source.save(callback);
+    });
   });
-  var dir = path.join(config.server.sourceDirectory.path, source.id);
-  var fileName = path.basename(epsgCode + "_" + path.basename(source.filePath));
-  var file = path.join(dir, fileName);
-
-  console.log("translating " + source.filePath + " to " + file);
-
-  var destination = gdal.open(file, 'w', "GTiff", warpSuggestion.rasterSize.x, warpSuggestion.rasterSize.y, 3);
-  destination.srs = targetSrs;
-  destination.geoTransform = warpSuggestion.geoTransform;
-
-  gdal.reprojectImage({
-    src: ds,
-    dst: destination,
-    s_srs: ds.srs,
-    t_srs: targetSrs
-  });
-  ds.close();
-  destination.close();
-  source.projections = source.projections || {};
-  source.projections[epsgCode] = {path: file};
-  source.status = "Complete";
-  source.complete = true;
-  source.save(callback);
 }
 
 function sourceCorners(ds) {
