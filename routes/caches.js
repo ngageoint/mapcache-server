@@ -12,7 +12,9 @@ module.exports = function(app, auth) {
 
   var validateCache = function(req, res, next) {
     var cache = req.body;
-
+    if (cache.id) {
+      cache._id = cache.id;
+    }
     req.newCache = cache;
     next();
   }
@@ -128,4 +130,33 @@ module.exports = function(app, auth) {
       res.json(cacheJson);
     }
   );
+
+  // Delete a specific cache
+  app.delete(
+    '/api/caches/:cacheId/:format',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('DELETE_CACHE'),
+    function(req, res, next) {
+      new api.Cache().deleteFormat(req.cache, req.param('format'), function(err) {
+        if (err) return next(err);
+        res.status(200);
+        res.json(req.cache);
+      });
+    }
+  );
+
+  // Delete a specific cache
+  app.delete(
+    '/api/caches/:cacheId',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('DELETE_CACHE'),
+    function(req, res, next) {
+      new api.Cache().delete(req.cache, function(err) {
+        if (err) return next(err);
+        res.status(200);
+        res.json(req.cache);
+      });
+    }
+  );
+
 }

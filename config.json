@@ -8,17 +8,10 @@
     },
     "authentication": {
       "strategy": "local",
-      "passwordMinLength": 1
+      "passwordMinLength": 14
     },
     "provision": {
       "strategy": "uid"
-    },
-    "apk": {
-      "version": "3.0.0",
-      "supportedVersions": [
-        "4.0",
-        "4.3"
-      ]
     }
   },
   "server": {
@@ -34,11 +27,9 @@
     "cacheDirectory": {
       "path": "/data/mapcache"
     },
-    "zipDirectory": {
-      "path": "/data/mapcache/zip/"
-    },
     "sourceDirectory": {
       "path": "/data/mapcache/sources"
-    }
+    },
+    "storageLimit":8192
   }
 }

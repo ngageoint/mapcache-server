@@ -34,12 +34,14 @@ Source.prototype.import = function(source, sourceFile, callback) {
 
       fs.rename(sourceFile.path, file, function(err) {
         if (err) return callback(err);
-
-        newSource.filePath = file;
-        newSource.complete = false;
-        newSource.status = "Creating";
-        newSource.save(function(err){
-          sourceProcessor.process(newSource, callback);
+        fs.stat(file, function(err, stat) {
+          newSource.filePath = file;
+          newSource.size = stat.size;
+          newSource.complete = false;
+          newSource.status = "Creating";
+          newSource.save(function(err){
+            sourceProcessor.process(newSource, callback);
+          });
         });
       });
     });

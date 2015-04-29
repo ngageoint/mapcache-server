@@ -12,7 +12,8 @@ function CacheService($q, $http) {
   var service = {
     getAllCaches: getAllCaches,
     createCache: createCache,
-    getCache: getCache
+    getCache: getCache,
+    deleteCache: deleteCache
   };
 
   return service;
@@ -28,6 +29,21 @@ function CacheService($q, $http) {
           error(data, status);
         }
       });
+  }
+
+  function deleteCache(cache, format, success) {
+    var url = '/api/caches/' + cache.id;
+    if (format) {
+      url += '/' + format;
+    }
+    $http.delete(url).success(function(cache, status, headers, config) {
+      console.log('successfully deleted cache', cache);
+      if (success) {
+        success(cache);
+      }
+    }).error(function(cache, status, headers, config) {
+      console.log('error deleting cache', cache);
+    });
   }
 
   function getAllCaches(forceRefresh) {

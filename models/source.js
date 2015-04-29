@@ -11,6 +11,7 @@ var SourceSchema = new Schema({
 	filePath: { type: String, required: false},
 	projection: { type: String, required: false},
 	status: { type: String, required: false},
+  size: { type: Number, required: false},
 	complete: { type: Boolean, required: false},
 	humanReadableId: { type: String, required: false},
 	geometry: Schema.Types.Mixed,

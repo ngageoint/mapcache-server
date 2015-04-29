@@ -104,39 +104,33 @@ exports.getCacheById = function(id, callback) {
   });
 }
 
+exports.deleteFormat = function(cache, formatName, callback) {
+	delete cache.formats[formatName];
+	cache.markModified('formats');
+	cache.save(callback);
+}
+
+exports.deleteCache = function(cache, callback) {
+	Cache.remove({_id: cache.id}, callback);
+}
+
 exports.createCache = function(cache, callback) {
-	if (cache.sourceId) {
-		cache.humanReadableId = hri.random();
+	if (cache.source) {
+		cache.sourceId = cache.source.id;
+		cache.humanReadableId = cache.humanReadableId || hri.random();
 		Cache.create(cache, function(err, newCache) {
-			callback(err, newCache);
+			Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
+		    if (err) {
+		      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
+		    }
+				if (cache) {
+					cache.source = cache.sourceId;
+			    return callback(err, cache);
+				}
+			});
 		});
 		return;
 	}
-
-	Source.getSources({url: cache.source.url, format: cache.source.format}, function(err, sources) {
-		if (sources) {
-			console.log(sources);
-			var source = sources[0];
-			cache.sourceId = source._id;
-			cache.humanReadableId = hri.random();
-			Cache.create(cache, function(err, newCache) {
-				if (err) return callback(err);
-				newCache.source = source;
-				callback(err, newCache);
-			});
-		} else {
-			Source.create(cache.source, function(err, newSource) {
-				if (err) return callback(err);
-				cache.sourceId = newSource._id;
-				cache.humanReadableId = hri.random();
-				Cache.create(cache, function(err, newCache) {
-					if (err) return callback(err);
-					newCache.source = newSource;
-					callback(err, newCache);
-				});
-			});
-		}
-	});
 }
 
 exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {

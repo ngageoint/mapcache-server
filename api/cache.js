@@ -15,6 +15,29 @@ Cache.prototype.getAll = function(options, callback) {
   CacheModel.getCaches(callback);
 }
 
+Cache.prototype.delete = function(cache, callback) {
+  CacheModel.deleteCache(cache, function(err) {
+    if (err) return callback(err);
+    fs.remove(config.server.cacheDirectory.path + "/" + cache.id, function(err) {
+      callback(err, cache);
+    });
+  });
+}
+
+Cache.prototype.deleteFormat = function(cache, format, callback) {
+  CacheModel.deleteFormat(cache, format, function(err) {
+    if (err) return callback(err);
+    var extension = "." + format;
+    if (format == 'geopackage') {
+      extension = '.gpkg';
+    }
+
+    fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + extension, function(err) {
+      callback(err, cache);
+    });
+  });
+}
+
 Cache.prototype.create = function(cache, callback) {
 
   cache.status = {
