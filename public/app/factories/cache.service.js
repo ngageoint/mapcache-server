@@ -31,13 +31,16 @@ function CacheService($q, $http) {
       });
   }
 
-  function deleteCache(cache, format) {
+  function deleteCache(cache, format, success) {
     var url = '/api/caches/' + cache.id;
     if (format) {
       url += '/' + format;
     }
     $http.delete(url).success(function(cache, status, headers, config) {
       console.log('successfully deleted cache', cache);
+      if (success) {
+        success(cache);
+      }
     }).error(function(cache, status, headers, config) {
       console.log('error deleting cache', cache);
     });

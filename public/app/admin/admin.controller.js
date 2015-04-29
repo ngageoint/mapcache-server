@@ -5,5 +5,5 @@ angular
 AdminController.$inject = ['$scope', '$routeParams'];
 
 function AdminController($scope, $routeParams) {
-  $scope.currentAdminPanel = $routeParams.adminPanel || "user";
+  $scope.currentAdminPanel = $routeParams.adminPanel || "storage";
 }

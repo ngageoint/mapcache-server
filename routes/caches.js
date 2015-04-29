@@ -12,7 +12,9 @@ module.exports = function(app, auth) {
 
   var validateCache = function(req, res, next) {
     var cache = req.body;
-
+    if (cache.id) {
+      cache._id = cache.id;
+    }
     req.newCache = cache;
     next();
   }
@@ -137,7 +139,7 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       new api.Cache().deleteFormat(req.cache, req.param('format'), function(err) {
         if (err) return next(err);
-        res.status(204);
+        res.status(200);
         res.json(req.cache);
       });
     }
@@ -151,7 +153,7 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       new api.Cache().delete(req.cache, function(err) {
         if (err) return next(err);
-        res.status(204);
+        res.status(200);
         res.json(req.cache);
       });
     }

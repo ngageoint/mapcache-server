@@ -117,7 +117,7 @@ exports.deleteCache = function(cache, callback) {
 exports.createCache = function(cache, callback) {
 	if (cache.source) {
 		cache.sourceId = cache.source.id;
-		cache.humanReadableId = hri.random();
+		cache.humanReadableId = cache.humanReadableId || hri.random();
 		Cache.create(cache, function(err, newCache) {
 			Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
 		    if (err) {
@@ -131,31 +131,6 @@ exports.createCache = function(cache, callback) {
 		});
 		return;
 	}
-
-	Source.getSources({url: cache.source.url, format: cache.source.format}, function(err, sources) {
-		if (sources) {
-			console.log(sources);
-			var source = sources[0];
-			cache.sourceId = source._id;
-			cache.humanReadableId = hri.random();
-			Cache.create(cache, function(err, newCache) {
-				if (err) return callback(err);
-				newCache.source = source;
-				callback(err, newCache);
-			});
-		} else {
-			Source.create(cache.source, function(err, newSource) {
-				if (err) return callback(err);
-				cache.sourceId = newSource._id;
-				cache.humanReadableId = hri.random();
-				Cache.create(cache, function(err, newCache) {
-					if (err) return callback(err);
-					newCache.source = newSource;
-					callback(err, newCache);
-				});
-			});
-		}
-	});
 }
 
 exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {

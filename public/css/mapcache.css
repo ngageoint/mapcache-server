@@ -51,6 +51,10 @@
   color: #369;
 }
 
+.deleted-cache {
+  background-color: red;
+}
+
 .mapcache-header-description {
   font-size: 24px;
   font-family: Roboto;

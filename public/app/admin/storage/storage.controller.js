@@ -2,23 +2,27 @@ angular
   .module('mapcache')
   .controller('StorageController', StorageController);
 
-StorageController.$inject = ['$scope', '$http', 'CacheService', 'SourceService', 'FormatService'];
+StorageController.$inject = ['$scope', '$http', '$location', 'CacheService', 'SourceService', 'FormatService'];
 
-function StorageController($scope, $http, CacheService, SourceService, FormatService) {
-
-  // $scope.storage = {
-  //   total: 8192 * 1024 * 1024,
-  //   used: 1000 * 1024 * 1024,
-  //   serverTotal: 10240 * 1024 * 1024,
-  //   serverFree: 8500 * 1024 * 1024
-  // };
+function StorageController($scope, $http, $location, CacheService, SourceService, FormatService) {
 
   $scope.formatName = function(name) {
     return FormatService[name];
   }
 
   $scope.deleteCache = function(cache, format) {
-    CacheService.deleteCache(cache, format);
+    CacheService.deleteCache(cache, format, function(deletedCache) {
+      cache.deleted = true;
+    });
+  }
+
+  $scope.undeleteCache = function(cache) {
+    CacheService.createCache(cache, function(cache) {
+      $scope.creatingCache = false;
+      $location.path('/cache/'+cache.id);
+    }, function(error, status) {
+      $scope.cacheCreationError = {error: error, status: status};
+    });
   }
 
   $http.get('/api/server')
@@ -36,6 +40,7 @@ function StorageController($scope, $http, CacheService, SourceService, FormatSer
     }
     $scope.caches = caches;
   });
+
 
   function cacheSize(cache) {
     var bytes = 0;
