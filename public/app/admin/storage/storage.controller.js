@@ -17,6 +17,10 @@ function StorageController($scope, $http, CacheService, SourceService, FormatSer
     return FormatService[name];
   }
 
+  $scope.deleteCache = function(cache, format) {
+    CacheService.deleteCache(cache, format);
+  }
+
   $http.get('/api/server')
   .success(function(data, status) {
     $scope.storage = data;
@@ -43,7 +47,7 @@ function StorageController($scope, $http, CacheService, SourceService, FormatSer
     }
     tileBytes = bytes;
     for (var format in cache.formats) {
-      if (cache.formats.hasOwnProperty(format)) {
+      if (cache.formats.hasOwnProperty(format) && cache.formats[format]) {
         bytes += cache.formats[format].size;
       }
     }

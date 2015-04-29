@@ -131,14 +131,28 @@ module.exports = function(app, auth) {
 
   // Delete a specific cache
   app.delete(
+    '/api/caches/:cacheId/:format',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('DELETE_CACHE'),
+    function(req, res, next) {
+      new api.Cache().deleteFormat(req.cache, req.param('format'), function(err) {
+        if (err) return next(err);
+        res.status(204);
+        res.json(req.cache);
+      });
+    }
+  );
+
+  // Delete a specific cache
+  app.delete(
     '/api/caches/:cacheId',
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.User().delete(req.userParam, function(err) {
+      new api.Cache().delete(req.cache, function(err) {
         if (err) return next(err);
-
-        res.sendStatus(204);
+        res.status(204);
+        res.json(req.cache);
       });
     }
   );

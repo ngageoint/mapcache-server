@@ -104,6 +104,16 @@ exports.getCacheById = function(id, callback) {
   });
 }
 
+exports.deleteFormat = function(cache, formatName, callback) {
+	delete cache.formats[formatName];
+	cache.markModified('formats');
+	cache.save(callback);
+}
+
+exports.deleteCache = function(cache, callback) {
+	Cache.remove({_id: cache.id}, callback);
+}
+
 exports.createCache = function(cache, callback) {
 	if (cache.source) {
 		cache.sourceId = cache.source.id;

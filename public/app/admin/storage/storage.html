@@ -44,7 +44,7 @@
             </div>
             <div class="row bottom-gap" ng-repeat="cache in caches | orderBy: 'totalSize':true">
               <div class="col-md-11">
-                <span class="page-entity-label"><a ng-href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span class="page-entity-title">{{cache.totalSize | fileSize}}</span></span>
+                <span class="page-entity-label"><a ng-href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span class="page-entity-title">{{cache.totalSize | fileSize}}</span></span><a href="" ng-click="deleteCache(cache)"><i class="pull-right fa fa-trash"></i></a>
                 <div class="progress usage-progress">
                   <div class="progress-bar"
                      ng-class="{'progress-bar-success': (cache.totalSize/storage.serverTotal) < .75, 'progress-bar-warning': (cache.totalSize/storage.serverTotal) > .75 && (cache.totalSize/storage.serverTotal) < .90, 'progress-bar-danger': (cache.totalSize/storage.serverTotal) > .90}"
@@ -56,7 +56,7 @@
                   <span class="page-sub-entity-label">Tiles <span class="page-sub-entity-title">{{cache.tileSize | fileSize}}</span></span>
                 </div>
                 <div ng-repeat="(format, info) in cache.formats">
-                  <span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}}</span></span>
+                  <span><span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}} </span></span><a href="" ng-click="deleteCache(cache, format)"><i class="fa fa-trash"></i></a></span>
                 </div>
               </div>
             </div>
