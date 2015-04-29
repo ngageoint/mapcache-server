@@ -36,43 +36,51 @@
         </div>
         <hr>
         <div class="row">
-          <div class="col-md-12">
-            <span class="page-entity-label">Cache Disk Usage</span>
-          </div>
-        </div>
-        <div class="row bottom-gap" ng-repeat="cache in caches | orderBy: 'totalSize':true">
-          <div class="col-md-12">
-            <span class="page-entity-label">{{cache.name}} <span class="page-entity-title">{{cache.totalSize | fileSize}}</span></span>
-            <div class="progress usage-progress">
-              <div class="progress-bar"
-                 ng-class="{'progress-bar-success': (cache.totalSize/storage.serverTotal) < .75, 'progress-bar-warning': (cache.totalSize/storage.serverTotal) > .75 && (cache.totalSize/storage.serverTotal) < .90, 'progress-bar-danger': (cache.totalSize/storage.serverTotal) > .90}"
-                 role="progressbar" style="width: {{100*(cache.totalSize/storage.used)}}%">
-                <span>{{100*(cache.totalSize/storage.used) | number:2}}% of usage</span>
+          <div class="col-md-6">
+            <div class="row bottom-gap">
+              <div class="col-md-11">
+                <span class="page-entity-heading">Cache Disk Usage</span>
               </div>
             </div>
-            <div>
-              <span class="page-sub-entity-label">Tiles <span class="page-sub-entity-title">{{cache.tileSize | fileSize}}</span></span>
-            </div>
-            <div ng-repeat="(format, info) in cache.formats">
-              <span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}}</span></span>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col-md-12">
-            <span class="page-entity-label">Source Disk Usage</span>
-          </div>
-        </div>
-        <div class="row bottom-gap" ng-repeat="source in sources | orderBy: 'size': false">
-          <div class="col-md-12">
-            <span class="page-entity-label">{{source.name}}:{{formatName(source.format)}} <span class="page-entity-title">{{source.size | fileSize}}</span></span>
-            <div class="progress usage-progress">
-              <div class="progress-bar" ng-class="{'progress-bar-success': (source.size/storage.serverTotal) < .75, 'progress-bar-warning': (source.size/storage.serverTotal) > .75 && (source.size/storage.serverTotal) < .90, 'progress-bar-danger': (source.size/storage.serverTotal) > .90}"
-                 role="progressbar" style="width: {{100*(source.size/storage.used)}}%">
-                <span>{{100*(source.size/storage.used) | number:2}}% of usage</span>
+            <div class="row bottom-gap" ng-repeat="cache in caches | orderBy: 'totalSize':true">
+              <div class="col-md-11">
+                <span class="page-entity-label"><a ng-href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span class="page-entity-title">{{cache.totalSize | fileSize}}</span></span>
+                <div class="progress usage-progress">
+                  <div class="progress-bar"
+                     ng-class="{'progress-bar-success': (cache.totalSize/storage.serverTotal) < .75, 'progress-bar-warning': (cache.totalSize/storage.serverTotal) > .75 && (cache.totalSize/storage.serverTotal) < .90, 'progress-bar-danger': (cache.totalSize/storage.serverTotal) > .90}"
+                     role="progressbar" style="width: {{100*(cache.totalSize/storage.used)}}%">
+                    <span>{{100*(cache.totalSize/storage.used) | number:2}}% of usage</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="page-sub-entity-label">Tiles <span class="page-sub-entity-title">{{cache.tileSize | fileSize}}</span></span>
+                </div>
+                <div ng-repeat="(format, info) in cache.formats">
+                  <span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}}</span></span>
+                </div>
               </div>
             </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row bottom-gap">
+              <div class="row">
+                <div class="col-md-11 col-md-offset-1">
+                  <span class="page-entity-heading">Source Disk Usage</span>
+                </div>
+              </div>
+              <div class="row bottom-gap" ng-repeat="source in sources | orderBy: 'size': false">
+                <div class="col-md-11 col-md-offset-1">
+                  <span class="page-entity-label"><a ng-href="/#/source/{{source.id}}">{{source.name}}:{{formatName(source.format)}}</a> <span class="page-entity-title">{{source.size | fileSize}}</span></span>
+                  <div class="progress usage-progress">
+                    <div class="progress-bar" ng-class="{'progress-bar-success': (source.size/storage.serverTotal) < .75, 'progress-bar-warning': (source.size/storage.serverTotal) > .75 && (source.size/storage.serverTotal) < .90, 'progress-bar-danger': (source.size/storage.serverTotal) > .90}"
+                       role="progressbar" style="width: {{100*(source.size/storage.used)}}%">
+                      <span>{{100*(source.size/storage.used) | number:2}}% of usage</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

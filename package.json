@@ -22,6 +22,8 @@
     "archiver": "^0.14.3",
     "async": "0.9.x",
     "body-parser": "1.2.x",
+    "diskspace": "^0.1.7",
+    "du": "^0.1.0",
     "express": "4.10.6",
     "fs-extra": "0.11.x",
     "gdal": "^0.4.2",

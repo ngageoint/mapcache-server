@@ -116,6 +116,12 @@
   margin-bottom:5px;
 }
 
+.page-entity-heading {
+  font-family: Roboto;
+  font-weight: 300;
+  font-size: 28px;
+}
+
 .page-entity-title {
   font-family: Roboto;
   font-weight: 400;

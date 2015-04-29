@@ -128,4 +128,19 @@ module.exports = function(app, auth) {
       res.json(cacheJson);
     }
   );
+
+  // Delete a specific cache
+  app.delete(
+    '/api/caches/:cacheId',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('DELETE_CACHE'),
+    function(req, res, next) {
+      new api.User().delete(req.userParam, function(err) {
+        if (err) return next(err);
+
+        res.sendStatus(204);
+      });
+    }
+  );
+
 }
