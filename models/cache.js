@@ -119,6 +119,7 @@ exports.createCache = function(cache, callback) {
 		cache.sourceId = cache.source.id;
 		cache.humanReadableId = cache.humanReadableId || hri.random();
 		Cache.create(cache, function(err, newCache) {
+			if(err) return callback(err);
 			Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
 		    if (err) {
 		      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
