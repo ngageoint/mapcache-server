@@ -83,7 +83,7 @@
         <div class="col-md-12">
           <div class="progress">
             <div class="progress-bar" role="progressbar" style="width: {{cacheProgress(cache)}}%">
-              <span>{{cacheProgress(cache)}}% Complete</span>
+              <span>{{cacheProgress(cache) | number: 2}}% Complete</span>
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@
               Zoom Level {{zoom.zoom}} {{zoomSize(zoom.status)}}
               <div class="progress">
                 <div class="progress-bar" role="progressbar" style="width: {{zoomProgress(zoom.status)}}%">
-                  <span>{{zoomProgress(zoom.status)}}% Complete</span>
+                  <span>{{zoomProgress(zoom.status) | number: 2}}% Complete</span>
                 </div>
               </div>
             </div>
