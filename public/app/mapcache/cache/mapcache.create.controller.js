@@ -66,6 +66,10 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
     }
   });
 
+  $scope.requiredFieldsSet = function() {
+    return $scope.cache.geometry && $scope.cache.name && $scope.cache.source && $scope.cache.minZoom && $scope.cache.maxZoom;
+  }
+
   $scope.createCache = function() {
     console.log($scope.cache);
     $scope.creatingCache = true;
