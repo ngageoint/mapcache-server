@@ -40,6 +40,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   });
 
   baseLayer.addTo(map);
+  map.addControl(new L.Control.ZoomIndicator());
 
   var cacheFootprintLayer = null;
 

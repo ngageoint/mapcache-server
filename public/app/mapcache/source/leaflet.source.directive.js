@@ -41,6 +41,7 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     minZoom: 0,
     maxZoom: 18
   });
+  map.addControl(new L.Control.ZoomIndicator());
 
   if (baseLayerOptions.baseLayerUrl) {
     var defaultLayer = baseLayerOptions.baseLayerUrl;
