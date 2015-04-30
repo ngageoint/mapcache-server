@@ -115,23 +115,28 @@ exports.deleteCache = function(cache, callback) {
 }
 
 exports.createCache = function(cache, callback) {
-	if (cache.source) {
-		cache.sourceId = cache.source.id;
-		cache.humanReadableId = cache.humanReadableId || hri.random();
-		Cache.create(cache, function(err, newCache) {
-			if(err) return callback(err);
-			Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
-		    if (err) {
-		      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
-		    }
-				if (cache) {
-					cache.source = cache.sourceId;
-			    return callback(err, cache);
-				}
+	Cache.findOne({name: cache.name}, function(err, duplicateCache) {
+		if (duplicateCache) {
+			return callback(new Error("Cache with this name already exists"));
+		}
+		if (cache.source) {
+			cache.sourceId = cache.source.id;
+			cache.humanReadableId = cache.humanReadableId || hri.random();
+			Cache.create(cache, function(err, newCache) {
+				if(err) return callback(err);
+				Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
+			    if (err) {
+			      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
+			    }
+					if (cache) {
+						cache.source = cache.sourceId;
+				    return callback(err, cache);
+					}
+				});
 			});
-		});
-		return;
-	}
+			return;
+		}
+	});
 }
 
 exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {

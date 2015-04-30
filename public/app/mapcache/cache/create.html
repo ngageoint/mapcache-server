@@ -125,21 +125,26 @@
     </div>
     <div class="row">
       <div class="col-md-6">
-        <div class="form-group">
-          <label>Minimum Zoom Level</label>
-          <input class="form-control" ng-model="cache.minZoom" placeholder="e.g. 0">
+        <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
+          <label class="control-label">Minimum Zoom Level</label>
+          <input class="form-control" type="number" ng-model="cache.minZoom" placeholder="e.g. 0">
         </div>
       </div>
       <div class="col-md-6">
-        <div class="form-group">
-          <label>Maximum Zoom Level</label>
-          <input class="form-control" ng-model="cache.maxZoom" placeholder="e.g. 18">
+        <div class="form-group" ng-class="{'has-error': cache.maxZoom < cache.minZoom}">
+          <label class="control-label">Maximum Zoom Level</label>
+          <input class="form-control" type="number" ng-model="cache.maxZoom" placeholder="e.g. 18">
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col-md-12">
         <button class="btn btn-primary pull-right" ng-class="{disabled: creatingCache || !requiredFieldsSet()}" ng-click="createCache()">Create Cache</button>
+      </div>
+    </div>
+    <div class="row" ng-show="cacheCreationError">
+      <div class="col-md-12">
+        <div class="alert alert-danger" role="alert">Error Creating Cache: {{cacheCreationError.error}}</div>
       </div>
     </div>
   </div>
