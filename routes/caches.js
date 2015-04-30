@@ -81,7 +81,7 @@ module.exports = function(app, auth) {
     function(req, res, next) {
 
       new api.Cache().create(req.newCache, function(err, newCache) {
-        if (err) return next(err);
+        if (err) return res.status(400).send(err.message);
 
         if (!newCache) return res.status(400).send();
 

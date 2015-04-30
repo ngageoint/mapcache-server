@@ -63,6 +63,12 @@ function StorageController($scope, $http, $location, CacheService, SourceService
     $scope.sources = [];
     for (var i = 0; i < sources.length; i++) {
       if (sources[i].size && sources[i].size != 0) {
+        sources[i].totalSize = sources[i].size;
+        for (var projection in sources[i].projections) {
+          if (sources[i].projections.hasOwnProperty(projection) && sources[i].projections[projection] && sources[i].projections[projection].size) {
+            sources[i].totalSize += sources[i].projections[projection].size;
+          }
+        }
         $scope.sources.push(sources[i]);
       }
     }

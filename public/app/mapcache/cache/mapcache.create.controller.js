@@ -66,13 +66,29 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
     }
   });
 
+  $scope.requiredFieldsSet = function() {
+    var zoomValidated = false;
+    if (isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom) || $scope.cache.maxZoom === null || $scope.cache.minZoom === null) {
+      zoomValidated = false;
+    } else if ($scope.cache.minZoom === 0 && $scope.cache.maxZoom === 0) {
+      zoomValidated = true;
+    } else if ($scope.cache.minZoom === 0 && $scope.cache.maxZoom > 0) {
+      zoomValidated = true;
+    } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
+      zoomValidated = true;
+    }
+    return $scope.cache.geometry && $scope.cache.name && $scope.cache.source && zoomValidated;
+  }
+
   $scope.createCache = function() {
     console.log($scope.cache);
     $scope.creatingCache = true;
+    $scope.cacheCreationError = null;
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);
     }, function(error, status) {
+      $scope.creatingCache = false;
       $scope.cacheCreationError = {error: error, status: status};
     });
   }
