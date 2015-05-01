@@ -1,4 +1,5 @@
 var CacheModel = require('../../models/cache')
+  , SourceModel = require('../../models/source')
   , async = require('async')
   , turf = require('turf')
   , exec = require('child_process').exec
@@ -40,6 +41,14 @@ exports.getTile = function(source, z, x, y, callback) {
 
   if (fs.existsSync(tile)) {
     var stream = fs.createReadStream(tile);
+    var tileSize = 0;
+    stream.on('data', function(chunk) {
+      tileSize += chunk.length;
+    });
+    stream.on('end', function() {
+      SourceModel.updateSourceAverageSize(source, tileSize, function(err) {
+      });
+    });
     callback(null, stream);
   } else {
     callback();
