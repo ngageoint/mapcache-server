@@ -1,4 +1,5 @@
 var CacheModel = require('../../models/cache')
+  , SourceModel = require('../../models/source')
   , async = require('async')
   , turf = require('turf')
   , request = require('request')
@@ -18,8 +19,9 @@ exports.process = function(source, callback) {
   console.log("xyz");
   source.status = "Complete";
   source.complete = true;
-  source.save();
-  callback(null, source);
+  source.save(function(err) {
+    callback(null, source);
+  });
 }
 
 exports.getTile = function(source, z, x, y, callback) {
@@ -32,6 +34,14 @@ exports.getTile = function(source, z, x, y, callback) {
     console.log(err+ url);
 
     callback(err, tileInfo);
+  })
+  .on('response', function(response) {
+    var size = response.headers['content-length'];
+    SourceModel.updateSourceAverageSize(source, size, function(err) {
+      console.log('err updating tilesize', err);
+      
+    });
+    console.log('size', size);
   });
   callback(null, req);
 }

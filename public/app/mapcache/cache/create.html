@@ -139,6 +139,9 @@
     </div>
     <div class="row">
       <div class="col-md-12">
+        Average tile size: {{cache.source.tileSize/cache.source.tileSizeCount | fileSize}} sampled from {{cache.source.tileSizeCount}} tiles; estimated total cache size {{totalCacheSize | fileSize}} with {{totalCacheTiles}} tiles
+    <div class="row">
+      <div class="col-md-12">
         <button class="btn btn-primary pull-right" ng-class="{disabled: creatingCache || !requiredFieldsSet()}" ng-click="createCache()">Create Cache</button>
       </div>
     </div>
