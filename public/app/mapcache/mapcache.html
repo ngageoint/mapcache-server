@@ -42,6 +42,8 @@
             <dd>/api/caches{{cache.url}}/{z}/{x}/{y}.png</dd>
             <dt>Total Tiles</dt>
             <dd>{{cache.status.generatedTiles}}</dd>
+            <dt>Bounding Box</dt>
+            <dd>{{cacheBoundingBox(cache)}}</dd>
             <dt>Source</dt>
             <dd>{{cache.source.name}}</dd>
             <dt ng-if="cache.source.url">Source URL</dt>
