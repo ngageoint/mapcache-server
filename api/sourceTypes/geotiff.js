@@ -160,6 +160,7 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
   };
 }
 
+// THIS SHOULD MOVE
 exports.getTile = function(source, z, x, y, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
@@ -272,7 +273,16 @@ exports.getTile = function(source, z, x, y, callback) {
   }
 
   img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
-  callback(null, finalImg.pack());
+  var tileSize = 0;
+  var stream = finalImg.pack();
+  stream.on('data', function(chunk) {
+    tileSize += chunk.length;
+  });
+  stream.on('end', function() {
+    SourceModel.updateSourceAverageSize(source, tileSize, function(err) {
+    });
+  });
+  callback(null, stream);
 
   out_ds.close();
 }

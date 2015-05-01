@@ -384,7 +384,15 @@ exports.getTile = function(source, z, x, y, callback) {
   }
 
   img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
-  callback(null, finalImg.pack());
+  var stream = finalImg.pack();
+  stream.on('data', function(chunk) {
+    tileSize += chunk.length;
+  });
+  stream.on('end', function() {
+    SourceModel.updateSourceAverageSize(source, tileSize, function(err) {
+    });
+  });
+  callback(null, stream);
 
   out_ds.close();
 }

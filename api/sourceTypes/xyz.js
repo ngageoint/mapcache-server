@@ -41,7 +41,6 @@ exports.getTile = function(source, z, x, y, callback) {
       console.log('err updating tilesize', err);
 
     });
-    console.log('size', size);
   });
   callback(null, req);
 }
