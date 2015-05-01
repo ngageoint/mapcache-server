@@ -39,6 +39,22 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     $location.path('/create');
   }
 
+  $scope.downloadMissingTiles = function(cache) {
+    CacheService.downloadMissing(cache).success(function(caches) {
+      $scope.caches = caches;
+      var currentlyGenerating = false;
+      for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
+        var cache = caches[i];
+        if (!cache.status.complete) {
+          currentlyGenerating = true;
+        }
+      }
+      console.log("is a cache generating?", currentlyGenerating);
+      var delay = currentlyGenerating ? 30000 : 300000;
+      $timeout(getCaches, delay);
+    });
+  }
+
   $scope.mouseOver = function(cache) {
     $rootScope.$broadcast('cacheHighlight', cache);
   }

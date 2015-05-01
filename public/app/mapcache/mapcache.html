@@ -46,6 +46,8 @@
             <dd>{{cache.source.name}}</dd>
             <dt ng-if="cache.source.url">Source URL</dt>
             <dd ng-if="cache.source.url">{{cache.source.url}}/{z}/{x}/{y}.png</dd>
+            <dt>Download Missing Tiles</dt>
+            <dd><a ng-click="downloadMissingTiles(cache)">download missing tiles</a></dd>
             <dt>More Information?</dt>
             <dd><a ng-href="/#/cache/{{cache.id}}">view more details</a></dd>
           </dl>

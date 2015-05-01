@@ -73,6 +73,14 @@ Cache.prototype.create = function(cache, callback) {
   });
 }
 
+Cache.prototype.restart = function(cache, callback) {
+  if (!cache.status.complete) {
+    return callback(new Error('Cache is currently being generated'));
+  }
+  cache.status.complete = false;
+  sourceProcessor.createCache(cache);
+}
+
 Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
   minZoom = Math.max(minZoom, cache.minZoom);
   maxZoom = Math.min(maxZoom, cache.maxZoom);

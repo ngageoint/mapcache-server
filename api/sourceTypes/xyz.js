@@ -39,7 +39,7 @@ exports.getTile = function(source, z, x, y, callback) {
     var size = response.headers['content-length'];
     SourceModel.updateSourceAverageSize(source, size, function(err) {
       console.log('err updating tilesize', err);
-      
+
     });
     console.log('size', size);
   });
@@ -62,12 +62,11 @@ exports.createCache = function(cache) {
 
       async.whilst(
         function () {
-          console.log('current x ' + currentx + ' xrange max ' + xRange.max);
           return currentx <= xRange.max;
         },
         function(xRowDone) {
           var q = async.queue(function (task, tileDone) {
-            console.log("go get the tile", task);
+            // console.log("go get the tile", task);
               downloader.download(task, tileDone);
           }, 10);
 
@@ -75,9 +74,8 @@ exports.createCache = function(cache) {
             // now go get the next 10 ys and keep going
             var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
             // if there are no more ys do the callback
-            console.log("q drained");
             if (!tasksPushed) {
-              console.log("x row " + currentx + " is done");
+              console.log("Complete z: " + zoom + " x: " + currentx);
               currentx++;
               yRange.current = yRange.min;
               xRowDone();
@@ -88,7 +86,7 @@ exports.createCache = function(cache) {
 
         },
         function (err) {
-          console.log("go update the zoom level status");
+          console.log("Zoom level " + zoom + " is complete.");
           CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
             zoom++;
             zoomLevelDone();

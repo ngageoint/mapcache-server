@@ -8,15 +8,13 @@ exports.download = function(tileInfo, callback) {
 	var dir = createDir(tileInfo.cache._id, filepath);
 	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
 
-	if (!fs.existsSync(dir + '/' + filename)) {
+	if (!fs.existsSync(dir + filename)) {
     var url = tileInfo.cache.source.url + '/' + filepath + filename;
 
     console.log('downloading: '+ url + " to " + dir  + filename);
 
-
-		var stream = fs.createWriteStream(dir + '/' + filename);
+		var stream = fs.createWriteStream(dir + filename);
 		stream.on('close',function(status){
-			console.log('status on tile download is', status);
 			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
 			});
 			callback(null, tileInfo)
@@ -26,13 +24,13 @@ exports.download = function(tileInfo, callback) {
 		    headers: {'Content-Type': 'image/png'},
 	    })
 		  .on('error', function(err) {
-		    console.log(err+ url);
+		    console.log("Error downloading tile " + url, err);
 
 			  callback(err, tileInfo);
 		  })
 		  .pipe(stream);
 	} else {
-    console.log('tile already exists', tileInfo);
+    console.log('tile already exists ' + url + ' ' + dir + filename);
 		// CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
 		//
 		// });
