@@ -30,6 +30,7 @@
     "sourceDirectory": {
       "path": "/data/mapcache/sources"
     },
-    "storageLimit":8192
+    "storageLimit":8192,
+    "maximumCacheSize":2048
   }
 }

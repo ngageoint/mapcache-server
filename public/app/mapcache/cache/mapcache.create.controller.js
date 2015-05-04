@@ -5,21 +5,39 @@ angular
 MapcacheCreateController.$inject = [
   '$scope',
   '$location',
+  '$http',
   '$routeParams',
   '$modal',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheCreateController($scope, $location, $routeParams, $modal, CacheService, SourceService) {
+function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, CacheService, SourceService) {
 
   $scope.currentAdminPanel = $routeParams.adminPanel || "user";
 
   var seenCorners;
 
+  $http.get('/api/server')
+  .success(function(data, status) {
+    $scope.storage = data;
+  }).error(function(data, status) {
+    console.log("error pulling server data", status);
+  });
+
   $scope.cache = {
     format: "xyz"
   };
+
+  $scope.sizes = [{
+    label: 'MB',
+    multiplier: 1024*1024
+  },{
+    label: 'GB',
+    multiplier: 1024*1024*1024
+  }];
+
+  $scope.cache.selectedSizeMultiplier = $scope.sizes[0];
 
   SourceService.getAllSources(true).success(function(sources) {
     $scope.sources = sources;
@@ -86,6 +104,9 @@ function MapcacheCreateController($scope, $location, $routeParams, $modal, Cache
   }
 
   $scope.createCache = function() {
+    if ($scope.cache.rawTileSizeLimit) {
+      $scope.cache.tileSizeLimit = $scope.cache.rawTileSizeLimit * $scope.cache.selectedSizeMultiplier.multiplier;
+    }
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;

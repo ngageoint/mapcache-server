@@ -45,6 +45,47 @@ exports.getTile = function(source, z, x, y, callback) {
   callback(null, req);
 }
 
+function downloadTile(tileInfo, tileDone) {
+  CacheModel.shouldContinueCaching(tileInfo.cache, function(err, continueCaching) {
+    if (continueCaching) {
+      downloader.download(tileInfo, tileDone);
+    } else {
+      tileDone();
+    }
+  });
+}
+
+function getXRow(cache, xRow, yRange, zoom, xRowDone) {
+  var q = async.queue(downloadTile, 10);
+
+  q.drain = function() {
+    console.log("Should keep going on row " + xRow);
+    CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+      if (continueCaching) {
+        console.log("Continuing to cache row " + xRow);
+
+        // now go get the next 10 ys and keep going
+        var tasksPushed = pushNextTileTasks(q, cache, zoom, xRow, yRange, 10);
+        // if there are no more ys do the callback
+        if (!tasksPushed) {
+          console.log("Complete z: " + zoom + " x: " + xRow);
+          yRange.current = yRange.min;
+          xRowDone();
+        }
+      } else {
+        xRowDone();
+      }
+    });
+  };
+
+  CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+    if (continueCaching) {
+      console.log("Continuing to cache row " + xRow);
+      pushNextTileTasks(q, cache, zoom, xRow, yRange, 10);
+    }
+  });
+}
+
 exports.createCache = function(cache) {
   var zoom = cache.minZoom;
   var extent = turf.extent(cache.geometry);
@@ -54,44 +95,35 @@ exports.createCache = function(cache) {
       return zoom <= cache.maxZoom;
     },
     function (zoomLevelDone) {
-      var yRange = tileUtilities.yCalculator(extent, zoom);
-      var xRange = tileUtilities.xCalculator(extent, zoom);
-
-      var currentx = xRange.min;
-
-      async.whilst(
-        function () {
-          return currentx <= xRange.max;
-        },
-        function(xRowDone) {
-          var q = async.queue(function (task, tileDone) {
-            // console.log("go get the tile", task);
-              downloader.download(task, tileDone);
-          }, 10);
-
-          q.drain = function() {
-            // now go get the next 10 ys and keep going
-            var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
-            // if there are no more ys do the callback
-            if (!tasksPushed) {
-              console.log("Complete z: " + zoom + " x: " + currentx);
-              currentx++;
-              yRange.current = yRange.min;
-              xRowDone();
-            }
-          }
-
-          pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
-
-        },
-        function (err) {
-          console.log("Zoom level " + zoom + " is complete.");
-          CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
-            zoom++;
-            zoomLevelDone();
-          });
+      console.log("Starting zoom level " + zoom);
+      CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+        if (!continueCaching) {
+          zoom++;
+          return zoomLevelDone();
         }
-      );
+        console.log("Continuing to cache zoom level " + zoom);
+        var yRange = tileUtilities.yCalculator(extent, zoom);
+        var xRange = tileUtilities.xCalculator(extent, zoom);
+
+        var currentx = xRange.min;
+
+        async.doWhilst(
+          function(xRowDone) {
+            getXRow(cache, currentx, yRange, zoom, xRowDone);
+          },
+          function () {
+            currentx++;
+            return currentx <= xRange.max;
+          },
+          function (err) {
+            console.log("Zoom level " + zoom + " is complete.");
+            CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
+              zoom++;
+              zoomLevelDone();
+            });
+          }
+        );
+      });
     },
     function (err) {
         console.log("done with all the zoom levels");

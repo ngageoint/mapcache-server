@@ -10,6 +10,7 @@ var Schema = mongoose.Schema;
 var ServerSchema = new Schema({
   total: { type: Number, required: true},
   used: { type: Number, required: true},
+	maximumCacheSize: { type: Number, required: true},
   serverTotal: { type: Number, required: true},
   serverFree: { type: Number, required: true}
 });
@@ -37,7 +38,8 @@ exports.getInfo = function(callback) {
         total: config.server.storageLimit * 1024 * 1024,
         used: 0,
         serverTotal: 0,
-        serverFree: 0
+        serverFree: 0,
+				maximumCacheSize: config.server.maximumCacheSize * 1024 * 1024
       }, function(err, server) {
         updateServer(server, callback);
       });
@@ -51,6 +53,7 @@ function updateServer(server, callback) {
     server.serverFree = free;
     du(config.server.cacheDirectory.path, function(err, size) {
       server.used = size;
+			server.maximumCacheSize = config.server.maximumCacheSize * 1024 * 1024;
       server.save(function() {
         callback(err, server);
       });
