@@ -106,6 +106,17 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     });
   });
 
+  $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
+    if (!$scope.options.useCurrentView || oldValue == newValue) return;
+    drawnItems.removeLayer(cacheFootprintLayer);
+    cacheFootprintLayer = null;
+    var bounds = map.getBounds();
+    var gj = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+    $scope.options.geometry = gj.geometry;
+    cacheFootprintLayer = L.rectangle(bounds);
+    drawnItems.addLayer(cacheFootprintLayer);
+  });
+
   $scope.$watch('options.source.geometry', function(geometry) {
     if (sourceBoundsLayer) {
       map.removeLayer(sourceBoundsLayer);

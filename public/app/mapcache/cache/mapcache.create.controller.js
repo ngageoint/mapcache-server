@@ -50,6 +50,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
   });
 
+  $scope.useCurrentView = function() {
+    $scope.cache.useCurrentView = Date.now();
+  }
+
   $scope.$watch('cache.geometry', function(geometry) {
     if (!geometry) {
       $scope.north = null;

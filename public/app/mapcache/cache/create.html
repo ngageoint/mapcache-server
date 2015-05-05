@@ -50,6 +50,7 @@
           </div>
         </div>
         <div class="col-sm-8">
+          <p><a ng-click="useCurrentView()">Set cache boundaries to current view</a></p>
           <div leaflet-create options="cache"></div>
           <div class="checkbox">
             <label>
@@ -79,7 +80,9 @@
     <div class="visible-xs-block">
       <div class="row">
         <div class="col-xs-12">
+          <!--
           <div leaflet-create options="cache"></div>
+        -->
           <div class="checkbox">
             <label>
               <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
