@@ -6,27 +6,18 @@ var gdal = require("gdal")
   , png = require('pngjs')
   , tu = require('../tileUtilities')
   , async = require('async')
-  , paratask = require('paratask')
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
   , config = require('../../config.json');
 
 exports.createCache = function(cache) {
-  console.log('dirname in geotiff ' + __dirname);
-  var dependency = {message: 'hello there'};
-  var args = [JSON.stringify(dependency)];
-  var child = require('child_process').fork('api/sourceTypes/geoTiffPostProcess', args);
+  var child = require('child_process').fork('api/sourceTypes/geoTiffProcessor');
   child.send({operation:'generateCache', cache: cache});
 }
 
 exports.process = function(source, callback) {
-  console.log("geotiff");
-
   callback(null, source);
-  console.log('dirname in geotiff ' + __dirname);
-  var dependency = {message: 'hello there'};
-  var args = [JSON.stringify(dependency)];
-  var child = require('child_process').fork('api/sourceTypes/geoTiffPostProcess', args);
+  var child = require('child_process').fork('api/sourceTypes/geoTiffProcessor');
   child.send({operation:'process', sourceId: source.id});
 }
 
