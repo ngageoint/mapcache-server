@@ -12,6 +12,8 @@ var SourceSchema = new Schema({
 	projection: { type: String, required: false},
 	status: { type: String, required: false},
   size: { type: Number, required: false},
+  tileSizeCount: { type: Number, required: false},
+  tileSize: { type: Number, required: false},
 	complete: { type: Boolean, required: false},
 	humanReadableId: { type: String, required: false},
 	geometry: Schema.Types.Mixed,
@@ -40,6 +42,13 @@ exports.getSources = function(options, callback) {
     }
     callback(err, sources);
   });
+}
+
+exports.updateSourceAverageSize = function(source, size, callback) {
+  var update = {$inc: {}};
+  update.$inc['tileSizeCount'] = 1;
+  update.$inc['tileSize'] = size;
+  Source.findByIdAndUpdate(source.id, update, callback);
 }
 
 exports.getSourceById = function(id, callback) {

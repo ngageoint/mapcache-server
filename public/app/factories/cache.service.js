@@ -13,7 +13,8 @@ function CacheService($q, $http) {
     getAllCaches: getAllCaches,
     createCache: createCache,
     getCache: getCache,
-    deleteCache: deleteCache
+    deleteCache: deleteCache,
+    downloadMissing: downloadMissing
   };
 
   return service;
@@ -29,6 +30,10 @@ function CacheService($q, $http) {
           error(data, status);
         }
       });
+  }
+
+  function downloadMissing(cache, success, error) {
+    return $http.get('/api/caches/'+cache.id+'/restart');
   }
 
   function deleteCache(cache, format, success) {

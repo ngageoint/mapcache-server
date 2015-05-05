@@ -40,6 +40,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   });
 
   baseLayer.addTo(map);
+  map.addControl(new L.Control.ZoomIndicator());
 
   var cacheFootprintLayer = null;
 
@@ -103,6 +104,17 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     $scope.$apply(function() {
       $scope.options.geometry = cacheFootprintLayer.toGeoJSON();
     });
+  });
+
+  $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
+    if (!$scope.options.useCurrentView || oldValue == newValue) return;
+    drawnItems.removeLayer(cacheFootprintLayer);
+    cacheFootprintLayer = null;
+    var bounds = map.getBounds();
+    var gj = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+    $scope.options.geometry = gj.geometry;
+    cacheFootprintLayer = L.rectangle(bounds);
+    drawnItems.addLayer(cacheFootprintLayer);
   });
 
   $scope.$watch('options.source.geometry', function(geometry) {

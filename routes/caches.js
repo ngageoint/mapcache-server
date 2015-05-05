@@ -91,6 +91,23 @@ module.exports = function(app, auth) {
     }
   );
 
+  // restart cache download
+  app.get(
+    '/api/caches/:cacheId/restart',
+    access.authorize('CREATE_CACHE'),
+    function(req, res, next) {
+
+      new api.Cache().restart(req.cache, function(err, newCache) {
+        if (err) return res.status(400).send(err.message);
+
+        if (!newCache) return res.status(400).send();
+
+        var response = cacheXform.transform(newCache);
+        res.location(newCache._id.toString()).json(response);
+      });
+    }
+  );
+
   app.get(
     '/api/caches/:cacheId/:z/:x/:y.png',
     access.authorize('READ_CACHE'),

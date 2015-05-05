@@ -21,7 +21,10 @@ var CacheSchema = new Schema({
 	geometry: Schema.Types.Mixed,
 	maxZoom: {type: Number, required: true },
 	minZoom: {type: Number, required: true},
+	tileSizeLimit: { type: Number, required: false},
+	totalTileSize: { type: Number, required: true, default: 0},
 	humanReadableId: { type: String, required: false},
+	cancel: { type: Boolean, required: true, default: false},
 	formats: Schema.Types.Mixed,
 	tileFailures: [TileFailureSchema],
 	status: {
@@ -30,7 +33,8 @@ var CacheSchema = new Schema({
 		generatedTiles: {type: Number, required: true},
 		zoomLevelStatus: Schema.Types.Mixed
 	},
-	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }
+	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }/*,
+	userId: { type: Schema.Types.ObjectId, ref: 'User', required: false }*/
 },{
 	strict: true
 });
@@ -150,10 +154,43 @@ exports.updateTileDownloaded = function(cache, z, x, y, callback) {
 	fs.stat(config.server.cacheDirectory.path + "/" + cache.id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
 		if (err) return callback(err);
 		var update = {$inc: {}};
+		update.$inc['totalTileSize'] = stat.size;
 		update.$inc['status.zoomLevelStatus.'+z+'.generatedTiles'] = 1;
 		update.$inc['status.generatedTiles'] = 1;
 		update.$inc['status.zoomLevelStatus.'+z+'.size'] = stat.size;
 		Cache.findByIdAndUpdate(cache.id, update, callback);
+	});
+}
+
+exports.shouldContinueCaching = function(cache, callback) {
+	Cache.aggregate(
+		{ $group: { _id: null, aggTileSize: { $sum: "$totalTileSize"}}}
+	, { $project: { _id: 0, aggTileSize: 1 }}
+	, function(err, value) {
+		// should pull this from the db in the future
+		console.log('value', value);
+		console.log('value.aggtilesize ' + value[0].aggTileSize + ' storage limit ' + config.server.storageLimit * 1024 * 1024);
+		if (value[0].aggTileSize > config.server.storageLimit * 1024 * 1024) {
+			return callback(null, false);
+		}
+		console.log("is cache " + cache.id + " cancelled?");
+		Cache.findById(cache.id, function(err, foundCache) {
+			if (err) return callback(err);
+			if (foundCache.cancel) {
+				console.log("foundCache.cancel");
+				return callback(null, false);
+			}
+			if (!foundCache.tileSizeLimit) {
+				console.log("!foundCache.tileSizeLimit");
+				return callback(null, true);
+			}
+			if (foundCache.tileSizeLimit > foundCache.totalTileSize) {
+				console.log("foundCache.tileSizeLimit > foundCache.totalTileSize");
+				return callback(null, true);
+			}
+
+			return callback(null, false);
+		});
 	});
 }
 

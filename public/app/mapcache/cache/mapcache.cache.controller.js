@@ -54,6 +54,11 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     return zoomRows;
   }
 
+  $scope.cacheBoundingBox = function(cache) {
+    var extent = turf.extent(cache.geometry);
+    return "West: " + extent[0] + " South: " + extent[1] + " East: " + extent[2]+ " North: " + extent[3];
+  }
+
   function getCache(id) {
     var cache = $scope.cache || {};
     if (id) {

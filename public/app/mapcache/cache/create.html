@@ -14,7 +14,7 @@
         <label>Choose the source of your cache.  This is what your map cache will be generated from.</label>
           <ui-select ng-model="cache.source" theme="bootstrap">
            <ui-select-match placeholder="Select a source">{{$select.selected.name}}</ui-select-match>
-           <ui-select-choices group-by="groupLayerByType" repeat="source in sources | orderBy: 'name' | filter: $select.search">
+           <ui-select-choices repeat="source in sources | orderBy: 'name' | filter: $select.search">
              <div ng-bind-html="source.name | highlight: $select.search"></div>
              <small class="muted">
               <span ng-bind-html="''+source.name + ' ' + source.url | highlight: $select.search"></span>
@@ -50,6 +50,7 @@
           </div>
         </div>
         <div class="col-sm-8">
+          <p><a ng-click="useCurrentView()">Set cache boundaries to current view</a></p>
           <div leaflet-create options="cache"></div>
           <div class="checkbox">
             <label>
@@ -79,7 +80,9 @@
     <div class="visible-xs-block">
       <div class="row">
         <div class="col-xs-12">
+          <!--
           <div leaflet-create options="cache"></div>
+        -->
           <div class="checkbox">
             <label>
               <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
@@ -134,6 +137,54 @@
         <div class="form-group" ng-class="{'has-error': cache.maxZoom < cache.minZoom}">
           <label class="control-label">Maximum Zoom Level</label>
           <input class="form-control" type="number" ng-model="cache.maxZoom" placeholder="e.g. 18">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Cache is currently estimated to be <span class="page-sub-entity-label">{{totalCacheSize | fileSize}} with {{totalCacheTiles}} tiles</span></span>
+          <span class="page-sub-entity-title" ng-hide="requiredFieldsSet()">Please set all fields to obtain an estimated cache size</span>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Concerned your cache will be too big? <a ng-click="setMaxSize = true">Set a maximum size</a></span>
+        </div>
+      </div>
+    </div>
+    <div class="row" ng-show="totalCacheSize > storage.maximumCacheSize">
+      <div class="col-md-12">
+        <div class="form-group">
+          <span class="page-sub-entity-title text-danger">Your cache is estimated to be greater than the maximum cache size limit of {{storage.maximumCacheSize | fileSize}}. If you continue, your cache will be generated up to the {{storage.maximumCacheSize | fileSize}} limit.</span>
+        </div>
+      </div>
+    </div>
+    <div ng-show="setMaxSize">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label class="control-label">Maximum Tile Cache Size</label>
+            <input class="form-control" type="number" ng-model="cache.rawTileSizeLimit" placeholder="e.g. 750">
+          </div>
+        </div>
+        <div class="col-md-1">
+          <div class="form-group">
+            <label class="control-label">&nbsp;</label>
+              <ui-select ng-model="cache.selectedSizeMultiplier" search-enabled="false" theme="bootstrap">
+                <ui-select-match>{{$select.selected.label}}</ui-select-match>
+                <ui-select-choices repeat="size in sizes | orderBy: 'multiplier'">
+                  <div ng-bind-html="size.label"></div>
+                </ui-select-choices>
+             </ui-select>
+           </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <p class="help-block">This value will be used to provide an upper limit on the cache size.  If this value is not set, the maximum cache size will be {{storage.maximumCacheSize | fileSize}}</p>
         </div>
       </div>
     </div>

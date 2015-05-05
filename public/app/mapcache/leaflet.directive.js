@@ -27,6 +27,8 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     maxZoom: 18,
     worldCopyJump: true
   });
+  map.addControl(new L.Control.ZoomIndicator());
+
 
  var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
  baseLayer.addTo(map);

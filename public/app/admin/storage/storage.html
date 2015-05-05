@@ -29,7 +29,7 @@
               <div class="progress-bar"
                  ng-class="{'progress-bar-success': ((storage.serverTotal - storage.serverFree)/storage.serverTotal) < .75, 'progress-bar-warning': ((storage.serverTotal - storage.serverFree)/storage.serverTotal) > .75 && ((storage.serverTotal - storage.serverFree)/storage.serverTotal) < .90, 'progress-bar-danger': ((storage.serverTotal - storage.serverFree)/storage.serverTotal) > .90}"
                  role="progressbar" style="width: {{100*((storage.serverTotal - storage.serverFree)/storage.serverTotal)}}%">
-                <span>{{100*(storage.used/storage.total) | number:2}}% used</span>
+                <span>{{100*((storage.serverTotal - storage.serverFree)/storage.serverTotal) | number:2}}% used</span>
               </div>
             </div>
           </div>

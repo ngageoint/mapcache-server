@@ -40,7 +40,11 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/caches/{{cache.humanReadableId}}/{z}/{x}/{y}.png</span>
+      <div><span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/caches/{{cache.humanReadableId}}/{z}/{x}/{y}.png</span><div>
+        <div><span class="page-sub-entity-label">Zoom Levels: <span class="page-sub-entity-title">{{cache.minZoom}} - {{cache.maxZoom}}</span></div>
+        <div><span class="page-sub-entity-label">Total Tiles: <span class="page-sub-entity-title">{{cache.status.generatedTiles}}</span></div>
+        <div><span class="page-sub-entity-label">Bounding Box: <span class="page-sub-entity-title">{{cacheBoundingBox(cache)}}</span></div>
+        <div><span class="page-sub-entity-label">Source: <span class="page-sub-entity-title"><a ng-href="/#/source/{{cache.source.id}}">{{cache.source.name}}</a></span></div>
     </div>
   </div>
   <div class="row">

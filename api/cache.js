@@ -5,6 +5,7 @@ var CacheModel = require('../models/cache')
   , config = require('../config.json')
   , tileUtilities = require('./tileUtilities')
   , sourceProcessor = require('./sourceTypes')
+  , config = require('../config.json')
   , exec = require('child_process').exec
   , downloader = require('./tileDownloader');
 
@@ -39,6 +40,7 @@ Cache.prototype.deleteFormat = function(cache, format, callback) {
 }
 
 Cache.prototype.create = function(cache, callback) {
+  cache.tileSizeLimit = cache.tileSizeLimit || config.server.maximumCacheSize * 1024 * 1024;
 
   cache.status = {
     complete: false,
@@ -71,6 +73,14 @@ Cache.prototype.create = function(cache, callback) {
 
     sourceProcessor.createCache(newCache);
   });
+}
+
+Cache.prototype.restart = function(cache, callback) {
+  if (!cache.status.complete) {
+    return callback(new Error('Cache is currently being generated'));
+  }
+  cache.status.complete = false;
+  sourceProcessor.createCache(cache);
 }
 
 Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {

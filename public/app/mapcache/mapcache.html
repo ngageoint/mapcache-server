@@ -42,10 +42,14 @@
             <dd>/api/caches{{cache.url}}/{z}/{x}/{y}.png</dd>
             <dt>Total Tiles</dt>
             <dd>{{cache.status.generatedTiles}}</dd>
+            <dt>Bounding Box</dt>
+            <dd>{{cacheBoundingBox(cache)}}</dd>
             <dt>Source</dt>
             <dd>{{cache.source.name}}</dd>
             <dt ng-if="cache.source.url">Source URL</dt>
             <dd ng-if="cache.source.url">{{cache.source.url}}/{z}/{x}/{y}.png</dd>
+            <dt>Download Missing Tiles</dt>
+            <dd><a ng-click="downloadMissingTiles(cache)">download missing tiles</a></dd>
             <dt>More Information?</dt>
             <dd><a ng-href="/#/cache/{{cache.id}}">view more details</a></dd>
           </dl>
@@ -83,7 +87,7 @@
         <div class="col-md-12">
           <div class="progress">
             <div class="progress-bar" role="progressbar" style="width: {{cacheProgress(cache)}}%">
-              <span>{{cacheProgress(cache)}}% Complete</span>
+              <span>{{cacheProgress(cache) | number: 2}}% Complete</span>
             </div>
           </div>
         </div>
@@ -95,7 +99,7 @@
               Zoom Level {{zoom.zoom}} {{zoomSize(zoom.status)}}
               <div class="progress">
                 <div class="progress-bar" role="progressbar" style="width: {{zoomProgress(zoom.status)}}%">
-                  <span>{{zoomProgress(zoom.status)}}% Complete</span>
+                  <span>{{zoomProgress(zoom.status) | number: 2}}% Complete</span>
                 </div>
               </div>
             </div>
