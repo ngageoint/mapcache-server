@@ -82,6 +82,8 @@ function getXRow(cache, xRow, yRange, zoom, xRowDone) {
     if (continueCaching) {
       console.log("Continuing to cache row " + xRow);
       pushNextTileTasks(q, cache, zoom, xRow, yRange, 10);
+    } else {
+      xRowDone();
     }
   });
 }

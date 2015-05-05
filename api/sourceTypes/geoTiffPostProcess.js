@@ -7,6 +7,7 @@ var gdal = require("gdal")
   , png = require('pngjs')
   , tu = require('../tileUtilities')
   , async = require('async')
+  , tileUtilities = require('../tileUtilities')
   , paratask = require('paratask')
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
@@ -44,8 +45,118 @@ function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
   return true;
 }
 
+function downloadTile(tileInfo, tileDone) {
+  CacheModel.shouldContinueCaching(tileInfo.cache, function(err, continueCaching) {
+    if (continueCaching) {
+      exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
+        var filepath = getFilepath(tileInfo);
+        var dir = createDir(tileInfo.cache._id, filepath);
+        var filename = getFilename(tileInfo, tileInfo.cache.source.format);
+        var stream = fs.createWriteStream(dir + '/' + filename);
+        stream.on('close',function(status){
+          console.log('status on tile download is', status);
+          CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+            tileDone(null, tileInfo);
+          });
+        });
+        if (tileStream) {
+          tileStream.pipe(stream);
+        }
+      });
+    } else {
+      tileDone();
+    }
+  });
+}
+
+function getXRow(cache, xRow, yRange, zoom, xRowDone) {
+  var q = async.queue(downloadTile, 10);
+
+  q.drain = function() {
+    console.log("Should keep going on row " + xRow);
+    CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+      console.log("continue caching? " + continueCaching);
+      if (continueCaching) {
+        console.log("Continuing to cache row " + xRow);
+
+        // now go get the next 10 ys and keep going
+        var tasksPushed = pushNextTileTasks(q, cache, zoom, xRow, yRange, 10);
+        // if there are no more ys do the callback
+        if (!tasksPushed) {
+          console.log("Complete z: " + zoom + " x: " + xRow);
+          yRange.current = yRange.min;
+          xRowDone();
+        }
+      } else {
+        yRange.current = yRange.min;
+        xRowDone(true);
+      }
+    });
+  };
+
+  CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+    if (continueCaching) {
+      console.log("Continuing to cache row " + xRow);
+      pushNextTileTasks(q, cache, zoom, xRow, yRange, 10);
+    } else {
+      xRowDone(true);
+    }
+  });
+}
 
 function createCache(cache) {
+  CacheModel.getCacheById(cache.id, function(err, foundCache) {
+    cache = foundCache;
+    var zoom = cache.minZoom;
+    var extent = turf.extent(cache.geometry);
+
+    async.whilst(
+      function (stop) {
+        return zoom <= cache.maxZoom && !stop;
+      },
+      function (zoomLevelDone) {
+        console.log("Starting zoom level " + zoom);
+        CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+          if (!continueCaching) {
+            zoom++;
+            return zoomLevelDone();
+          }
+          console.log("Continuing to cache zoom level " + zoom);
+          var yRange = tileUtilities.yCalculator(extent, zoom);
+          var xRange = tileUtilities.xCalculator(extent, zoom);
+
+          var currentx = xRange.min;
+
+          async.doWhilst(
+            function(xRowDone) {
+              getXRow(cache, currentx, yRange, zoom, xRowDone);
+            },
+            function (stop) {
+              console.log("x row " + currentx + " is done");
+              currentx++;
+              return currentx <= xRange.max && !stop;
+            },
+            function (err) {
+              console.log("Zoom level " + zoom + " is complete.");
+              CacheModel.updateZoomLevelStatus(cache, zoom, true, function(err) {
+                zoom++;
+                zoomLevelDone();
+              });
+            }
+          );
+        });
+      },
+      function (err) {
+        console.log("done with all the zoom levels");
+        cache.status.complete = true;
+        cache.save();
+      }
+    );
+  });
+}
+
+
+function acreateCache(cache) {
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
     cache = foundCache;
     var zoom = cache.minZoom;
@@ -68,38 +179,53 @@ function createCache(cache) {
           },
           function(xRowDone) {
             var q = async.queue(function (tileInfo, tileDone) {
-              console.log("go get the tile", tileInfo);
-              exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
-                var filepath = getFilepath(tileInfo);
-              	var dir = createDir(tileInfo.cache._id, filepath);
-              	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
-                var stream = fs.createWriteStream(dir + '/' + filename);
-            		stream.on('close',function(status){
-            			console.log('status on tile download is', status);
-            			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-                    tileDone(null, tileInfo);
-            			});
-            		});
-                if (tileStream) {
-                  tileStream.pipe(stream);
+              CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+                if (!continueCaching) {
+                  return tileDone(null, tileInfo);
                 }
+                console.log("go get the tile", tileInfo);
+                exports.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
+                  var filepath = getFilepath(tileInfo);
+                	var dir = createDir(tileInfo.cache._id, filepath);
+                	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
+                  var stream = fs.createWriteStream(dir + '/' + filename);
+              		stream.on('close',function(status){
+              			console.log('status on tile download is', status);
+              			CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+                      tileDone(null, tileInfo);
+              			});
+              		});
+                  if (tileStream) {
+                    tileStream.pipe(stream);
+                  }
+                });
               });
             }, 10);
 
             q.drain = function() {
-              // now go get the next 10 ys and keep going
-              var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
-              // if there are no more ys do the callback
-              console.log("q drained");
-              if (!tasksPushed) {
-                console.log("x row " + currentx + " is done");
-                currentx++;
-                yRange.current = yRange.min;
-                xRowDone();
-              }
+              CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+                if (!continueCaching) {
+                  currentx++;
+                  yRange.current = yRange.min;
+                  return xRowDone();
+                }
+                // now go get the next 10 ys and keep going
+                var tasksPushed = pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+                // if there are no more ys do the callback
+                console.log("q drained");
+                if (!tasksPushed) {
+                  console.log("x row " + currentx + " is done");
+                  currentx++;
+                  yRange.current = yRange.min;
+                  xRowDone();
+                }
+              });
             }
-
-            pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+            CacheModel.shouldContinueCaching(cache, function(err, continueCaching) {
+              if (continueCaching) {
+                pushNextTileTasks(q, cache, zoom, currentx, yRange, 10);
+              }
+            });
 
           },
           function (err) {
@@ -112,12 +238,12 @@ function createCache(cache) {
         );
       },
       function (err) {
-          console.log("done with all the zoom levels");
-          cache.status.complete = true;
-          cache.save(function(err) {
-            console.log('done');
-            process.exit();
-          });
+        console.log("done with all the zoom levels");
+        cache.status.complete = true;
+        cache.save(function(err) {
+          console.log('done');
+          process.exit();
+        });
       }
     );
   });
@@ -385,6 +511,7 @@ exports.getTile = function(source, z, x, y, callback) {
 
   img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
   var stream = finalImg.pack();
+  var tileSize = 0;
   stream.on('data', function(chunk) {
     tileSize += chunk.length;
   });

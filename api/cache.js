@@ -5,6 +5,7 @@ var CacheModel = require('../models/cache')
   , config = require('../config.json')
   , tileUtilities = require('./tileUtilities')
   , sourceProcessor = require('./sourceTypes')
+  , config = require('../config.json')
   , exec = require('child_process').exec
   , downloader = require('./tileDownloader');
 
@@ -39,6 +40,7 @@ Cache.prototype.deleteFormat = function(cache, format, callback) {
 }
 
 Cache.prototype.create = function(cache, callback) {
+  cache.tileSizeLimit = cache.tileSizeLimit || config.server.maximumCacheSize * 1024 * 1024;
 
   cache.status = {
     complete: false,
