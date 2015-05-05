@@ -163,22 +163,34 @@ exports.updateTileDownloaded = function(cache, z, x, y, callback) {
 }
 
 exports.shouldContinueCaching = function(cache, callback) {
-	console.log("is cache " + cache.id + " cancelled?");
-	Cache.findById(cache.id, function(err, foundCache) {
-		if (err) return callback(err);
-		if (foundCache.cancel) {
-			console.log("foundCache.cancel");
+	Cache.aggregate(
+		{ $group: { _id: null, aggTileSize: { $sum: "$totalTileSize"}}}
+	, { $project: { _id: 0, aggTileSize: 1 }}
+	, function(err, value) {
+		// should pull this from the db in the future
+		console.log('value', value);
+		console.log('value.aggtilesize ' + value[0].aggTileSize + ' storage limit ' + config.server.storageLimit * 1024 * 1024);
+		if (value[0].aggTileSize > config.server.storageLimit * 1024 * 1024) {
 			return callback(null, false);
 		}
-		if (!foundCache.tileSizeLimit) {
-			console.log("!foundCache.tileSizeLimit");
-			return callback(null, true);
-		}
-		if (foundCache.tileSizeLimit > foundCache.totalTileSize) {
-			console.log("foundCache.tileSizeLimit > foundCache.totalTileSize");
-			return callback(null, true);
-		}
-		return callback(null, false);
+		console.log("is cache " + cache.id + " cancelled?");
+		Cache.findById(cache.id, function(err, foundCache) {
+			if (err) return callback(err);
+			if (foundCache.cancel) {
+				console.log("foundCache.cancel");
+				return callback(null, false);
+			}
+			if (!foundCache.tileSizeLimit) {
+				console.log("!foundCache.tileSizeLimit");
+				return callback(null, true);
+			}
+			if (foundCache.tileSizeLimit > foundCache.totalTileSize) {
+				console.log("foundCache.tileSizeLimit > foundCache.totalTileSize");
+				return callback(null, true);
+			}
+
+			return callback(null, false);
+		});
 	});
 }
 
