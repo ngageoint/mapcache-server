@@ -1,7 +1,7 @@
 var cacheUtilities = require('../cacheUtilities')
   , mongoose = require('mongoose')
   , CacheModel = require('../../models/cache')
-  , downloader = require('../tileDownloader')
+  , fs = require('fs-extra')
   , config = require('../../config.json');
 
 var mongodbConfig = config.server.mongodb;
@@ -29,7 +29,12 @@ process.on('message', function(m) {
 function downloadTile(tileInfo, tileDone) {
   CacheModel.shouldContinueCaching(tileInfo.cache, function(err, continueCaching) {
     if (continueCaching) {
-      downloader.download(tileInfo, tileDone);
+      var sourceTile = config.server.sourceDirectory.path + "/" + tileInfo.cache.source._id + "/tiles/" + tileInfo.z + "/" + tileInfo.x + "/" + tileInfo.y + ".png";
+      var destTile = createDir(tileInfo.cache._id, tileInfo.z + "/" + tileInfo.x) + "/" + tileInfo.y + ".png";
+      console.log("copy tile " + sourceTile + " to " + destTile);
+      fs.copy(sourceTile, destTile, function(err) {
+        CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, tileDone);
+      });
     } else {
       tileDone();
     }
@@ -38,4 +43,13 @@ function downloadTile(tileInfo, tileDone) {
 
 function createCache(cache) {
   cacheUtilities.createCache(cache, downloadTile);
+}
+
+function createDir(cacheName, filepath){
+	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
+    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
+       if (err) console.log(err);
+     });
+	}
+  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }
