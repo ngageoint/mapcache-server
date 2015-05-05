@@ -11,16 +11,6 @@ var gdal = require("gdal")
   , CacheModel = require('../../models/cache')
   , config = require('../../config.json');
 
-function pushNextTileTasks(q, cache, zoom, x, yRange, numberOfTasks) {
-  if (yRange.current > yRange.max) return false;
-  for (var i = yRange.current; i <= yRange.current + numberOfTasks && i <= yRange.max; i++) {
-    q.push({z:zoom, x: x, y: i, cache: cache});
-  }
-  yRange.current = yRange.current + numberOfTasks;
-  return true;
-}
-
-
 exports.createCache = function(cache) {
   console.log('dirname in geotiff ' + __dirname);
   var dependency = {message: 'hello there'};
@@ -38,77 +28,6 @@ exports.process = function(source, callback) {
   var args = [JSON.stringify(dependency)];
   var child = require('child_process').fork('api/sourceTypes/geoTiffPostProcess', args);
   child.send({operation:'process', sourceId: source.id});
-}
-
-function reproject(source, epsgCode) {
-  source.status = "Reprojecting " + source.projection + " to EPSG:3857";
-  source.save();
-  var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
-  var ds = gdal.open(source.filePath);
-  var warpSuggestion = gdal.suggestedWarpOutput({
-    src: ds,
-    s_srs: ds.srs,
-    t_srs:targetSrs
-  });
-  var dir = path.join(config.server.sourceDirectory.path, source.id);
-  var fileName = path.basename(epsgCode + "_" + path.basename(source.filePath));
-  var file = path.join(dir, fileName);
-
-  console.log("translating " + source.filePath + " to " + file);
-
-  var destination = gdal.open(file, 'w', "GTiff", warpSuggestion.rasterSize.x, warpSuggestion.rasterSize.y, 3);
-  destination.srs = targetSrs;
-  destination.geoTransform = warpSuggestion.geoTransform;
-
-  gdal.reprojectImage({
-    src: ds,
-    dst: destination,
-    s_srs: ds.srs,
-    t_srs: targetSrs
-  });
-  ds.close();
-  destination.close();
-  source.projections = source.projections || {};
-  source.projections[epsgCode] = {path: file};
-  source.status = "Complete";
-  source.complete = true;
-  source.save(function(err){
-  });
-}
-
-function sourceCorners(ds) {
-  var size = ds.rasterSize;
-  var geotransform = ds.geoTransform;
-
-  // corners
-  var corners = {
-  	'Upper Left  ' : {x: 0, y: 0},
-  	'Upper Right ' : {x: size.x, y: 0},
-  	'Bottom Right' : {x: size.x, y: size.y},
-  	'Bottom Left ' : {x: 0, y: size.y}
-  };
-
-  var wgs84 = gdal.SpatialReference.fromEPSG(4326);
-  var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
-
-  var corner_names = Object.keys(corners);
-
-  var coordinateCorners = [];
-
-  corner_names.forEach(function(corner_name) {
-  	// convert pixel x,y to the coordinate system of the raster
-  	// then transform it to WGS84
-  	var corner      = corners[corner_name];
-  	var pt_orig     = {
-  		x: geotransform[0] + corner.x * geotransform[1] + corner.y * geotransform[2],
-  		y: geotransform[3] + corner.x * geotransform[4] + corner.y * geotransform[5]
-  	}
-  	var pt_wgs84    = coord_transform.transformPoint(pt_orig);
-    coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
-  });
-
-  coordinateCorners.push([coordinateCorners[0][0], coordinateCorners[0][1]]);
-  return coordinateCorners;
 }
 
 // direct port from gdal2tiles.py
@@ -160,7 +79,6 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
   };
 }
 
-// THIS SHOULD MOVE
 exports.getTile = function(source, z, x, y, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
@@ -174,9 +92,6 @@ exports.getTile = function(source, z, x, y, callback) {
   }
 
   var out_ds = gdal.open(source.projections["3857"].path);
-
-  // we are assuming that the output SRS is the same as the input SRS.  This will
-  // normally not be the case so we will have to reproject at some point
 
   var out_srs = gdal.SpatialReference.fromEPSG(3857);
 
@@ -287,7 +202,7 @@ exports.getTile = function(source, z, x, y, callback) {
   out_ds.close();
 }
 
-function gdalInfo(ds) {
+exports.gdalInfo = function(ds) {
   console.log("number of bands: " + ds.bands.count());
   var size = ds.rasterSize;
   console.log("width: " + ds.rasterSize.x);
@@ -336,26 +251,4 @@ function gdalInfo(ds) {
     coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
   	console.log(description);
   });
-}
-
-function getFilepath(tileInfo) {
-	return tileInfo.z + '/' + tileInfo.x + '/' ;
-}
-
-function getFilename(tileInfo, type) {
-	if (type == 'tms') {
-		y = Math.pow(2,tileInfo.z) - tileInfo.y -1;
-		return y + '.png';
-	} else {
-		return tileInfo.y + '.png';
-  }
-}
-
-function createDir(cacheName, filepath){
-	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
-    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
-       if (err) console.log(err);
-     });
-	}
-  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }
