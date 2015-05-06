@@ -47,7 +47,61 @@
         <div><span class="page-sub-entity-label">Source: <span class="page-sub-entity-title"><a ng-href="/#/source/{{cache.source.id}}">{{cache.source.name}}</a></span></div>
     </div>
   </div>
-  <div class="row">
+  <div class="row top-gap">
+    <div class="col-md-12">
+      <a target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=xyz&access_token={{token}}">
+        <div class="col-md-2 cache-type-details">
+          <div class="cache-type"><i class="fa fa-download"></i> XYZ</div>
+          <div class="cache-size">{{cache.totalTileSize | fileSize}}</div>
+        </div>
+      </a>
+      <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=tms&access_token={{token}}">
+        <div class="col-md-2 cache-type-details">
+          <div class="cache-type"><i class="fa fa-download"></i> TMS</div>
+          <div class="cache-size">{{cache.totalTileSize | fileSize}}</div>
+        </div>
+      </a>
+        <div class="col-md-2 cache-type-details">
+          <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=geopackage&access_token={{token}}">
+            <div ng-show="cacheFormatExists(cache, 'geopackage')">
+              <div class="cache-type"><i class="fa fa-download"></i> GeoPackage</div>
+              <div class="cache-size">{{cacheFormatSize(cache, 'geopackage')}}</div>
+            </div>
+          </a>
+          <div ng-show="cacheFormatGenerating(cache, 'geopackage')">
+            <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> GeoPackage</div>
+            <div class="cache-size">Generating...</div>
+          </div>
+          <a class="cache-type-download-box" ng-click="generateFormat(cache, 'geopackage')" ng-href="">
+            <div ng-hide="cacheFormatExists(cache, 'geopackage') || cacheFormatGenerating(cache, 'geopackage')">
+              <div class="cache-type">GeoPackage</div>
+              <div class="cache-size">Click to Generate</div>
+            </div>
+          </a>
+        </div>
+      </a>
+        <div class="col-md-2 cache-type-details">
+          <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=mbtiles&access_token={{token}}">
+            <div ng-show="cacheFormatExists(cache, 'mbtiles')">
+              <div class="cache-type"><i class="fa fa-download"></i> MBTiles</div>
+              <div class="cache-size">{{cacheFormatSize(cache, 'mbtiles')}}</div>
+            </div>
+          </a>
+          <div ng-show="cacheFormatGenerating(cache, 'mbtiles')">
+            <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> MBTiles</div>
+            <div class="cache-size">Generating...</div>
+          </div>
+          <a class="cache-type-download-box" ng-click="generateFormat(cache, 'mbtiles') || cacheFormatGenerating(cache, 'mbtiles')" ng-href="">
+            <div ng-hide="cacheFormatExists(cache, 'mbtiles') || cacheFormatGenerating(cache, 'mbtiles')">
+              <div class="cache-type">MBTiles</div>
+              <div class="cache-size">Click to Generate</div>
+            </div>
+          </a>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div class="row top-gap">
     <div class="col-md-12">
       <span ng-show="cache.status.complete" class="page-sub-entity-label">Cache tiles are shown below. (light grey map is only for geographic reference)</span>
       <div leaflet-cache cache="cache" options="mapOptions"></div>
