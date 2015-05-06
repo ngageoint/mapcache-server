@@ -26,6 +26,13 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
         if (!cache.status.complete) {
           currentlyGenerating = true;
         }
+        for (var format in cache.formats) {
+          if(cache.formats.hasOwnProperty(format)){
+            if (cache.formats[format].generating) {
+              currentlyGenerating = true;
+            }
+          }
+        }
       }
       console.log("is a cache generating?", currentlyGenerating);
       var delay = currentlyGenerating ? 30000 : 300000;
@@ -86,6 +93,14 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
 		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
   }
 
+  $scope.cacheFormatExists = function(cache, format) {
+    return cache.formats && cache.formats[format] && !cache.formats[format].generating;
+  }
+
+  $scope.cacheFormatGenerating = function(cache, format) {
+    return cache.formats && cache.formats[format] && cache.formats[format].generating;
+  }
+
   $scope.cacheFormatSize = function(cache, format) {
     var size = "Unknown";
     if (cache.formats && cache.formats[format]) {
@@ -95,6 +110,16 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
     }
     return size;
+  }
+
+  $scope.generateFormat = function(cache, format) {
+    CacheService.createCacheFormat(cache, format, function() {
+      cache.formats = cache.formats || {};
+      cache.formats[format] = cache.formats[format] || {};
+      cache.formats[format].generating = true;
+      console.log('go get the cache');
+      getCaches();
+    });
   }
 
   $scope.zoomSize = function(zoomStatus) {

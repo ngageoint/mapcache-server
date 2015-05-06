@@ -26,6 +26,11 @@
   margin-right: 8px;
 }
 
+.cache-type-download-box:hover {
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .cache-size {
   color: #999;
 }

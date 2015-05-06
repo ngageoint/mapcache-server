@@ -210,3 +210,12 @@ exports.updateFormatCreated = function(cache, formatName, formatFile, callback) 
 		cache.save(callback);
 	});
 }
+
+exports.updateFormatGenerating = function(cache, format, callback) {
+	cache.formats = cache.formats || {};
+	cache.formats[format] = {
+		generating: true
+	};
+	cache.markModified('formats');
+	cache.save(callback);
+}

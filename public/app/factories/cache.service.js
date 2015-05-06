@@ -12,6 +12,7 @@ function CacheService($q, $http) {
   var service = {
     getAllCaches: getAllCaches,
     createCache: createCache,
+    createCacheFormat: createCacheFormat,
     getCache: getCache,
     deleteCache: deleteCache,
     downloadMissing: downloadMissing
@@ -66,8 +67,16 @@ function CacheService($q, $http) {
     return resolveAllCaches;
   };
 
-  function createCache(cache, success, error, progress) {
+  function createCacheFormat(cache, format, success) {
+    return $http.get('/api/caches/'+cache.id+'/generate?minZoom=0&maxZoom=18&format='+format)
+    .success(function(data, status, headers, config) {
+      if (success) {
+        success(cache);
+      }
+    });
+  }
 
+  function createCache(cache, success, error, progress) {
     $http.post(
       '/api/caches',
       cache,

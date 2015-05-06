@@ -12,7 +12,11 @@ function StorageController($scope, $http, $location, CacheService, SourceService
 
   $scope.deleteCache = function(cache, format) {
     CacheService.deleteCache(cache, format, function(deletedCache) {
-      cache.deleted = true;
+      if (!format) {
+        cache.deleted = true;
+      } else {
+        delete cache.formats[format];
+      }
     });
   }
 
