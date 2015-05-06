@@ -62,17 +62,6 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     return cache.formats && cache.formats[format] && cache.formats[format].generating;
   }
 
-  $scope.cacheFormatSize = function(cache, format) {
-    var size = "Unknown";
-    if (cache.formats && cache.formats[format]) {
-      var bytes = cache.formats[format].size;
-      var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-  			number = Math.floor(Math.log(bytes) / Math.log(1024));
-  		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
-    }
-    return size;
-  }
-
   $scope.generateFormat = function(cache, format) {
     CacheService.createCacheFormat(cache, format, function() {
       cache.formats = cache.formats || {};

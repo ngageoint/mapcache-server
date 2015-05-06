@@ -26,7 +26,7 @@
         <div class="col-md-12">
           <div class="row" ng-repeat="zoomRow in zoomRows">
             <div class="col-md-4" ng-repeat="zoom in zoomRow">
-              Zoom Level {{zoom.zoom}} {{zoomSize(zoom.status)}}
+              Zoom Level {{zoom.zoom}} {{zoom.status.size | fileSize}}
               <div class="progress">
                 <div class="progress-bar" role="progressbar" style="width: {{zoomProgress(zoom.status)}}%">
                   <span>{{zoomProgress(zoom.status) | number: 2}}% Complete</span>
@@ -65,7 +65,7 @@
           <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=geopackage&access_token={{token}}">
             <div ng-show="cacheFormatExists(cache, 'geopackage')">
               <div class="cache-type"><i class="fa fa-download"></i> GeoPackage</div>
-              <div class="cache-size">{{cacheFormatSize(cache, 'geopackage')}}</div>
+              <div class="cache-size">{{cache.formats['geopackage'].size | fileSize}}</div>
             </div>
           </a>
           <div ng-show="cacheFormatGenerating(cache, 'geopackage')">
@@ -84,7 +84,7 @@
           <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=mbtiles&access_token={{token}}">
             <div ng-show="cacheFormatExists(cache, 'mbtiles')">
               <div class="cache-type"><i class="fa fa-download"></i> MBTiles</div>
-              <div class="cache-size">{{cacheFormatSize(cache, 'mbtiles')}}</div>
+              <div class="cache-size">{{cache.formats['mbtiles'].size | fileSize}}</div>
             </div>
           </a>
           <div ng-show="cacheFormatGenerating(cache, 'mbtiles')">
