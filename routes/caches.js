@@ -53,6 +53,21 @@ module.exports = function(app, auth) {
   	}
   );
 
+  app.get(
+    '/api/caches/:cacheId/generate',
+    access.authorize('EXPORT_CACHE'),
+    function (req, res, next) {
+    	var id = req.params.cacheId;
+    	var minZoom = parseInt(req.param('minZoom'));
+    	var maxZoom = parseInt(req.param('maxZoom'));
+    	var format = req.param('format');
+    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
+    	new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
+    	});
+      res.sendStatus(202);
+  	}
+  )
+
   // get all caches
   app.get(
     '/api/caches',
