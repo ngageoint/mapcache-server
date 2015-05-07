@@ -134,8 +134,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     var extent = turf.extent($scope.cache.geometry);
     for (var i = $scope.cache.minZoom; i <= $scope.cache.maxZoom; i++) {
       var xtiles = xCalculator(extent, i);
-      var ytiles = xCalculator(extent, i);
-      $scope.totalCacheTiles += (((xtiles.max+1)-xtiles.min)*((ytiles.max+1)-ytiles.min));
+      var ytiles = yCalculator(extent, i);
+      $scope.totalCacheTiles += (1 + (ytiles.max - ytiles.min)) * (1 + (xtiles.max - xtiles.min));
     }
     $scope.totalCacheSize = $scope.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
 

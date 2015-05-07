@@ -22,11 +22,18 @@
           </div>
         </div>
       </div>
+      <div class="row" ng-show="!cache.status.complete">
+        <div class="col-md-12">
+          <div class="form-group">
+            <span class="page-sub-entity-title">Cache is currently estimated to be <span class="page-sub-entity-label">{{(cache.totalTileSize/cache.status.generatedTiles) * cache.status.totalTiles | fileSize}} with {{cache.status.totalTiles}} tiles</span></span>
+          </div>
+        </div>
+      </div>
       <div class="row cache-types-row">
         <div class="col-md-12">
           <div class="row" ng-repeat="zoomRow in zoomRows">
             <div class="col-md-4" ng-repeat="zoom in zoomRow">
-              Zoom Level {{zoom.zoom}} {{zoom.status.size | fileSize}}
+              Zoom Level {{zoom.zoom}} Size: {{zoom.status.size | fileSize}} Tiles: {{zoom.status.generatedTiles}}
               <div class="progress">
                 <div class="progress-bar" role="progressbar" style="width: {{zoomProgress(zoom.status)}}%">
                   <span>{{zoomProgress(zoom.status) | number: 2}}% Complete</span>
@@ -42,12 +49,12 @@
     <div class="col-md-12">
       <div><span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/caches/{{cache.humanReadableId}}/{z}/{x}/{y}.png</span><div>
         <div><span class="page-sub-entity-label">Zoom Levels: <span class="page-sub-entity-title">{{cache.minZoom}} - {{cache.maxZoom}}</span></div>
-        <div><span class="page-sub-entity-label">Total Tiles: <span class="page-sub-entity-title">{{cache.status.generatedTiles}}</span></div>
+        <div><span class="page-sub-entity-label">Total Tiles: <span class="page-sub-entity-title">{{cache.status.totalTiles}}</span></div>
         <div><span class="page-sub-entity-label">Bounding Box: <span class="page-sub-entity-title">{{cacheBoundingBox(cache)}}</span></div>
         <div><span class="page-sub-entity-label">Source: <span class="page-sub-entity-title"><a ng-href="/#/source/{{cache.source.id}}">{{cache.source.name}}</a></span></div>
     </div>
   </div>
-  <div class="row top-gap">
+  <div class="row top-gap" ng-show="cache.status.complete">
     <div class="col-md-12">
       <a target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom=0&maxZoom=18&format=xyz&access_token={{token}}">
         <div class="col-md-2 cache-type-details">
