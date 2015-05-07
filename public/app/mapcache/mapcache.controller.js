@@ -80,36 +80,12 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     }
   }
 
-  $scope.cacheSize = function(cache) {
-    var bytes = 0;
-    for (var zoomLevel in cache.status.zoomLevelStatus) {
-      if (cache.status.zoomLevelStatus[zoomLevel].size) {
-        bytes += cache.status.zoomLevelStatus[zoomLevel].size;
-      }
-    }
-		if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
-		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-			number = Math.floor(Math.log(bytes) / Math.log(1024));
-		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
-  }
-
   $scope.cacheFormatExists = function(cache, format) {
     return cache.formats && cache.formats[format] && !cache.formats[format].generating;
   }
 
   $scope.cacheFormatGenerating = function(cache, format) {
     return cache.formats && cache.formats[format] && cache.formats[format].generating;
-  }
-
-  $scope.cacheFormatSize = function(cache, format) {
-    var size = "Unknown";
-    if (cache.formats && cache.formats[format]) {
-      var bytes = cache.formats[format].size;
-      var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-  			number = Math.floor(Math.log(bytes) / Math.log(1024));
-  		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
-    }
-    return size;
   }
 
   $scope.generateFormat = function(cache, format) {
@@ -120,14 +96,6 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
       console.log('go get the cache');
       getCaches();
     });
-  }
-
-  $scope.zoomSize = function(zoomStatus) {
-    var bytes = zoomStatus.size;
-    if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
-		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-			number = Math.floor(Math.log(bytes) / Math.log(1024));
-		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
   }
 
   $rootScope.$on('cacheFootprintPopupOpen', function(event, cache) {

@@ -54,6 +54,24 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     return zoomRows;
   }
 
+  $scope.cacheFormatExists = function(cache, format) {
+    return cache.formats && cache.formats[format] && !cache.formats[format].generating;
+  }
+
+  $scope.cacheFormatGenerating = function(cache, format) {
+    return cache.formats && cache.formats[format] && cache.formats[format].generating;
+  }
+
+  $scope.generateFormat = function(cache, format) {
+    CacheService.createCacheFormat(cache, format, function() {
+      cache.formats = cache.formats || {};
+      cache.formats[format] = cache.formats[format] || {};
+      cache.formats[format].generating = true;
+      console.log('go get the cache');
+      getCache(cache.id);
+    });
+  }
+
   $scope.cacheBoundingBox = function(cache) {
     var extent = turf.extent(cache.geometry);
     return "West: " + extent[0] + " South: " + extent[1] + " East: " + extent[2]+ " North: " + extent[3];
@@ -69,7 +87,15 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
       $scope.cache = cache;
       $scope.zoomRows = $scope.sortedZooms(cache);
       if (!cache.status.complete) {
-        $timeout(getCache, 1000);
+        $timeout(getCache, 5000);
+      } else {
+        for (var format in cache.formats) {
+          if(cache.formats.hasOwnProperty(format)){
+            if (cache.formats[format].generating) {
+              $timeout(getCache, 5000);
+            }
+          }
+        }
       }
     }, function(data) {
       // error

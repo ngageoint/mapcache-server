@@ -48,11 +48,11 @@
   background-color: #F9F9F9;
 }
 
-.cache-type-details:hover > .cache-type {
+.cache-type-details:hover .cache-type {
   color: #369;
 }
 
-.cache-type-details:hover > .cache-size {
+.cache-type-details:hover .cache-size {
   color: #369;
 }
 
