@@ -106,6 +106,17 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     });
   });
 
+  $scope.$on('extentChanged', function(event, envelope) {
+    console.log('extent', envelope);
+    drawnItems.removeLayer(cacheFootprintLayer);
+    cacheFootprintLayer = null;
+    var gj = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
+    $scope.options.geometry = gj.geometry;
+    cacheFootprintLayer = L.rectangle([[envelope.south, envelope.west], [envelope.north, envelope.east]]);
+    cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
+    drawnItems.addLayer(cacheFootprintLayer);
+  });
+
   $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
     if (!$scope.options.useCurrentView || oldValue == newValue) return;
     drawnItems.removeLayer(cacheFootprintLayer);
@@ -113,7 +124,8 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     var bounds = map.getBounds();
     var gj = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
     $scope.options.geometry = gj.geometry;
-    cacheFootprintLayer = L.rectangle(bounds);
+    cacheFootprintLayer = L.rectangle([bounds]);
+    cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
     drawnItems.addLayer(cacheFootprintLayer);
   });
 

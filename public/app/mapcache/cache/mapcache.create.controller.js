@@ -25,6 +25,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log("error pulling server data", status);
   });
 
+  $scope.bb = {};
+
   $scope.cache = {
     format: "xyz"
   };
@@ -54,31 +56,45 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.cache.useCurrentView = Date.now();
   }
 
+  // direction and value are working around something which is causing angular to fire this before the model changes
+  $scope.manualEntry = function() {
+    console.log('manual entry');
+    var envelope = {
+      north: Number($scope.bb.north),
+      south: Number($scope.bb.south),
+      west: Number($scope.bb.west),
+      east: Number($scope.bb.east)
+    };
+    if (envelope.north && envelope.south && envelope.west && envelope.east) {
+      $scope.$broadcast('extentChanged', envelope);
+    }
+  }
+
   $scope.$watch('cache.geometry', function(geometry) {
     if (!geometry) {
-      $scope.north = null;
-      $scope.south = null;
-      $scope.west = null;
-      $scope.east = null;
+      $scope.bb.north = null;
+      $scope.bb.south = null;
+      $scope.bb.west = null;
+      $scope.bb.east = null;
       return;
     }
 
     var extent = turf.extent(geometry);
-    $scope.north = extent[3];
-    $scope.south = extent[1];
-    $scope.west = extent[0];
-    $scope.east = extent[2];
+    $scope.bb.north = extent[3];
+    $scope.bb.south = extent[1];
+    $scope.bb.west = extent[0];
+    $scope.bb.east = extent[2];
 
     calculateCacheSize();
 
   });
 
   $scope.$watch('cache.source', function(source) {
-    if (!source.geometry) {
-      $scope.north = null;
-      $scope.south = null;
-      $scope.west = null;
-      $scope.east = null;
+    if (!source || !source.geometry) {
+      $scope.bb.north = null;
+      $scope.bb.south = null;
+      $scope.bb.west = null;
+      $scope.bb.east = null;
       $scope.cache.geometry = null;
       return;
     }
