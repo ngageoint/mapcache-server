@@ -55,10 +55,12 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
   }
 
   $scope.cacheFormatExists = function(cache, format) {
+    if (!cache) return false;
     return cache.formats && cache.formats[format] && !cache.formats[format].generating;
   }
 
   $scope.cacheFormatGenerating = function(cache, format) {
+    if (!cache) return false;
     return cache.formats && cache.formats[format] && cache.formats[format].generating;
   }
 
@@ -73,11 +75,13 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
   }
 
   $scope.cacheBoundingBox = function(cache) {
+    if (!cache) return;
     var extent = turf.extent(cache.geometry);
     return "West: " + extent[0] + " South: " + extent[1] + " East: " + extent[2]+ " North: " + extent[3];
   }
 
   function getCache(id) {
+    console.log('location.path', $location.path());
     var cache = $scope.cache || {};
     if (id) {
       cache.id = id;
@@ -86,14 +90,12 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
       // success
       $scope.cache = cache;
       $scope.zoomRows = $scope.sortedZooms(cache);
-      if (!cache.status.complete) {
+      if (!cache.status.complete && $location.path().startsWith('/cache')) {
         $timeout(getCache, 5000);
       } else {
         for (var format in cache.formats) {
-          if(cache.formats.hasOwnProperty(format)){
-            if (cache.formats[format].generating) {
-              $timeout(getCache, 5000);
-            }
+          if(cache.formats.hasOwnProperty(format) && cache.formats[format].generating && $location.path().startsWith('/cache')) {
+            $timeout(getCache, 5000);
           }
         }
       }

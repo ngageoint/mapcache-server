@@ -36,7 +36,9 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
       }
       console.log("is a cache generating?", currentlyGenerating);
       var delay = currentlyGenerating ? 30000 : 300000;
-      $timeout(getCaches, delay);
+      if ($location.path() == '/mapcache') {
+        $timeout(getCaches, delay);
+      }
     });
   }
 

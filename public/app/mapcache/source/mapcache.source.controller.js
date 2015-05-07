@@ -30,7 +30,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     SourceService.refreshSource($scope.source, function(source) {
       // success
       $scope.source = source;
-      if (!source.complete) {
+      if (!source.complete && $location.path().startsWith('/source')) {
         $timeout(getSource, 5000);
       }
     }, function(data) {
