@@ -482,7 +482,7 @@
                     }
                 ],
                 "tags": [
-                    "User"
+                    "Cache"
                 ],
                 "responses": {
                     "200": {
@@ -515,7 +515,7 @@
                     }
                 ],
                 "tags": [
-                    "User"
+                    "Cache"
                 ],
                 "responses": {
                     "200": {
@@ -582,6 +582,56 @@
                 "responses": {
                     "200": {
                         "description": "source response",
+                        "schema": {
+                            "$ref": "#/definitions/Source"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sources/{sourceId}": {
+            "get": {
+                "description": "gets a single source based on id",
+                "operationId": "getSource",
+                "parameters": [
+                    {
+                        "name": "sourceId",
+                        "in": "path",
+                        "description": "id of source to get",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "source",
+                        "schema": {
+                            "$ref": "#/definitions/Source"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "deletes a single source based on id",
+                "operationId": "deleteSource",
+                "parameters": [
+                    {
+                        "name": "sourceId",
+                        "in": "path",
+                        "description": "id of source to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "deleted source",
                         "schema": {
                             "$ref": "#/definitions/Source"
                         }

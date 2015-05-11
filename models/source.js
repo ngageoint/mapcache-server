@@ -72,8 +72,5 @@ exports.createSource = function(source, callback) {
 }
 
 exports.deleteSource = function(source, callback) {
-  source.remove(function(err, removedSource) {
-    if (err) console.log("Error removing source: " + err);
-    callback(err, removedSource);
-  });
+	Source.remove({_id: source.id}, callback);
 }

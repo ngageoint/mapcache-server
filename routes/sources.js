@@ -118,4 +118,18 @@ module.exports = function(app, auth) {
       res.json(sourceJson);
     }
   );
+
+  // Delete a specific source
+  app.delete(
+    '/api/sources/:sourceId',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('DELETE_CACHE'),
+    function(req, res, next) {
+      new api.Source().delete(req.source, function(err) {
+        if (err) return next(err);
+        res.status(200);
+        res.json(req.source);
+      });
+    }
+  );
 }
