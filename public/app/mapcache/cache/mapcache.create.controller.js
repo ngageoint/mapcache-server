@@ -17,6 +17,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   $scope.currentAdminPanel = $routeParams.adminPanel || "user";
 
   var seenCorners;
+  var boundsSet = false;
 
   $http.get('/api/server')
   .success(function(data, status) {
@@ -58,16 +59,25 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
 
   // direction and value are working around something which is causing angular to fire this before the model changes
   $scope.manualEntry = function() {
-    console.log('manual entry');
+    console.log('manual entry', $scope.bb);
+    if (isNaN($scope.bb.north) || !$scope.bb.north
+    || isNaN($scope.bb.south) || !$scope.bb.south
+    || isNaN($scope.bb.west) || !$scope.bb.west
+    || isNaN($scope.bb.east) || !$scope.bb.east) {
+      boundsSet = false;
+      $scope.$broadcast('extentChanged', null);
+      return;
+    }
+    boundsSet = true;
+    console.log("all directions are set");
     var envelope = {
       north: Number($scope.bb.north),
       south: Number($scope.bb.south),
       west: Number($scope.bb.west),
       east: Number($scope.bb.east)
     };
-    if (envelope.north && envelope.south && envelope.west && envelope.east) {
-      $scope.$broadcast('extentChanged', envelope);
-    }
+
+    $scope.$broadcast('extentChanged', envelope);
   }
 
   $scope.$watch('cache.geometry', function(geometry) {
@@ -86,7 +96,6 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.bb.east = extent[2];
 
     calculateCacheSize();
-
   });
 
   $scope.$watch('cache.source', function(source) {
@@ -120,7 +129,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
       zoomValidated = true;
     }
-    return $scope.cache.geometry && $scope.cache.name && $scope.cache.source && zoomValidated;
+    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && zoomValidated;
   }
 
   $scope.createCache = function() {

@@ -110,11 +110,13 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     console.log('extent', envelope);
     drawnItems.removeLayer(cacheFootprintLayer);
     cacheFootprintLayer = null;
-    var gj = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
-    $scope.options.geometry = gj.geometry;
-    cacheFootprintLayer = L.rectangle([[envelope.south, envelope.west], [envelope.north, envelope.east]]);
-    cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
-    drawnItems.addLayer(cacheFootprintLayer);
+    if (envelope) {
+      var gj = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
+      $scope.options.geometry = gj.geometry;
+      cacheFootprintLayer = L.rectangle([[envelope.south, envelope.west], [envelope.north, envelope.east]]);
+      cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
+      drawnItems.addLayer(cacheFootprintLayer);
+    }
   });
 
   $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
