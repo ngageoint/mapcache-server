@@ -100,7 +100,7 @@ module.exports = function(app, auth) {
 
       var source = req.source;
 
-      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 

@@ -16,7 +16,7 @@ exports.process = function(source, callback) {
   });
 }
 
-exports.getTile = function(source, z, x, y, callback) {
+exports.getTile = function(source, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
   var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
   var req = request.get({url: url,

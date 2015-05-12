@@ -6,7 +6,7 @@ exports.process = function(source, callback) {
   callback(null, source);
 }
 
-exports.getTile = function(source, z, x, y, callback) {
+exports.getTile = function(source, z, x, y, params, callback) {
   var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
   var req = request.get({url: url,
     headers: {'Content-Type': 'image/png'},

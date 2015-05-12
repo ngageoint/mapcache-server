@@ -93,6 +93,14 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     console.log('changing source to ', source);
     if (source == null) {
       return L.tileLayer(defaultLayer, sourceLayerOptions);
+    } else if (typeof source == "string") {
+      return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
+    } else if (source.id) {
+      var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      if (source.previewLayer) {
+        url += '&layer=' + source.previewLayer.Name;
+      }
+      return L.tileLayer(url, sourceLayerOptions);
     } else if (source.format == "wms") {
       if (source.wmsGetCapabilities && source.previewLayer) {
         return L.tileLayer.wms(source.url, {
@@ -101,12 +109,8 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
           transparent: !source.previewLayer.opaque
         });
       }
-    } else if (typeof source == "string") {
-      return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
     } else if (!source.id && source.url) {
       return L.tileLayer(source.url + "/{z}/{x}/{y}.png", sourceLayerOptions);
-    } else if (source.id) {
-      return L.tileLayer('/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken(), sourceLayerOptions);
     }
   }
 
