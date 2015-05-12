@@ -2,6 +2,8 @@ var cacheUtilities = require('../cacheUtilities')
   , mongoose = require('mongoose')
   , CacheModel = require('../../models/cache')
   , request = require('request')
+  , wms = require('./wms')
+  , fs = require('fs-extra')
   , SourceModel = require('../../models/source')
   , downloader = require('../tileDownloader')
   , config = require('../../config.json');
@@ -29,9 +31,24 @@ process.on('message', function(m) {
 });
 
 function downloadTile(tileInfo, tileDone) {
+  console.log("tileinfo cache", tileInfo.cache);
   CacheModel.shouldContinueCaching(tileInfo.cache, function(err, continueCaching) {
     if (continueCaching) {
-      downloader.download(tileInfo, tileDone);
+      wms.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.cache.cacheCreationParams, function(err, tileStream) {
+        var filepath = getFilepath(tileInfo);
+        var dir = createDir(tileInfo.cache._id, filepath);
+        var filename = getFilename(tileInfo, tileInfo.cache.source.format);
+        var stream = fs.createWriteStream(dir + '/' + filename);
+        stream.on('close',function(status){
+          console.log('status on tile download is', status);
+          CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+            tileDone(null, tileInfo);
+          });
+        });
+        if (tileStream) {
+          tileStream.pipe(stream);
+        }
+      });
     } else {
       tileDone();
     }
@@ -39,6 +56,7 @@ function downloadTile(tileInfo, tileDone) {
 }
 
 function createCache(cache) {
+  console.log("wms cache", cache);
   cacheUtilities.createCache(cache, downloadTile);
 }
 
@@ -64,4 +82,26 @@ function processSource(sourceId) {
       });
     });
   });
+}
+
+function getFilepath(tileInfo) {
+	return tileInfo.z + '/' + tileInfo.x + '/' ;
+}
+
+function getFilename(tileInfo, type) {
+	if (type == 'tms') {
+		y = Math.pow(2,tileInfo.z) - tileInfo.y -1;
+		return y + '.png';
+	} else {
+		return tileInfo.y + '.png';
+  }
+}
+
+function createDir(cacheName, filepath){
+	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
+    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
+       if (err) console.log(err);
+     });
+	}
+  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }

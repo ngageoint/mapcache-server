@@ -30,6 +30,22 @@
       <button class="btn btn-link pull-right" ng-click="createSource()">Don't see the source you want? Click here to create one.</button>
     </div>
   </div>
+  <div class="row" ng-show="cache.source.format == 'wms'">
+    <div class="col-md-12">
+      <div class="form-group">
+        <label>Choose one of the available layers on this WMS server to create your cache from.</label>
+        <ui-select ng-model="cache.source.previewLayer" theme="bootstrap">
+          <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}}</ui-select-match>
+          <ui-select-choices repeat="layer in cache.source.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
+            <div ng-bind-html="layer.Title | highlight: $select.search"></div>
+            <small class="muted">
+              <span ng-bind-html="''+layer.Title + ' ' + layer.Name | highlight: $select.search"></span>
+            </small>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+  </div>
 
   <div ng-if="cache.source" class="bottom-gap-l">
     <div class="hidden-xs">

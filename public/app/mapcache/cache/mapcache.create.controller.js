@@ -86,9 +86,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.bb.south = null;
       $scope.bb.west = null;
       $scope.bb.east = null;
+      boundsSet = false;
       return;
     }
-
+    boundsSet = true;
     var extent = turf.extent(geometry);
     $scope.bb.north = extent[3];
     $scope.bb.south = extent[1];
@@ -129,6 +130,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
       zoomValidated = true;
     }
+
+    if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {
+      return false;
+    }
     return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && zoomValidated;
   }
 
@@ -139,6 +144,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;
+    $scope.cache.cacheCreationParams = {
+      layer: $scope.cache.source.previewLayer.Name
+    };
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);

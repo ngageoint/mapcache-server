@@ -35,7 +35,7 @@ process.on('message', function(m) {
 function downloadTile(tileInfo, tileDone) {
   CacheModel.shouldContinueCaching(tileInfo.cache, function(err, continueCaching) {
     if (continueCaching) {
-      geotiff.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, function(err, tileStream) {
+      geotiff.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, {}, function(err, tileStream) {
         var filepath = getFilepath(tileInfo);
         var dir = createDir(tileInfo.cache._id, filepath);
         var filename = getFilename(tileInfo, tileInfo.cache.source.format);

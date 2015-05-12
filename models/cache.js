@@ -33,6 +33,7 @@ var CacheSchema = new Schema({
 		generatedTiles: {type: Number, required: true},
 		zoomLevelStatus: Schema.Types.Mixed
 	},
+	cacheCreationParams: Schema.Types.Mixed,
 	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }/*,
 	userId: { type: Schema.Types.ObjectId, ref: 'User', required: false }*/
 },{

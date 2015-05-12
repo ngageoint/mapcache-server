@@ -151,6 +151,14 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     sourceLayer.addTo(map);
   });
 
+  $scope.$watch('options.source.previewLayer', function(previewLayer) {
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer.addTo(map);
+  });
+
   $scope.$watch('options.source.format', function(format, oldFormat) {
     if (format == oldFormat) return;
 
@@ -165,9 +173,14 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   function getUrl(source) {
     if (source == null) {
       return defaultLayer;
+    } else if (source.format == 'wms' && !source.previewLayer) {
+      return defaultLayer;
     } else {
-
-      return '/api/sources/' + source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      var url = '/api/sources/' + source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      if (source.previewLayer) {
+        url += '&layer=' + source.previewLayer.Name;
+      }
+      return url;
     }
   }
 }
