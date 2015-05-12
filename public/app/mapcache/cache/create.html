@@ -12,16 +12,16 @@
     <div class="col-md-12">
       <div class="form-group">
         <label>Choose the source of your cache.  This is what your map cache will be generated from.</label>
-          <ui-select ng-model="cache.source" theme="bootstrap">
-           <ui-select-match placeholder="Select a source">{{$select.selected.name}}</ui-select-match>
-           <ui-select-choices repeat="source in sources | orderBy: 'name' | filter: $select.search">
-             <div ng-bind-html="source.name | highlight: $select.search"></div>
-             <small class="muted">
+        <ui-select ng-model="cache.source" theme="bootstrap">
+          <ui-select-match placeholder="Select a source">{{$select.selected.name}}</ui-select-match>
+          <ui-select-choices repeat="source in sources | orderBy: 'name' | filter: $select.search">
+            <div ng-bind-html="source.name | highlight: $select.search"></div>
+            <small class="muted">
               <span ng-bind-html="''+source.name + ' ' + source.url | highlight: $select.search"></span>
             </small>
-           </ui-select-choices>
-         </ui-select>
-       </div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
     </div>
   </div>
 

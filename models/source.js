@@ -16,6 +16,7 @@ var SourceSchema = new Schema({
   tileSize: { type: Number, required: false},
 	complete: { type: Boolean, required: false},
 	humanReadableId: { type: String, required: false},
+  wmsGetCapabilities: Schema.Types.Mixed,
 	geometry: Schema.Types.Mixed,
 	projections: Schema.Types.Mixed
 });

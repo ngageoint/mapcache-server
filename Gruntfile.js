@@ -23,7 +23,10 @@ module.exports = function(grunt) {
         files: [{expand: true, cwd: 'public/', src: ['fonts/**/*'], dest: 'public/dist/'},
                 {expand: true, cwd: 'public/vendor/bootstrap/', src: ['fonts/**/*'], dest: 'public/dist/vendor'},
                 {expand: true, cwd: 'public/bower_components/font-awesome/', src: ['fonts/**/*'], dest: 'public/dist/vendor'}]
-      }
+      }/*,
+      modules: {
+        files: [{expand: true, cwd: 'node_modules/wms-capabilities', src: ['**/*'], dest: 'public/bower_components/wms-capabilities'}]
+      }*/
     },
     useminPrepare: {
       html: 'public/index.html',

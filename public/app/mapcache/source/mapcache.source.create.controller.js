@@ -6,11 +6,12 @@ MapcacheSourceCreateController.$inject = [
   '$scope',
   '$location',
   '$timeout',
+  '$http',
   'CacheService',
   'SourceService'
 ];
 
-function MapcacheSourceCreateController($scope, $location, $timeout, CacheService, SourceService) {
+function MapcacheSourceCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
 
   $scope.source = {
     format: 'xyz'
@@ -25,10 +26,18 @@ function MapcacheSourceCreateController($scope, $location, $timeout, CacheServic
     }
   }
 
+  function pruneSource(s) {
+    var source = angular.copy(s);
+    delete source.previewLayer;
+    delete source.wmsGetCapabilities;
+    return source;
+  }
+
   $scope.createSource = function() {
     console.log($scope.cache);
     $scope.sourceSubmitted = true;
-    SourceService.createSource($scope.source, function(source) {
+    var sourceSubmit = pruneSource($scope.source);
+    SourceService.createSource(sourceSubmit, function(source) {
       console.log('source created', source);
       // now start a timer to watch the source be created
       $location.path('/source/'+source.id);
@@ -53,5 +62,22 @@ function MapcacheSourceCreateController($scope, $location, $timeout, CacheServic
       // error
     });
   }
+
+  $scope.$watch('source.url', function(url) {
+    if (!url) { return; }
+    if ($scope.source.format == 'wms') {
+      $scope.source.wmsGetCapabilities = null;
+      $scope.fetchingCapabilities = true;
+      $http.get('/api/sources/wmsFeatureRequest',
+      {
+        params: {
+          wmsUrl: url
+        }
+      }).success(function (data) {
+        $scope.fetchingCapabilities = false;
+        $scope.source.wmsGetCapabilities = data;
+      });
+    }
+  });
 
 };

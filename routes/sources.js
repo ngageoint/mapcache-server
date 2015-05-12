@@ -2,6 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
     , fs = require('fs-extra')
+    , request = require('request')
     , config = require('../config.json')
     , sourceXform = require('../transformers/source')
     , sourceProcessor = require('../api/sourceTypes');
@@ -110,6 +111,21 @@ module.exports = function(app, auth) {
 
   // get source
   app.get(
+    '/api/sources/wmsFeatureRequest',
+    access.authorize('READ_CACHE'),
+    function (req, res, next) {
+      console.log('wms feature request for ', req.param('wmsUrl'));
+      var DOMParser = global.DOMParser = require('xmldom').DOMParser;
+      var WMSCapabilities = require('wms-capabilities');
+      var req = request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
+        var json = new WMSCapabilities(body).toJSON();
+        res.json(json);
+      });
+    }
+  );
+
+  // get source
+  app.get(
     '/api/sources/:sourceId',
     access.authorize('READ_CACHE'),
     parseQueryParams,
@@ -132,4 +148,6 @@ module.exports = function(app, auth) {
       });
     }
   );
+
+
 }

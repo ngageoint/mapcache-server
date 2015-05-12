@@ -68,13 +68,17 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     addSourceLayer();
   });
 
+  $scope.$watch('source.previewLayer', function(format, oldFormat) {
+    addSourceLayer();
+  });
+
   function addSourceLayer() {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    var url = getUrl($scope.source);
-    if (!url) return;
-    sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
+    var tl = getTileLayer($scope.source);
+    if (!tl) return;
+    sourceLayer = tl;
     sourceLayer.addTo(map);
     if ($scope.source.geometry) {
       var extent = turf.extent($scope.source.geometry);
@@ -85,16 +89,24 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     }
   }
 
-  function getUrl(source) {
+  function getTileLayer(source) {
     console.log('changing source to ', source);
     if (source == null) {
-      return defaultLayer;
+      return L.tileLayer(defaultLayer, sourceLayerOptions);
+    } else if (source.format == "wms") {
+      if (source.wmsGetCapabilities && source.previewLayer) {
+        return L.tileLayer.wms(source.url, {
+          layers: source.previewLayer.Name,
+          version: source.wmsGetCapabilities.version,
+          transparent: !source.previewLayer.opaque
+        });
+      }
     } else if (typeof source == "string") {
-      return source + "/{z}/{x}/{y}.png";
+      return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
     } else if (!source.id && source.url) {
-      return source.url + "/{z}/{x}/{y}.png";
+      return L.tileLayer(source.url + "/{z}/{x}/{y}.png", sourceLayerOptions);
     } else if (source.id) {
-      return '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      return L.tileLayer('/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken(), sourceLayerOptions);
     }
   }
 
