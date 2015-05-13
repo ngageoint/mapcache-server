@@ -41,8 +41,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }];
 
   $scope.cache.selectedSizeMultiplier = $scope.sizes[0];
-
+  $scope.loadingSources = true;
   SourceService.getAllSources(true).success(function(sources) {
+    $scope.loadingSources = false;
     $scope.sources = sources;
     if ($routeParams.sourceId) {
       for (var i = 0; i < $scope.sources.length && $scope.cache.source == null; i++) {
@@ -51,6 +52,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
         }
       }
     }
+  }).error(function(error) {
+    $scope.loadingSources = false;
   });
 
   $scope.useCurrentView = function() {
