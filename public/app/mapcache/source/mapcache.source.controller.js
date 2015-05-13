@@ -26,6 +26,14 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     $location.path('/create/'+$routeParams.sourceId);
   }
 
+  $scope.$watch('source.previewLayer', function(layer, oldLayer) {
+    if (layer) {
+      if (layer.EX_GeographicBoundingBox) {
+        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
+      }
+    }
+  });
+
   function getSource() {
     SourceService.refreshSource($scope.source, function(source) {
       // success

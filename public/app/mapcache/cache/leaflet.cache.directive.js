@@ -37,7 +37,7 @@ function LeafletCacheController($scope, $element, LocalStorageService) {
 
   var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
   var cacheLayer = null;
-
+  
   $scope.$watch('cache', function(cache, oldCache) {
     if (cache == oldCache) return;
     if (!cache.status.complete) return;

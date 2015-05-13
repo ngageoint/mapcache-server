@@ -117,6 +117,14 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
   });
 
+  $scope.$watch('cache.source.previewLayer', function(layer, oldLayer) {
+    if (layer) {
+      if (layer.EX_GeographicBoundingBox) {
+        $scope.cache.extent = layer.EX_GeographicBoundingBox;
+      }
+    }
+  });
+
   $scope.$watch('cache.minZoom+cache.maxZoom', calculateCacheSize);
 
   $scope.requiredFieldsSet = function() {

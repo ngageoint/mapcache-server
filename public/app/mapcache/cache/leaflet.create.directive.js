@@ -47,7 +47,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   var drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
 
-  var options = {
+  var drawOptions = {
     draw: {
         polyline: false,
         polygon: false,
@@ -73,7 +73,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     }
   };
 
-  var drawControl = new L.Control.Draw(options);
+  var drawControl = new L.Control.Draw(drawOptions);
   map.addControl(drawControl);
 
   map.on('draw:drawstart', function (e) {
@@ -118,6 +118,19 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
       drawnItems.addLayer(cacheFootprintLayer);
     }
   });
+
+  $scope.$watch('options.extent', function(extent, oldExtent) {
+    if (extent) {
+      updateMapExtent(extent);
+    }
+  });
+
+  function updateMapExtent(extent) {
+    map.fitBounds([
+      [extent[1],extent[0]],
+      [extent[3], extent[2]]
+    ]);
+  }
 
   $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
     if (!$scope.options.useCurrentView || oldValue == newValue) return;

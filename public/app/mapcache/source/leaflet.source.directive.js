@@ -72,6 +72,12 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     addSourceLayer();
   });
 
+  $scope.$watch('options.extent', function(extent, oldExtent) {
+    if (extent) {
+      updateMapExtent(extent);
+    }
+  });
+
   function addSourceLayer() {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
@@ -81,12 +87,16 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     sourceLayer = tl;
     sourceLayer.addTo(map);
     if ($scope.source.geometry) {
-      var extent = turf.extent($scope.source.geometry);
-      map.fitBounds([
-        [extent[1],extent[0]],
-        [extent[3], extent[2]]
-      ]);
+      updateMapExtent();
     }
+  }
+
+  function updateMapExtent(extent) {
+    var extent = extent || turf.extent($scope.source.geometry);
+    map.fitBounds([
+      [extent[1],extent[0]],
+      [extent[3], extent[2]]
+    ]);
   }
 
   function getTileLayer(source) {
