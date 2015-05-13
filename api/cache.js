@@ -158,7 +158,7 @@ Cache.prototype.getZip = function(cache, minZoom, maxZoom, format, callback) {
     if (!fs.existsSync(geoPackageFile)) {
       CacheModel.updateFormatGenerating(cache, format, function(err) {
         var python = exec(
-         './utilities/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + geoPackageFile,
+         './utilities/geopackage-python-4.0/Packaging/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + config.server.cacheDirectory.path + "/" + cache._id + " " + geoPackageFile,
          function(error, stdout, stderr) {
            CacheModel.updateFormatCreated(cache, format, geoPackageFile, function(err) {
              var stream = fs.createReadStream(geoPackageFile);
