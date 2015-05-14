@@ -32,17 +32,15 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
   }
 
   function pruneSource(s) {
-    var source = angular.copy(s);
-    delete source.previewLayer;
-    delete source.wmsGetCapabilities;
-    return source;
+    delete s.previewLayer;
+    delete s.wmsGetCapabilities;
   }
 
   $scope.createSource = function() {
     console.log($scope.cache);
     $scope.sourceSubmitted = true;
-    var sourceSubmit = pruneSource($scope.source);
-    SourceService.createSource(sourceSubmit, function(source) {
+    pruneSource($scope.source);
+    SourceService.createSource($scope.source, function(source) {
       console.log('source created', source);
       // now start a timer to watch the source be created
       $location.path('/source/'+source.id);
