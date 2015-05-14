@@ -22,7 +22,7 @@
       <span class="page-sub-entity-label">Format: <span class="page-sub-entity-title">{{source.format}}</span>
     </div>
   </div>
-  <div class="row" ng-show="source.format == 'wms'">
+  <div class="row" ng-show="source.format == 'wms' && source.complete">
     <div class="col-md-12">
       <div class="form-group">
         <label>Available layers on this WMS server.  This is just a preview, you will be able to create a cache from any of these layers.</label>
