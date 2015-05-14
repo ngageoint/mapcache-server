@@ -21,10 +21,26 @@ Currently supported output formats:
 # Installation
 
 ## Install Homebrew
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
 
 ## Install Dependencies
 
+### Node.js
+```brew install node```
+
+### MongoDB
+```brew install mongo```
+
+### GDAL
+```brew install libtiff```
+```brew install gdal --with-libtiff```
+
+### MBUtil
+
+```git clone git://github.com/mapbox/mbutil.git
+cd mbutil
+sudo python setup.py install
+mb-util```
 
 ## Contact
 
