@@ -68,33 +68,59 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     addSourceLayer();
   });
 
+  $scope.$watch('source.previewLayer', function(format, oldFormat) {
+    addSourceLayer();
+  });
+
+  $scope.$watch('options.extent', function(extent, oldExtent) {
+    if (extent) {
+      updateMapExtent(extent);
+    }
+  });
+
   function addSourceLayer() {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    var url = getUrl($scope.source);
-    if (!url) return;
-    sourceLayer = L.tileLayer(getUrl($scope.source), sourceLayerOptions);
+    var tl = getTileLayer($scope.source);
+    if (!tl) return;
+    sourceLayer = tl;
     sourceLayer.addTo(map);
     if ($scope.source.geometry) {
-      var extent = turf.extent($scope.source.geometry);
-      map.fitBounds([
-        [extent[1],extent[0]],
-        [extent[3], extent[2]]
-      ]);
+      updateMapExtent();
     }
   }
 
-  function getUrl(source) {
+  function updateMapExtent(extent) {
+    var extent = extent || turf.extent($scope.source.geometry);
+    map.fitBounds([
+      [extent[1],extent[0]],
+      [extent[3], extent[2]]
+    ]);
+  }
+
+  function getTileLayer(source) {
     console.log('changing source to ', source);
     if (source == null) {
-      return defaultLayer;
+      return L.tileLayer(defaultLayer, sourceLayerOptions);
     } else if (typeof source == "string") {
-      return source + "/{z}/{x}/{y}.png";
-    } else if (!source.id && source.url) {
-      return source.url + "/{z}/{x}/{y}.png";
+      return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
     } else if (source.id) {
-      return '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      if (source.previewLayer) {
+        url += '&layer=' + source.previewLayer.Name;
+      }
+      return L.tileLayer(url, sourceLayerOptions);
+    } else if (source.format == "wms") {
+      if (source.wmsGetCapabilities && source.previewLayer) {
+        return L.tileLayer.wms(source.url, {
+          layers: source.previewLayer.Name,
+          version: source.wmsGetCapabilities.version,
+          transparent: !source.previewLayer.opaque
+        });
+      }
+    } else if (!source.id && source.url) {
+      return L.tileLayer(source.url + "/{z}/{x}/{y}.png", sourceLayerOptions);
     }
   }
 

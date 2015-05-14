@@ -63,6 +63,8 @@ app.use(function(req, res, next) {
   }
   return next();
 });
+app.use(require('body-parser').json({limit: '50mb'}));
+app.use(require('body-parser').urlencoded({limit: '50mb', extended: true}));
 app.use(require('body-parser')({ keepExtensions: true}));
 app.use(require('method-override')());
 app.use(require('multer')());
@@ -78,7 +80,6 @@ app.use(function(err, req, res, next) {
   res.send(500, 'Internal server error, please contact MapCahe administrator.');
 });
 
-
 // Configure routes
 require('./routes')(app, {authentication: authentication});
 
@@ -86,4 +87,3 @@ require('./routes')(app, {authentication: authentication});
 var port = argv.port;
 app.listen(port);
 console.log('MapCahe Server: Started listening on port ' + port);
-

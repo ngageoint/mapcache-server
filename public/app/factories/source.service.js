@@ -12,6 +12,7 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
   var service = {
     getAllSources: getAllSources,
     refreshSource: refreshSource,
+    deleteSource: deleteSource,
     createSource: createSource
   };
 
@@ -44,6 +45,22 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
         }
       });
   }
+
+  function deleteSource(source, format, success) {
+    var url = '/api/sources/' + source.id;
+    if (format) {
+      url += '/' + format;
+    }
+    $http.delete(url).success(function(source, status, headers, config) {
+      console.log('successfully deleted source', source);
+      if (success) {
+        success(source);
+      }
+    }).error(function(source, status, headers, config) {
+      console.log('error deleting source', source);
+    });
+  }
+
 
   function createSource(source, success, error, progress) {
 

@@ -56,10 +56,10 @@
           </button>
 
           <a class="navbar-brand visible-xs-block" href="#/mapcache" data-toggle="collapse" data-target=".navbar-collapse">
-            <i class="icon-globe icon-brand" style="margin-right:10px;"></i>mapcache
+            <i class="fa fa-globe" style="margin-right:10px;"></i>mapcache
           </a>
           <a class="navbar-brand hidden-xs" href="#/mapcache">
-            <i class="icon-globe icon-brand" style="margin-right:10px;"></i>mapcache
+            <i class="fa fa-globe" style="margin-right:10px;"></i>mapcache
           </a>
         </div>
 
@@ -67,34 +67,34 @@
           <ul class="nav navbar-nav navbar-right" ng-show="myself" ng-cloak>
             <li ng-show="myself">
               <a href="#/user" data-toggle="collapse" data-target=".navbar-collapse" class="nav-link visible-xs-block" style="padding-top: 14px; padding-bottom: 10px;">
-                <i class="fa fa-icon-info icon-spacer"></i> {{myself.username}}
+                <i class="fa fa-icon-info"></i> {{myself.username}}
               </a>
               <a href="#/user" class="nav-link hidden-xs" style="padding-top: 14px; padding-bottom: 10px;" tooltip="My&nbsp;Profile" tooltip-placement="bottom">
-                <i class="fa fa-icon-info icon-spacer"></i> {{myself.username}}
+                <i class="fa fa-icon-info"></i> {{myself.username}}
               </a>
             </li>
             <li ng-show="amAdmin">
               <a ng-href="#/admin" data-toggle="collapse" data-target=".navbar-collapse" class="nav-link visible-xs-block">
-                <i class="icon-cogs icon-spacer"></i> Admin
+                <i class="fa fa-cogs"></i> Admin
               </a>
               <a ng-href="#/admin" class="nav-link hidden-xs" tooltip="Admin" tooltip-placement="bottom">
-                <i class="icon-cogs icon-spacer"></i>
+                <i class="fa fa-cogs"></i>
               </a>
             </li>
             <li>
               <a href="#/about" data-toggle="collapse" data-target=".navbar-collapse" class="nav-link visible-xs-block">
-                <i class="fa fa-info-circle icon-spacer"></i> About
+                <i class="fa fa-info-circle"></i> About
               </a>
               <a href="#/about" class="nav-link hidden-xs" tooltip="About" tooltip-placement="bottom">
-                <i class="fa fa-info-circle icon-spacer"></i>
+                <i class="fa fa-info-circle"></i>
               </a>
             </li>
             <li>
               <a ng-click="logout()" data-toggle="collapse" data-target=".navbar-collapse" class="nav-link pointer visible-xs-block">
-                <i class="fa fa-sign-out icon-spacer"></i> Sign out
+                <i class="fa fa-sign-out"></i> Sign out
               </a>
               <a ng-click="logout()" class="nav-link pointer hidden-xs" tooltip="Sign&nbsp;out" tooltip-placement="bottom">
-                <i class="fa fa-sign-out icon-spacer"></i>
+                <i class="fa fa-sign-out"></i>
               </a>
             </li>
           </ul>

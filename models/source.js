@@ -16,6 +16,7 @@ var SourceSchema = new Schema({
   tileSize: { type: Number, required: false},
 	complete: { type: Boolean, required: false},
 	humanReadableId: { type: String, required: false},
+  wmsGetCapabilities: Schema.Types.Mixed,
 	geometry: Schema.Types.Mixed,
 	projections: Schema.Types.Mixed
 });
@@ -72,8 +73,5 @@ exports.createSource = function(source, callback) {
 }
 
 exports.deleteSource = function(source, callback) {
-  source.remove(function(err, removedSource) {
-    if (err) console.log("Error removing source: " + err);
-    callback(err, removedSource);
-  });
+	Source.remove({_id: source.id}, callback);
 }

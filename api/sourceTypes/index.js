@@ -4,10 +4,10 @@ exports.process = function(source, callback) {
   processor.process(source, callback);
 }
 
-exports.getTile = function(source, z, x, y, callback) {
+exports.getTile = function(source, z, x, y, params, callback) {
   var processor = require('./' + source.format);
 
-  processor.getTile(source, z, x, y, callback);
+  processor.getTile(source, z, x, y, params, callback);
 }
 
 exports.createCache = function(cache) {

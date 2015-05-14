@@ -2,6 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
     , fs = require('fs-extra')
+    , request = require('request')
     , config = require('../config.json')
     , sourceXform = require('../transformers/source')
     , sourceProcessor = require('../api/sourceTypes');
@@ -99,11 +100,26 @@ module.exports = function(app, auth) {
 
       var source = req.source;
 
-      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 
         tileStream.pipe(res);
+      });
+    }
+  );
+
+  // get source
+  app.get(
+    '/api/sources/wmsFeatureRequest',
+    access.authorize('READ_CACHE'),
+    function (req, res, next) {
+      console.log('wms feature request for ', req.param('wmsUrl'));
+      var DOMParser = global.DOMParser = require('xmldom').DOMParser;
+      var WMSCapabilities = require('wms-capabilities');
+      var req = request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
+        var json = new WMSCapabilities(body).toJSON();
+        res.json(json);
       });
     }
   );
@@ -118,4 +134,20 @@ module.exports = function(app, auth) {
       res.json(sourceJson);
     }
   );
+
+  // Delete a specific source
+  app.delete(
+    '/api/sources/:sourceId',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('DELETE_CACHE'),
+    function(req, res, next) {
+      new api.Source().delete(req.source, function(err) {
+        if (err) return next(err);
+        res.status(200);
+        res.json(req.source);
+      });
+    }
+  );
+
+
 }

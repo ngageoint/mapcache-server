@@ -45,6 +45,11 @@ function StorageController($scope, $http, $location, CacheService, SourceService
     $scope.caches = caches;
   });
 
+  $scope.deleteSource = function(source, format) {
+    SourceService.deleteSource(source, format, function(deletedSource) {
+      source.deleted = true;
+    });
+  }
 
   function cacheSize(cache) {
     var bytes = 0;

@@ -152,7 +152,7 @@ module.exports = function(app, auth) {
     }
   );
 
-  // get source
+  // get cache
   app.get(
     '/api/caches/:cacheId',
     access.authorize('READ_CACHE'),
@@ -163,7 +163,7 @@ module.exports = function(app, auth) {
     }
   );
 
-  // Delete a specific cache
+  // Delete a specific cache format
   app.delete(
     '/api/caches/:cacheId/:format',
     passport.authenticate(authenticationStrategy),

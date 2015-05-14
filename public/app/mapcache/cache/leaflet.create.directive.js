@@ -47,7 +47,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   var drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
 
-  var options = {
+  var drawOptions = {
     draw: {
         polyline: false,
         polygon: false,
@@ -73,7 +73,7 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     }
   };
 
-  var drawControl = new L.Control.Draw(options);
+  var drawControl = new L.Control.Draw(drawOptions);
   map.addControl(drawControl);
 
   map.on('draw:drawstart', function (e) {
@@ -106,6 +106,32 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     });
   });
 
+  $scope.$on('extentChanged', function(event, envelope) {
+    console.log('extent', envelope);
+    drawnItems.removeLayer(cacheFootprintLayer);
+    cacheFootprintLayer = null;
+    if (envelope) {
+      var gj = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
+      $scope.options.geometry = gj.geometry;
+      cacheFootprintLayer = L.rectangle([[envelope.south, envelope.west], [envelope.north, envelope.east]]);
+      cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
+      drawnItems.addLayer(cacheFootprintLayer);
+    }
+  });
+
+  $scope.$watch('options.extent', function(extent, oldExtent) {
+    if (extent) {
+      updateMapExtent(extent);
+    }
+  });
+
+  function updateMapExtent(extent) {
+    map.fitBounds([
+      [extent[1],extent[0]],
+      [extent[3], extent[2]]
+    ]);
+  }
+
   $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
     if (!$scope.options.useCurrentView || oldValue == newValue) return;
     drawnItems.removeLayer(cacheFootprintLayer);
@@ -113,7 +139,8 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     var bounds = map.getBounds();
     var gj = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
     $scope.options.geometry = gj.geometry;
-    cacheFootprintLayer = L.rectangle(bounds);
+    cacheFootprintLayer = L.rectangle([bounds]);
+    cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
     drawnItems.addLayer(cacheFootprintLayer);
   });
 
@@ -137,6 +164,14 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     sourceLayer.addTo(map);
   });
 
+  $scope.$watch('options.source.previewLayer', function(previewLayer) {
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer.addTo(map);
+  });
+
   $scope.$watch('options.source.format', function(format, oldFormat) {
     if (format == oldFormat) return;
 
@@ -151,9 +186,14 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
   function getUrl(source) {
     if (source == null) {
       return defaultLayer;
+    } else if (source.format == 'wms' && !source.previewLayer) {
+      return defaultLayer;
     } else {
-
-      return '/api/sources/' + source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      var url = '/api/sources/' + source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      if (source.previewLayer) {
+        url += '&layer=' + source.previewLayer.Name;
+      }
+      return url;
     }
   }
 }

@@ -26,7 +26,6 @@
     "font-awesome": "4.3.0",
     "jquery": "1.9.1",
     "jquery-file-upload": "9.3.0",
-    "jquery-file-download": "latest",
     "leaflet": "0.7.3",
     "leaflet-draw": "0.2.3",
     "moment": "2.9.0",

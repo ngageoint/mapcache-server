@@ -17,6 +17,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   $scope.currentAdminPanel = $routeParams.adminPanel || "user";
 
   var seenCorners;
+  var boundsSet = false;
 
   $http.get('/api/server')
   .success(function(data, status) {
@@ -24,6 +25,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }).error(function(data, status) {
     console.log("error pulling server data", status);
   });
+
+  $scope.bb = {};
 
   $scope.cache = {
     format: "xyz"
@@ -38,8 +41,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }];
 
   $scope.cache.selectedSizeMultiplier = $scope.sizes[0];
-
+  $scope.loadingSources = true;
   SourceService.getAllSources(true).success(function(sources) {
+    $scope.loadingSources = false;
     $scope.sources = sources;
     if ($routeParams.sourceId) {
       for (var i = 0; i < $scope.sources.length && $scope.cache.source == null; i++) {
@@ -48,37 +52,62 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
         }
       }
     }
+  }).error(function(error) {
+    $scope.loadingSources = false;
   });
 
   $scope.useCurrentView = function() {
     $scope.cache.useCurrentView = Date.now();
   }
 
-  $scope.$watch('cache.geometry', function(geometry) {
-    if (!geometry) {
-      $scope.north = null;
-      $scope.south = null;
-      $scope.west = null;
-      $scope.east = null;
+  // direction and value are working around something which is causing angular to fire this before the model changes
+  $scope.manualEntry = function() {
+    console.log('manual entry', $scope.bb);
+    if (isNaN($scope.bb.north) || !$scope.bb.north
+    || isNaN($scope.bb.south) || !$scope.bb.south
+    || isNaN($scope.bb.west) || !$scope.bb.west
+    || isNaN($scope.bb.east) || !$scope.bb.east) {
+      boundsSet = false;
+      $scope.$broadcast('extentChanged', null);
       return;
     }
+    boundsSet = true;
+    console.log("all directions are set");
+    var envelope = {
+      north: Number($scope.bb.north),
+      south: Number($scope.bb.south),
+      west: Number($scope.bb.west),
+      east: Number($scope.bb.east)
+    };
 
+    $scope.$broadcast('extentChanged', envelope);
+  }
+
+  $scope.$watch('cache.geometry', function(geometry) {
+    if (!geometry) {
+      $scope.bb.north = null;
+      $scope.bb.south = null;
+      $scope.bb.west = null;
+      $scope.bb.east = null;
+      boundsSet = false;
+      return;
+    }
+    boundsSet = true;
     var extent = turf.extent(geometry);
-    $scope.north = extent[3];
-    $scope.south = extent[1];
-    $scope.west = extent[0];
-    $scope.east = extent[2];
+    $scope.bb.north = extent[3];
+    $scope.bb.south = extent[1];
+    $scope.bb.west = extent[0];
+    $scope.bb.east = extent[2];
 
     calculateCacheSize();
-
   });
 
   $scope.$watch('cache.source', function(source) {
-    if (!source.geometry) {
-      $scope.north = null;
-      $scope.south = null;
-      $scope.west = null;
-      $scope.east = null;
+    if (!source || !source.geometry) {
+      $scope.bb.north = null;
+      $scope.bb.south = null;
+      $scope.bb.west = null;
+      $scope.bb.east = null;
       $scope.cache.geometry = null;
       return;
     }
@@ -88,6 +117,14 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
         geometry = geometry.geometry;
       }
       $scope.cache.geometry = geometry;
+    }
+  });
+
+  $scope.$watch('cache.source.previewLayer', function(layer, oldLayer) {
+    if (layer) {
+      if (layer.EX_GeographicBoundingBox) {
+        $scope.cache.extent = layer.EX_GeographicBoundingBox;
+      }
     }
   });
 
@@ -104,7 +141,11 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
       zoomValidated = true;
     }
-    return $scope.cache.geometry && $scope.cache.name && $scope.cache.source && zoomValidated;
+
+    if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {
+      return false;
+    }
+    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && zoomValidated;
   }
 
   $scope.createCache = function() {
@@ -114,6 +155,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;
+    $scope.cache.cacheCreationParams = {
+      layer: $scope.cache.source.previewLayer.Name
+    };
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);

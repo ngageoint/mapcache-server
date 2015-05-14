@@ -64,6 +64,10 @@
   font-weight: bold;
 }
 
+.source-type-icon {
+  font-size: 80px;
+}
+
 .mapcache-header-description {
   font-size: 24px;
   font-family: Roboto;

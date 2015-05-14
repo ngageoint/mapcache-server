@@ -86,7 +86,7 @@
 <div class="mapcache-description container">
   <div class="row">
     <div class="col-md-12">
-      <div class="mapcache-sources-description">Generate map tiles from the following sources</div>
+      <div class="mapcache-sources-description">Generate maps from these sources:</div>
     </div>
   </div>
   <div class="row">
@@ -94,7 +94,7 @@
       <div class="source-title">Tile Servers</div>
       <div class="row">
         <div class="col-md-3">
-          <i class="fa fa-cubes" style="font-size:80px"></i>
+          <i class="fa fa-cubes pull-right source-type-icon"></i>
         </div>
         <div class="source-description">Mapcache can pull tiles from a tile server such as Open Street Map and save the tiles for offline use.</div>
       </div>
@@ -103,7 +103,7 @@
       <div class="source-title">GeoTIFF</div>
       <div class="row">
         <div class="col-md-3">
-          <i class="fa fa-file-image-o" style="font-size:80px"></i>
+          <i class="fa fa-file-image-o pull-right source-type-icon"></i>
         </div>
         <div class="source-description">
           Upload a GeoTIFF file containing georeferencing information and mapcache will create map tiles from the GeoTIFF.  Mapcache utilizes GDAL to parse the GeoTIFF files and can support any projection GDAL supports.
@@ -116,35 +116,44 @@
       <div class="source-title">MBTiles</div>
       <div class="row">
         <div class="col-md-3">
-          <i class="fa icon-stack" style="font-size:80px"></i>
+          <i class="fa icon-stack pull-right source-type-icon"></i>
         </div>
         <div class="source-description">MBTiles stores tiles in a SQLite database.  Mapcache uses <a href="https://github.com/mapbox/mbutil">mbutil</a> to parse and create MBTiles.</div>
       </div>
     </div>
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">WMS Servers</div>
+      <div class="row">
+        <div class="col-md-3">
+          <i class="fa icon-map2 pull-right source-type-icon"></i>
+        </div>
+        <div class="source-description">A Web Map Service is an OGC specification for serving georeferenced map images.</div>
+      </div>
+    </div>
   </div>
-  <div class="row">
+  <div class="row top-gap-l">
     <div class="col-md-12">
-      <div class="mapcache-sources-description">Output maps into the following sources</div>
+      <div class="mapcache-sources-description">Output maps to these formats:</div>
     </div>
   </div>
   <div class="row">
     <div class="col-md-6 mapcache-supported-source top-gap-l">
-      <div class="source-title">XYZ</div>
+      <div class="source-title">XYZ/TMS</div>
       <div class="row">
         <div class="col-md-3">
-          <i class="fa fa-cubes" style="font-size:80px"></i>
+          <i class="fa fa-cubes pull-right source-type-icon"></i>
         </div>
-        <div class="source-description">XYZ tile description</div>
+        <div class="source-description">Produces a cache of image tiles according to the XYZ tiling scheme.  These tiles can be used by many mapping libraries and mobile clients.</div>
       </div>
     </div>
     <div class="col-md-6 mapcache-supported-source top-gap-l">
       <div class="source-title">GeoPackage</div>
       <div class="row">
         <div class="col-md-3">
-          <i class="icon-package" style="font-size:80px"></i>
+          <i class="icon-package pull-right source-type-icon"></i>
         </div>
         <div class="source-description">
-          GeoPackage description
+          GeoPackage is an OGC specification which allows the storage of vector data, and tile matrix sets.
         </div>
       </div>
     </div>
@@ -154,7 +163,7 @@
       <div class="source-title">MBTiles</div>
       <div class="row">
         <div class="col-md-3">
-          <i class="icon-stack" style="font-size:80px"></i>
+          <i class="icon-stack pull-right source-type-icon"></i>
         </div>
         <div class="source-description">MBTiles stores tiles in a SQLite database.  Mapcache uses <a href="https://github.com/mapbox/mbutil">mbutil</a> to parse and create MBTiles.</div>
       </div>
