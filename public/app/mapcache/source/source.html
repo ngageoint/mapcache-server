@@ -38,6 +38,11 @@
       </div>
     </div>
   </div>
+  <div class="row" ng-show="source.url">
+    <div class="col-md-12">
+      <span class="page-sub-entity-label">Original Source URL: <span class="page-sub-entity-title">{{source.url}}</span>
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/sources/{{source.humanReadableId}}/{z}/{x}/{y}.png<span ng-show="source.previewLayer">?layer={{source.previewLayer.Name}}</span>
