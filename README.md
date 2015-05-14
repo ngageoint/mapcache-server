@@ -1,37 +1,30 @@
 mapcache
 ============
 
-03/30/2015
+mapcache-server is built with Node.js and MongoDB which allows users to create portable maps from various sources.
 
-This is the MAGE client for Android devices.  Depends on the [MAGE Android SDK](http://github.com/).
+Currently supported input formats:
+* Tile Servers
+* WMS Servers
+* GeoTIFF
+* MBTiles
 
-![mapcache](screenshots/source.png)
+Currently supported output formats:
+* XYZ/TMS
+* GeoPackage
+* MBTiles
 
-## About
+[Installation](#Installation)
 
-The Mobile Analytic GEOINT Environment, or MAGE, is a mobile situational awareness capability. The MAGE app on your mobile device allows you to create geotagged field reports–observations–that contain media such as photos, videos, and voice recordings and share them instantly with who you want. Using the GPS in your mobile device, MAGE can also track users locations in real time. Your locations can be automatically shared with the other members of your team.
+![mapcache](screenshots/mapcache.png)
 
-If your mobile device loses its network connection, the app remains functional and will upload its local content when a connection is re-established. When disconnected from the network, MAGE will use local data layers to continue to provide relevant GEOINT.  Data layers, including map tiles and vector data, can stored on your mobile device and are available at all times.
+# Installation
 
-MAGE is very customizable and can be tailored for you situation.
+## Install Homebrew
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-## How to Build
+## Install Dependencies
 
-Make sure to download the and build the sdk first.
-
-### Build
-
-./gradlew clean
-
-./gradlew assembleLocalDebug
-
-### Install
-
-./gradlew installLocalDebug
-
-### Test
-
-./gradlew connectedAndroidTestLocalDebug
 
 ## Contact
 
