@@ -14,7 +14,7 @@ Currently supported output formats:
 * GeoPackage
 * MBTiles
 
-[Installation](#Installation)
+[Installation](#installation)
 
 ![mapcache](screenshots/mapcache.png)
 
