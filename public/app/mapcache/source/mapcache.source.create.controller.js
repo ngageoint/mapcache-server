@@ -17,6 +17,11 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     format: 'xyz'
   };
 
+  $scope.mapOptions = {
+    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    opacity: .14
+  };
+
   var uploadProgress = function(e) {
     if(e.lengthComputable){
       $scope.$apply(function() {
@@ -62,6 +67,14 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
       // error
     });
   }
+
+  $scope.$watch('source.previewLayer', function(layer, oldLayer) {
+    if (layer) {
+      if (layer.EX_GeographicBoundingBox) {
+        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
+      }
+    }
+  });
 
   $scope.$watch('source.url', function(url) {
     if (!url) { return; }
