@@ -12,6 +12,19 @@
 	color: #777777;
 }
 
+.style-row {
+  border-width: 1px;
+  border-color: #DDDDDD;
+  border-style: solid;
+  border-radius: 2px;
+  background-color: #EEEEEE;
+  padding: 10px;
+}
+
+.style-preview {
+  padding: 10px;
+}
+
 .cache-name {
   font-size: 24px;
   color: #777777;

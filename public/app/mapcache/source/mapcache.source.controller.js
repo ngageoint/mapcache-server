@@ -55,6 +55,16 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     delete $scope.newRule.property;
   }
 
+  $scope.getStylePreview = function(style) {
+    return {
+      'background-color': style['fill'],
+      'border-color': style['stroke'],
+      'border-width': style['stroke-width'],
+      'opacity': style['fill-opacity'],
+      'border-style': 'solid'
+    }
+  }
+
   function getSource() {
     SourceService.refreshSource($scope.source, function(source) {
       // success
