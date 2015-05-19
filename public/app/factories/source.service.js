@@ -13,7 +13,8 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
     getAllSources: getAllSources,
     refreshSource: refreshSource,
     deleteSource: deleteSource,
-    createSource: createSource
+    createSource: createSource,
+    getSourceData: getSourceData
   };
 
   return service;
@@ -35,6 +36,19 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
 
   function refreshSource(source, success, error) {
     $http.get('/api/sources/'+source.id)
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
+
+  function getSourceData(source, success, error) {
+    $http.get('/api/sources/'+source.id+'/geojson')
       .success(function(data, status) {
         if (success) {
           success(data, status);

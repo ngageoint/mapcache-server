@@ -31,6 +31,9 @@
       <label class="radio-inline">
         <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="mbtiles"> MBTiles
       </label>
+      <label class="radio-inline">
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="shapefile"> Shapefile
+      </label>
     </div>
   </div>
   <div ng-switch="sourceType">
@@ -139,6 +142,34 @@
       <div class="row top-gap">
         <div class="col-md-12">
           <p class="lead">Upload a MBTiles file which mapcache will use to create a cache in xyz format.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <form
+            type="detail"
+            enctype="multipart/form-data"
+            file-upload url="/nowhere"
+            allow-upload="source.go"
+            preview="false"
+            upload-file-form-name="'sourceFile'">
+          </form>
+        </div>
+      </div>
+      <div class="row top-gap">
+        <div class="col-md-6">
+          <div class="progress" ng-if="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
+              <span>{{progress | number: 2}}% Complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div ng-switch-when="shapefile" ng-init="source.format = 'shapefile'">
+      <div class="row top-gap">
+        <div class="col-md-12">
+          <p class="lead">Upload a Shapefile</p>
         </div>
       </div>
       <div class="row">

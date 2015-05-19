@@ -2,6 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
     , fs = require('fs-extra')
+    , path = require('path')
     , request = require('request')
     , config = require('../config.json')
     , sourceXform = require('../transformers/source')
@@ -56,9 +57,11 @@ module.exports = function(app, auth) {
     validateSource,
     function(req, res, next) {
       if (!req.is('multipart/form-data')) return next();
-
-      // console.log(req);
-
+      console.log('req.files', req.files);
+      if (!req.files.sourceFile) {
+        console.log('no files');
+        return res.sendStatus(400);
+      }
       new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
         if (err) return next(err);
 
@@ -89,6 +92,19 @@ module.exports = function(app, auth) {
     }
   );
 
+  // Update a specific source
+  app.put(
+    '/api/sources/:sourceId',
+    passport.authenticate(authenticationStrategy),
+    access.authorize('CREATE_CACHE'),
+    function(req, res, next) {
+      new api.Source().update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
+        var response = sourceXform.transform(updatedSource);
+        res.json(response);
+      });
+    }
+  );
+
   app.get(
     '/api/sources/:sourceId/:z/:x/:y.png',
     access.authorize('READ_CACHE'),
@@ -106,6 +122,39 @@ module.exports = function(app, auth) {
 
         tileStream.pipe(res);
       });
+    }
+  );
+
+  app.get(
+    '/api/sources/:sourceId/geojson',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var source = req.source;
+      console.log('pull geojson');
+      if (source.format == 'shapefile') {
+        var dir = path.join(config.server.sourceDirectory.path, source.id);
+        var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+        var file = path.join(dir, fileName);
+        console.log('pull from path', file);
+
+      	if (fs.existsSync(file)) {
+          console.log('stream it');
+
+          var stream = fs.createReadStream(file);
+          stream.pipe(res);
+        } else {
+          return next();
+        }
+      } else {
+        return next();
+      }
+      // sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
+      //   if (err) return next(err);
+      //   if (!tileStream) return res.status(404).send();
+      //
+      //   tileStream.pipe(res);
+      // });
     }
   );
 

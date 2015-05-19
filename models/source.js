@@ -18,6 +18,7 @@ var SourceSchema = new Schema({
 	humanReadableId: { type: String, required: false},
   wmsGetCapabilities: Schema.Types.Mixed,
 	geometry: Schema.Types.Mixed,
+  style: Schema.Types.Mixed,
 	projections: Schema.Types.Mixed
 });
 
@@ -64,6 +65,14 @@ exports.getSourceById = function(id, callback) {
 		Source.findOne({humanReadableId: id}, function(err, source) {
 		  return callback(err, source);
 		});
+  });
+}
+
+exports.updateSource = function(id, update, callback) {
+  Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
+    if (err) console.log('Could not update source', err);
+
+    callback(err, updatedSource)
   });
 }
 

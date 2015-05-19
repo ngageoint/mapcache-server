@@ -17,9 +17,9 @@ function leafletSource() {
   return directive;
 }
 
-LeafletSourceController.$inject = ['$scope', '$element', 'LocalStorageService'];
+LeafletSourceController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService'];
 
-function LeafletSourceController($scope, $element, LocalStorageService) {
+function LeafletSourceController($scope, $element, LocalStorageService, SourceService) {
 
   var baseLayerOptions = $scope.options || {
     maxZoom: 18,
@@ -72,6 +72,17 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     addSourceLayer();
   });
 
+  $scope.$watch('source.data', function(data, oldData) {
+    addSourceLayer();
+  });
+
+  $scope.$watch('source.style', function(style, oldStyle) {
+    if (!style) return;
+    if (sourceLayer) {
+      sourceLayer.setStyle(styleFunction);
+    }
+  }, true);
+
   $scope.$watch('options.extent', function(extent, oldExtent) {
     if (extent) {
       updateMapExtent(extent);
@@ -99,10 +110,44 @@ function LeafletSourceController($scope, $element, LocalStorageService) {
     ]);
   }
 
+  function styleFunction(feature) {
+    if (!$scope.source.style) return {};
+    for (var i = 0; i < $scope.source.style.length; i++) {
+      var styleProperty = $scope.source.style[i];
+      var key = styleProperty.key;
+      if (feature.properties && feature.properties[key]) {
+        if (feature.properties[key] == styleProperty.value) {
+          return {
+            color: styleProperty.style['stroke'],
+            fillOpacity: styleProperty.style['fill-opacity'],
+            opacity: styleProperty.style['stroke-opacity'],
+            weight: styleProperty.style['stroke-width'],
+            fillColor: styleProperty.style['fill']
+          };
+        }
+      }
+    }
+  }
+
   function getTileLayer(source) {
     console.log('changing source to ', source);
     if (source == null) {
       return L.tileLayer(defaultLayer, sourceLayerOptions);
+    } else if (source.format == 'shapefile') {
+      if (!source.data) return;
+      var gj = L.geoJson(source.data, {
+        style: styleFunction
+      });
+      // null,
+      //   {style: function (feature) {
+      //       return {color: "#336699"};//feature.properties.color};
+      //   },
+      //   onEachFeature: function (feature, layer) {
+      //       layer.bindPopup(feature.properties.OBJECTID);
+      //   }
+      // });
+
+      return gj;
     } else if (typeof source == "string") {
       return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
     } else if (source.id) {
