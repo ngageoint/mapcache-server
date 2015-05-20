@@ -128,6 +128,17 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
         }
       }
     }
+    var defaultStyle = _.find($scope.source.style, function(style) {
+      return !style.key;
+    });
+
+    return {
+      color: defaultStyle.style['stroke'],
+      fillOpacity: defaultStyle.style['fill-opacity'],
+      opacity: defaultStyle.style['stroke-opacity'],
+      weight: defaultStyle.style['stroke-width'],
+      fillColor: defaultStyle.style['fill']
+    }
   }
 
   function getTileLayer(source) {

@@ -22,15 +22,17 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     id: $routeParams.sourceId
   };
 
+  var defaultStyle = {
+    'fill': "#000000",
+    'fill-opacity': 0.5,
+    'stroke': "#0000FF",
+    'stroke-opacity': 1.0,
+    'stroke-width': 1
+  };
+
   $scope.featureProperties = [];
   $scope.newRule = {
-    style: {
-      'fill': "#000000",
-      'fill-opacity': 0.5,
-      'stroke': "#0000FF",
-      'stroke-opacity': 1.0,
-      'stroke-width': 1
-    }
+    style: defaultStyle
   };
 
   $scope.createCacheFromSource = function() {
@@ -88,6 +90,10 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     }
   }
 
+  $scope.isNotDefault = function(style) {
+    return style.key;
+  }
+
   function getSource() {
     SourceService.refreshSource($scope.source, function(source) {
       // success
@@ -97,6 +103,12 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
       } else {
         if (source.format == 'shapefile') {
           $scope.source.style = $scope.source.style || [];
+          if ($scope.source.style.length == 0) {
+            $scope.source.style.push({style: defaultStyle});
+          }
+          $scope.defaultStyle = _.find($scope.source.style, function(style) {
+            return !style.key;
+          });
           SourceService.getSourceData(source, function(data) {
             var allProperties = {};
             for (var i = 0; i < data.features.length; i++) {
