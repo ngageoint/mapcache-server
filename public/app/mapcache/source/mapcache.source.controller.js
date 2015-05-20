@@ -58,11 +58,11 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
   $scope.getStylePreview = function(style) {
     return {
       'background-color': style['fill'],
-      'border-color': style['stroke'],
-      'border-width': style['stroke-width'],
+      'outline-color': style['stroke'],
+      'outline-width': style['stroke-width'],
       'opacity': style['fill-opacity'],
       'border-style': 'solid'
-    }
+    };
   }
 
   function getSource() {

@@ -1,7 +1,3 @@
-$(function(){
-    $('.demo2').colorpicker();
-});
-
 angular
   .module('mapcache')
   .directive('colorPicker', colorPicker);
