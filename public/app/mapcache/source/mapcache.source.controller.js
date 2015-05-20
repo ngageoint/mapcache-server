@@ -26,7 +26,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
   $scope.newRule = {
     style: {
       'fill': "#000000",
-      'fill-opacity': 0.0,
+      'fill-opacity': 0.5,
       'stroke': "#0000FF",
       'stroke-opacity': 1.0,
       'stroke-width': 1
@@ -49,20 +49,43 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     var tmp = angular.copy($scope.newRule);
     $scope.newRule.key = $scope.newRule.property.key;
     $scope.newRule.value = $scope.newRule.property.value;
+    $scope.newRule.priority = $scope.source.style.length;
     delete $scope.newRule.property;
     $scope.source.style.push($scope.newRule);
     $scope.newRule = tmp;
     delete $scope.newRule.property;
   }
 
-  $scope.getStylePreview = function(style) {
-    return {
-      'background-color': style['fill'],
-      'outline-color': style['stroke'],
-      'outline-width': style['stroke-width'],
-      'opacity': style['fill-opacity'],
-      'border-style': 'solid'
-    };
+  $scope.saveStyle = function() {
+    SourceService.saveSource($scope.source, function(source) {
+      console.log('saved successfully', source);
+    }, function(error) {
+      console.log('error saving source', error);
+    });
+  }
+
+  $scope.deleteStyle = function(style) {
+    $scope.source.style = _.without($scope.source.style, style);
+  }
+
+  $scope.editStyle = function(style) {
+
+  }
+
+  $scope.promoteStyle = function(style) {
+    var toMove = _.findWhere($scope.source.style, {priority: style.priority-1});
+    style.priority = style.priority - 1;
+    if (toMove) {
+      toMove.priority = toMove.priority + 1;
+    }
+  }
+
+  $scope.demoteStyle = function(style) {
+    var toMove = _.findWhere($scope.source.style, {priority: style.priority+1});
+    style.priority = style.priority + 1;
+    if (toMove) {
+      toMove.priority = toMove.priority - 1;
+    }
   }
 
   function getSource() {
@@ -73,6 +96,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
         $timeout(getSource, 5000);
       } else {
         if (source.format == 'shapefile') {
+          $scope.source.style = $scope.source.style || [];
           SourceService.getSourceData(source, function(data) {
             var allProperties = {};
             for (var i = 0; i < data.features.length; i++) {
@@ -88,7 +112,6 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
               $scope.featureProperties.push(allProperties[property]);
             }
             $scope.source.data = data;
-            $scope.source.style = [];
           });
         }
       }

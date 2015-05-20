@@ -18,11 +18,8 @@
   border-style: solid;
   border-radius: 2px;
   background-color: #EEEEEE;
-  padding: 10px;
-}
-
-.style-preview {
-  padding: 10px;
+  padding-top: 15px;
+  padding-bottom: 5px;
 }
 
 .cache-name {

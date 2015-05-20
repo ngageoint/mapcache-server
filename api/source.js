@@ -64,7 +64,7 @@ Source.prototype.delete = function(source, callback) {
 }
 
 Source.prototype.update = function(id, update, callback) {
-  SourceModel.updateUser(id, update, callback);
+  SourceModel.updateSource(id, update, callback);
 }
 
 module.exports = Source;

@@ -97,6 +97,7 @@ module.exports = function(app, auth) {
     '/api/sources/:sourceId',
     passport.authenticate(authenticationStrategy),
     access.authorize('CREATE_CACHE'),
+    validateSource,
     function(req, res, next) {
       new api.Source().update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
         var response = sourceXform.transform(updatedSource);

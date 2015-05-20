@@ -14,6 +14,7 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
     refreshSource: refreshSource,
     deleteSource: deleteSource,
     createSource: createSource,
+    saveSource: saveSource,
     getSourceData: getSourceData
   };
 
@@ -75,6 +76,18 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
     });
   }
 
+  function saveSource(source, success, error) {
+    $http.put(
+      '/api/sources/'+source.id,
+      source,
+      {headers: {"Content-Type": "application/json"}}
+    ).success(function(source) {
+      console.log("updated a source", source);
+      if (success) {
+        success(source);
+      }
+    }).error(error);
+  }
 
   function createSource(source, success, error, progress) {
 

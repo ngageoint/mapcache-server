@@ -122,23 +122,85 @@
       <div class="col-md-2">
         <div class="form-group">
           <label>&nbsp;</label>
-          <button class="form-control btn btn-primary pull-right" ng-click="applyStyle()">Apply these styles</button>
+          <button class="form-control btn btn-primary pull-right" ng-click="applyStyle()">Add These Styles</button>
         </div>
       </div>
     </div>
   </div>
   <hr>
-  <div class="row" ng-show="source.style">
+  <div class="row bottom-gap" ng-show="source.style">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Current Source Styles</span>
+      <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Style Information</button>
     </div>
   </div>
-  <div class="row style-row" ng-repeat="style in source.style">
-    <div class="col-md-10">
-      <span class="page-sub-entity-label">{{style.key}} equals</span> <span class="page-sub-entity-title">{{style.value}}</span>
-    </div>
-    <div class="col-md-2">
-      <div style-preview="style.style"></div>
+  <div class="row style-row" ng-repeat="style in source.style | orderBy: 'priority'">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-1">
+          <div style-preview="style.style"></div>
+        </div>
+        <div class="col-md-9">
+          <span class="page-sub-entity-label">{{style.key}} equals</span> <span class="page-sub-entity-title">{{style.value}}</span>
+        </div>
+        <div class="col-md-1">
+          <a class="pull-right" ng-click="deleteStyle(style)"><i style="font-size: 21px" class="fa fa-trash"></i></a>
+        </div>
+        <div class="col-md-1">
+          <div class="pull-right">
+            <a ng-hide="$first" ng-click="promoteStyle(style)"><i style="font-size: 21px" class="fa fa-arrow-up"></i></a>
+            <a ng-show="$last"><i style="font-size: 25px">&nbsp;&nbsp;&nbsp;</i></a>
+            <a ng-hide="$last" ng-click="demoteStyle(style)"><i style="font-size: 21px" class="fa fa-arrow-down"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Fill Color</label>
+            <div class="input-group" color-picker="style.style.fill">
+              <input type="text" value="style.style.fill" class="form-control" />
+              <span class="input-group-addon"><i></i></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Fill Opacity</label>
+            <input class="form-control" ng-model="style.style['fill-opacity']">
+            <p class="help-block">0.0 - 1.0</p>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Line Color</label>
+            <div class="input-group" color-picker="style.style.stroke">
+              <input type="text" value="style.style.stroke" class="form-control" />
+              <span class="input-group-addon"><i></i></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Line Opacity</label>
+            <input class="form-control" ng-model="style.style['stroke-opacity']">
+            <p class="help-block">0.0 - 1.0</p>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Line Width</label>
+            <input class="form-control" ng-model="style.style['stroke-width']">
+            <p class="help-block">Pixel Width</p>
+          </div>
+        </div>
+        <!-- <div class="col-md-2">
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="form-control btn btn-primary pull-right" ng-click="applyStyle()">Add These Styles</button>
+          </div>
+        </div> -->
+      </div>
     </div>
   </div>
   <div class="row bottom-gap-l">

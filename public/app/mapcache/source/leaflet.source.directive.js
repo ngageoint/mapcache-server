@@ -112,8 +112,9 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
 
   function styleFunction(feature) {
     if (!$scope.source.style) return {};
-    for (var i = 0; i < $scope.source.style.length; i++) {
-      var styleProperty = $scope.source.style[i];
+    var sorted = _.sortBy($scope.source.style, 'priority');
+    for (var i = 0; i < sorted.length; i++) {
+      var styleProperty = sorted[i];
       var key = styleProperty.key;
       if (feature.properties && feature.properties[key]) {
         if (feature.properties[key] == styleProperty.value) {
