@@ -16,7 +16,7 @@
       <div class="col-md-1" ng-if="options.mutable">
         <div class="pull-right">
           <a ng-hide="options.first" ng-click="promoteStyle(style)"><i style="font-size: 21px" class="fa fa-arrow-up"></i></a>
-          <a ng-show="options.last"><i style="font-size: 25px">&nbsp;&nbsp;&nbsp;</i></a>
+          <span ng-show="options.last" style="padding-right:25px"></span>
           <a ng-hide="options.last" ng-click="demoteStyle(style)"><i style="font-size: 21px" class="fa fa-arrow-down"></i></a>
         </div>
       </div>
