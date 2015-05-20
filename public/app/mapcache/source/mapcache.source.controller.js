@@ -70,7 +70,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     $scope.source.style = _.without($scope.source.style, style);
   });
 
-  $scope.$on('promoteStyle', function(style) {
+  $scope.$on('promoteStyle', function(event, style) {
     var toMove = _.findWhere($scope.source.style, {priority: style.priority-1});
     style.priority = style.priority - 1;
     if (toMove) {
@@ -78,7 +78,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     }
   });
 
-  $scope.$on('demoteStyle', function(style) {
+  $scope.$on('demoteStyle', function(event, style) {
     var toMove = _.findWhere($scope.source.style, {priority: style.priority+1});
     style.priority = style.priority + 1;
     if (toMove) {
