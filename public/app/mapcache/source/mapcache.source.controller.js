@@ -66,29 +66,25 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     });
   }
 
-  $scope.deleteStyle = function(style) {
+  $scope.$on('deleteStyle', function(event, style) {
     $scope.source.style = _.without($scope.source.style, style);
-  }
+  });
 
-  $scope.editStyle = function(style) {
-
-  }
-
-  $scope.promoteStyle = function(style) {
+  $scope.$on('promoteStyle', function(style) {
     var toMove = _.findWhere($scope.source.style, {priority: style.priority-1});
     style.priority = style.priority - 1;
     if (toMove) {
       toMove.priority = toMove.priority + 1;
     }
-  }
+  });
 
-  $scope.demoteStyle = function(style) {
+  $scope.$on('demoteStyle', function(style) {
     var toMove = _.findWhere($scope.source.style, {priority: style.priority+1});
     style.priority = style.priority + 1;
     if (toMove) {
       toMove.priority = toMove.priority - 1;
     }
-  }
+  });
 
   $scope.isNotDefault = function(style) {
     return style.key;
