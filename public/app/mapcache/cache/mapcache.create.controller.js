@@ -155,8 +155,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;
-    $scope.cache.cacheCreationParams = {
-      layer: $scope.cache.source.previewLayer.Name
+    $scope.cache.cacheCreationParams = {};
+    if ($scope.cache.source.previewLayer) {
+      $scope.cache.cacheCreationParams.layer = $scope.cache.source.previewLayer.Name;
     };
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
