@@ -5,6 +5,8 @@ var cacheUtilities = require('../cacheUtilities')
   , shp2json = require('shp2json')
   , path = require('path')
   , fs = require('fs-extra')
+  , SourceApi = require('../source')
+  , turf = require('turf')
   , SourceModel = require('../../models/source')
   , config = require('../../config.json');
 
@@ -61,23 +63,38 @@ function createCache(cache) {
 
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
 
-    var gjCache = {type: "FeatureCollection",features: []};
+    new SourceApi().getDataAsString(foundCache.source, function(err, data) {
+      if (data) {
+        data = JSON.parse(data);
+        var gjCache = {type: "FeatureCollection",features: []};
 
-    foundCache.totalFeatures = foundCache.source.data.features.length;
+        foundCache.totalFeatures = data.features.length;
 
-    var poly = foundCache.geometry.
-    for (var i = 0; i < foundCache.source.data.features.length; i++) {
-      var feature = foundCache.source.data.features[i];
-      var intersection = turf.intersect(poly, feature);
-      if (intersection) {
-        foundCache.generatedFeatures++;
-        gjCache.features.push(feature);
+        var poly = foundCache.geometry;
+        for (var i = 0; i < data.features.length; i++) {
+          var feature = data.features[i];
+          var intersection = turf.intersect(poly, feature);
+          if (intersection) {
+            foundCache.generatedFeatures++;
+            gjCache.features.push(feature);
+          }
+        }
+
+        console.log(gjCache);
+        var outdir = config.server.cacheDirectory.path + "/" + foundCache._id;
+        var outfile = outdir + "/" + foundCache._id + ".geojson";
+        fs.mkdirs(outdir, function (err) {
+          if (err) return console.error(err);
+          console.log("success!");
+
+          fs.writeFile(outfile, JSON.stringify(gjCache), function(err) {
+            foundCache.status.complete = true;
+            foundCache.save(function() {
+              console.log('saved to ' + outfile);
+            });
+          });
+        });
       }
-    }
-
-    foundCache.status.complete = true;
-    foundCache.save(function() {
-      console.log('saved', foundCache);
     });
   });
 

@@ -37,6 +37,7 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     console.log('zoom rows', cache);
     if (!cache) return;
     var zoomRows = [];
+    if (!cache.status.zoomLevelStatus) return zoomRows;
     for (var i = cache.minZoom; i <= cache.maxZoom; i=i+3) {
       var row = [];
       if (cache.status.zoomLevelStatus[i]) {
