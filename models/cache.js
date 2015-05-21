@@ -28,9 +28,11 @@ var CacheSchema = new Schema({
 	formats: Schema.Types.Mixed,
 	tileFailures: [TileFailureSchema],
 	status: {
-		complete: {type: Boolean, required: true},
-		totalTiles: {type: Number, required: true},
-		generatedTiles: {type: Number, required: true},
+		complete: {type: Boolean, required: true, default: false},
+		totalTiles: {type: Number, required: true, default: 0},
+		generatedTiles: {type: Number, required: true, default: 0},
+		totalFeatures: {type: Number, required: true, default: 0},
+		generatedFeatures: {type: Number, required: true, default: 0},
 		zoomLevelStatus: Schema.Types.Mixed
 	},
 	cacheCreationParams: Schema.Types.Mixed,

@@ -150,14 +150,6 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
       var gj = L.geoJson(source.data, {
         style: styleFunction
       });
-      // null,
-      //   {style: function (feature) {
-      //       return {color: "#336699"};//feature.properties.color};
-      //   },
-      //   onEachFeature: function (feature, layer) {
-      //       layer.bindPopup(feature.properties.OBJECTID);
-      //   }
-      // });
 
       return gj;
     } else if (typeof source == "string") {

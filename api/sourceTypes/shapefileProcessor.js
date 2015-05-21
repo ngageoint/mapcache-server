@@ -58,7 +58,31 @@ function downloadTile(tileInfo, tileDone) {
 
 function createCache(cache) {
   console.log("shapefile cache", cache);
-  cacheUtilities.createCache(cache, downloadTile);
+
+  CacheModel.getCacheById(cache.id, function(err, foundCache) {
+
+    var gjCache = {type: "FeatureCollection",features: []};
+
+    foundCache.totalFeatures = foundCache.source.data.features.length;
+
+    var poly = foundCache.geometry.
+    for (var i = 0; i < foundCache.source.data.features.length; i++) {
+      var feature = foundCache.source.data.features[i];
+      var intersection = turf.intersect(poly, feature);
+      if (intersection) {
+        foundCache.generatedFeatures++;
+        gjCache.features.push(feature);
+      }
+    }
+
+    foundCache.status.complete = true;
+    foundCache.save(function() {
+      console.log('saved', foundCache);
+    });
+  });
+
+  // cacheUtilities.createCache(cache, downloadTile);
+
 }
 
 var reader = null;

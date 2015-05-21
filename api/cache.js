@@ -46,6 +46,8 @@ Cache.prototype.create = function(cache, callback) {
     complete: false,
     totalTiles: 0,
     generatedTiles: 0,
+    totalFeatures: 0,
+    generatedFeatures: 0,
     zoomLevelStatus: {}
   };
 

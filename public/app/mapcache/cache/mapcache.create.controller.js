@@ -145,7 +145,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {
       return false;
     }
-    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && zoomValidated;
+    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && (zoomValidated || $scope.cache.source.format == 'shapefile');
   }
 
   $scope.createCache = function() {
@@ -155,9 +155,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;
-    $scope.cache.cacheCreationParams = {
-      layer: $scope.cache.source.previewLayer.Name
-    };
+    $scope.cache.cacheCreationParams = {};
+    if ($scope.cache.source.previewLayer) {
+      $scope.cache.cacheCreationParams.layer = $scope.cache.source.previewLayer.Name;
+    }
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);
@@ -172,7 +173,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }
 
   function calculateCacheSize() {
-    if (isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom) || !$scope.cache.geometry) return;
+    if (!$scope.cache.source || ((isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom)) && $scope.cache.source.format != 'shapefile') || !$scope.cache.geometry) return;
     $scope.totalCacheSize = 0;
     $scope.totalCacheTiles = 0;
     var extent = turf.extent($scope.cache.geometry);
@@ -182,7 +183,18 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.totalCacheTiles += (1 + (ytiles.max - ytiles.min)) * (1 + (xtiles.max - xtiles.min));
     }
     $scope.totalCacheSize = $scope.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
-
+    $scope.cacheFeatures = 0;
+    $scope.cache.source.totalFeatures = $scope.cache.source.data.features.length;
+    if ($scope.cache.source.format == 'shapefile') {
+      var poly = turf.bboxPolygon(extent);
+      for (var i = 0; i < $scope.cache.source.data.features.length; i++) {
+        var feature = $scope.cache.source.data.features[i];
+        var intersection = turf.intersect(poly, feature);
+        if (intersection) {
+          $scope.cacheFeatures++;
+        }
+      }
+    }
   }
 
   Math.radians = function(degrees) {

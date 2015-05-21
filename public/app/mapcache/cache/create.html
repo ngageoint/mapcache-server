@@ -153,7 +153,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" ng-if="cache.source.format != 'shapefile'">
       <div class="col-md-6">
         <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
           <label class="control-label">Minimum Zoom Level</label>
@@ -167,15 +167,20 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" ng-show="cache.source.format == 'shapefile'">
+      <div class="col-md-12">
+        <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Caching <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
+      </div>
+    </div>
+    <div class="row" ng-show="cache.source.format != 'shapefile'">
       <div class="col-md-12">
         <div class="form-group">
-          <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Cache is currently estimated to be <span class="page-sub-entity-label">{{totalCacheSize | fileSize}} with {{totalCacheTiles}} tiles</span></span>
+          <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Cache is currently estimated to be <span class="page-sub-entity-title">{{totalCacheSize | fileSize}}</span> with <span class="page-sub-entity-title">{{totalCacheTiles}} tiles</span></span>
           <span class="page-sub-entity-title" ng-hide="requiredFieldsSet()">Please set all fields to obtain an estimated cache size</span>
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" ng-show="cache.source.format != 'shapefile'">
       <div class="col-md-12">
         <div class="form-group">
           <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Concerned your cache will be too big? <a ng-click="setMaxSize = true">Set a maximum size</a></span>

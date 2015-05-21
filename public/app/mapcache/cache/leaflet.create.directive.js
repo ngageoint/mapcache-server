@@ -16,9 +16,9 @@ function leafletCreate() {
   return directive;
 }
 
-LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService'];
+LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService'];
 
-function LeafletCreateController($scope, $element, LocalStorageService) {
+function LeafletCreateController($scope, $element, LocalStorageService, SourceService) {
 
   var options = {
     maxZoom: 18,
@@ -160,7 +160,8 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer = getTileLayer($scope.options.source);//L.tileLayer(getUrl($scope.options.source), options);
+    if (!sourceLayer) return;
     sourceLayer.addTo(map);
   });
 
@@ -168,7 +169,8 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer = getTileLayer($scope.options.source);//L.tileLayer(getUrl($scope.options.source), options);
+    if (!sourceLayer) return;
     sourceLayer.addTo(map);
   });
 
@@ -179,21 +181,72 @@ function LeafletCreateController($scope, $element, LocalStorageService) {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer = getTileLayer($scope.options.source);//L.tileLayer(getUrl($scope.options.source), options);
+    if (!sourceLayer) return;
     sourceLayer.addTo(map);
   });
 
-  function getUrl(source) {
+  function styleFunction(feature) {
+    if (!$scope.options.source.style) return {};
+    var sorted = _.sortBy($scope.options.source.style, 'priority');
+    for (var i = 0; i < sorted.length; i++) {
+      var styleProperty = sorted[i];
+      var key = styleProperty.key;
+      if (feature.properties && feature.properties[key]) {
+        if (feature.properties[key] == styleProperty.value) {
+          return {
+            color: styleProperty.style['stroke'],
+            fillOpacity: styleProperty.style['fill-opacity'],
+            opacity: styleProperty.style['stroke-opacity'],
+            weight: styleProperty.style['stroke-width'],
+            fillColor: styleProperty.style['fill']
+          };
+        }
+      }
+    }
+    var defaultStyle = _.find($scope.options.source.style, function(style) {
+      return !style.key;
+    });
+
+    return {
+      color: defaultStyle.style['stroke'],
+      fillOpacity: defaultStyle.style['fill-opacity'],
+      opacity: defaultStyle.style['stroke-opacity'],
+      weight: defaultStyle.style['stroke-width'],
+      fillColor: defaultStyle.style['fill']
+    }
+  }
+
+  function getTileLayer(source) {
+    console.log('changing source to ', source);
     if (source == null) {
-      return defaultLayer;
-    } else if (source.format == 'wms' && !source.previewLayer) {
-      return defaultLayer;
-    } else {
-      var url = '/api/sources/' + source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      return L.tileLayer(defaultLayer, options);
+    } else if (source.format == 'shapefile') {
+      var gj = L.geoJson(source.data, {
+        style: styleFunction
+      });
+      SourceService.getSourceData(source, function(data) {
+        $scope.options.source.data = data;
+        gj.addData(data);
+      });
+
+      return gj;
+    } else if (typeof source == "string") {
+      return L.tileLayer(source + "/{z}/{x}/{y}.png", options);
+    } else if (source.id) {
+      var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
       if (source.previewLayer) {
         url += '&layer=' + source.previewLayer.Name;
       }
-      return url;
+      return L.tileLayer(url, options);
+    } else if (source.format == "wms") {
+      if (source.wmsGetCapabilities && source.previewLayer) {
+        return L.tileLayer.wms(source.url, {
+          layers: source.previewLayer.Name,
+          version: source.wmsGetCapabilities.version,
+          transparent: !source.previewLayer.opaque
+        });
+      }
     }
   }
 }
