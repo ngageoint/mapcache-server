@@ -119,6 +119,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
             for (var property in allProperties) {
               $scope.featureProperties.push(allProperties[property]);
             }
+            $scope.source.extent = turf.extent(data);
             $scope.source.data = data;
           });
         }

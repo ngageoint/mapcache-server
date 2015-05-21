@@ -227,6 +227,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
       });
       SourceService.getSourceData(source, function(data) {
         $scope.options.source.data = data;
+        $scope.options.extent = turf.extent(data);
         gj.addData(data);
       });
 
