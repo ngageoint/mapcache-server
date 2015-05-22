@@ -184,7 +184,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
     $scope.totalCacheSize = $scope.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
     $scope.cacheFeatures = 0;
-    $scope.cache.source.totalFeatures = $scope.cache.source.data.features.length;
+    $scope.cache.source.totalFeatures = $scope.cache.source.data ? $scope.cache.source.data.features.length : 0;
     if ($scope.cache.source.format == 'shapefile') {
       var poly = turf.bboxPolygon(extent);
       for (var i = 0; i < $scope.cache.source.data.features.length; i++) {

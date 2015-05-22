@@ -45,6 +45,8 @@ module.exports = function(app, auth) {
       		res.attachment(req.cache.name + ".gpkg");
         } else if (format == "mbtiles") {
           res.attachment(req.cache.name + ".mbtiles");
+        } else if (format == "geojson") {
+          res.attachment(req.cache.name + ".geojson");
         } else {
           res.attachment(req.cache.name + ".zip");
         }
@@ -58,13 +60,19 @@ module.exports = function(app, auth) {
     access.authorize('EXPORT_CACHE'),
     function (req, res, next) {
     	var id = req.params.cacheId;
-    	var minZoom = parseInt(req.param('minZoom'));
-    	var maxZoom = parseInt(req.param('maxZoom'));
+    	// var minZoom = parseInt(req.param('minZoom'));
+    	// var maxZoom = parseInt(req.param('maxZoom'));
     	var format = req.param('format');
-    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-    	new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
-    	});
-      res.sendStatus(202);
+    	console.log('create cache format ' + format + ' for cache ' + req.cache.name);
+      new api.Cache().create(req.cache, format, function(err, newCache) {
+        if (!err) {
+          return res.sendStatus(202);
+        }
+        next(err);
+      });
+    	// new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
+    	// });
+      // res.sendStatus(202);
   	}
   )
 
@@ -149,6 +157,31 @@ module.exports = function(app, auth) {
       stream.on('error', function(err) {
         next(err);
       });
+    }
+  );
+
+  app.get(
+    '/api/caches/:cacheId/geojson',
+    access.authorize('READ_CACHE'),
+    function (req, res, next) {
+      var cache = req.cache;
+      console.log('pull geojson');
+      if (cache.source.format == 'shapefile') {
+        var dir = config.server.cacheDirectory.path + "/" + cache._id;
+        var file = dir + "/" + cache._id + ".geojson";
+        console.log('pull from path', file);
+
+        if (fs.existsSync(file)) {
+          console.log('stream it');
+
+          var stream = fs.createReadStream(file);
+          stream.pipe(res);
+        } else {
+          return next();
+        }
+      } else {
+        return next();
+      }
     }
   );
 

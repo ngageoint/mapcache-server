@@ -1,5 +1,5 @@
 var geotiff = require('./geotiff')
-  , cacheUtilities = require('../cacheUtilities')
+  , xyzCacheGenerator = require('../xyzCacheGenerator')
   , gdal = require("gdal")
   , util = require('util')
   , turf = require('turf')
@@ -26,7 +26,7 @@ process.on('message', function(m) {
     if(m.operation == 'process') {
       processSource(m.sourceId);
     } else if(m.operation == 'generateCache') {
-      createCache(m.cache);
+      createCache(m.cache, m.format);
     } else if(m.operation == 'exit') {
       process.exit();
     }
@@ -56,8 +56,10 @@ function downloadTile(tileInfo, tileDone) {
   });
 }
 
-function createCache(cache) {
-  cacheUtilities.createCache(cache, downloadTile);
+function createCache(cache, format) {
+  if (!format || format == 'xyz') {
+    xyzCacheGenerator.createCache(cache, downloadTile);
+  }
 }
 
 function processSource(sourceId) {

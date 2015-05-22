@@ -7,10 +7,13 @@ MapcacheCacheController.$inject = [
   '$location',
   '$timeout',
   '$routeParams',
-  'CacheService'
+  'CacheService',
+  'LocalStorageService'
 ];
 
-function MapcacheCacheController($scope, $location, $timeout, $routeParams, CacheService) {
+function MapcacheCacheController($scope, $location, $timeout, $routeParams, CacheService, LocalStorageService) {
+
+  $scope.token = LocalStorageService.getToken();
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',

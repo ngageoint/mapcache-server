@@ -15,6 +15,7 @@ function CacheService($q, $http) {
     createCacheFormat: createCacheFormat,
     getCache: getCache,
     deleteCache: deleteCache,
+    getCacheData: getCacheData,
     downloadMissing: downloadMissing
   };
 
@@ -91,5 +92,18 @@ function CacheService($q, $http) {
         error(data, status);
       }
     });
+  }
+
+  function getCacheData(cache, success, error) {
+    $http.get('/api/caches/'+cache.id+'/geojson')
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
   }
 }

@@ -39,7 +39,7 @@ Source.prototype.import = function(source, sourceFile, callback) {
           newSource.size = stat.size;
           newSource.complete = false;
           newSource.status = "Creating";
-          newSource.save(function(err){
+          newSource.save(function(err) {
             sourceProcessor.process(newSource, callback);
           });
         });

@@ -46,6 +46,7 @@ CacheSchema.index({geometry: "2dsphere"});
 CacheSchema.index({'name': 1});
 
 function transform(cache, ret, options) {
+	console.log('transform cache', cache);
 	ret.id = ret._id;
 	delete ret._id;
 
@@ -53,6 +54,9 @@ function transform(cache, ret, options) {
 
 	if (cache.populated('sourceId')) {
 		ret.source = ret.sourceId;
+		if (ret.source) {
+			ret.source.cacheTypes = config.sourceCacheTypes[ret.source.format];
+		}
 		delete ret.sourceId;
 	}
 
@@ -63,6 +67,7 @@ function transform(cache, ret, options) {
 
 	var path = options.path ? options.path : "";
   ret.url = [path, cache.id].join("/");
+
 }
 
 CacheSchema.set("toJSON", {
@@ -101,11 +106,18 @@ exports.getCacheById = function(id, callback) {
       console.log("Error finding cache in mongo: " + id + ', error: ' + err);
     }
 		if (cache) {
-			cache.source = cache.sourceId;
+			if (cache.sourceId) {
+				cache.source = cache.sourceId;
+				cache.source.cacheTypes = config.sourceCacheTypes[cache.source.format];
+			}
 	    return callback(err, cache);
 		}
 		// try to find by human readable
 		Cache.findOne({humanReadableId: id}, function(err, cache) {
+			if (cache) {
+				cache.source = cache.sourceId;
+				cache.source.cacheTypes = config.sourceCacheTypes[cache.source.format];
+			}
 		  return callback(err, cache);
 		});
   });
@@ -198,20 +210,34 @@ exports.shouldContinueCaching = function(cache, callback) {
 }
 
 exports.updateFormatCreated = function(cache, formatName, formatFile, callback) {
-	fs.stat(formatFile, function(err, stat) {
-		if (err) {
-			return callback(err);
-		}
-		var fileFormat = {
-			size: stat.size
+	if( typeof formatFile === "function" && !callback) {
+    callback = formatFile;
+		formatFile = null;
+  }
+  callback = callback || function(){}
+	cache.formats = cache.formats || {};
+	if (typeof formatFile === 'string') {
+		fs.stat(formatFile, function(err, stat) {
+			if (err) {
+				return callback(err);
+			}
+			var fileFormat = {
+				size: stat.size
+			};
+			if (!cache.formats) {
+				cache.formats = {};
+			}
+			cache.formats[formatName] = fileFormat;
+			cache.markModified('formats');
+			cache.save(callback);
+		});
+	} else {
+		cache.formats[formatName] = {
+			size: typeof formatFile === 'number' ? formatFile : 0
 		};
-		if (!cache.formats) {
-			cache.formats = {};
-		}
-		cache.formats[formatName] = fileFormat;
 		cache.markModified('formats');
 		cache.save(callback);
-	});
+	}
 }
 
 exports.updateFormatGenerating = function(cache, format, callback) {

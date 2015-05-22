@@ -2,6 +2,8 @@ var util = require('util');
 
 var transformCaches = function(caches, options) {
   return caches.map(function(cache) {
+    var c = cache.toJSON({transform: true});
+    console.log('transformed cache', c);
     return cache.toJSON({transform: true});
   });
 }
@@ -9,7 +11,10 @@ var transformCaches = function(caches, options) {
 exports.transform = function(caches, options) {
   options = options || {};
 
-  return util.isArray(caches) ?
-    transformCaches(caches, options) :
-    caches.toJSON({transform: true});
+  if (util.isArray(caches)) {
+    return transformCaches(caches, options);
+  }
+  var c = caches.toJSON({transform: true});
+  console.log('transformed cache', c);
+  return c;
 }

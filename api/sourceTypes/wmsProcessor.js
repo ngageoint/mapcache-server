@@ -1,4 +1,4 @@
-var cacheUtilities = require('../cacheUtilities')
+var xyzCacheGenerator = require('../xyzCacheGenerator')
   , mongoose = require('mongoose')
   , CacheModel = require('../../models/cache')
   , request = require('request')
@@ -24,7 +24,7 @@ process.on('message', function(m) {
     if(m.operation == 'process') {
       processSource(m.sourceId);
     } else if(m.operation == 'generateCache') {
-      createCache(m.cache);
+      createCache(m.cache, m.format);
     } else if(m.operation == 'exit') {
       process.exit();
     }
@@ -57,7 +57,9 @@ function downloadTile(tileInfo, tileDone) {
 
 function createCache(cache) {
   console.log("wms cache", cache);
-  cacheUtilities.createCache(cache, downloadTile);
+  if (!format || format == 'xyz') {
+    xyzCacheGenerator.createCache(cache, downloadTile);
+  }
 }
 
 function processSource(sourceId) {

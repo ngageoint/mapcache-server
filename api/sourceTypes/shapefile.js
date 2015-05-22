@@ -1,8 +1,8 @@
 var SourceModel = require('../../models/source');
 
-exports.createCache = function(cache) {
+exports.createCache = function(cache, format) {
   var child = require('child_process').fork('api/sourceTypes/shapefileProcessor');
-  child.send({operation:'generateCache', cache: cache});
+  child.send({operation:'generateCache', cache: cache, format: format});
 }
 
 exports.process = function(source, callback) {

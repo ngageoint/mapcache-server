@@ -32,5 +32,12 @@
     },
     "storageLimit":8192,
     "maximumCacheSize":2048
+  },
+  "sourceCacheTypes": {
+    "shapefile": ["geojson", "shapefile"],
+    "xyz": ["xyz", "tms", "geopackage", "mbtiles"],
+    "tms": ["xyz", "tms", "geopackage", "mbtiles"],
+    "geotiff": ["xyz", "tms", "geopackage", "mbtiles"],
+    "mbtiles": ["xyz", "tms", "geopackage", "mbtiles"]
   }
 }

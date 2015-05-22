@@ -1,4 +1,5 @@
 var mongoose = require('mongoose')
+  , config = require('../config.json')
   , hri = require('human-readable-ids').hri;
 
 // Creates a new Mongoose Schema object
@@ -27,6 +28,7 @@ function transform(source, ret, options) {
 	delete ret._id;
 	delete ret.__v;
 	delete ret.filePath;
+  ret.cacheTypes = config.sourceCacheTypes[ret.format];
 }
 
 SourceSchema.set("toJSON", {
@@ -59,10 +61,14 @@ exports.getSourceById = function(id, callback) {
       console.log("Error finding source in mongo: " + id + ', error: ' + err);
     }
 		if (source) {
+      source.cacheTypes = config.sourceCacheTypes[source.format];
 	    return callback(err, source);
 		}
 		// try to find by human readable
 		Source.findOne({humanReadableId: id}, function(err, source) {
+      if (source) {
+        source.cacheTypes = config.sourceCacheTypes[source.format];
+      }
 		  return callback(err, source);
 		});
   });

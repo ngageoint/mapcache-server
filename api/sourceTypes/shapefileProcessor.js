@@ -1,5 +1,4 @@
-var cacheUtilities = require('../cacheUtilities')
-  , mongoose = require('mongoose')
+var mongoose = require('mongoose')
   , CacheModel = require('../../models/cache')
   , shapefile = require('./shapefile')
   , shp2json = require('shp2json')
@@ -26,7 +25,7 @@ process.on('message', function(m) {
     if(m.operation == 'process') {
       processSource(m.sourceId);
     } else if(m.operation == 'generateCache') {
-      createCache(m.cache);
+      createCache(m.cache, m.format);
     } else if(m.operation == 'exit') {
       process.exit();
     }
@@ -58,48 +57,49 @@ function downloadTile(tileInfo, tileDone) {
   // });
 }
 
-function createCache(cache) {
+function createCache(cache, format) {
   console.log("shapefile cache", cache);
 
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
 
     new SourceApi().getDataAsString(foundCache.source, function(err, data) {
       if (data) {
-        data = JSON.parse(data);
-        var gjCache = {type: "FeatureCollection",features: []};
+        if (!format || format == 'geojson') {
+          data = JSON.parse(data);
+          var gjCache = {type: "FeatureCollection",features: []};
 
-        foundCache.totalFeatures = data.features.length;
+          foundCache.totalFeatures = data.features.length;
 
-        var poly = foundCache.geometry;
-        for (var i = 0; i < data.features.length; i++) {
-          var feature = data.features[i];
-          var intersection = turf.intersect(poly, feature);
-          if (intersection) {
-            foundCache.generatedFeatures++;
-            gjCache.features.push(feature);
+          var poly = foundCache.geometry;
+          for (var i = 0; i < data.features.length; i++) {
+            var feature = data.features[i];
+            var intersection = turf.intersect(poly, feature);
+            if (intersection) {
+              foundCache.generatedFeatures++;
+              gjCache.features.push(feature);
+            }
           }
-        }
 
-        console.log(gjCache);
-        var outdir = config.server.cacheDirectory.path + "/" + foundCache._id;
-        var outfile = outdir + "/" + foundCache._id + ".geojson";
-        fs.mkdirs(outdir, function (err) {
-          if (err) return console.error(err);
-          console.log("success!");
+          console.log(gjCache);
+          var outdir = config.server.cacheDirectory.path + "/" + foundCache._id;
+          var outfile = outdir + "/" + foundCache._id + ".geojson";
+          fs.mkdirs(outdir, function (err) {
+            if (err) return console.error(err);
+            console.log("success!");
 
-          fs.writeFile(outfile, JSON.stringify(gjCache), function(err) {
-            foundCache.status.complete = true;
-            foundCache.save(function() {
-              console.log('saved to ' + outfile);
+            fs.writeFile(outfile, JSON.stringify(gjCache), function(err) {
+              foundCache.status.complete = true;
+              foundCache.save(function() {
+                CacheModel.updateFormatCreated(foundCache, 'geojson', outfile, function(err) {
+                });
+                console.log('saved to ' + outfile);
+              });
             });
           });
-        });
+        }
       }
     });
   });
-
-  // cacheUtilities.createCache(cache, downloadTile);
-
 }
 
 var reader = null;
