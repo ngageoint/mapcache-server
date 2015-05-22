@@ -9,6 +9,8 @@ function FormatService() {
     mbtiles: "MBTiles",
     xyz: "XYZ",
     tms: "TMS",
-    geotiff: "GeoTIFF"
+    geotiff: "GeoTIFF",
+    shapefile: "Shapefile",
+    geojson: "GeoJSON"
   };
 }

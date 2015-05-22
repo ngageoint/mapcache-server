@@ -59,18 +59,18 @@
       <div ng-repeat="cacheType in cache.source.cacheTypes">
         <div class="col-md-2 cache-type-details">
           <a class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}.zip?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&format={{cacheType}}&access_token={{token}}">
-            <div ng-show="cache.formats[cacheType]">
-              <div class="cache-type"><i class="fa fa-download"></i> {{cacheType}}</div>
-              <div class="cache-size">{{cache.formats[cacheType].size | fileSize}}</div>
+            <div ng-show="cache.formats[cacheType.type]">
+              <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
+              <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
             </div>
           </a>
-          <div ng-show="cacheFormatGenerating(cache, cacheType)">
-            <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType}}</div>
+          <div ng-show="cacheFormatGenerating(cache, cacheType.type)">
+            <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
             <div class="cache-size">Generating...</div>
           </div>
-          <a class="cache-type-download-box" ng-click="generateFormat(cache, cacheType)" ng-href="">
-            <div ng-hide="cacheFormatExists(cache, cacheType) || cacheFormatGenerating(cache, cacheType)">
-              <div class="cache-type">{{cacheType}}</div>
+          <a class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
+            <div ng-hide="cacheFormatExists(cache, cacheType.type) || cacheFormatGenerating(cache, cacheType.type)">
+              <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
               <div class="cache-size">Click to Generate</div>
             </div>
           </a>

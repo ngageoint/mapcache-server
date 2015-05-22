@@ -167,9 +167,17 @@
         </div>
       </div>
     </div>
+    <div class="row bottom-gap" >
+      <div class="col-md-12">
+          <p><label class="control-label">Choose the type(s) of cache to create</label></p>
+          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes">
+            <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]" ng-init="cache.create[type.type] = type.required" value="type.required"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
+          </label>
+      </div>
+    </div>
     <div class="row" ng-show="cache.source.format == 'shapefile'">
       <div class="col-md-12">
-        <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Caching <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
+        <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Will cache <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
       </div>
     </div>
     <div class="row" ng-show="cache.source.format != 'shapefile'">
