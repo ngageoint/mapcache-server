@@ -6,7 +6,7 @@ module.exports = function(app, auth) {
     , request = require('request')
     , config = require('../config.json')
     , sourceXform = require('../transformers/source')
-    , sourceProcessor = require('../api/sourceTypes');
+    , sourceProcessor = require('../api/sources');
 
   var passport = auth.authentication.passport
     , authenticationStrategy = auth.authentication.authenticationStrategy;

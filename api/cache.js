@@ -4,7 +4,7 @@ var CacheModel = require('../models/cache')
   , archiver = require('archiver')
   , config = require('../config.json')
   , tileUtilities = require('./tileUtilities')
-  , sourceProcessor = require('./sourceTypes')
+  , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
   , config = require('../config.json')
   , exec = require('child_process').exec
@@ -71,6 +71,8 @@ Cache.prototype.restart = function(cache, format, callback) {
     return callback(new Error('Cache is currently being generated'));
   }
   cache.status.complete = false;
+  caches.getCacheData(cache, format, minZoom, maxZoom, callback);
+
   sourceProcessor.createCache(cache, format);
 }
 

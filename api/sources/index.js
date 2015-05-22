@@ -10,7 +10,7 @@ exports.getTile = function(source, z, x, y, params, callback) {
   processor.getTile(source, z, x, y, params, callback);
 }
 
-exports.createCache = function(cache, format) {
-  var processor = require('./' + cache.source.format);
-  processor.createCache(cache, format);
+exports.getData = function(source, callback) {
+  var processor = require('./' + source.format);
+  processor.getData(source, format, callback);
 }

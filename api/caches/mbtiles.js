@@ -1,24 +1,33 @@
 var CacheModel = require('../../models/cache.js')
-   , fs = require('fs-extra');
+  , path = require('path')
+  , fs = require('fs-extra');
 
  exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
-   var mbtilesFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".mbtiles";
-   if (!fs.existsSync(mbtilesFile)) {
-     CacheModel.updateFormatGenerating(cache, 'mbtiles', function(err) {
-       console.log('running ' + 'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile);
-       var python = exec(
-        'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile,
-        function(error, stdout, stderr) {
-          console.log('done running ' + 'mb-util ' + config.server.cacheDirectory.path + "/" + cache._id + " " + mbtilesFile);
-          CacheModel.updateFormatCreated(cache, 'mbtiles', mbtilesFile, function(err) {
-            console.log('updated format created');
-            var stream = fs.createReadStream(mbtilesFile);
-            callback(null, stream);
-          });
+   var geoPackageFile = path.join(config.server.cacheDirectory.path, cache._id, cache._id + ".mbitles");
+   if (!fs.existsSync(geoPackageFile)) {
+     var child = require('child_process').fork('api/caches/creator.js');
+     child.send({operation:'generateCache', cache: cache, format: 'mbtiles', minZoom: minZoom, maxZoom: maxZoom});
+     callback(null, {creating: true});
+   } else {
+     var stream = fs.createReadStream(geoPackageFile);
+     callback(null, stream);
+   }
+ }
+
+ exports.createCache = function(cache, minZoom, maxZoom, callback) {
+  var mbtilesFile = path.join(config.server.cacheDirectory.path, cache._id, cache._id + ".mbtiles");
+  CacheModel.updateFormatGenerating(cache, 'mbtiles', function(err) {
+    console.log('running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id) + " " + mbtilesFile);
+    var python = exec(
+      'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id) + " " + mbtilesFile,
+      function(error, stdout, stderr) {
+        console.log('done running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id) + " " + mbtilesFile);
+        CacheModel.updateFormatCreated(cache, 'mbtiles', mbtilesFile, function(err) {
+          console.log('updated format created');
+          var stream = fs.createReadStream(mbtilesFile);
+          callback(null, stream);
         });
-      });
-    } else {
-      var stream = fs.createReadStream(mbtilesFile);
-      callback(null, stream);
-    }
+      }
+    );
+  });
  }

@@ -45,7 +45,7 @@ function getXRow(cache, xRow, yRange, zoom, xRowDone, downloadTile) {
   });
 }
 
-exports.createCache = function(cache, downloadTile) {
+exports.createCache = function(cache, minZoom, maxZoom, downloadTile, callback) {
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
     cache = foundCache;
 
@@ -53,7 +53,7 @@ exports.createCache = function(cache, downloadTile) {
 
     var totalCacheTiles = 0;
 
-    for (var zoom = cache.minZoom; zoom <= cache.maxZoom; zoom++) {
+    for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
       var yRange = tileUtilities.yCalculator(extent, zoom);
       var xRange = tileUtilities.xCalculator(extent, zoom);
       var totalTiles = (1 + (yRange.max - yRange.min)) * (1 + (xRange.max - xRange.min));
@@ -67,12 +67,12 @@ exports.createCache = function(cache, downloadTile) {
 
     cache.status.totalTiles = totalCacheTiles;
     cache.save(function() {
-      var zoom = cache.minZoom;
+      var zoom = minZoom;
       var extent = turf.extent(cache.geometry);
 
       async.whilst(
         function (stop) {
-          return zoom <= cache.maxZoom && !stop;
+          return zoom <= maxZoom && !stop;
         },
         function (zoomLevelDone) {
           console.log("Starting zoom level " + zoom);
@@ -113,6 +113,7 @@ exports.createCache = function(cache, downloadTile) {
               CacheModel.updateFormatCreated(cache, 'tms', foundCache.totalTileSize, function(err) {
                 foundCache.status.complete = true;
                 foundCache.save();
+                callback(null, foundCache);
               });
             });
           });

@@ -1,7 +1,7 @@
 var SourceModel = require('../models/source')
   , fs = require('fs-extra')
   , path = require('path')
-  , sourceProcessor = require('./sourceTypes')
+  , sourceProcessor = require('./sources')
   , config = require('../config.json');
 
 function Source() {
@@ -65,19 +65,6 @@ Source.prototype.delete = function(source, callback) {
 
 Source.prototype.update = function(id, update, callback) {
   SourceModel.updateSource(id, update, callback);
-}
-
-Source.prototype.getDataAsString = function(source, callback) {
-  var dir = path.join(config.server.sourceDirectory.path, source.id);
-  var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
-  var file = path.join(dir, fileName);
-  console.log('pull from path', file);
-
-  if (fs.existsSync(file)) {
-    fs.readFile(file, callback);
-  } else {
-    callback(null);
-  }
 }
 
 module.exports = Source;

@@ -2,18 +2,10 @@ var CacheModel = require('../../models/cache')
   , SourceModel = require('../../models/source')
   , request = require('request');
 
-exports.createCache = function(cache) {
-  var child = require('child_process').fork('api/sourceTypes/xyzProcessor');
-  child.send({operation:'generateCache', cache: cache});
-}
-
 exports.process = function(source, callback) {
-  console.log("xyz");
-  source.status = "Complete";
-  source.complete = true;
-  source.save(function(err) {
-    callback(null, source);
-  });
+  callback(null, source);
+  var child = require('child_process').fork('api/sources/processor');
+  child.send({operation:'process', sourceId: source.id});
 }
 
 exports.getTile = function(source, z, x, y, params, callback) {
@@ -35,4 +27,17 @@ exports.getTile = function(source, z, x, y, params, callback) {
     });
   });
   callback(null, req);
+}
+
+exports.getData = function(source, callback) {
+  callback(null);
+}
+
+exports.processSource = function(source, callback) {
+  console.log("xyz");
+  source.status = "Complete";
+  source.complete = true;
+  source.save(function(err) {
+    callback(err);
+  });
 }

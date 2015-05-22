@@ -4,14 +4,9 @@ var CacheModel = require('../../models/cache')
   , proj4 = require('proj4')
   , request = require('request');
 
-exports.createCache = function(cache) {
-  var child = require('child_process').fork('api/sourceTypes/wmsProcessor');
-  child.send({operation:'generateCache', cache: cache});
-}
-
 exports.process = function(source, callback) {
   callback(null, source);
-  var child = require('child_process').fork('api/sourceTypes/wmsProcessor');
+  var child = require('child_process').fork('api/sources/processor');
   child.send({operation:'process', sourceId: source.id});
 }
 
@@ -43,4 +38,26 @@ exports.getTile = function(source, z, x, y, params, callback) {
     });
   });
   callback(null, req);
+}
+
+exports.getData = function(source, callback) {
+  callback(null);
+}
+
+exports.processSource = function(source, callback) {
+  source.status = "Parsing GetCapabilities";
+  source.complete = false;
+  source.save(function(err) {
+    var DOMParser = global.DOMParser = require('xmldom').DOMParser;
+    var WMSCapabilities = require('wms-capabilities');
+    var req = request.get({url: source.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
+      var json = new WMSCapabilities(body).toJSON();
+      source.wmsGetCapabilities = json;
+      source.status = "Complete";
+      source.complete = true;
+      source.save(function(err) {
+        callback(err);
+      });
+    });
+  });
 }
