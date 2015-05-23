@@ -125,6 +125,7 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   }
   $scope.sortedZooms = function(cache) {
     var zoomRows = [];
+    if (!cache.status.zoomLevelStatus) return zoomRows;
     for (var i = cache.minZoom; i <= cache.maxZoom; i=i+3) {
       var row = [];
       if (cache.status.zoomLevelStatus[i]) {
