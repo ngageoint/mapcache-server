@@ -173,6 +173,7 @@
           <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes">
             <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]" ng-init="cache.create[type.type] = type.required" value="type.required"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
           </label>
+          <p class="help-block">* indicates a type of cache that will automatically be created</p>
       </div>
     </div>
     <div class="row" ng-show="cache.source.format == 'shapefile'">
@@ -184,7 +185,7 @@
       <div class="col-md-12">
         <div class="form-group">
           <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Cache is currently estimated to be <span class="page-sub-entity-title">{{totalCacheSize | fileSize}}</span> with <span class="page-sub-entity-title">{{totalCacheTiles}} tiles</span></span>
-          <span class="page-sub-entity-title" ng-hide="requiredFieldsSet()">Please set all fields to obtain an estimated cache size</span>
+          <span class="page-sub-entity-title" ng-hide="requiredFieldsSet()">Please set <span ng-repeat="uf in unsetFields"><span ng-show="!$first && !$last">, </span><span ng-show="!$first && $last"> and </span>{{uf}}</span> to obtain an estimated cache size</span>
         </div>
       </div>
     </div>

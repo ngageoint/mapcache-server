@@ -131,6 +131,17 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   $scope.$watch('cache.minZoom+cache.maxZoom', calculateCacheSize);
 
   $scope.requiredFieldsSet = function() {
+    $scope.unsetFields = [];
+
+    if (!$scope.cache.source) {
+      $scope.unsetFields.push('a cache source');
+      return false;
+    }
+
+    if (!$scope.cache.name) {
+      $scope.unsetFields.push('the cache name');
+    }
+
     var zoomValidated = false;
     if (isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom) || $scope.cache.maxZoom === null || $scope.cache.minZoom === null) {
       zoomValidated = false;
@@ -142,9 +153,18 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       zoomValidated = true;
     }
 
+    if (!zoomValidated) {
+      $scope.unsetFields.push('zoom levels')
+    }
+    if (!boundsSet) {
+      $scope.unsetFields.push('cache boundaries');
+    }
+
     if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {
+      $scope.unsetFields.push('WMS layer');
       return false;
     }
+
     return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && (zoomValidated || $scope.cache.source.format == 'shapefile');
   }
 
