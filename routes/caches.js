@@ -29,33 +29,6 @@ module.exports = function(app, auth) {
   }
 
   app.get(
-  	'/api/caches/:cacheId.zip',
-  	access.authorize('EXPORT_CACHE'),
-  	function (req, res, next) {
-    	var id = req.params.cacheId;
-    	var minZoom = parseInt(req.param('minZoom'));
-    	var maxZoom = parseInt(req.param('maxZoom'));
-    	var format = req.param('format');
-    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-    	new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
-    		 if (err) {
-           return res.send(400, err);
-         }
-         if (format == "geopackage"){
-      		res.attachment(req.cache.name + ".gpkg");
-        } else if (format == "mbtiles") {
-          res.attachment(req.cache.name + ".mbtiles");
-        } else if (format == "geojson") {
-          res.attachment(req.cache.name + ".geojson");
-        } else {
-          res.attachment(req.cache.name + ".zip");
-        }
-    	  archive.pipe(res);
-    	});
-  	}
-  );
-
-  app.get(
     '/api/caches/:cacheId/generate',
     access.authorize('EXPORT_CACHE'),
     function (req, res, next) {
@@ -120,7 +93,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     function(req, res, next) {
 
-      new api.Cache().restart(req.cache, function(err, newCache) {
+      new api.Cache().restart(req.cache, req.param('format'), function(err, newCache) {
         if (err) return res.status(400).send(err.message);
 
         if (!newCache) return res.status(400).send();
@@ -161,30 +134,29 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/caches/:cacheId/geojson',
-    access.authorize('READ_CACHE'),
-    function (req, res, next) {
-      var cache = req.cache;
-      console.log('pull geojson');
-      if (cache.source.format == 'shapefile') {
-        var dir = config.server.cacheDirectory.path + "/" + cache._id;
-        var file = dir + "/" + cache._id + ".geojson";
-        console.log('pull from path', file);
-
-        if (fs.existsSync(file)) {
-          console.log('stream it');
-
-          var stream = fs.createReadStream(file);
-          stream.pipe(res);
-        } else {
-          return next();
+  	'/api/caches/:cacheId/:format',
+  	access.authorize('EXPORT_CACHE'),
+  	function (req, res, next) {
+    	var id = req.params.cacheId;
+    	var minZoom = parseInt(req.param('minZoom'));
+    	var maxZoom = parseInt(req.param('maxZoom'));
+    	var format = req.param('format');
+    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
+      new api.cache().getData(req.cache, format, minZoom, maxZoom, function(err, stream) {
+        if (err) {
+          return res.send(400, err);
         }
-      } else {
-        return next();
-      }
-    }
+        if (status.creating) {
+          return res.sendStatus(202);
+        }
+        if (status.stream) {
+          res.attachment(req.cache.name + status.extension);
+        }
+        stream.pipe(res);
+      })
+  	}
   );
-
+  
   // get cache
   app.get(
     '/api/caches/:cacheId',

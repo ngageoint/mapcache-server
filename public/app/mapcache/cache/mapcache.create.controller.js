@@ -201,6 +201,13 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     if ($scope.cache.source.previewLayer) {
       $scope.cache.cacheCreationParams.layer = $scope.cache.source.previewLayer.Name;
     };
+    var create = [];
+    for (var type in $scope.cache.create) {
+      if ($scope.cache.create[type]) {
+        create.push(type);
+      }
+    }
+    $scope.cache.create = create;
     CacheService.createCache($scope.cache, function(cache) {
       $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);

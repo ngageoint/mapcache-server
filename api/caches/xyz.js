@@ -34,7 +34,7 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
       archive.bulk([{ expand: true, cwd: path.join(config.server.cacheDirectory.path, cache._id), src: zoom}]);
       archive.append(JSON.stringify(cache), {name: cache._id+ ".json"});
       archive.finalize();
-      callback(null, archive);
+      callback(null, {stream: archive, extension: '.zip'});
     } else {
       var child = require('child_process').fork('api/caches/creator.js');
       child.send({operation:'generateCache', cache: cache, format: 'xyz', minZoom: minZoom, maxZoom: maxZoom});

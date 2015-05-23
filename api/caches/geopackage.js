@@ -10,7 +10,7 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
     callback(null, {creating: true});
   } else {
     var stream = fs.createReadStream(geoPackageFile);
-    callback(null, stream);
+    callback(null, {stream: stream, extension: '.gpkg'});
   }
 }
 

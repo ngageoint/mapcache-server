@@ -10,7 +10,7 @@ var CacheModel = require('../../models/cache.js')
      callback(null, {creating: true});
    } else {
      var stream = fs.createReadStream(geoPackageFile);
-     callback(null, stream);
+     callback(null, {stream: stream, extension: '.mbtiles'});
    }
  }
 

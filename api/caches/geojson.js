@@ -12,7 +12,7 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
     callback(null, {creating: true});
   } else {
     var stream = fs.createReadStream(geojsonFile);
-    callback(null, {stream: stream});
+    callback(null, {stream: stream, extension: '.geojson'});
   }
 }
 

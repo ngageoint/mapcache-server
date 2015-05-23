@@ -40,10 +40,27 @@ Cache.prototype.deleteFormat = function(cache, format, callback) {
   });
 }
 
-Cache.prototype.create = function(cache, format, callback) {
+Cache.prototype.create = function(cache, formats, callback) {
+  if( typeof formats === "function" && !callback) {
+    callback = formats;
+		formats = cache.create || [];
+  }
+  callback = callback || function(){}
+
+  var newFormats = [];
+  for (var i = 0; i < formats.length; i++) {
+    if (!cache.formats[formats[i]]) {
+      newFormats.push(formats[i]);
+    }
+  }
 
   if (cache.id) {
-    sourceProcessor.createCache(cache, format);
+    for (var i = 0; i < newFormats.length; i++) {
+      console.log("creating format " + newFormats[i] + " for cache " + cache.name);
+      cacheProcessor.createCacheFormat(cache, newFormats[i], function(err, cache) {
+        console.log('format ' + newFormats[i] + ' submitted for cache ' + cache.name);
+      });
+    }
     return callback(null, cache);
   }
 
@@ -61,8 +78,12 @@ Cache.prototype.create = function(cache, format, callback) {
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);
     callback(err, newCache);
-
-    sourceProcessor.createCache(newCache);
+    for (var i = 0; i < newFormats.length; i++) {
+      console.log("creating format " + newFormats[i] + " for cache " + newCache.name);
+      cacheProcessor.createCacheFormat(newCache, newFormats[i], function(err, cache) {
+        console.log('format ' + newFormats[i] + ' submitted for cache ' + newCache.name);
+      });
+    }
   });
 }
 
@@ -71,13 +92,14 @@ Cache.prototype.restart = function(cache, format, callback) {
     return callback(new Error('Cache is currently being generated'));
   }
   cache.status.complete = false;
-  caches.getCacheData(cache, format, minZoom, maxZoom, callback);
 
-  sourceProcessor.createCache(cache, format);
+  cacheProcessor.createCacheFormat(newCache, format, function(err, cache) {
+    console.log('format ' + format + ' submitted for cache ' + cache.name);
+  });
 }
 
 Cache.prototype.getData = function(cache, minZoom, maxZoom, format, callback) {
-  caches.getCacheData(cache, format, minZoom, maxZoom, callback);
+  cacheProcessor.getCacheData(cache, format, minZoom, maxZoom, callback);
 }
 
 module.exports = Cache;
