@@ -103,6 +103,16 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   });
 
   $scope.$watch('cache.source', function(source) {
+    console.log('resetting cache create tyes');
+    $scope.cache.create = {};
+    if ($scope.cache.source) {
+      for (var i = 0; i < $scope.cache.source.cacheTypes.length; i++) {
+        var type = $scope.cache.source.cacheTypes[i];
+        $scope.cache.create[type.type] = type.required;
+      }
+      $scope.requiredFieldsSet();
+    }
+
     if (!source || !source.geometry) {
       $scope.bb.north = null;
       $scope.bb.south = null;
@@ -134,12 +144,12 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.unsetFields = [];
 
     if (!$scope.cache.source) {
-      $scope.unsetFields.push('a cache source');
+      $scope.unsetFields.push('cache source');
       return false;
     }
 
     if (!$scope.cache.name) {
-      $scope.unsetFields.push('the cache name');
+      $scope.unsetFields.push('cache name');
     }
 
     var zoomValidated = false;
@@ -151,6 +161,18 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       zoomValidated = true;
     } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
       zoomValidated = true;
+    }
+
+    var cacheTypeSet = false;
+    console.log('scope.cache.create', $scope.cache.create);
+    for (var type in $scope.cache.create) {
+      if ($scope.cache.create[type] == true) {
+        cacheTypeSet = true;
+      }
+    }
+
+    if (!cacheTypeSet) {
+      $scope.unsetFields.push('type of cache to create');
     }
 
     if (!zoomValidated) {
