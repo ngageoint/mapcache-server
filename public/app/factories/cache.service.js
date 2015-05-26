@@ -94,8 +94,8 @@ function CacheService($q, $http) {
     });
   }
 
-  function getCacheData(cache, success, error) {
-    $http.get('/api/caches/'+cache.id+'/geojson')
+  function getCacheData(cache, format, success, error) {
+    $http.get('/api/caches/'+cache.id+'/' + format + '?minZoom=0&maxZoom=18')
       .success(function(data, status) {
         if (success) {
           success(data, status);

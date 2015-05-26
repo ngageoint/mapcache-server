@@ -1,3 +1,5 @@
+var CacheModel = require('../../models/cache.js');
+
 exports.getCacheData = function(cache, format, minZoom, maxZoom, callback) {
   var processor = require('./' + format);
 
@@ -32,7 +34,9 @@ exports.createCacheFormat = function(cache, format, minZoom, maxZoom, callback) 
   minZoom = minZoom ? Math.max(minZoom, cache.minZoom) : cache.minZoom;
   maxZoom = maxZoom ? Math.min(maxZoom, cache.maxZoom) : cache.maxZoom;
 
-  callback(null, cache);
-  var child = require('child_process').fork('./creator');
-  child.send({operation:'generateCache', cache: cache, format: format, minZoom: minZoom, maxZoom: maxZoom});
+  CacheModel.updateFormatGenerating(cache, format, function(err) {
+    callback(null, cache);
+    var child = require('child_process').fork('api/caches/creator.js');
+    child.send({operation:'generateCache', cache: cache, format: format, minZoom: minZoom, maxZoom: maxZoom});
+  });
 }

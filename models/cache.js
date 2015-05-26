@@ -46,7 +46,6 @@ CacheSchema.index({geometry: "2dsphere"});
 CacheSchema.index({'name': 1});
 
 function transform(cache, ret, options) {
-	console.log('transform cache', cache);
 	ret.id = ret._id;
 	delete ret._id;
 

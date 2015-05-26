@@ -142,7 +142,7 @@ module.exports = function(app, auth) {
     	var maxZoom = parseInt(req.param('maxZoom'));
     	var format = req.param('format');
     	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-      new api.cache().getData(req.cache, format, minZoom, maxZoom, function(err, stream) {
+      new api.Cache().getData(req.cache, format, minZoom, maxZoom, function(err, status) {
         if (err) {
           return res.send(400, err);
         }
@@ -151,12 +151,12 @@ module.exports = function(app, auth) {
         }
         if (status.stream) {
           res.attachment(req.cache.name + status.extension);
+          status.stream.pipe(res);
         }
-        stream.pipe(res);
       })
   	}
   );
-  
+
   // get cache
   app.get(
     '/api/caches/:cacheId',

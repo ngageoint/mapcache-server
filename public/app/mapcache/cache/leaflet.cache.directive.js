@@ -39,6 +39,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
   var cacheLayer = null;
 
   $scope.$watch('cache', function(cache, oldCache) {
+    if (oldCache && oldCache.status.complete) return;
     if (cache == oldCache) return;
     if (!cache.status.complete) return;
     var map = L.map($element[0], {
@@ -105,7 +106,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
       var gj = L.geoJson(cache.data, {
         style: styleFunction
       });
-      CacheService.getCacheData(cache, function(data) {
+      CacheService.getCacheData(cache, 'geojson', function(data) {
         $scope.cache.data = data;
         // $scope.options.extent = turf.extent(data);
         gj.addData(data);

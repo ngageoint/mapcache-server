@@ -23,12 +23,14 @@ process.on('message', function(m) {
   }
 });
 
-exports.generateCache = function(cache, format, minZoom, maxZoom) {
+function generateCache(cache, format, minZoom, maxZoom) {
   var processor = require('./' + format);
 
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
-    processor.generateCache(foundCache, minZoom, maxZoom, function() {
-      process.exit();
+    processor.generateCache(foundCache, minZoom, maxZoom, function(err, status) {
+      CacheModel.updateFormatCreated(status.cache, format, status.file, function(err) {
+        process.exit();
+      });
     });
   });
 }

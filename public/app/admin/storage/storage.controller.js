@@ -29,6 +29,16 @@ function StorageController($scope, $http, $location, CacheService, SourceService
     });
   }
 
+  $scope.isCacheFormatDeletable = function(cache, format) {
+    for (var i = 0; i < cache.source.cacheTypes.length; i++) {
+      var ct = cache.source.cacheTypes[i];
+      if (ct.type == format && ct.required) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   $http.get('/api/server')
   .success(function(data, status) {
     $scope.storage = data;

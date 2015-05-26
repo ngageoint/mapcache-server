@@ -1,17 +1,18 @@
 var CacheModel = require('../../models/cache.js')
   , fs = require('fs-extra')
   , path = require('path')
+  , config = require('../../config.json')
   , archiver = require('archiver');
 
 function convert2tms(min, max){
   for (i = min; i < max + 1; i++) {
-     var x = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id, i);
+     var x = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString(), i);
      if (x[0] == '.DS_Store') {
        x.splice(0,1);
      }
 
     for (k = 0; k < x.length; k++){
-      var y = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id, i, x[k]);
+      var y = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString(), i, x[k]);
       if (y[0] == '.DS_Store') {
          y.splice(0,1);
        }
@@ -19,7 +20,7 @@ function convert2tms(min, max){
       for (j = 0 ; j < y.length; j++) {
         ytemp = y[j].replace('.png','');
         ytms = Math.pow(2,i) - ytemp -1;
-        archive.file(path.join(config.server.cacheDirectory.path, cache._id, i, x[k], ytemp + '.png'), {name: path.join(i, x[k], ytms + '.png')});
+        archive.file(path.join(config.server.cacheDirectory.path, cache._id.toString(), i, x[k], ytemp + '.png'), {name: path.join(i, x[k], ytms + '.png')});
       }
     }
   }
@@ -38,13 +39,13 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
       if (maxZoom && minZoom) {
         convert2tms(minZoom, maxZoom);
       } else if (!maxZoom && minZoom) {
-        zoom = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id));
+        zoom = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString()));
         convert2tms(minZoom, zoom[zoom.length - 1] - 1);
       } else if (!minZoom && maxZoom) {
-        zoom = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id));
+        zoom = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString()));
         convert2tms(zoom[1], maxZoom);
       } else {
-        zoom = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id));
+        zoom = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString()));
         convert2tms(zoom[1] , zoom[zoom.length - 1] - 1);
       }
 
@@ -69,6 +70,6 @@ function downloadTile(tileInfo, tileDone) {
   });
 }
 
-exports.createCache = function(cache, minZoom, maxZoom, callback) {
+exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   xyzCacheGenerator.createCache(cache, minZoom, maxZoom, downloadTile, callback);
 }

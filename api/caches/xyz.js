@@ -2,10 +2,11 @@ var CacheModel = require('../../models/cache.js')
   , xyzCacheGenerator = require('../xyzCacheGenerator')
   , fs = require('fs-extra')
   , path = require('path')
+  , config = require('../../config.json')
   , archiver = require('archiver');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
-  var cacheDirectory = path.join(config.server.cacheDirectory.path, cache._id);
+  var cacheDirectory = path.join(config.server.cacheDirectory.path, cache._id.toString());
 
   fs.stat(cacheDirectory, function(err, status) {
     if (status && status.isDirectory()) {
@@ -31,7 +32,7 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
         zoom = ['**'];
       }
 
-      archive.bulk([{ expand: true, cwd: path.join(config.server.cacheDirectory.path, cache._id), src: zoom}]);
+      archive.bulk([{ expand: true, cwd: path.join(config.server.cacheDirectory.path, cache._id.toString()), src: zoom}]);
       archive.append(JSON.stringify(cache), {name: cache._id+ ".json"});
       archive.finalize();
       callback(null, {stream: archive, extension: '.zip'});
@@ -53,6 +54,6 @@ function downloadTile(tileInfo, tileDone) {
   });
 }
 
-exports.createCache = function(cache, minZoom, maxZoom, callback) {
+exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   xyzCacheGenerator.createCache(cache, minZoom, maxZoom, downloadTile, callback);
 }

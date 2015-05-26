@@ -48,6 +48,9 @@ Cache.prototype.create = function(cache, formats, callback) {
   callback = callback || function(){}
 
   var newFormats = [];
+  if (typeof formats === "string") {
+    formats = [formats];
+  }
   for (var i = 0; i < formats.length; i++) {
     if (!cache.formats[formats[i]]) {
       newFormats.push(formats[i]);
@@ -98,7 +101,7 @@ Cache.prototype.restart = function(cache, format, callback) {
   });
 }
 
-Cache.prototype.getData = function(cache, minZoom, maxZoom, format, callback) {
+Cache.prototype.getData = function(cache, format, minZoom, maxZoom, callback) {
   cacheProcessor.getCacheData(cache, format, minZoom, maxZoom, callback);
 }
 

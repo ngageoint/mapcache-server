@@ -82,20 +82,11 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     }
   }
 
-  $scope.cacheFormatExists = function(cache, format) {
-    return cache.formats && cache.formats[format] && !cache.formats[format].generating;
-  }
-
-  $scope.cacheFormatGenerating = function(cache, format) {
-    return cache.formats && cache.formats[format] && cache.formats[format].generating;
-  }
-
   $scope.generateFormat = function(cache, format) {
     CacheService.createCacheFormat(cache, format, function() {
       cache.formats = cache.formats || {};
       cache.formats[format] = cache.formats[format] || {};
       cache.formats[format].generating = true;
-      console.log('go get the cache');
       getCaches();
     });
   }

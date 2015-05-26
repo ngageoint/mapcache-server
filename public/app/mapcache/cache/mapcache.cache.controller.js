@@ -58,16 +58,6 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     return zoomRows;
   }
 
-  $scope.cacheFormatExists = function(cache, format) {
-    if (!cache) return false;
-    return cache.formats && cache.formats[format] && !cache.formats[format].generating;
-  }
-
-  $scope.cacheFormatGenerating = function(cache, format) {
-    if (!cache) return false;
-    return cache.formats && cache.formats[format] && cache.formats[format].generating;
-  }
-
   $scope.generateFormat = function(cache, format) {
     CacheService.createCacheFormat(cache, format, function() {
       cache.formats = cache.formats || {};
