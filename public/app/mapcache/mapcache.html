@@ -43,7 +43,7 @@
             <dt>Total Tiles</dt>
             <dd>{{cache.status.generatedTiles}}</dd>
             <dt>Bounding Box</dt>
-            <dd>{{cacheBoundingBox(cache)}}</dd>
+            <dd>West: {{cache.geometry | turf : 'extent' : 'w' | number : 6}} South: {{cache.geometry | turf : 'extent' : 's' | number : 6}} East: {{cache.geometry | turf : 'extent' : 'e' | number : 6}} North: {{cache.geometry | turf : 'extent' : 'n' | number : 6}}</dd>
             <dt>Source</dt>
             <dd><a href="/#/source/{{cache.source.id}}">{{cache.source.name}}</a></dd>
             <dt ng-if="cache.source.url">Source URL</dt>
