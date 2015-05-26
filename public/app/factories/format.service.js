@@ -13,6 +13,7 @@ function FormatService() {
     shapefile: "Shapefile",
     geojson: "GeoJSON",
     kml: "KML",
-    gpx: "GPX"
+    gpx: "GPX",
+    wms: "Web Map Service (WMS)"
   };
 }

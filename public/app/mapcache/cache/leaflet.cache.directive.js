@@ -45,15 +45,15 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
     var map = L.map($element[0], {
       center: [45,0],
       zoom: 3,
-      minZoom: cache.source.format == 'shapefile' ? 0 : cache.minZoom,
-      maxZoom: cache.source.format == 'shapefile' ? 18 : cache.maxZoom
+      minZoom: cache.source.format == 'shapefile' || cache.source.format == 'geojson' ? 0 : cache.minZoom,
+      maxZoom: cache.source.format == 'shapefile' || cache.source.format == 'geojson' ? 18 : cache.maxZoom
     });
     map.addControl(new L.Control.ZoomIndicator());
 
     baseLayer.addTo(map);
     cacheLayerOptions.tms = 'tms' == cache.source.format;
-    cacheLayerOptions.maxZoom = cache.source.format == 'shapefile' ? 18 : cache.maxZoom;
-    cacheLayerOptions.minZoom = cache.source.format == 'shapefile' ? 0 : cache.minZoom;
+    cacheLayerOptions.maxZoom = cache.source.format == 'shapefile' || cache.source.format == 'geojson' ? 18 : cache.maxZoom;
+    cacheLayerOptions.minZoom = cache.source.format == 'shapefile' || cache.source.format == 'geojson' ? 0 : cache.minZoom;
     if (cacheLayer) {
       map.removeLayer(cacheLayer);
     }
@@ -102,7 +102,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
     console.log('changing cache to ', cache);
     if (cache == null) {
       return L.tileLayer(defaultLayer, cacheLayerOptions);
-    } else if (cache.source.format == 'shapefile') {
+    } else if (cache.source.format == 'shapefile' || cache.source.format == 'geojson') {
       var gj = L.geoJson(cache.data, {
         style: styleFunction
       });

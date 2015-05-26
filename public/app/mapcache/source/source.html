@@ -55,13 +55,13 @@
     </div>
   </div>
   <hr>
-  <div ng-if="source.format == 'shapefile' && source.complete" class="row top-gap bottom-gap">
+  <div ng-if="(source.format == 'shapefile' || source.format == 'geojson') && source.complete" class="row top-gap bottom-gap">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Add New Style</span>
     </div>
   </div>
 
-  <div ng-if="source.format == 'shapefile' && source.complete" class="row style-row">
+  <div ng-if="(source.format == 'shapefile' || source.format != 'geojson') && source.complete" class="row style-row">
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-6">
