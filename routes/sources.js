@@ -127,29 +127,18 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/sources/:sourceId/geojson',
+    '/api/sources/:sourceId/:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
       var source = req.source;
-      console.log('pull geojson');
-      if (source.format == 'shapefile') {
-        var dir = path.join(config.server.sourceDirectory.path, source.id);
-        var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
-        var file = path.join(dir, fileName);
-        console.log('pull from path', file);
-
-      	if (fs.existsSync(file)) {
-          console.log('stream it');
-
-          var stream = fs.createReadStream(file);
+      sourceProcessor.getData(source, req.param('format'), function(err, data) {
+        if (data.file) {
+          console.log('streaming', data.file);
+          var stream = fs.createReadStream(data.file);
           stream.pipe(res);
-        } else {
-          return next();
         }
-      } else {
-        return next();
-      }
+      });
     }
   );
 

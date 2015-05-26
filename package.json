@@ -34,6 +34,7 @@
     "mongodb-migrations": "0.2.1",
     "mongoose": "3.8.24",
     "multer": "0.1.x",
+    "ogr2ogr": "^0.5.1",
     "optimist": "0.3.x",
     "passport": "0.1.x",
     "passport-anonymous": "1.0.1",

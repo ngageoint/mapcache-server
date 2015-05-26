@@ -29,7 +29,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   $scope.bb = {};
 
   $scope.cache = {
-    format: "xyz"
+    format: "xyz",
+    create: {}
   };
 
   $scope.sizes = [{

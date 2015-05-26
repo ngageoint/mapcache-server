@@ -2,24 +2,11 @@ var CacheModel = require('../../models/cache.js')
   , sourceTypes = require('../sources')
   , path = require('path')
   , turf = require('turf')
+  , ogr2ogr = require('ogr2ogr')
   , config = require('../../config.json')
   , fs = require('fs-extra');
 
-exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
-  var geojsonFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".geojson");
-
-  if (!fs.existsSync(geojsonFile)) {
-    var child = require('child_process').fork('api/caches/creator.js');
-    child.send({operation:'generateCache', cache: cache, format: 'geojson', minZoom: minZoom, maxZoom: maxZoom});
-    callback(null, {creating: true});
-  } else {
-    var stream = fs.createReadStream(geojsonFile);
-    callback(null, {stream: stream, extension: '.geojson'});
-  }
-}
-
-exports.generateCache = function(cache, minZoom, maxZoom, callback) {
-  var geojsonFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".geojson");
+exports.generateCache = function(cache, filePath, format, callback) {
 
   sourceTypes.getData(cache.source, 'geojson', function(err, data) {
     if (data && data.file) {
@@ -38,15 +25,18 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
             gjCache.features.push(feature);
           }
         }
-        fs.mkdirs(path.dirname(geojsonFile), function (err) {
+        fs.mkdirs(path.dirname(filePath), function (err) {
           if (err) return console.error(err);
           console.log("success!");
 
-          fs.writeFile(geojsonFile, JSON.stringify(gjCache), function(err) {
+          var sf = ogr2ogr(gjCache).format(format).skipfailures().stream();
+          var writeStream = fs.createWriteStream(filePath);
+          writeStream.on('finish', function() {
             cache.save(function() {
-              callback(null, {file: geojsonFile, cache: cache});
+              callback(null, {file: filePath, cache: cache});
             });
           });
+          sf.pipe(writeStream);
         });
       });
     }

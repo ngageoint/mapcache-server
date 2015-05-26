@@ -34,7 +34,7 @@
     "maximumCacheSize":2048
   },
   "sourceCacheTypes": {
-    "shapefile": [{"type":"geojson", "required": false}, {"type":"shapefile", "required": false}],
+    "shapefile": [{"type":"geojson", "required": false}, {"type":"shapefile", "required": false}, {"type":"kml", "required": false}],
     "xyz": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
     "tms": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
     "geotiff": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],

@@ -49,10 +49,12 @@ Cache.prototype.create = function(cache, formats, callback) {
 
   var newFormats = [];
   if (typeof formats === "string") {
+    console.log('formats is a string', formats);
     formats = [formats];
   }
+  console.log('formats', formats);
   for (var i = 0; i < formats.length; i++) {
-    if (!cache.formats[formats[i]]) {
+    if (!cache.formats || !cache.formats[formats[i]]) {
       newFormats.push(formats[i]);
     }
   }
@@ -61,7 +63,7 @@ Cache.prototype.create = function(cache, formats, callback) {
     for (var i = 0; i < newFormats.length; i++) {
       console.log("creating format " + newFormats[i] + " for cache " + cache.name);
       cacheProcessor.createCacheFormat(cache, newFormats[i], function(err, cache) {
-        console.log('format ' + newFormats[i] + ' submitted for cache ' + cache.name);
+        // console.log('format ' + newFormats[i] + ' submitted for cache ' + cache.name);
       });
     }
     return callback(null, cache);

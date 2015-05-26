@@ -22,7 +22,7 @@ process.on('message', function(m) {
   }
 });
 
-exports.processSource = function(sourceId) {
+function processSource(sourceId) {
   SourceModel.getSourceById(sourceId, function(err, source) {
     if (!source) {
       console.log('unable to find source with id ', sourceId);

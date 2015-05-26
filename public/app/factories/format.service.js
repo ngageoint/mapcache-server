@@ -11,6 +11,8 @@ function FormatService() {
     tms: "TMS",
     geotiff: "GeoTIFF",
     shapefile: "Shapefile",
-    geojson: "GeoJSON"
+    geojson: "GeoJSON",
+    kml: "KML",
+    gpx: "GPX"
   };
 }
