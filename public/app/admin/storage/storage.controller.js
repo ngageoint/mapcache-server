@@ -68,10 +68,8 @@ function StorageController($scope, $http, $location, CacheService, SourceService
         var found = false;
         for (var i = 0; i < ct.length && !found; i++) {
           if (ct[i].type == format) {
-            console.log('ct[i]', ct[i]);
             found = true;
             if (!ct[i].virtual) {
-              console.log('adding', cache.formats[format].size);
               bytes += cache.formats[format].size;
             }
           }
