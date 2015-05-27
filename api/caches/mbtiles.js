@@ -26,4 +26,4 @@ var CacheModel = require('../../models/cache.js')
       callback(error, {cache: cache, file: mbtilesFile});
     }
   );
- }
+}
