@@ -34,6 +34,7 @@ exports.getData = function(source, format, callback) {
 exports.processSource = function(source, callback) {
   source.status = "Parsing shapefile";
   source.complete = false;
+  source.vector = true;
   source.save(function(err) {
     var stream = fs.createReadStream(source.filePath);
 

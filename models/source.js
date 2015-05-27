@@ -17,6 +17,7 @@ var SourceSchema = new Schema({
   tileSize: { type: Number, required: false},
 	complete: { type: Boolean, required: false},
 	humanReadableId: { type: String, required: false},
+  vector: { type: Boolean, required: true, default: false},
   wmsGetCapabilities: Schema.Types.Mixed,
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,

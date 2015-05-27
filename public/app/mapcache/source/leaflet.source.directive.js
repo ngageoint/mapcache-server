@@ -145,7 +145,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     console.log('changing source to ', source);
     if (source == null) {
       return L.tileLayer(defaultLayer, sourceLayerOptions);
-    } else if (source.format == 'shapefile' || source.format == 'geojson') {
+    } else if (source.vector) {
       if (!source.data) return;
       var gj = L.geoJson(source.data, {
         style: styleFunction

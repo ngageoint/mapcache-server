@@ -153,7 +153,7 @@
         </div>
       </div>
     </div>
-    <div class="row" ng-if="cache.source.format != 'shapefile' || cache.source.format != 'geojson'">
+    <div class="row" ng-if="!cache.source.vector">
       <div class="col-md-6">
         <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
           <label class="control-label">Minimum Zoom Level</label>
@@ -176,12 +176,12 @@
           <p class="help-block">* indicates a type of cache that will automatically be created</p>
       </div>
     </div>
-    <div class="row" ng-show="cache.source.format == 'shapefile' || cache.source.format != 'geojson'">
+    <div class="row" ng-show="cache.source.vector">
       <div class="col-md-12">
         <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Will cache <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
       </div>
     </div>
-    <div class="row" ng-show="cache.source.format != 'shapefile' || cache.source.format != 'geojson'">
+    <div class="row" ng-show="!cache.source.vector">
       <div class="col-md-12">
         <div class="form-group">
           <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Cache is currently estimated to be <span class="page-sub-entity-title">{{totalCacheSize | fileSize}}</span> with <span class="page-sub-entity-title">{{totalCacheTiles}} tiles</span></span>
@@ -195,7 +195,7 @@
         </div>
       </div>
     </div>
-    <div class="row" ng-show="cache.source.format != 'shapefile' || cache.source.format != 'geojson'">
+    <div class="row" ng-show="!cache.source.vector">
       <div class="col-md-12">
         <div class="form-group">
           <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Concerned your cache will be too big? <a ng-click="setMaxSize = true">Set a maximum size</a></span>

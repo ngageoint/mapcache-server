@@ -33,6 +33,7 @@ exports.getData = function(source, format, callback) {
 exports.processSource = function(source, callback) {
   source.status = "Complete";
   source.complete = true;
+  source.vector = true;
   source.save(function(err) {
     callback(err);
   });

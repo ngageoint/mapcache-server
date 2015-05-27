@@ -2,7 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , sourceTypes = require('../sources')
   , path = require('path')
   , turf = require('turf')
-  , ogr2ogr = require('ogr2ogr')
+  , ogrType = require('./ogrType.js')
   , config = require('../../config.json')
   , fs = require('fs-extra');
 

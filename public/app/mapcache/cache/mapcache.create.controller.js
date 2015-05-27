@@ -188,7 +188,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       return false;
     }
 
-    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && (zoomValidated || $scope.cache.source.format == 'shapefile' || $scope.cache.source.format == 'geojson');
+    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && (zoomValidated || $scope.cache.source.vector);
   }
 
   $scope.createCache = function() {
@@ -223,7 +223,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }
 
   function calculateCacheSize() {
-    if (!$scope.cache.source || ((isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom)) && ($scope.cache.source.format != 'shapefile' || $scope.cache.source.format != 'geojson')) || !$scope.cache.geometry) return;
+    if (!$scope.cache.source || ((isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom)) && !$scope.cache.source.vector) || !$scope.cache.geometry) return;
     $scope.totalCacheSize = 0;
     $scope.totalCacheTiles = 0;
     var extent = turf.extent($scope.cache.geometry);
@@ -235,7 +235,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.totalCacheSize = $scope.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
     $scope.cacheFeatures = 0;
     $scope.cache.source.totalFeatures = $scope.cache.source.data ? $scope.cache.source.data.features.length : 0;
-    if ($scope.cache.source.format == 'shapefile' || $scope.cache.source.format == 'geojson') {
+    if ($scope.cache.source.vector) {
       var poly = turf.bboxPolygon(extent);
       for (var i = 0; i < $scope.cache.source.data.features.length; i++) {
         var feature = $scope.cache.source.data.features[i];

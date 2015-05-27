@@ -97,7 +97,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
       if (!source.complete && $location.path().startsWith('/source')) {
         $timeout(getSource, 5000);
       } else {
-        if (source.format == 'shapefile' || source.format == 'geojson') {
+        if (source.vector) {
           $scope.source.style = $scope.source.style || [];
           if ($scope.source.style.length == 0) {
             $scope.source.style.push({style: defaultStyle});

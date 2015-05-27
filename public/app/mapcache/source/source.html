@@ -43,25 +43,25 @@
       <span class="page-sub-entity-label">Original Source URL: <span class="page-sub-entity-title">{{source.url}}</span>
     </div>
   </div>
-  <div class="row">
+  <div class="row" ng-show="!source.vector">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/sources/{{source.humanReadableId}}/{z}/{x}/{y}.png<span ng-show="source.previewLayer">?layer={{source.previewLayer.Name}}</span>
     </div>
   </div>
   <div class="row" ng-if="source.complete">
     <div class="col-md-12">
-      <span class="page-sub-entity-label">Source tiles are shown below. (light grey map is only for geographic reference)</span>
+      <span class="page-sub-entity-label">Source <span ng-show="!source.vector">tiles are</span><span ng-show="source.vector">data is</span> shown below. (light grey map is only for geographic reference)</span>
       <div leaflet-source source="source" options="mapOptions"></div>
     </div>
   </div>
   <hr>
-  <div ng-if="(source.format == 'shapefile' || source.format == 'geojson') && source.complete" class="row top-gap bottom-gap">
+  <div ng-if="source.vector && source.complete" class="row top-gap bottom-gap">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Add New Style</span>
     </div>
   </div>
 
-  <div ng-if="(source.format == 'shapefile' || source.format != 'geojson') && source.complete" class="row style-row">
+  <div ng-if="source.vector && source.complete" class="row style-row">
     <div class="col-md-12">
       <div class="row">
         <div class="col-md-6">
