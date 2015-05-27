@@ -32,7 +32,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
 
   $scope.featureProperties = [];
   $scope.newRule = {
-    style: defaultStyle
+    style: angular.copy(defaultStyle)
   };
 
   $scope.createCacheFromSource = function() {
@@ -53,7 +53,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     $scope.newRule.value = $scope.newRule.property.value;
     $scope.newRule.priority = $scope.source.style.length;
     delete $scope.newRule.property;
-    $scope.source.style.push($scope.newRule);
+    $scope.source.style.styles.push($scope.newRule);
     $scope.newRule = tmp;
     delete $scope.newRule.property;
   }
@@ -67,11 +67,11 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
   }
 
   $scope.$on('deleteStyle', function(event, style) {
-    $scope.source.style = _.without($scope.source.style, style);
+    $scope.source.style.styles = _.without($scope.source.style.styles, style);
   });
 
   $scope.$on('promoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.source.style, {priority: style.priority-1});
+    var toMove = _.findWhere($scope.source.style.styles, {priority: style.priority-1});
     style.priority = style.priority - 1;
     if (toMove) {
       toMove.priority = toMove.priority + 1;
@@ -79,7 +79,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
   });
 
   $scope.$on('demoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.source.style, {priority: style.priority+1});
+    var toMove = _.findWhere($scope.source.style.styles, {priority: style.priority+1});
     style.priority = style.priority + 1;
     if (toMove) {
       toMove.priority = toMove.priority - 1;
@@ -98,13 +98,8 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
         $timeout(getSource, 5000);
       } else {
         if (source.vector) {
-          $scope.source.style = $scope.source.style || [];
-          if ($scope.source.style.length == 0) {
-            $scope.source.style.push({style: defaultStyle});
-          }
-          $scope.defaultStyle = _.find($scope.source.style, function(style) {
-            return !style.key;
-          });
+          $scope.mapOptions.opacity = 1;
+          $scope.source.style = $scope.source.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
           SourceService.getSourceData(source, function(data) {
             var allProperties = {};
             for (var i = 0; i < data.features.length; i++) {

@@ -14,6 +14,7 @@ function FormatService() {
     geojson: "GeoJSON",
     kml: "KML",
     gpx: "GPX",
-    wms: "Web Map Service (WMS)"
+    wms: "Web Map Service (WMS)",
+    kmz: "KMZ"
   };
 }

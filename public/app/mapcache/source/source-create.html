@@ -23,19 +23,22 @@
         <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="tile"> Tile Server
       </label>
       <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="wms"> Web Map Service (WMS)
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="wms"> {{'wms' | cacheFormat}}
       </label>
       <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geotiff"> GeoTIFF
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geotiff"> {{'geotiff' | cacheFormat}}
       </label>
       <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="mbtiles"> MBTiles
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="mbtiles"> {{'mbtiles' | cacheFormat}}
       </label>
       <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="shapefile"> Shapefile
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="shapefile"> {{'shapefile' | cacheFormat}}
       </label>
       <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geojson"> GeoJSON
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geojson"> {{'geojson' | cacheFormat}}
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="kmz"> {{'kmz' | cacheFormat}}
       </label>
     </div>
   </div>

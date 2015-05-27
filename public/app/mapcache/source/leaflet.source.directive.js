@@ -21,12 +21,6 @@ LeafletSourceController.$inject = ['$scope', '$element', 'LocalStorageService', 
 
 function LeafletSourceController($scope, $element, LocalStorageService, SourceService) {
 
-  var baseLayerOptions = $scope.options || {
-    maxZoom: 18,
-    tms: false,
-    opacity: 1
-  };
-
   var sourceLayerOptions = {
     maxZoom: 18,
     tms: false,
@@ -34,6 +28,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   };
 
   var sourceLayer = null;
+  var baseLayer = null;
 
   var map = L.map($element[0], {
     center: [45,0],
@@ -43,11 +38,23 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   });
   map.addControl(new L.Control.ZoomIndicator());
 
-  if (baseLayerOptions.baseLayerUrl) {
-    var defaultLayer = baseLayerOptions.baseLayerUrl;
-    var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
-    baseLayer.addTo(map);
-  }
+  $scope.$watch('options', function(options) {
+    console.log('options are', options);
+    var newOptions = options || {
+      maxZoom: 18,
+      tms: false,
+      opacity: 1
+    };
+
+    if (newOptions.baseLayerUrl) {
+      if (baseLayer) {
+        map.removeLayer(baseLayer);
+      }
+      var defaultLayer = newOptions.baseLayerUrl;
+      baseLayer = L.tileLayer(defaultLayer, newOptions);
+      baseLayer.addTo(map);
+    }
+  });
 
   var debounceUrl = _.debounce(function(url) {
     $scope.$apply(function() {
@@ -80,6 +87,23 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     if (!style) return;
     if (sourceLayer) {
       sourceLayer.setStyle(styleFunction);
+      if (style.title || style.description) {
+        sourceLayer.eachLayer(function(layer) {
+          var title = "";
+          if (this.title && layer.feature.properties && layer.feature.properties[this.title]) {
+            title = layer.feature.properties[this.title];
+          }
+          var description = "";
+          if (this.description && layer.feature.properties && layer.feature.properties[this.description]) {
+            description = layer.feature.properties[this.description];
+          }
+          layer.bindPopup(title + " " + description);
+        }, style);
+      } else {
+        sourceLayer.eachLayer(function(layer) {
+          layer.unbindPopup();
+        });
+      }
     }
   }, true);
 
@@ -110,27 +134,35 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     ]);
   }
 
+  function pointToLayer(feature, latlng) {
+    return L.circleMarker(latlng, {radius: 3});
+  }
+
   function styleFunction(feature) {
     if (!$scope.source.style) return {};
-    var sorted = _.sortBy($scope.source.style, 'priority');
-    for (var i = 0; i < sorted.length; i++) {
-      var styleProperty = sorted[i];
-      var key = styleProperty.key;
-      if (feature.properties && feature.properties[key]) {
-        if (feature.properties[key] == styleProperty.value) {
-          return {
-            color: styleProperty.style['stroke'],
-            fillOpacity: styleProperty.style['fill-opacity'],
-            opacity: styleProperty.style['stroke-opacity'],
-            weight: styleProperty.style['stroke-width'],
-            fillColor: styleProperty.style['fill']
-          };
+
+    if ($scope.source.style.styles) {
+      var sorted = _.sortBy($scope.source.style.styles, 'priority');
+      for (var i = 0; i < sorted.length; i++) {
+        var styleProperty = sorted[i];
+        var key = styleProperty.key;
+        if (feature.properties && feature.properties[key]) {
+          if (feature.properties[key] == styleProperty.value) {
+            return {
+              color: styleProperty.style['stroke'],
+              fillOpacity: styleProperty.style['fill-opacity'],
+              opacity: styleProperty.style['stroke-opacity'],
+              weight: styleProperty.style['stroke-width'],
+              fillColor: styleProperty.style['fill']
+            };
+          }
         }
       }
     }
-    var defaultStyle = _.find($scope.source.style, function(style) {
-      return !style.key;
-    });
+    var defaultStyle = $scope.source.style.defaultStyle;
+    if (!defaultStyle) {
+      return {};
+    }
 
     return {
       color: defaultStyle.style['stroke'],
@@ -148,7 +180,8 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     } else if (source.vector) {
       if (!source.data) return;
       var gj = L.geoJson(source.data, {
-        style: styleFunction
+        style: styleFunction,
+        pointToLayer: pointToLayer
       });
 
       return gj;

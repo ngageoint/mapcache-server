@@ -55,94 +55,122 @@
     </div>
   </div>
   <hr>
-  <div ng-if="source.vector && source.complete" class="row top-gap bottom-gap">
-    <div class="col-md-12">
-      <span class="page-sub-entity-label">Add New Style</span>
-    </div>
-  </div>
 
-  <div ng-if="source.vector && source.complete" class="row style-row">
-    <div class="col-md-12">
-      <div class="row">
-        <div class="col-md-6">
-          <ui-select ng-model="newRule.property" theme="bootstrap">
-            <ui-select-match placeholder="Select a property to style">When the '{{$select.selected.key}}' property equals </ui-select-match>
-            <ui-select-choices repeat="property in featureProperties | filter: $select.search">
-              <div ng-bind-html="property.key | highlight: $select.search"></div>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-        <div class="col-md-6">
-          <ui-select ng-model="newRule.property.value" theme="bootstrap" reset-search-input="true">
-            <ui-select-match placeholder="Value">{{$select.selected}}</ui-select-match>
-            <ui-select-choices repeat="value in newRule.property.values | filter: $select.search">
-              <div ng-bind-html="value | highlight: $select.search"></div>
-            </ui-select-choices>
-          </ui-select>
-        </div>
+  <div ng-if="source.vector && source.complete">
+    <div class="row top-gap bottom-gap">
+      <div class="col-md-12">
+        <span class="page-sub-entity-label">Title and Description Properties</span>
       </div>
-      <div class="row top-gap" ng-show="newRule.property.value">
-        <div class="col-md-2">
-          <div class="form-group">
-            <label>Fill Color</label>
-            <div class="input-group" color-picker="newRule.style.fill">
-              <input type="text" value="newRule.style.fill" class="form-control" />
-              <span class="input-group-addon"><i></i></span>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <ui-select ng-model="source.style.title" theme="bootstrap">
+          <ui-select-match placeholder="Select a property to style">Title property: {{$select.selected.key}}</ui-select-match>
+          <ui-select-choices repeat="property.key as property in featureProperties | filter: $select.search">
+            <div ng-bind-html="property.key | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+      <div class="col-md-6">
+        <ui-select ng-model="source.style.description" theme="bootstrap" reset-search-input="true">
+          <ui-select-match placeholder="Value">Description property: {{$select.selected.key}}</ui-select-match>
+          <ui-select-choices repeat="property.key as property in featureProperties | filter: $select.search">
+            <div ng-bind-html="property.key | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+
+    <hr>
+    <div class="row top-gap bottom-gap">
+      <div class="col-md-12">
+        <span class="page-sub-entity-label">Add New Style</span>
+      </div>
+    </div>
+
+    <div class="row style-row">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-6">
+            <ui-select ng-model="newRule.property" theme="bootstrap">
+              <ui-select-match placeholder="Select a property to style">When the '{{$select.selected.key}}' property equals </ui-select-match>
+              <ui-select-choices repeat="property in featureProperties | filter: $select.search">
+                <div ng-bind-html="property.key | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+          <div class="col-md-6">
+            <ui-select ng-model="newRule.property.value" theme="bootstrap" reset-search-input="true">
+              <ui-select-match placeholder="Value">{{$select.selected}}</ui-select-match>
+              <ui-select-choices repeat="value in newRule.property.values | filter: $select.search">
+                <div ng-bind-html="value | highlight: $select.search"></div>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+        </div>
+        <div class="row top-gap" ng-show="newRule.property.value">
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Fill Color</label>
+              <div class="input-group" color-picker="newRule.style.fill">
+                <input type="text" value="newRule.style.fill" class="form-control" />
+                <span class="input-group-addon"><i></i></span>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="col-md-2">
-          <div class="form-group">
-            <label>Fill Opacity</label>
-            <input class="form-control" ng-model="newRule.style['fill-opacity']">
-            <p class="help-block">0.0 - 1.0</p>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="form-group">
-            <label>Line Color</label>
-            <div class="input-group" color-picker="newRule.style.stroke">
-              <input type="text" value="newRule.style.stroke" class="form-control" />
-              <span class="input-group-addon"><i></i></span>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Fill Opacity</label>
+              <input class="form-control" ng-model="newRule.style['fill-opacity']">
+              <p class="help-block">0.0 - 1.0</p>
             </div>
           </div>
-        </div>
-        <div class="col-md-2">
-          <div class="form-group">
-            <label>Line Opacity</label>
-            <input class="form-control" ng-model="newRule.style['stroke-opacity']">
-            <p class="help-block">0.0 - 1.0</p>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Line Color</label>
+              <div class="input-group" color-picker="newRule.style.stroke">
+                <input type="text" value="newRule.style.stroke" class="form-control" />
+                <span class="input-group-addon"><i></i></span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="col-md-2">
-          <div class="form-group">
-            <label>Line Width</label>
-            <input class="form-control" ng-model="newRule.style['stroke-width']">
-            <p class="help-block">Pixel Width</p>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Line Opacity</label>
+              <input class="form-control" ng-model="newRule.style['stroke-opacity']">
+              <p class="help-block">0.0 - 1.0</p>
+            </div>
           </div>
-        </div>
-        <div class="col-md-2">
-          <div class="form-group">
-            <label>&nbsp;</label>
-            <button class="form-control btn btn-primary pull-right" ng-click="applyStyle()">Add These Styles</button>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Line Width</label>
+              <input class="form-control" ng-model="newRule.style['stroke-width']">
+              <p class="help-block">Pixel Width</p>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button class="form-control btn btn-primary pull-right" ng-click="applyStyle()">Add These Styles</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <hr>
-  <div class="row bottom-gap" ng-show="source.style">
-    <div class="col-md-12">
-      <span class="page-sub-entity-label">Current Source Styles</span>
-      <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Style Information</button>
+    <hr>
+    <div class="row bottom-gap" ng-show="source.style">
+      <div class="col-md-12">
+        <span class="page-sub-entity-label">Current Source Styles</span>
+        <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Style Information</button>
+      </div>
     </div>
-  </div>
-  <div ng-repeat="style in source.style | filter: isNotDefault | orderBy: 'priority'">
-    <div style-row="style" options="{first: $first, last: $last, mutable: true}"/>
-  </div>
-  <div class="top-gap">
-    <div style-row="defaultStyle"/>
-  </div>
-  <div class="row bottom-gap-l">
+    <div ng-repeat="style in source.style.styles | orderBy: 'priority'">
+      <div style-row="style" options="{first: $first, last: $last, mutable: true}"></div>
+    </div>
+    <div class="top-gap">
+      <div style-row="source.style.defaultStyle"></div>
+    </div>
+    <div class="row bottom-gap-l">
+    </div>
   </div>
 </div>
