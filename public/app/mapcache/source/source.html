@@ -57,6 +57,13 @@
   <hr>
 
   <div ng-if="source.vector && source.complete">
+
+    <div class="row bottom-gap" ng-show="source.style">
+      <div class="col-md-12">
+        <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Changes To Source</button>
+      </div>
+    </div>
+
     <div class="row top-gap bottom-gap">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Title and Description Properties</span>
@@ -161,7 +168,6 @@
     <div class="row bottom-gap" ng-show="source.style">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Current Source Styles</span>
-        <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Style Information</button>
       </div>
     </div>
     <div ng-repeat="style in source.style.styles | orderBy: 'priority'">

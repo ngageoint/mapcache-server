@@ -181,7 +181,20 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
       if (!source.data) return;
       var gj = L.geoJson(source.data, {
         style: styleFunction,
-        pointToLayer: pointToLayer
+        pointToLayer: pointToLayer,
+        onEachFeature: function(feature, layer) {
+          if ($scope.source.style && ($scope.source.style.title || $scope.source.style.description)) {
+            var title = "";
+            if ($scope.source.style.title && feature.properties && feature.properties[$scope.source.style.title]) {
+              title = feature.properties[$scope.source.style.title];
+            }
+            var description = "";
+            if ($scope.source.style.description && feature.properties && feature.properties[$scope.source.style.description]) {
+              description = feature.properties[$scope.source.style.description];
+            }
+            layer.bindPopup(title + " " + description);
+          }
+        }
       });
 
       return gj;
