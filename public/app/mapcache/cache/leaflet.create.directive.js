@@ -187,34 +187,11 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
   });
 
   function styleFunction(feature) {
-    if (!$scope.options.source.style) return {};
-    var sorted = _.sortBy($scope.options.source.style, 'priority');
-    for (var i = 0; i < sorted.length; i++) {
-      var styleProperty = sorted[i];
-      var key = styleProperty.key;
-      if (feature.properties && feature.properties[key]) {
-        if (feature.properties[key] == styleProperty.value) {
-          return {
-            color: styleProperty.style['stroke'],
-            fillOpacity: styleProperty.style['fill-opacity'],
-            opacity: styleProperty.style['stroke-opacity'],
-            weight: styleProperty.style['stroke-width'],
-            fillColor: styleProperty.style['fill']
-          };
-        }
-      }
-    }
-    var defaultStyle = _.find($scope.options.source.style, function(style) {
-      return !style.key;
-    });
+    return LeafletUtilities.styleFunction(feature, $scope.options.style);
+  }
 
-    return {
-      color: defaultStyle.style['stroke'],
-      fillOpacity: defaultStyle.style['fill-opacity'],
-      opacity: defaultStyle.style['stroke-opacity'],
-      weight: defaultStyle.style['stroke-width'],
-      fillColor: defaultStyle.style['fill']
-    }
+  function pointToLayer(feature, latlng) {
+    return L.circleMarker(latlng, {radius: 3});
   }
 
   function getTileLayer(source) {
@@ -223,7 +200,11 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
       return L.tileLayer(defaultLayer, options);
     } else if (source.vector) {
       var gj = L.geoJson(source.data, {
-        style: styleFunction
+        style: styleFunction,
+        pointToLayer: pointToLayer,
+        onEachFeature: function(feature, layer) {
+          LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
+        }
       });
       SourceService.getSourceData(source, function(data) {
         $scope.options.source.data = data;

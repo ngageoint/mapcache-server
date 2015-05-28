@@ -68,34 +68,11 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
   });
 
   function styleFunction(feature) {
-    if (!$scope.cache.source.style) return {};
-    var sorted = _.sortBy($scope.cache.source.style, 'priority');
-    for (var i = 0; i < sorted.length; i++) {
-      var styleProperty = sorted[i];
-      var key = styleProperty.key;
-      if (feature.properties && feature.properties[key]) {
-        if (feature.properties[key] == styleProperty.value) {
-          return {
-            color: styleProperty.style['stroke'],
-            fillOpacity: styleProperty.style['fill-opacity'],
-            opacity: styleProperty.style['stroke-opacity'],
-            weight: styleProperty.style['stroke-width'],
-            fillColor: styleProperty.style['fill']
-          };
-        }
-      }
-    }
-    var defaultStyle = _.find($scope.cache.source.style, function(style) {
-      return !style.key;
-    });
+    return LeafletUtilities.styleFunction(feature, $scope.cache.style);
+  }
 
-    return {
-      color: defaultStyle.style['stroke'],
-      fillOpacity: defaultStyle.style['fill-opacity'],
-      opacity: defaultStyle.style['stroke-opacity'],
-      weight: defaultStyle.style['stroke-width'],
-      fillColor: defaultStyle.style['fill']
-    }
+  function pointToLayer(feature, latlng) {
+    return L.circleMarker(latlng, {radius: 3});
   }
 
   function getTileLayer(cache) {
@@ -104,7 +81,11 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
       return L.tileLayer(defaultLayer, cacheLayerOptions);
     } else if (cache.source.vector) {
       var gj = L.geoJson(cache.data, {
-        style: styleFunction
+        style: styleFunction,
+        pointToLayer: pointToLayer,
+        onEachFeature: function(feature, layer) {
+          LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
+        }
       });
       CacheService.getCacheData(cache, 'geojson', function(data) {
         $scope.cache.data = data;

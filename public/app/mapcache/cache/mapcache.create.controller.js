@@ -104,9 +104,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   });
 
   $scope.$watch('cache.source', function(source) {
-    console.log('resetting cache create tyes');
     $scope.cache.create = {};
     if ($scope.cache.source) {
+      $scope.cache.style = $scope.cache.source.style;
       for (var i = 0; i < $scope.cache.source.cacheTypes.length; i++) {
         var type = $scope.cache.source.cacheTypes[i];
         $scope.cache.create[type.type] = type.required;

@@ -139,38 +139,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   }
 
   function styleFunction(feature) {
-    if (!$scope.source.style) return {};
-
-    if ($scope.source.style.styles) {
-      var sorted = _.sortBy($scope.source.style.styles, 'priority');
-      for (var i = 0; i < sorted.length; i++) {
-        var styleProperty = sorted[i];
-        var key = styleProperty.key;
-        if (feature.properties && feature.properties[key]) {
-          if (feature.properties[key] == styleProperty.value) {
-            return {
-              color: styleProperty.style['stroke'],
-              fillOpacity: styleProperty.style['fill-opacity'],
-              opacity: styleProperty.style['stroke-opacity'],
-              weight: styleProperty.style['stroke-width'],
-              fillColor: styleProperty.style['fill']
-            };
-          }
-        }
-      }
-    }
-    var defaultStyle = $scope.source.style.defaultStyle;
-    if (!defaultStyle) {
-      return {};
-    }
-
-    return {
-      color: defaultStyle.style['stroke'],
-      fillOpacity: defaultStyle.style['fill-opacity'],
-      opacity: defaultStyle.style['stroke-opacity'],
-      weight: defaultStyle.style['stroke-width'],
-      fillColor: defaultStyle.style['fill']
-    }
+    return LeafletUtilities.styleFunction(feature, $scope.source.style);
   }
 
   function getTileLayer(source) {
@@ -183,17 +152,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
         style: styleFunction,
         pointToLayer: pointToLayer,
         onEachFeature: function(feature, layer) {
-          if ($scope.source.style && ($scope.source.style.title || $scope.source.style.description)) {
-            var title = "";
-            if ($scope.source.style.title && feature.properties && feature.properties[$scope.source.style.title]) {
-              title = feature.properties[$scope.source.style.title];
-            }
-            var description = "";
-            if ($scope.source.style.description && feature.properties && feature.properties[$scope.source.style.description]) {
-              description = feature.properties[$scope.source.style.description];
-            }
-            layer.bindPopup(title + " " + description);
-          }
+          LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
         }
       });
 
