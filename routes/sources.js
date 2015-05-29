@@ -137,6 +137,8 @@ module.exports = function(app, auth) {
           console.log('streaming', data.file);
           var stream = fs.createReadStream(data.file);
           stream.pipe(res);
+        } else if (data.stream) {
+          data.stream.pipe(res);
         }
       });
     }

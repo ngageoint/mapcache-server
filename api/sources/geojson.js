@@ -1,5 +1,6 @@
 var SourceModel = require('../../models/source')
   , path = require('path')
+  , request = require('request')
   , fs = require('fs-extra')
   , config = require('../../config.json')
   , shp2json = require('shp2json');
@@ -18,14 +19,25 @@ exports.getData = function(source, format, callback) {
 
   var dir = path.join(config.server.sourceDirectory.path, source.id);
   if (format == 'geojson') {
-    var file = source.filePath;
-    console.log('pull from path', file);
+    if (source.filePath) {
+      var file = source.filePath;
+      console.log('pull from path', file);
 
-    if (fs.existsSync(file)) {
-      callback(null, {file: file});
-      // fs.readFile(file, callback);
-    } else {
-      callback(null);
+      if (fs.existsSync(file)) {
+        callback(null, {file: file});
+        // fs.readFile(file, callback);
+      } else {
+        callback(null);
+      }
+    } else if (source.url) {
+      var req = request.get({url: source.url,
+      })
+      .on('error', function(err) {
+        console.log(err+ source.url);
+
+        callback(err, null);
+      });
+      callback(null, {stream: req});
     }
   }
 }

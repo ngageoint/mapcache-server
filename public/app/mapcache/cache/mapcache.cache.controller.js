@@ -82,7 +82,9 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     }
     CacheService.getCache(cache, function(cache) {
       // success
+      var data = $scope.cache && $scope.cache.data ? $scope.cache.data : null;
       $scope.cache = cache;
+      $scope.cache.data = data;
       $scope.zoomRows = $scope.sortedZooms(cache);
       if (!cache.status.complete && $location.path().startsWith('/cache')) {
         $timeout(getCache, 5000);

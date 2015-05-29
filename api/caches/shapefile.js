@@ -21,5 +21,5 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
 
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   var shapefileZip = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + "_shapefile.zip");
-  ogrType.generateCache(cache, shepfileZip, 'ESRI Shapefile', callback);
+  ogrType.generateCache(cache, shapefileZip, 'ESRI Shapefile', callback);
 }
