@@ -156,11 +156,20 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
     map.fitBounds(sourceBoundsLayer.getBounds());
   });
 
+  $scope.$watch('options.source.data', function(data, oldData) {
+    if (sourceLayer) {
+      map.removeLayer(sourceLayer);
+    }
+    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
+    if (!sourceLayer) return;
+    sourceLayer.addTo(map);
+  });
+
   $scope.$watch('options.source', function(source) {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = getTileLayer($scope.options.source);//L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
     if (!sourceLayer) return;
     sourceLayer.addTo(map);
   });
@@ -169,7 +178,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = getTileLayer($scope.options.source);//L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
     if (!sourceLayer) return;
     sourceLayer.addTo(map);
   });
@@ -181,7 +190,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = getTileLayer($scope.options.source);//L.tileLayer(getUrl($scope.options.source), options);
+    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
     if (!sourceLayer) return;
     sourceLayer.addTo(map);
   });
@@ -190,45 +199,45 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
     return LeafletUtilities.styleFunction(feature, $scope.options.style);
   }
 
-  function pointToLayer(feature, latlng) {
-    return L.circleMarker(latlng, {radius: 3});
-  }
-
-  function getTileLayer(source) {
-    console.log('changing source to ', source);
-    if (source == null) {
-      return L.tileLayer(defaultLayer, options);
-    } else if (source.vector) {
-      var gj = L.geoJson(source.data, {
-        style: styleFunction,
-        pointToLayer: pointToLayer,
-        onEachFeature: function(feature, layer) {
-          LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
-        }
-      });
-      SourceService.getSourceData(source, function(data) {
-        $scope.options.source.data = data;
-        $scope.options.extent = turf.extent(data);
-        gj.addData(data);
-      });
-
-      return gj;
-    } else if (typeof source == "string") {
-      return L.tileLayer(source + "/{z}/{x}/{y}.png", options);
-    } else if (source.id) {
-      var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
-      if (source.previewLayer) {
-        url += '&layer=' + source.previewLayer.Name;
-      }
-      return L.tileLayer(url, options);
-    } else if (source.format == "wms") {
-      if (source.wmsGetCapabilities && source.previewLayer) {
-        return L.tileLayer.wms(source.url, {
-          layers: source.previewLayer.Name,
-          version: source.wmsGetCapabilities.version,
-          transparent: !source.previewLayer.opaque
-        });
-      }
-    }
-  }
+  // function pointToLayer(feature, latlng) {
+  //   return L.circleMarker(latlng, {radius: 3});
+  // }
+  //
+  // function getTileLayer(source) {
+  //   console.log('changing source to ', source);
+  //   if (source == null) {
+  //     return L.tileLayer(defaultLayer, options);
+  //   } else if (source.vector) {
+  //     var gj = L.geoJson(source.data, {
+  //       style: styleFunction,
+  //       pointToLayer: pointToLayer,
+  //       onEachFeature: function(feature, layer) {
+  //         LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
+  //       }
+  //     });
+  //     SourceService.getSourceData(source, function(data) {
+  //       $scope.options.source.data = data;
+  //       $scope.options.extent = turf.extent(data);
+  //       gj.addData(data);
+  //     });
+  //
+  //     return gj;
+  //   } else if (typeof source == "string") {
+  //     return L.tileLayer(source + "/{z}/{x}/{y}.png", options);
+  //   } else if (source.id) {
+  //     var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+  //     if (source.previewLayer) {
+  //       url += '&layer=' + source.previewLayer.Name;
+  //     }
+  //     return L.tileLayer(url, options);
+  //   } else if (source.format == "wms") {
+  //     if (source.wmsGetCapabilities && source.previewLayer) {
+  //       return L.tileLayer.wms(source.url, {
+  //         layers: source.previewLayer.Name,
+  //         version: source.wmsGetCapabilities.version,
+  //         transparent: !source.previewLayer.opaque
+  //       });
+  //     }
+  //   }
+  // }
 }

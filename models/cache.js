@@ -37,6 +37,7 @@ var CacheSchema = new Schema({
 	},
 	cacheCreationParams: Schema.Types.Mixed,
 	style: Schema.Types.Mixed,
+	vector: { type: Boolean, required: true, default: false},
 	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }/*,
 	userId: { type: Schema.Types.ObjectId, ref: 'User', required: false }*/
 },{
@@ -65,9 +66,7 @@ function transform(cache, ret, options) {
 		delete ret.status;
 	}
 
-	var path = options.path ? options.path : "";
-  ret.url = [path, cache.id].join("/");
-
+	ret.url = ['/api/caches/', cache.id].join("/");
 }
 
 CacheSchema.set("toJSON", {

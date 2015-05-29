@@ -29,6 +29,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
 
   var sourceLayer = null;
   var baseLayer = null;
+  var defaultLayer = null;
 
   var map = L.map($element[0], {
     center: [45,0],
@@ -50,7 +51,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
       if (baseLayer) {
         map.removeLayer(baseLayer);
       }
-      var defaultLayer = newOptions.baseLayerUrl;
+      defaultLayer = newOptions.baseLayerUrl;
       baseLayer = L.tileLayer(defaultLayer, newOptions);
       baseLayer.addTo(map);
     }
@@ -117,7 +118,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    var tl = getTileLayer($scope.source);
+    var tl = LeafletUtilities.tileLayer($scope.source, defaultLayer, sourceLayerOptions, $scope.source.style, styleFunction);
     if (!tl) return;
     sourceLayer = tl;
     sourceLayer.addTo(map);
@@ -134,49 +135,45 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     ]);
   }
 
-  function pointToLayer(feature, latlng) {
-    return L.circleMarker(latlng, {radius: 3});
-  }
-
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.source.style);
   }
 
-  function getTileLayer(source) {
-    console.log('changing source to ', source);
-    if (source == null) {
-      return L.tileLayer(defaultLayer, sourceLayerOptions);
-    } else if (source.vector) {
-      if (!source.data) return;
-      var gj = L.geoJson(source.data, {
-        style: styleFunction,
-        pointToLayer: pointToLayer,
-        onEachFeature: function(feature, layer) {
-          LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
-        }
-      });
-
-      return gj;
-    } else if (typeof source == "string") {
-      return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
-    } else if (source.id) {
-      var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
-      if (source.previewLayer) {
-        url += '&layer=' + source.previewLayer.Name;
-      }
-      return L.tileLayer(url, sourceLayerOptions);
-    } else if (source.format == "wms") {
-      if (source.wmsGetCapabilities && source.previewLayer) {
-        return L.tileLayer.wms(source.url, {
-          layers: source.previewLayer.Name,
-          version: source.wmsGetCapabilities.version,
-          transparent: !source.previewLayer.opaque
-        });
-      }
-    } else if (!source.id && source.url) {
-      return L.tileLayer(source.url + "/{z}/{x}/{y}.png", sourceLayerOptions);
-    }
-  }
+  // function getTileLayer(source) {
+  //   console.log('changing source to ', source);
+  //   if (source == null) {
+  //     return L.tileLayer(defaultLayer, sourceLayerOptions);
+  //   } else if (source.vector) {
+  //     if (!source.data) return;
+  //     var gj = L.geoJson(source.data, {
+  //       style: styleFunction,
+  //       pointToLayer: pointToLayer,
+  //       onEachFeature: function(feature, layer) {
+  //         LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
+  //       }
+  //     });
+  //
+  //     return gj;
+  //   } else if (typeof source == "string") {
+  //     return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
+  //   } else if (source.id) {
+  //     var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+  //     if (source.previewLayer) {
+  //       url += '&layer=' + source.previewLayer.Name;
+  //     }
+  //     return L.tileLayer(url, sourceLayerOptions);
+  //   } else if (source.format == "wms") {
+  //     if (source.wmsGetCapabilities && source.previewLayer) {
+  //       return L.tileLayer.wms(source.url, {
+  //         layers: source.previewLayer.Name,
+  //         version: source.wmsGetCapabilities.version,
+  //         transparent: !source.previewLayer.opaque
+  //       });
+  //     }
+  //   } else if (!source.id && source.url) {
+  //     return L.tileLayer(source.url + "/{z}/{x}/{y}.png", sourceLayerOptions);
+  //   }
+  // }
 
   addSourceLayer();
 }

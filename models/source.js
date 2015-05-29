@@ -29,6 +29,7 @@ function transform(source, ret, options) {
 	delete ret._id;
 	delete ret.__v;
 	delete ret.filePath;
+  ret.url = ['/api/sources/', source.id].join("/");
   ret.cacheTypes = config.sourceCacheTypes[ret.format];
 }
 
