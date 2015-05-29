@@ -1,13 +1,13 @@
 <div class="container top-gap-l">
   <div class="row">
     <div class="col-md-12">
-      <span class="page-entity-label">Cache: <span class="page-entity-title">{{cache.name}}</span>
+      <span class="page-entity-label">Map: <span class="page-entity-title">{{cache.name}}</span>
     </div>
   </div>
   <div class="row" ng-show="!cache.status.complete">
     <div class="col-md-12">
-      <p class="lead">Thank you for submitting your {{cache.name}} cache to be created.</p>
-      Feel free to return to the <a href="" ng-click="returnToList()">cache list</a> where you can also view the progress.  Don't worry, your cache will continue to be generated.
+      <p class="lead">Thank you for submitting your {{cache.name}} map to be created.</p>
+      Feel free to return to the <a href="" ng-click="returnToList()">map list</a> where you can also view the progress.  Don't worry, your map will continue to be generated.
       <!-- <div class="checkbox">
         <label>
           <input type="checkbox"> Please notify me via email ({{user.email}}) when my cache is done generating.
@@ -25,7 +25,7 @@
       <div class="row" ng-show="!cache.status.complete">
         <div class="col-md-12">
           <div class="form-group">
-            <span class="page-sub-entity-title">Cache is currently estimated to be <span class="page-sub-entity-label">{{(cache.totalTileSize/cache.status.generatedTiles) * cache.status.totalTiles | fileSize}} with {{cache.status.totalTiles}} tiles</span></span>
+            <span class="page-sub-entity-title">Map is currently estimated to be <span class="page-sub-entity-label">{{(cache.totalTileSize/cache.status.generatedTiles) * cache.status.totalTiles | fileSize}} with {{cache.status.totalTiles}} tiles</span></span>
           </div>
         </div>
       </div>
@@ -48,7 +48,7 @@
   <div class="row">
     <div class="col-md-12">
       <div ng-hide="cache.vector">
-        <div><span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/caches/{{cache.humanReadableId}}/{z}/{x}/{y}.png</span></div>
+        <div><span class="page-sub-entity-label">Map Tile URL: <span class="page-sub-entity-title">/api/caches/{{cache.humanReadableId}}/{z}/{x}/{y}.png</span></div>
         <div><span class="page-sub-entity-label">Zoom Levels: <span class="page-sub-entity-title">{{cache.minZoom}} - {{cache.maxZoom}}</span></div>
         <div><span class="page-sub-entity-label">Total Tiles: <span class="page-sub-entity-title">{{cache.status.totalTiles}}</span></div>
       </div>
@@ -78,7 +78,7 @@
   </div>
   <div class="row top-gap">
     <div class="col-md-12">
-      <span ng-show="cache.status.complete" class="page-sub-entity-label">Cache tiles are shown below. (light grey map is only for geographic reference)</span>
+      <span ng-show="cache.status.complete" class="page-sub-entity-label">Map tiles are shown below. (light grey map is only for geographic reference)</span>
       <div leaflet-cache cache="cache" options="mapOptions"></div>
     </div>
   </div>

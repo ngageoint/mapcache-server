@@ -3,7 +3,7 @@
   <div class="container">
     <div class="row top-gap-l bottom-gap">
       <div class="col-md-12">
-        <div class="mapcache-header-description">Use mapcache to save maps for offline use in mobile applications. <button class="btn btn-default" ng-click="createCache()">Create Cache</button></div>
+        <div class="mapcache-header-description">Use mapcache to save maps for offline use. <button class="btn btn-default" ng-click="createCache()">Create Map</button></div>
       </div>
     </div>
   </div>
@@ -18,7 +18,7 @@
     <div class="row">
       <div class="col-md-12">
         <div class="form-group">
-          <label>Filter Caches</label>
+          <label>Filter Maps</label>
           <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter caches">
         </div>
       </div>
@@ -28,8 +28,8 @@
       <div class="row">
         <div class="col-md-12">
           <div class="cache-name"><a href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span ng-if="!cache.status.complete">Currently Generating</span>
-            <button class="btn btn-link btn-sm" ng-click="cache.showingDetails = !cache.showingDetails"><span ng-show="cache.showingDetails">hide cache details</span><span ng-show="!cache.showingDetails">view cache details</span></button>
-            <button class="btn btn-link btn-sm" ng-click="toggleCacheTiles(cache)"><span ng-show="cache.showingTiles">hide cache</span><span ng-show="!cache.showingTiles">show cache on map</span></button>
+            <button class="btn btn-link btn-sm" ng-click="cache.showingDetails = !cache.showingDetails"><span ng-show="cache.showingDetails">hide map details</span><span ng-show="!cache.showingDetails">view map details</span></button>
+            <button class="btn btn-link btn-sm" ng-click="toggleCacheTiles(cache)"><span ng-show="cache.showingTiles">hide map</span><span ng-show="!cache.showingTiles">show map</span></button>
           </div>
         </div>
       </div>
@@ -38,7 +38,7 @@
           <dl class="dl-horizontal">
             <dt>Zoom Levels</dt>
             <dd>{{cache.minZoom}} - {{cache.maxZoom}}</dd>
-            <dt>Cache URL</dt>
+            <dt>Map URL</dt>
             <dd>/api/caches{{cache.url}}/{z}/{x}/{y}.png</dd>
             <dt>Total Tiles</dt>
             <dd>{{cache.status.generatedTiles}}</dd>
