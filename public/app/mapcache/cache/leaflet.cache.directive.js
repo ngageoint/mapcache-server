@@ -50,6 +50,9 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
       maxZoom: cache.source.vector ? 18 : cache.maxZoom
     });
     map.addControl(new L.Control.ZoomIndicator());
+    if (cache.vector) {
+      baseLayer.setOpacity(1);
+    }
 
     baseLayer.addTo(map);
     cacheLayerOptions.tms = 'tms' == cache.source.format;
