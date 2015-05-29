@@ -16,9 +16,9 @@ function leafletCreate() {
   return directive;
 }
 
-LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService'];
+LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService', 'LeafletUtilities'];
 
-function LeafletCreateController($scope, $element, LocalStorageService, SourceService) {
+function LeafletCreateController($scope, $element, LocalStorageService, SourceService, LeafletUtilities) {
 
   var options = {
     maxZoom: 18,

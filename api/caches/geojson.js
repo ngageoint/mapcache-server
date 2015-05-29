@@ -26,7 +26,7 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
       fs.readFile(data.file, function(err, fileData) {
         data = JSON.parse(fileData);
         var gjCache = {type: "FeatureCollection",features: []};
-
+        cache.vector = true;
         cache.totalFeatures = data.features.length;
 
         var poly = cache.geometry;

@@ -1,4 +1,10 @@
-var LeafletUtilities = (function() {
+angular
+  .module('mapcache')
+  .factory('LeafletUtilities', LeafletUtilities);
+
+LeafletUtilities.$inject = ['LocalStorageService'];
+
+function LeafletUtilities(LocalStorageService) {
 
   return {
     styleFunction: styleFunction,
@@ -68,7 +74,7 @@ var LeafletUtilities = (function() {
         style: styleFunction,
         pointToLayer: pointToLayer,
         onEachFeature: function(feature, layer) {
-          LeafletUtilities.popupFunction(feature, layer, style);
+          popupFunction(feature, layer, style);
         }
       });
       return gj;
@@ -90,4 +96,4 @@ var LeafletUtilities = (function() {
       }
     }
   }
-})();
+};

@@ -17,9 +17,9 @@ function leafletCache() {
   return directive;
 }
 
-LeafletCacheController.$inject = ['$scope', '$element', 'LocalStorageService', 'CacheService'];
+LeafletCacheController.$inject = ['$scope', '$element', 'LocalStorageService', 'CacheService', 'LeafletUtilities'];
 
-function LeafletCacheController($scope, $element, LocalStorageService, CacheService) {
+function LeafletCacheController($scope, $element, LocalStorageService, CacheService, LeafletUtilities) {
 
   var baseLayerOptions = $scope.options || {
     maxZoom: 18,
@@ -32,6 +32,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
     tms: false,
     opacity: 1
   };
+  var map = null;
 
   var defaultLayer = baseLayerOptions.baseLayerUrl;
 
@@ -42,7 +43,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
     if (oldCache && oldCache.status.complete) return;
     if (cache == oldCache) return;
     if (!cache.status.complete) return;
-    var map = L.map($element[0], {
+    map = L.map($element[0], {
       center: [45,0],
       zoom: 3,
       minZoom: cache.source.vector ? 0 : cache.minZoom,
@@ -57,47 +58,68 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
     if (cacheLayer) {
       map.removeLayer(cacheLayer);
     }
-    cacheLayer = getTileLayer(cache);
-    cacheLayer.addTo(map);
+    cacheLayer = LeafletUtilities.tileLayer(cache, defaultLayer, cacheLayerOptions, cache.style, styleFunction);
+    if (cacheLayer) {
+      cacheLayer.addTo(map);
+    }
     var extent = turf.extent(cache.geometry);
     console.log('extent', extent);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]
     ]);
+
+    if (cache.vector && !cache.data) {
+      CacheService.getCacheData(cache, 'geojson', function(data) {
+        $scope.cache.data = data;
+        // $scope.options.extent = turf.extent(data);
+        // gj.addData(data);
+      });
+    }
   });
+
+  $scope.$watch('cache.data', function(cacheData) {
+    if (cacheLayer) {
+      map.removeLayer(cacheLayer);
+    }
+    cacheLayer = LeafletUtilities.tileLayer($scope.cache, defaultLayer, cacheLayerOptions, $scope.cache.style, styleFunction);
+    if (cacheLayer) {
+      cacheLayer.addTo(map);
+    }
+  });
+
 
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.cache.style);
   }
 
-  function pointToLayer(feature, latlng) {
-    return L.circleMarker(latlng, {radius: 3});
-  }
-
-  function getTileLayer(cache) {
-    console.log('changing cache to ', cache);
-    if (cache == null) {
-      return L.tileLayer(defaultLayer, cacheLayerOptions);
-    } else if (cache.source.vector) {
-      var gj = L.geoJson(cache.data, {
-        style: styleFunction,
-        pointToLayer: pointToLayer,
-        onEachFeature: function(feature, layer) {
-          LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
-        }
-      });
-      CacheService.getCacheData(cache, 'geojson', function(data) {
-        $scope.cache.data = data;
-        // $scope.options.extent = turf.extent(data);
-        gj.addData(data);
-      });
-
-      return gj;
-    } else if (typeof source == "string") {
-      return L.tileLayer(cache + "/{z}/{x}/{y}.png", options);
-    } else {
-      return L.tileLayer('/api/caches/'+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken(), cacheLayerOptions);
-    }
-  }
+  // function pointToLayer(feature, latlng) {
+  //   return L.circleMarker(latlng, {radius: 3});
+  // }
+  //
+  // function getTileLayer(cache) {
+  //   console.log('changing cache to ', cache);
+  //   if (cache == null) {
+  //     return L.tileLayer(defaultLayer, cacheLayerOptions);
+  //   } else if (cache.source.vector) {
+  //     var gj = L.geoJson(cache.data, {
+  //       style: styleFunction,
+  //       pointToLayer: pointToLayer,
+  //       onEachFeature: function(feature, layer) {
+  //         LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
+  //       }
+  //     });
+  //     CacheService.getCacheData(cache, 'geojson', function(data) {
+  //       $scope.cache.data = data;
+  //       // $scope.options.extent = turf.extent(data);
+  //       gj.addData(data);
+  //     });
+  //
+  //     return gj;
+  //   } else if (typeof source == "string") {
+  //     return L.tileLayer(cache + "/{z}/{x}/{y}.png", options);
+  //   } else {
+  //     return L.tileLayer('/api/caches/'+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken(), cacheLayerOptions);
+  //   }
+  // }
 }

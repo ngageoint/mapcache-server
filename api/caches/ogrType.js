@@ -15,7 +15,7 @@ exports.generateCache = function(cache, filePath, format, callback) {
         var gjCache = {type: "FeatureCollection",features: []};
 
         cache.totalFeatures = data.features.length;
-
+        cache.vector = true;
         var poly = cache.geometry;
         for (var i = 0; i < data.features.length; i++) {
           var feature = data.features[i];
