@@ -66,7 +66,7 @@ function transform(cache, ret, options) {
 		delete ret.status;
 	}
 
-	ret.url = ['/api/caches/', cache.id].join("/");
+	ret.mapcacheUrl = ['/api/caches', cache.id].join("/");
 }
 
 CacheSchema.set("toJSON", {

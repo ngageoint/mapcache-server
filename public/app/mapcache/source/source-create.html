@@ -40,9 +40,26 @@
       <label class="radio-inline">
         <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="kmz"> {{'kmz' | cacheFormat}}
       </label>
+      <label class="radio-inline">
+        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geojsonUrl"> {{'geojson' | cacheFormat}} URL
+      </label>
     </div>
   </div>
   <div ng-switch="sourceType">
+    <div ng-switch-when="geojsonUrl" ng-init="source.format = 'geojson'">
+      <div class="row top-gap">
+        <div class="col-md-12">
+          <p class="lead">Specify a URL to a server with tiles in either xyz or tms format which mapcache will use to cache tiles.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="form-group">
+            <input class="form-control" ng-model="source.url" placeholder="e.g. http://osm.geointapps.org/osm">
+          </div>
+        </div>
+      </div>
+    </div>
     <div ng-switch-when="tile" ng-init="source.format = 'xyz'">
       <div class="row top-gap">
         <div class="col-md-12">

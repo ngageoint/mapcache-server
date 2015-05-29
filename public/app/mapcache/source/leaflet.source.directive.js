@@ -119,6 +119,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
       map.removeLayer(sourceLayer);
     }
     var tl = LeafletUtilities.tileLayer($scope.source, defaultLayer, sourceLayerOptions, $scope.source.style, styleFunction);
+    console.log('tl', tl);
     if (!tl) return;
     sourceLayer = tl;
     sourceLayer.addTo(map);

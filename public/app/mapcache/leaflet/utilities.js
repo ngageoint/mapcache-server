@@ -80,7 +80,7 @@ function LeafletUtilities(LocalStorageService) {
       return gj;
     } else if (typeof layerSource == "string") {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}.png", layerOptions);
-    } else if (layerSource.id && layerSource.url) {
+    } else if (layerSource.mapcacheUrl) {
       var url = layerSource.url + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
       if (layerSource.previewLayer) {
         url += '&layer=' + source.previewLayer.Name;
@@ -94,6 +94,13 @@ function LeafletUtilities(LocalStorageService) {
           transparent: !layerSource.previewLayer.opaque
         });
       }
+    }else if (layerSource.url) {
+      console.log('layersource.url', layerSource.url);
+      var url = layerSource.url + "/{z}/{x}/{y}.png";
+      if (layerSource.previewLayer) {
+        url += '&layer=' + source.previewLayer.Name;
+      }
+      return L.tileLayer(url, layerOptions);
     }
   }
 };
