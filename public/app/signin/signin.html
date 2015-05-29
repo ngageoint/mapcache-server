@@ -138,10 +138,33 @@
         <div class="col-md-3">
           <span class="fa pull-right source-type-icon">{ }</span>
         </div>
-        <div class="source-description">MBTiles stores tiles in a SQLite database.  Mapcache uses <a href="https://github.com/mapbox/mbutil">mbutil</a> to parse and create MBTiles.</div>
+        <div class="source-description">Encoding of geogrpahic data as valid JSON.</div>
       </div>
     </div>
     <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">Shapefile</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-file-archive-o pull-right source-type-icon"></span>
+        </div>
+        <div class="source-description">A zip of files including a .shp .shx and .dbf in the Esri shapefile format.  Mapcache uses <a href="https://github.com/substack/shp2json">shp2json</a> to parse shapefiles.</div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">KMZ</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-stack pull-right source-type-icon-stack">
+            <i class="fa fa-file-o fa-stack-2x"></i>
+            <i class="fa fa-globe fa-stack-1x"></i>
+          </span>
+        </div>
+        <div class="source-description">Zipped KML file. Mapcache uses <a href="https://github.com/substack/shp2json">shp2json</a> to parse KMZ files.</div>
+      </div>
+    </div>
+    <!-- <div class="col-md-6 mapcache-supported-source top-gap-l">
       <div class="source-title">Shapefile</div>
       <div class="row">
         <div class="col-md-3">
@@ -149,7 +172,7 @@
         </div>
         <div class="source-description">A Web Map Service is an OGC specification for serving georeferenced map images.</div>
       </div>
-    </div>
+    </div> -->
   </div>
   <div class="row top-gap-l">
     <div class="col-md-12">
@@ -194,7 +217,30 @@
         <div class="col-md-3">
           <i class="fa pull-right source-type-icon">{ }</i>
         </div>
-        <div class="source-description">MBTiles stores tiles in a SQLite database.  Mapcache uses <a href="https://github.com/mapbox/mbutil">mbutil</a> to parse and create MBTiles.</div>
+        <div class="source-description">Encoding of geogrpahic data as valid JSON.</div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">KML</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-stack pull-right source-type-icon-stack">
+            <i class="fa fa-file-o fa-stack-2x"></i>
+            <i class="fa fa-globe fa-stack-1x"></i>
+          </span>
+        </div>
+        <div class="source-description">XML notation for encoding geographic data.</div>
+      </div>
+    </div>
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">Shapefile</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-file-archive-o pull-right source-type-icon"></span>
+        </div>
+        <div class="source-description">A zip of files including a .shp .shx and .dbf in the Esri shapefile format.</div>
       </div>
     </div>
   </div>
