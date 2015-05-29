@@ -4,9 +4,6 @@ angular
 
 function turfFilter() {
   return function(input, operation, option) {
-    console.log('turf filter ', input);
-    console.log('op', operation);
-    console.log('options', option);
     if (!input) return null;
 
   	if (operation == 'extent') {

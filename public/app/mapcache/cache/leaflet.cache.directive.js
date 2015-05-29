@@ -92,34 +92,4 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.cache.style);
   }
-
-  // function pointToLayer(feature, latlng) {
-  //   return L.circleMarker(latlng, {radius: 3});
-  // }
-  //
-  // function getTileLayer(cache) {
-  //   console.log('changing cache to ', cache);
-  //   if (cache == null) {
-  //     return L.tileLayer(defaultLayer, cacheLayerOptions);
-  //   } else if (cache.source.vector) {
-  //     var gj = L.geoJson(cache.data, {
-  //       style: styleFunction,
-  //       pointToLayer: pointToLayer,
-  //       onEachFeature: function(feature, layer) {
-  //         LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
-  //       }
-  //     });
-  //     CacheService.getCacheData(cache, 'geojson', function(data) {
-  //       $scope.cache.data = data;
-  //       // $scope.options.extent = turf.extent(data);
-  //       gj.addData(data);
-  //     });
-  //
-  //     return gj;
-  //   } else if (typeof source == "string") {
-  //     return L.tileLayer(cache + "/{z}/{x}/{y}.png", options);
-  //   } else {
-  //     return L.tileLayer('/api/caches/'+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken(), cacheLayerOptions);
-  //   }
-  // }
 }

@@ -14,9 +14,9 @@ function leaflet() {
   return directive;
 }
 
-LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService', 'LocalStorageService'];
+LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService', 'LeafletUtilities', 'LocalStorageService'];
 
-function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService, LocalStorageService) {
+function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService, LeafletUtilities, LocalStorageService) {
   var layers = {};
   var cacheFootprints = {};
 
@@ -113,12 +113,41 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     cacheFootprints[cache.id] = gj;
   }
 
+
+
   function showCacheTiles(cache) {
     removeCacheTiles(cache);
-    baseLayer.setOpacity(.3);
-    var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
-    layers[cache.id] = layer;
-    layer.addTo(map);
+    if (cache.vector) {
+
+      var gj = L.geoJson(cache.data, {
+        // style: styleFunction,
+        pointToLayer: function (feature, latlng) {
+          return L.circleMarker(latlng, {radius: 3});
+        },
+        onEachFeature: function(feature, layer) {
+          LeafletUtilities.popupFunction(feature, layer, cache.style);
+        }
+      });
+      if (!cache.data) {
+        console.log('go get the data');
+        CacheService.getCacheData(cache, 'geojson', function(data) {
+          console.log('data is', data);
+          // $scope.cache.data = data;
+          // $scope.options.extent = turf.extent(data);
+          gj.addData(data);
+          gj.setStyle(function (feature) {
+            return LeafletUtilities.styleFunction(feature, cache.style);
+          });
+        });
+      }
+      layers[cache.id] = gj;
+      gj.addTo(map);
+    } else {
+      baseLayer.setOpacity(.3);
+      var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
+      layers[cache.id] = layer;
+      layer.addTo(map);
+    }
   }
 
   function removeCacheTiles(cache) {
