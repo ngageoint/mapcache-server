@@ -38,16 +38,20 @@
           <dl class="dl-horizontal">
             <dt>Zoom Levels</dt>
             <dd>{{cache.minZoom}} - {{cache.maxZoom}}</dd>
-            <dt>Map URL</dt>
-            <dd>/api/caches{{cache.url}}/{z}/{x}/{y}.png</dd>
+            <dt ng-hide="cache.vector">Map URL</dt>
+            <dd ng-hide="cache.vector">/api/caches/{{cache.id}}/{z}/{x}/{y}.png</dd>
+            <dt ng-show="cache.vector">Map Data URL</dt>
+            <dd ng-show="cache.vector">/api/caches/{{cache.id}}/geojson</dd>
             <dt>Total Tiles</dt>
             <dd>{{cache.status.generatedTiles}}</dd>
             <dt>Bounding Box</dt>
             <dd>West: {{cache.geometry | turf : 'extent' : 'w' | number : 6}} South: {{cache.geometry | turf : 'extent' : 's' | number : 6}} East: {{cache.geometry | turf : 'extent' : 'e' | number : 6}} North: {{cache.geometry | turf : 'extent' : 'n' | number : 6}}</dd>
             <dt>Source</dt>
             <dd><a href="/#/source/{{cache.source.id}}">{{cache.source.name}}</a></dd>
-            <dt ng-if="cache.source.url">Source URL</dt>
-            <dd ng-if="cache.source.url">{{cache.source.url}}/{z}/{x}/{y}.png</dd>
+            <dt ng-if="!cache.source.vector">Source URL</dt>
+            <dd ng-if="!cache.source.vector">{{cache.source.url}}/{z}/{x}/{y}.png</dd>
+            <dt ng-if="cache.source.vector">Source Data URL</dt>
+            <dd ng-if="cache.source.vector">{{cache.source.mapcacheUrl}}/geojson</dd>
             <!--<dt>Download Missing Tiles</dt>
             <dd><a ng-click="downloadMissingTiles(cache)">download missing tiles</a></dd>-->
           </dl>
