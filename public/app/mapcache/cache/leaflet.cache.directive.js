@@ -82,6 +82,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
   });
 
   $scope.$watch('cache.data', function(cacheData) {
+    if (!$scope.cache || !$scope.cache.data) return;
     if (cacheLayer) {
       map.removeLayer(cacheLayer);
     }
