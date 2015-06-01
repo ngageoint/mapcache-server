@@ -108,6 +108,12 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     }
   }, true);
 
+  $scope.$watch('options.extent', function(extent, oldExtent) {
+    if (extent) {
+      updateMapExtent(extent);
+    }
+  });
+
   $scope.$watch('source.extent', function(extent, oldExtent) {
     if (extent) {
       updateMapExtent(extent);
