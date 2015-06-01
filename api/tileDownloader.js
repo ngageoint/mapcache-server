@@ -1,6 +1,7 @@
 var request = require('request')
 	, fs = require('fs-extra')
 	, CacheModel = require('../models/cache')
+	, wms = require('./sources/wms.js')
  	, config = require('../config.json');
 
 exports.download = function(tileInfo, callback) {
@@ -9,9 +10,6 @@ exports.download = function(tileInfo, callback) {
 	var filename = getFilename(tileInfo, tileInfo.cache.source.format);
 
 	if (!fs.existsSync(dir + filename)) {
-    var url = tileInfo.cache.source.url + '/' + filepath + filename;
-
-    console.log('downloading: '+ url + " to " + dir  + filename);
 
 		var stream = fs.createWriteStream(dir + filename);
 		stream.on('close',function(status){
@@ -20,20 +18,27 @@ exports.download = function(tileInfo, callback) {
 			callback(null, tileInfo)
 		});
 
-    request.get({url: url,
-		    headers: {'Content-Type': 'image/png'},
-	    })
-		  .on('error', function(err) {
-		    console.log("Error downloading tile " + url, err);
+		if (tileInfo.cache.source.format == 'wms') {
+			wms.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.cache.cacheCreationParams, function(err, request) {
+				request.pipe(stream);
+			});
+		} else if (tileInfo.cache.source.format == 'xyz' || tileInfo.cache.source.format == 'tms') {
+			var url = tileInfo.cache.source.url + '/' + filepath + filename;
 
-			  callback(err, tileInfo);
-		  })
-		  .pipe(stream);
+			console.log('downloading: '+ url + " to " + dir  + filename);
+
+			request.get({url: url,
+					headers: {'Content-Type': 'image/png'},
+				})
+				.on('error', function(err) {
+					console.log("Error downloading tile " + url, err);
+
+					callback(err, tileInfo);
+				})
+				.pipe(stream);
+		}
 	} else {
     console.log('tile already exists ' + url + ' ' + dir + filename);
-		// CacheModel.updateTileDownloaded(tileInfo.cache, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-		//
-		// });
     callback(null, tileInfo);
   }
 }

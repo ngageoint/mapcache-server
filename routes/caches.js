@@ -121,15 +121,15 @@ module.exports = function(app, auth) {
         res.writeHead(200, {
           'Content-Type': 'image/png'
         });
+        var stream = fs.createReadStream(config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png");
+        stream.on('open', function() {
+          console.log('stream the file', config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png");
+          stream.pipe(res);
+        });
+        stream.on('error', function(err) {
+          next(err);
+        });
       }
-
-      var stream = fs.createReadStream(config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png");
-      stream.on('open', function() {
-        stream.pipe(res);
-      });
-      stream.on('error', function(err) {
-        next(err);
-      });
     }
   );
 

@@ -48,6 +48,7 @@ function getXRow(cache, xRow, yRange, zoom, xRowDone, downloadTile) {
 exports.createCache = function(cache, minZoom, maxZoom, downloadTile, callback) {
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
     cache = foundCache;
+    cache.status.zoomLevelStatus = cache.status.zoomLevelStatus || [];
 
     var extent = turf.extent(cache.geometry);
 
@@ -109,11 +110,10 @@ exports.createCache = function(cache, minZoom, maxZoom, downloadTile, callback) 
         function (err) {
           console.log("done with all the zoom levels");
           CacheModel.getCacheById(cache.id, function(err, foundCache) {
-            CacheModel.updateFormatCreated(cache, 'xyz', foundCache.totalTileSize, function(err) {
-              CacheModel.updateFormatCreated(cache, 'tms', foundCache.totalTileSize, function(err) {
-                foundCache.status.complete = true;
-                foundCache.save();
-                callback(null, foundCache);
+            CacheModel.updateFormatCreated(foundCache, ['xyz', 'tms'], foundCache.totalTileSize, function(err, cache) {
+              cache.status.complete = true;
+              cache.save(function() {
+                callback(null);
               });
             });
           });

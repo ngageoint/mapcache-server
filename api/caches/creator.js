@@ -28,6 +28,7 @@ function generateCache(cache, format, minZoom, maxZoom) {
 
   CacheModel.getCacheById(cache.id, function(err, foundCache) {
     processor.generateCache(foundCache, minZoom, maxZoom, function(err, status) {
+      if (!status) return process.exit();
       status.cache.status.complete = true;
       CacheModel.updateFormatCreated(status.cache, format, status.file, function(err) {
         process.exit();

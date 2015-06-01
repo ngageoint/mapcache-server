@@ -6,13 +6,13 @@ var CacheModel = require('../../models/cache.js')
 
 function convert2tms(min, max){
   for (i = min; i < max + 1; i++) {
-     var x = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString(), i);
+     var x = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString(), i));
      if (x[0] == '.DS_Store') {
        x.splice(0,1);
      }
 
     for (k = 0; k < x.length; k++){
-      var y = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString(), i, x[k]);
+      var y = fs.readdirSync(path.join(config.server.cacheDirectory.path, cache._id.toString(), i, x[k]));
       if (y[0] == '.DS_Store') {
          y.splice(0,1);
        }
@@ -71,5 +71,6 @@ function downloadTile(tileInfo, tileDone) {
 }
 
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
-  xyzCacheGenerator.createCache(cache, minZoom, maxZoom, downloadTile, callback);
+  callback(null);
+  //xyzCacheGenerator.createCache(cache, minZoom, maxZoom, downloadTile, callback);
 }

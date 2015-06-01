@@ -2,6 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , xyzCacheGenerator = require('../xyzCacheGenerator')
   , fs = require('fs-extra')
   , path = require('path')
+  , downloader = require('../tileDownloader.js')
   , config = require('../../config.json')
   , archiver = require('archiver');
 

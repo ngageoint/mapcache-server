@@ -214,28 +214,31 @@ exports.updateFormatCreated = function(cache, formatName, formatFile, callback) 
 		formatFile = null;
   }
   callback = callback || function(){}
-	cache.formats = cache.formats || {};
+	// cache.formats = cache.formats || {};
+	var formatArray = formatName;
+	if (!Array.isArray(formatName)) {
+		formatArray = [formatName];
+	}
+	var size = 0;
 	if (typeof formatFile === 'string') {
 		fs.stat(formatFile, function(err, stat) {
 			if (err) {
 				return callback(err);
 			}
-			var fileFormat = {
-				size: stat.size
-			};
-			if (!cache.formats) {
-				cache.formats = {};
+			size = stat.size;
+
+			var update = {$set: {}};
+			for (var i = 0; i < formatArray.length; i++) {
+				update.$set['formats.'+formatArray[i]] = {size: size};
 			}
-			cache.formats[formatName] = fileFormat;
-			cache.markModified('formats');
-			cache.save(callback);
+			Cache.findByIdAndUpdate(cache.id, update, callback);
 		});
 	} else {
-		cache.formats[formatName] = {
-			size: typeof formatFile === 'number' ? formatFile : 0
-		};
-		cache.markModified('formats');
-		cache.save(callback);
+		var update = {$set: {}};
+		for (var i = 0; i < formatArray.length; i++) {
+			update.$set['formats.'+formatArray[i]] = {size: typeof formatFile === 'number' ? formatFile : 0};
+		}
+		Cache.findByIdAndUpdate(cache.id, update, callback);
 	}
 }
 
@@ -245,5 +248,7 @@ exports.updateFormatGenerating = function(cache, format, callback) {
 		generating: true
 	};
 	cache.markModified('formats');
-	cache.save(callback);
+	cache.save(function(err) {
+		exports.getCacheById(cache.id, callback);
+	});
 }
