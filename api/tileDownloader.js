@@ -2,6 +2,7 @@ var request = require('request')
 	, fs = require('fs-extra')
 	, CacheModel = require('../models/cache')
 	, wms = require('./sources/wms.js')
+	, mbtiles = require('./sources/mbtiles.js')
  	, config = require('../config.json');
 
 exports.download = function(tileInfo, callback) {
@@ -36,6 +37,10 @@ exports.download = function(tileInfo, callback) {
 					callback(err, tileInfo);
 				})
 				.pipe(stream);
+		} else if (tileInfo.cache.source.format == 'mbtiles') {
+			mbtiles.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.cache.cacheCreationParams, function(err, request) {
+				request.pipe(stream);
+			});
 		}
 	} else {
     console.log('tile already exists ' + url + ' ' + dir + filename);
