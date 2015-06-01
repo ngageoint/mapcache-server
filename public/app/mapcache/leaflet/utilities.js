@@ -91,7 +91,8 @@ function LeafletUtilities(LocalStorageService) {
         return L.tileLayer.wms(layerSource.url, {
           layers: layerSource.previewLayer.Name,
           version: layerSource.wmsGetCapabilities.version,
-          transparent: !layerSource.previewLayer.opaque
+          transparent: !layerSource.previewLayer.opaque,
+          format: layerSource.previewLayer.opaque ? 'image/jpeg' : 'image/png'
         });
       }
     }else if (layerSource.url) {
