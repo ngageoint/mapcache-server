@@ -35,17 +35,18 @@ exports.getData = function(source, callback) {
 }
 
 exports.processSource = function(source, callback) {
-  console.log('running ' + 'mb-util ' + source.filePath + " .");
+  console.log('running ' + 'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
   source.status = "Extracting MBTiles";
-  source.save();
-  callback(null, source);
-  var python = exec(
-    'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles",
-   function(error, stdout, stderr) {
-     source.status = "Complete";
-     source.complete = true;
-     source.save();
-     console.log('done running ' +   'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
-     callback();
+  source.save(function() {
+    var python = exec(
+      'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles",
+     function(error, stdout, stderr) {
+       source.status = "Complete";
+       source.complete = true;
+       source.save(function() {
+         console.log('done running ' +   'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
+         callback();
+       });
+     });
    });
 }
