@@ -77,8 +77,7 @@ exports.getTile = function(source, z, x, y, params, callback) {
   var intersection = turf.intersect(tilePoly, source.geometry);
   if (!intersection){
     console.log("GeoTIFF does not intersect the requested tile");
-    callback();
-    return;
+    return callback();
   }
 
   var out_ds = gdal.open(source.projections["3857"].path);
@@ -89,7 +88,7 @@ exports.getTile = function(source, z, x, y, params, callback) {
 
   if (out_gt[2] != 0 || out_gt[4] != 0) {
     console.log("error the geotiff is skewed, need to warp first");
-    callback();
+    return callback();
   }
 
   // output bounds - coordinates in the output SRS
@@ -139,6 +138,10 @@ exports.getTile = function(source, z, x, y, params, callback) {
   var pixelRegion1 = out_ds.bands.get(1).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
   var pixelRegion2 = out_ds.bands.get(2).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
   var pixelRegion3 = out_ds.bands.get(3).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
+
+  if (!pixelRegion1) {
+    return callback();
+  }
 
   var img = new png.PNG({
       width: options.buffer_width,

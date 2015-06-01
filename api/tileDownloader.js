@@ -3,6 +3,7 @@ var request = require('request')
 	, CacheModel = require('../models/cache')
 	, wms = require('./sources/wms.js')
 	, mbtiles = require('./sources/mbtiles.js')
+	, geotiff = require('./sources/geotiff.js')
  	, config = require('../config.json');
 
 exports.download = function(tileInfo, callback) {
@@ -39,6 +40,13 @@ exports.download = function(tileInfo, callback) {
 				.pipe(stream);
 		} else if (tileInfo.cache.source.format == 'mbtiles') {
 			mbtiles.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.cache.cacheCreationParams, function(err, request) {
+				request.pipe(stream);
+			});
+		} else if (tileInfo.cache.source.format == 'geotiff') {
+			geotiff.getTile(tileInfo.cache.source, tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.cache.cacheCreationParams, function(err, request) {
+				if(!request) {
+					return callback(null, tileInfo);
+				}
 				request.pipe(stream);
 			});
 		}
