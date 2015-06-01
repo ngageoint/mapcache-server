@@ -81,7 +81,7 @@ function LeafletUtilities(LocalStorageService) {
     } else if (typeof layerSource == "string") {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}.png", layerOptions);
     } else if (layerSource.mapcacheUrl) {
-      var url = layerSource.url + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
       if (layerSource.previewLayer) {
         url += '&layer=' + source.previewLayer.Name;
       }
