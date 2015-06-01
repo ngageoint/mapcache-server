@@ -83,7 +83,7 @@ function LeafletUtilities(LocalStorageService) {
     } else if (layerSource.mapcacheUrl) {
       var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
       if (layerSource.previewLayer) {
-        url += '&layer=' + source.previewLayer.Name;
+        url += '&layer=' + layerSource.previewLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
     } else if (layerSource.format == 'wms') {
