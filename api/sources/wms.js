@@ -12,7 +12,7 @@ exports.process = function(source, callback) {
 
 exports.getTile = function(source, z, x, y, params, callback) {
   if (!params.layer) {
-    callback(null);
+    return callback(null);
   }
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
