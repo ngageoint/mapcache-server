@@ -28,33 +28,13 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     worldCopyJump: true
   });
   map.addControl(new L.Control.ZoomIndicator());
+  var loadingControl = L.Control.loading({
+    separate: true
+  });
+  map.addControl(loadingControl);
 
-
- var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
- baseLayer.addTo(map);
-
-  function createRasterLayer(layerInfo) {
-    var baseLayer = null;
-    var options = {};
-    if (layerInfo.format == 'XYZ' || layerInfo.format == 'TMS') {
-      options = { tms: layerInfo.format == 'TMS', maxZoom: 18}
-      layerInfo.layer = new L.TileLayer(layerInfo.url, options);
-    } else if (layerInfo.format == 'WMS') {
-      options = {
-        layers: layerInfo.wms.layers,
-        version: layerInfo.wms.version,
-        format: layerInfo.wms.format,
-        transparent: layerInfo.wms.transparent
-      };
-
-      if (layerInfo.wms.styles) options.styles = layerInfo.wms.styles;
-      layerInfo.layer = new L.TileLayer.WMS(layerInfo.url, options);
-    }
-
-    layerControl.addBaseLayer(layerInfo.layer, layerInfo.name);
-
-    if (layerInfo.options && layerInfo.options.selected) layerInfo.layer.addTo(map);
-  }
+  var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
+  baseLayer.addTo(map);
 
   $scope.$watch('caches', function(caches) {
     if (!caches) return;
@@ -130,20 +110,21 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
       });
       if (!cache.data) {
         console.log('go get the data');
+        map.fireEvent('dataloading');
         CacheService.getCacheData(cache, 'geojson', function(data) {
           console.log('data is', data);
-          // $scope.cache.data = data;
-          // $scope.options.extent = turf.extent(data);
           gj.addData(data);
           gj.setStyle(function (feature) {
             return LeafletUtilities.styleFunction(feature, cache.style);
           });
+          map.fireEvent('dataload');
         });
       }
+      baseLayer.setOpacity(.5);
       layers[cache.id] = gj;
       gj.addTo(map);
     } else {
-      baseLayer.setOpacity(.3);
+      baseLayer.setOpacity(.5);
       var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
       layers[cache.id] = layer;
       layer.addTo(map);
@@ -151,10 +132,15 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   }
 
   function removeCacheTiles(cache) {
-    baseLayer.setOpacity(1);
+    console.log('layers', layers);
     var layer = layers[cache.id];
     if (layer) {
       map.removeLayer(layer);
+      delete layers[cache.id];
+    }
+    console.log('new layers', layers);
+    if (Object.keys(layers).length == 0) {
+      baseLayer.setOpacity(1);
     }
   }
 }

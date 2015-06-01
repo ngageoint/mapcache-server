@@ -28,12 +28,12 @@
       <div class="row">
         <div class="col-md-12">
           <div class="cache-name"><a href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span ng-if="!cache.status.complete">Currently Generating</span>
-            <button class="btn btn-link btn-sm" ng-click="cache.showingDetails = !cache.showingDetails"><span ng-show="cache.showingDetails">hide map details</span><span ng-show="!cache.showingDetails">view map details</span></button>
-            <button class="btn btn-link btn-sm" ng-click="toggleCacheTiles(cache)"><span ng-show="cache.showingTiles">hide map</span><span ng-show="!cache.showingTiles">show map</span></button>
+            <button class="btn btn-link btn-sm" ng-click="view.showingDetails[cache.id] = !view.showingDetails[cache.id]"><span ng-show="view.showingDetails[cache.id]">hide map details</span><span ng-show="!view.showingDetails[cache.id]">view map details</span></button>
+            <button class="btn btn-link btn-sm" ng-click="toggleCacheTiles(cache)"><span ng-show="view.showingTiles[cache.id]"><i ng-show="view.loadingData[cache.id]" class="fa fa-spinner fa-pulse">loading</i>hide map</span><span ng-show="!view.showingTiles[cache.id]">show map</span></button>
           </div>
         </div>
       </div>
-      <div class="row top-gap-s" ng-show="cache.showingDetails && cache.status.complete">
+      <div class="row top-gap-s" ng-show="view.showingDetails[cache.id] && cache.status.complete">
         <div class="col-md-12">
           <dl class="dl-horizontal">
             <dt>Zoom Levels</dt>
@@ -86,7 +86,7 @@
           </div>
         </div>
       </div>
-      <div class="row cache-types-row" ng-show="!cache.status.complete && cache.showingDetails">
+      <div class="row cache-types-row" ng-show="!cache.status.complete && view.showingDetails[cache.id]">
         <div class="col-md-12" ng-init="zoomRows = sortedZooms(cache)">
           <div class="row" ng-repeat="zoomRow in zoomRows">
             <div class="col-md-4" ng-repeat="zoom in zoomRow">

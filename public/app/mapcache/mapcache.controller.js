@@ -15,6 +15,7 @@ MapcacheController.$inject = [
 function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
 
   $scope.token = LocalStorageService.getToken();
+  $scope.view = {showingTiles: {}, showingDetails: {}};
 
   function getCaches() {
     console.log("pull the caches");
@@ -73,11 +74,11 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   }
 
   $scope.toggleCacheTiles = function(cache) {
-    if (cache.showingTiles) {
-      cache.showingTiles = false;
+    if ($scope.view.showingTiles[cache.id]) {
+      $scope.view.showingTiles[cache.id] = false;
       $rootScope.$broadcast('hideCacheTiles', cache);
     } else {
-      cache.showingTiles = true;
+      $scope.view.showingTiles[cache.id] = true;
       $rootScope.$broadcast('showCacheTiles', cache);
     }
   }
