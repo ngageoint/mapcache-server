@@ -101,7 +101,7 @@
           <div class="col-md-6">
             <ui-select ng-model="newRule.property" theme="bootstrap">
               <ui-select-match placeholder="Select a property to style">When the '{{$select.selected.key}}' property equals </ui-select-match>
-              <ui-select-choices repeat="property in featureProperties | filter: $select.search">
+              <ui-select-choices repeat="property in source.properties | filter: $select.search">
                 <div ng-bind-html="property.key | highlight: $select.search"></div>
               </ui-select-choices>
             </ui-select>

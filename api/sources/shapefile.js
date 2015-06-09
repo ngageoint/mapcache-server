@@ -379,7 +379,18 @@ exports.processSource = function(source, callback) {
             source.properties.push(allProperties[property]);
           }
 
-
+          source.style = {
+            defaultStyle: {
+              style: {
+                'fill': "#000000",
+                'fill-opacity': 0.5,
+                'stroke': "#0000FF",
+                'stroke-opacity': 1.0,
+                'stroke-width': 1
+              }
+            },
+            styles: []
+          };
           source.save(function(err) {
 
             var tileIndex = geojsonvt(gjData);
