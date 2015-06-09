@@ -73,16 +73,15 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.cache.useCurrentView = Date.now();
   }
 
-  // direction and value are working around something which is causing angular to fire this before the model changes
   $scope.manualEntry = function() {
     console.log('manual entry', $scope.bb);
-    if (isNaN($scope.bb.north) || !$scope.bb.north
-    || isNaN($scope.bb.south) || !$scope.bb.south
-    || isNaN($scope.bb.west) || !$scope.bb.west
-    || isNaN($scope.bb.east) || !$scope.bb.east) {
+    if (isNaN($scope.bb.north) || !$scope.bb.north || $scope.bb.north.toString().endsWith('.')
+    || isNaN($scope.bb.south) || !$scope.bb.south || $scope.bb.south.toString().endsWith('.')
+    || isNaN($scope.bb.west) || !$scope.bb.west || $scope.bb.west.toString().endsWith('.')
+    || isNaN($scope.bb.east) || !$scope.bb.east || $scope.bb.east.toString().endsWith('.')) {
       boundsSet = false;
       $scope.$broadcast('extentChanged', null);
-      return;
+      return true;
     }
     boundsSet = true;
     console.log("all directions are set");
