@@ -73,7 +73,7 @@
       <div class="col-md-6">
         <ui-select ng-model="source.style.title" theme="bootstrap">
           <ui-select-match placeholder="Title property" allow-clear>Title property: {{$select.selected.key}}</ui-select-match>
-          <ui-select-choices repeat="property.key as property in featureProperties | filter: $select.search">
+          <ui-select-choices repeat="property.key as property in source.properties | filter: $select.search">
             <div ng-bind-html="property.key | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
@@ -81,7 +81,7 @@
       <div class="col-md-6">
         <ui-select ng-model="source.style.description" theme="bootstrap">
           <ui-select-match placeholder="Description property" allow-clear>Description property: {{$select.selected.key}}</ui-select-match>
-          <ui-select-choices repeat="property.key as property in featureProperties | filter: $select.search">
+          <ui-select-choices repeat="property.key as property in source.properties | filter: $select.search">
             <div ng-bind-html="property.key | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>

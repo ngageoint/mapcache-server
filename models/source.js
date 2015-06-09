@@ -20,6 +20,7 @@ var SourceSchema = new Schema({
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,
 	projections: Schema.Types.Mixed,
+  properties: Schema.Types.Mixed,
   status: {
     message: { type: String, required: false},
 		complete: {type: Boolean, required: true, default: false},

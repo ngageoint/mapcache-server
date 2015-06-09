@@ -217,6 +217,34 @@
         </div>
       </div>
     </div>
+    <div ng-switch-when="shapefile" ng-init="source.format = 'kmz'">
+      <div class="row top-gap">
+        <div class="col-md-12">
+          <p class="lead">Upload a KMZ</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <form
+            type="detail"
+            enctype="multipart/form-data"
+            file-upload url="/nowhere"
+            allow-upload="source.go"
+            preview="false"
+            upload-file-form-name="'sourceFile'">
+          </form>
+        </div>
+      </div>
+      <div class="row top-gap">
+        <div class="col-md-6">
+          <div class="progress" ng-if="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
+              <span>{{progress | number: 2}}% Complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div ng-switch-when="geojson" ng-init="source.format = 'geojson'">
       <div class="row top-gap">
         <div class="col-md-12">

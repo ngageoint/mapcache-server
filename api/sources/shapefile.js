@@ -364,6 +364,22 @@ exports.processSource = function(source, callback) {
         var gjData = JSON.parse(fileData);
           var geometry = turf.envelope(gjData);
           source.geometry = geometry;
+          source.properties = [];
+          var allProperties = {};
+          for (var i = 0; i < gjData.features.length; i++) {
+            var feature = gjData.features[i];
+            for (var property in feature.properties) {
+              allProperties[property] = allProperties[property] || {key: property, values:[]};
+              if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
+                allProperties[property].values.push(feature.properties[property]);
+              }
+            }
+          }
+          for (var property in allProperties) {
+            source.properties.push(allProperties[property]);
+          }
+
+
           source.save(function(err) {
 
             var tileIndex = geojsonvt(gjData);
@@ -381,7 +397,7 @@ exports.processSource = function(source, callback) {
             }, function(source, continueCallback) {
               continueCallback(null, true);
             }, function(source, zoom, zoomDoneCallback) {
-              source.status.message="Processing " + (zoom/12*100) + "% complete";
+              source.status.message="Processing " + (zoom/6*100) + "% complete";
               source.save(function() {
                 zoomDoneCallback();
               });

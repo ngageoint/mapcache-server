@@ -101,23 +101,6 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
         if (source.vector) {
           $scope.mapOptions.opacity = 1;
           $scope.source.style = $scope.source.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
-          // SourceService.getSourceData(source, function(data) {
-          //   var allProperties = {};
-          //   for (var i = 0; i < data.features.length; i++) {
-          //     var feature = data.features[i];
-          //     for (var property in feature.properties) {
-          //       allProperties[property] = allProperties[property] || {key: property, values:[]};
-          //       if (_.indexOf(allProperties[property].values, feature.properties[property]) == -1) {
-          //         allProperties[property].values.push(feature.properties[property]);
-          //       }
-          //     }
-          //   }
-          //   for (var property in allProperties) {
-          //     $scope.featureProperties.push(allProperties[property]);
-          //   }
-          //   $scope.source.extent = turf.extent(data);
-          //   $scope.source.data = data;
-          // });
         }
       }
     }, function(data) {
