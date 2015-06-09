@@ -121,44 +121,81 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
       }
     });
   } else {
-    callback(null);
-    // exports.getData(source, 'geojson', function(err, data) {
-    //   var gj = "";
-    //   if (data && data.stream) {
-    //     data.stream.on('data', function(chunk) {
-    //       gj = gj + chunk;
-    //     });
-    //
-    //     data.stream.on('end', function(chunk) {
-    //       var gjData = JSON.parse(gj);
-    //       var tileIndex = geojsonvt(gjData,{
-    //       	debug: true
-    //       });
-    //       var tile = tileIndex.getTile(z, x, y);
-    //       console.log('tile', tile);
-    //       callback(null);
-    //     });
-    //   } else if (data && data.file) {
-    //     fs.readFile(data.file, function(err, fileData) {
-    //       var gjData = JSON.parse(fileData);
-    //
-    //       var tileIndex = geojsonvt(gjData,{
-    //       	debug: 2,
-    //         indexMaxZoom: 0,
-    //         maxZoom: 18
-    //       });
-    //       var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-    //       if (tile) {
-    //         writeTile(tile, source, z, x, y, function() {
-    //           return exports.getTile(source, format, z, x, y, params, callback);
-    //         });
-    //       } else {
-    //         callback(null);
-    //       }
-    //     });
-    //   }
-    //
-    // });
+    var parentFile = undefined;
+    var foundParent = false;
+    var parentZoom = Number(z) - 1;
+    var parentX = Math.floor(x / 2);
+    var parentY = Math.floor(y / 2);
+    while(!foundParent && parentZoom >= 0) {
+      parentFile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', parentZoom.toString(),  parentX.toString(),  parentY.toString()+'.json');
+      if (fs.existsSync(parentFile)) {
+        foundParent = true;
+      } else {
+        parentZoom = Number(parentZoom) - 1;
+        parentX = Math.floor(parentX / 2);
+        parentY = Math.floor(parentY / 2);
+      }
+    }
+    if (foundParent) {
+      fs.readFile(parentFile, function(err, fileData) {
+        var gjData = JSON.parse(fileData);
+
+        var tileIndex = geojsonvt({},{
+          debug: 2,
+          indexMaxZoom: 0,
+          maxZoom: 18
+        });
+        tileIndex.tiles[(((1 << parentZoom) * parentY + parentX) * 32) + parentZoom] = gjData;
+        var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
+        if (tile) {
+          writeTile(tile, source, z, x, y, function() {
+            return exports.getTile(source, format, z, x, y, params, callback);
+          });
+        } else {
+          callback(null);
+        }
+      });
+    } else {
+
+      exports.getData(source, 'geojson', function(err, data) {
+        var gj = "";
+        if (data && data.stream) {
+          data.stream.on('data', function(chunk) {
+            gj = gj + chunk;
+          });
+
+          data.stream.on('end', function(chunk) {
+            var gjData = JSON.parse(gj);
+
+            var tileIndex = geojsonvt(gjData,{
+            	debug: true
+            });
+            var tile = tileIndex.getTile(z, x, y);
+            console.log('tile', tile);
+            callback(null);
+          });
+        } else if (data && data.file) {
+          fs.readFile(data.file, function(err, fileData) {
+            var gjData = JSON.parse(fileData);
+
+            var tileIndex = geojsonvt(gjData,{
+            	debug: 2,
+              indexMaxZoom: 0,
+              maxZoom: 18
+            });
+            var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
+            if (tile) {
+              writeTile(tile, source, z, x, y, function() {
+                return exports.getTile(source, format, z, x, y, params, callback);
+              });
+            } else {
+              callback(null);
+            }
+          });
+        }
+
+      });
+    }
   }
 }
 
@@ -254,9 +291,7 @@ function createImage(tile, source, callback) {
               else ctx.moveTo(p[0] * ratio + pad, p[1] * ratio + pad);
           }
       }
-      console.log('source', source);
       var styles = styleFunction(feature, source.style);
-      console.log('styles', styles);
       if (styles) {
         var rgbFill = hexToRgb(styles.fillColor);
         ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
@@ -271,7 +306,6 @@ function createImage(tile, source, callback) {
 }
 
 function writeTile(tile, source, z, x, y, callback) {
-  // console.log('writing to the file', JSON.stringify(tile));
   var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
   var file = path.join(dir, y.toString()+'.json');
 
@@ -314,7 +348,6 @@ exports.processSource = function(source, callback) {
   source.status.message = "Parsing shapefile";
   source.vector = true;
   source.save(function(err) {
-    console.log('source', source);
     var stream = fs.createReadStream(source.filePath);
 
     var dir = path.join(config.server.sourceDirectory.path, source.id);

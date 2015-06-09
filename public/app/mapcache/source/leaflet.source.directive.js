@@ -88,6 +88,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
       defaultLayer = newOptions.baseLayerUrl;
       baseLayer = L.tileLayer(defaultLayer, newOptions);
       baseLayer.addTo(map);
+      baseLayer.bringToBack();
     }
   });
 
