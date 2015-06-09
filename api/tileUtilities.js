@@ -110,7 +110,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 
 			var tileIndex = geojsonvt(gjData);
 
-			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
+			xyzTileWorker.createXYZTiles(source, 0, 0, function(tileInfo, tileDone) {
 				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
 				var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
 				if (tile) {
@@ -123,7 +123,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 			}, function(source, continueCallback) {
 				continueCallback(null, true);
 			}, function(source, zoom, zoomDoneCallback) {
-				source.status.message="Processing " + (zoom/6*100) + "% complete";
+				source.status.message="Processing " + (1*100) + "% complete";
 				source.save(function() {
 					zoomDoneCallback();
 				});
