@@ -148,7 +148,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
         tileIndex.tiles[(((1 << parentZoom) * parentY + parentX) * 32) + parentZoom] = gjData;
         var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
         if (tile) {
-          writeTile(tile, source, z, x, y, function() {
+          tileUtilities.writeVectorTile(tile, source, z, x, y, function() {
             return exports.getTile(source, format, z, x, y, params, callback);
           });
         } else {
@@ -185,7 +185,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
             });
             var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
             if (tile) {
-              writeTile(tile, source, z, x, y, function() {
+              tileUtilities.writeVectorTile(tile, source, z, x, y, function() {
                 return exports.getTile(source, format, z, x, y, params, callback);
               });
             } else {
@@ -305,28 +305,6 @@ function createImage(tile, source, callback) {
   callback(null, canvas.pngStream());
 }
 
-function writeTile(tile, source, z, x, y, callback) {
-  var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
-  var file = path.join(dir, y.toString()+'.json');
-
-  if (!fs.existsSync(file)) {
-    fs.mkdirsSync(dir, function(err){
-       if (err) console.log(err);
-     });
-    var outStream = fs.createWriteStream(file);
-    outStream.on('finish',function(status){
-      console.log('wrote the file');
-      callback(null);
-    });
-    var s = new Readable();
-    s.push(JSON.stringify(tile));
-    s.push(null);
-    s.pipe(outStream);
-  } else {
-    callback(null);
-  }
-}
-
 exports.getData = function(source, format, callback) {
 
   var dir = path.join(config.server.sourceDirectory.path, source.id);
@@ -358,69 +336,7 @@ exports.processSource = function(source, callback) {
 
   		var outStream = fs.createWriteStream(file);
       outStream.on('close',function(status){
-        source.status.message = "Generating metadata tiles";
-        console.log('wrote the file');
-        fs.readFile(file, function(err, fileData) {
-        var gjData = JSON.parse(fileData);
-          var geometry = turf.envelope(gjData);
-          source.geometry = geometry;
-          source.properties = [];
-          var allProperties = {};
-          for (var i = 0; i < gjData.features.length; i++) {
-            var feature = gjData.features[i];
-            for (var property in feature.properties) {
-              allProperties[property] = allProperties[property] || {key: property, values:[]};
-              if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
-                allProperties[property].values.push(feature.properties[property]);
-              }
-            }
-          }
-          for (var property in allProperties) {
-            source.properties.push(allProperties[property]);
-          }
-
-          source.style = {
-            defaultStyle: {
-              style: {
-                'fill': "#000000",
-                'fill-opacity': 0.5,
-                'stroke': "#0000FF",
-                'stroke-opacity': 1.0,
-                'stroke-width': 1
-              }
-            },
-            styles: []
-          };
-          source.save(function(err) {
-
-            var tileIndex = geojsonvt(gjData);
-
-            xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
-              console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
-              var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
-              if (tile) {
-                writeTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
-                  return tileDone();
-                });
-              } else {
-                return tileDone();
-              }
-            }, function(source, continueCallback) {
-              continueCallback(null, true);
-            }, function(source, zoom, zoomDoneCallback) {
-              source.status.message="Processing " + (zoom/6*100) + "% complete";
-              source.save(function() {
-                zoomDoneCallback();
-              });
-            }, function(err, cache) {
-              source.status.complete = true;
-              source.status.message = "Complete";
-              source.save(function() {
-                callback(null, source);
-              });
-            });
-          });
-    		});
+        tileUtilities.generateMetadataTiles(source, file, callback);
       });
       shp2json(stream).pipe(outStream);
     }

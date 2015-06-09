@@ -1,6 +1,11 @@
 var request = require('request')
 	, fs = require('fs-extra')
+	, turf = require('turf')
+	, xyzTileWorker = require('./xyzTileWorker')
+	, geojsonvt = require('geojson-vt')
+	, path = require('path')
 	, CacheModel = require('../models/cache')
+	, Readable = require('stream').Readable
  	, config = require('../config.json');
 
 Math.radians = function(degrees) {
@@ -65,4 +70,92 @@ exports.getX = function(lon, zoom) {
 exports.getY = function(lat, zoom) {
 	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
 	return ytile;
+}
+
+exports.generateMetadataTiles = function(source, file, callback) {
+	source.status.message = "Generating metadata tiles";
+	console.log('wrote the file');
+	fs.readFile(file, function(err, fileData) {
+	var gjData = JSON.parse(fileData);
+		var geometry = turf.envelope(gjData);
+		source.geometry = geometry;
+		source.properties = [];
+		var allProperties = {};
+		for (var i = 0; i < gjData.features.length; i++) {
+			var feature = gjData.features[i];
+			for (var property in feature.properties) {
+				allProperties[property] = allProperties[property] || {key: property, values:[]};
+				if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
+					allProperties[property].values.push(feature.properties[property]);
+				}
+			}
+		}
+		for (var property in allProperties) {
+			source.properties.push(allProperties[property]);
+		}
+
+		source.style = {
+			defaultStyle: {
+				style: {
+					'fill': "#000000",
+					'fill-opacity': 0.5,
+					'stroke': "#0000FF",
+					'stroke-opacity': 1.0,
+					'stroke-width': 1
+				}
+			},
+			styles: []
+		};
+		source.save(function(err) {
+
+			var tileIndex = geojsonvt(gjData);
+
+			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
+				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
+				var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
+				if (tile) {
+					exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+						return tileDone();
+					});
+				} else {
+					return tileDone();
+				}
+			}, function(source, continueCallback) {
+				continueCallback(null, true);
+			}, function(source, zoom, zoomDoneCallback) {
+				source.status.message="Processing " + (zoom/6*100) + "% complete";
+				source.save(function() {
+					zoomDoneCallback();
+				});
+			}, function(err, cache) {
+				source.status.complete = true;
+				source.status.message = "Complete";
+				source.save(function() {
+					callback(null, source);
+				});
+			});
+		});
+	});
+}
+
+exports.writeVectorTile = function(tile, source, z, x, y, callback) {
+  var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
+  var file = path.join(dir, y.toString()+'.json');
+
+  if (!fs.existsSync(file)) {
+    fs.mkdirsSync(dir, function(err){
+       if (err) console.log(err);
+     });
+    var outStream = fs.createWriteStream(file);
+    outStream.on('finish',function(status){
+      console.log('wrote the file');
+      callback(null);
+    });
+    var s = new Readable();
+    s.push(JSON.stringify(tile));
+    s.push(null);
+    s.pipe(outStream);
+  } else {
+    callback(null);
+  }
 }
