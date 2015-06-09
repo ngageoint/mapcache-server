@@ -9,7 +9,7 @@ exports.process = function(source, callback) {
   child.send({operation:'process', sourceId: source.id});
 }
 
-exports.getTile = function(source, z, x, y, params, callback) {
+exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
   var tile = config.server.sourceDirectory.path + "/" + source._id + "/tiles/" + z + '/' + x + '/' + y + '.png';

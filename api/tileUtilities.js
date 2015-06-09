@@ -37,8 +37,8 @@ exports.tileBboxCalculator = function(x, y, z) {
 
 exports.xCalculator = function(bbox,z) {
 	var x = [];
-	var x1 = getX(Number(bbox[0]), z);
-	var x2 = getX(Number(bbox[2]), z);
+	var x1 = exports.getX(Number(bbox[0]), z);
+	var x2 = exports.getX(Number(bbox[2]), z);
 	x.max = Math.max(x1, x2);
 	x.min = Math.min(x1, x2);
 	if (z == 0){
@@ -49,20 +49,20 @@ exports.xCalculator = function(bbox,z) {
 
 exports.yCalculator = function(bbox,z) {
 	var y = [];
-	var y1 = getY(Number(bbox[1]), z);
-	var y2 = getY(Number(bbox[3]), z);
+	var y1 = exports.getY(Number(bbox[1]), z);
+	var y2 = exports.getY(Number(bbox[3]), z);
 	y.max = Math.max(y1, y2);
 	y.min = Math.min(y1, y2);
 	y.current = Math.min(y1, y2);
 	return y;
 }
 
-function getX(lon, zoom) {
+exports.getX = function(lon, zoom) {
 	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
 	return xtile;
 }
 
-function getY(lat, zoom) {
+exports.getY = function(lat, zoom) {
 	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
 	return ytile;
 }

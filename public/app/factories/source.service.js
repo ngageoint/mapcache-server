@@ -15,7 +15,9 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
     deleteSource: deleteSource,
     createSource: createSource,
     saveSource: saveSource,
-    getSourceData: getSourceData
+    getSourceVectorTile: getSourceVectorTile,
+    getSourceData: getSourceData,
+    getFeatures: getFeatures
   };
 
   return service;
@@ -61,6 +63,19 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
       });
   }
 
+  function getSourceVectorTile(source, z, x, y, success, error) {
+    $http.get('/api/sources/'+source.id+'/' + z + '/' + x + '/' + y + '.png')
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
+
   function deleteSource(source, format, success) {
     var url = '/api/sources/' + source.id;
     if (format) {
@@ -77,16 +92,35 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
   }
 
   function saveSource(source, success, error) {
+    var newSource = {};
+    for (var key in source) {
+      if (source.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' ) {
+        newSource[key] = source[key];
+      }
+    }
     $http.put(
-      '/api/sources/'+source.id,
-      source,
+      '/api/sources/'+newSource.id,
+      newSource,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(source) {
-      console.log("updated a source", source);
+    ).success(function(newSource) {
+      console.log("updated a source", newSource);
       if (success) {
-        success(source);
+        success(newSource);
       }
     }).error(error);
+  }
+
+  function getFeatures(source, west, south, east, north, zoom, success, error) {
+    $http.get('/api/sources/'+source.id+'/features?west='+ west + '&south=' + south + '&east=' + east + '&north=' + north + '&zoom=' + zoom)
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
   }
 
   function createSource(source, success, error, progress) {
@@ -95,7 +129,7 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
         var formData = new FormData();
         formData.append('sourceFile', source.sourceFile);
         for (var key in source) {
-          if (source.hasOwnProperty(key) && key != 'sourceFile' ) {
+          if (source.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' ) {
             formData.append(key, source[key]);
           }
         }

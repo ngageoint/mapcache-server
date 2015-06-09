@@ -2,9 +2,9 @@ angular
   .module('mapcache')
   .factory('LeafletUtilities', LeafletUtilities);
 
-LeafletUtilities.$inject = ['LocalStorageService'];
+LeafletUtilities.$inject = ['LocalStorageService', 'SourceService'];
 
-function LeafletUtilities(LocalStorageService) {
+function LeafletUtilities(LocalStorageService, SourceService) {
 
   return {
     styleFunction: styleFunction,
@@ -40,7 +40,7 @@ function LeafletUtilities(LocalStorageService) {
 
     return {
       color: defaultStyle.style['stroke'],
-      fillOpacity: defaultStyle.style['fill-opacity'],
+      fillOpacity: 0,//defaultStyle.style['fill-opacity'],
       opacity: defaultStyle.style['stroke-opacity'],
       weight: defaultStyle.style['stroke-width'],
       fillColor: defaultStyle.style['fill']
@@ -49,6 +49,15 @@ function LeafletUtilities(LocalStorageService) {
 
   function pointToLayer(feature, latlng) {
     return L.circleMarker(latlng, {radius: 3});
+  }
+
+  function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
   }
 
   function popupFunction(feature, layer, style) {
@@ -69,15 +78,61 @@ function LeafletUtilities(LocalStorageService) {
     if (layerSource == null) {
       return L.tileLayer(defaultLayer, layerOptions);
     } else if (layerSource.vector) {
-      if (!layerSource.data) return;
-      var gj = L.geoJson(layerSource.data, {
-        style: styleFunction,
-        pointToLayer: pointToLayer,
-        onEachFeature: function(feature, layer) {
-          popupFunction(feature, layer, style);
+
+      // var canvasLayer = L.tileLayer.canvas({async: true});
+      // canvasLayer.drawTile = function(canvas, tilePoint, zoom) {
+      //   var ctx = canvas.getContext('2d');
+      //   SourceService.getSourceVectorTile(layerSource, zoom, tilePoint.x, tilePoint.y, function(data, status) {
+      //     console.log('data', data);
+      //     var features = data.features;
+      //     for (var i = 0; i < features.length; i++) {
+      //       var feature = features[i], typeChanged = type !== feature.type,
+      //         type = feature.type;
+      //       ctx.beginPath();
+      //       for (var j = 0; j < feature.geometry.length; j++) {
+      //         var ring = feature.geometry[j];
+      //         for (var k = 0; k < ring.length; k++) {
+      //           var p = ring[k];
+      //           if (k) ctx.lineTo(p[0] / 16.0, p[1] / 16.0);
+      //           else ctx.moveTo(p[0] / 16.0, p[1] / 16.0);
+      //         }
+      //       }
+      //       var styles = styleFunction(feature);
+      //       var rgbFill = hexToRgb(styles.fillColor);
+      //       ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+      //       ctx.lineWidth = styles.weight;
+      //       var rgbStroke = hexToRgb(styles.color);
+      //       ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+      //
+      //       if (type === 3) ctx.fill('evenodd');
+      //       ctx.stroke();
+      //
+      //       /*
+      //
+      //       */
+      //     }
+      //     canvasLayer.tileDrawn(canvas);
+      //   });
+      // };
+      // return canvasLayer;
+
+      // if (!layerSource.data) {
+        var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+Date.now();
+        if (layerSource.previewLayer) {
+          url += '&layer=' + layerSource.previewLayer.Name;
         }
-      });
-      return gj;
+        var layer = L.tileLayer(url, layerOptions);
+        return layer;
+      // } else {
+      //   var gj = L.geoJson(layerSource.data, {
+      //     style: styleFunction,
+      //     pointToLayer: pointToLayer,
+      //     onEachFeature: function(feature, layer) {
+      //       popupFunction(feature, layer, style);
+      //     }
+      //   });
+      //   return gj;
+      // }
     } else if (typeof layerSource == "string") {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}.png", layerOptions);
     } else if (layerSource.mapcacheUrl) {

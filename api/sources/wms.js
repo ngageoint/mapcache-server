@@ -10,7 +10,7 @@ exports.process = function(source, callback) {
   child.send({operation:'process', sourceId: source.id});
 }
 
-exports.getTile = function(source, z, x, y, params, callback) {
+exports.getTile = function(source, format, z, x, y, params, callback) {
   if (!params.layer) {
     return callback(null);
   }

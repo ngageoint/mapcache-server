@@ -3,6 +3,7 @@ var SourceModel = require('../../models/source')
   , request = require('request')
   , fs = require('fs-extra')
   , config = require('../../config.json')
+  , geojsonvt = require('geojsonvt')
   , shp2json = require('shp2json');
 
 exports.process = function(source, callback) {
@@ -11,7 +12,11 @@ exports.process = function(source, callback) {
   child.send({operation:'process', sourceId: source.id});
 }
 
-exports.getTile = function(source, z, x, y, params, callback) {
+exports.getTile = function(source, format, z, x, y, params, callback) {
+
+  // request a particular tile
+  var tile = tileIndex.getTile(z, x, y);
+  console.log('tile', tile);
   callback(null);
 }
 

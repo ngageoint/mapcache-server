@@ -32,12 +32,46 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   var defaultLayer = null;
 
   var map = L.map($element[0], {
-    center: [45,0],
-    zoom: 3,
+    center: [45,-100],
+    zoom: 4,
     minZoom: 0,
     maxZoom: 18
   });
   map.addControl(new L.Control.ZoomIndicator());
+  map.on('click', function(event) {
+    console.log('click', event);
+    if ($scope.source.style.title || $scope.source.style.description) {
+
+      var pixelPoint = event.layerPoint;
+      pixelPoint.y = pixelPoint.y - 5;
+      pixelPoint.x = pixelPoint.x - 5;
+      var latLngCorner = map.layerPointToLatLng(pixelPoint);
+      var latLngDelta = {
+        lng: event.latlng.lng - latLngCorner.lng,
+        lat: event.latlng.lat - latLngCorner.lat
+      };
+
+      SourceService.getFeatures($scope.source, event.latlng.lng - latLngDelta.lng, event.latlng.lat - latLngDelta.lat, event.latlng.lng + latLngDelta.lng, event.latlng.lat + latLngDelta.lat, map.getZoom(), function(features) {
+        if (!features) return;
+        console.log("found some features", features);
+
+        var title = "";
+        if ($scope.source.style.title && features[0].properties && features[0].properties[$scope.source.style.title]) {
+          title = features[0].properties[$scope.source.style.title];
+        }
+        var description = "";
+        if ($scope.source.style.description && features[0].properties && features[0].properties[$scope.source.style.description]) {
+          description = features[0].properties[$scope.source.style.description];
+        }
+        var popupContent = title + " " + description;
+
+        var popup = L.popup()
+          .setLatLng(event.latlng)
+          .setContent(popupContent)
+          .openOn(map);
+      });
+    }
+  });
 
   $scope.$watch('options', function(options) {
     console.log('options are', options);
@@ -77,36 +111,20 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   });
 
   $scope.$watch('source.previewLayer', function(format, oldFormat) {
+    if (format == oldFormat) return;
     addSourceLayer();
   });
 
   $scope.$watch('source.data', function(data, oldData) {
+    if (data == oldData) return;
     addSourceLayer();
   });
 
-  $scope.$watch('source.style', function(style, oldStyle) {
-    if (!style) return;
-    if (sourceLayer) {
-      sourceLayer.setStyle(styleFunction);
-      if (style.title || style.description) {
-        sourceLayer.eachLayer(function(layer) {
-          var title = "";
-          if (this.title && layer.feature.properties && layer.feature.properties[this.title]) {
-            title = layer.feature.properties[this.title];
-          }
-          var description = "";
-          if (this.description && layer.feature.properties && layer.feature.properties[this.description]) {
-            description = layer.feature.properties[this.description];
-          }
-          layer.bindPopup(title + " " + description);
-        }, style);
-      } else {
-        sourceLayer.eachLayer(function(layer) {
-          layer.unbindPopup();
-        });
-      }
+  $scope.$watch('options.refreshMap', function(refresh, oldRefresh) {
+    if (refresh) {
+      addSourceLayer();
     }
-  }, true);
+  });
 
   $scope.$watch('options.extent', function(extent, oldExtent) {
     if (extent) {
@@ -135,52 +153,16 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   }
 
   function updateMapExtent(extent) {
-    var extent = extent || turf.extent($scope.source.geometry);
-    map.fitBounds([
-      [extent[1],extent[0]],
-      [extent[3], extent[2]]
-    ]);
+    // var extent = extent || turf.extent($scope.source.geometry);
+    // map.fitBounds([
+    //   [extent[1],extent[0]],
+    //   [extent[3], extent[2]]
+    // ]);
   }
 
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.source.style);
   }
-
-  // function getTileLayer(source) {
-  //   console.log('changing source to ', source);
-  //   if (source == null) {
-  //     return L.tileLayer(defaultLayer, sourceLayerOptions);
-  //   } else if (source.vector) {
-  //     if (!source.data) return;
-  //     var gj = L.geoJson(source.data, {
-  //       style: styleFunction,
-  //       pointToLayer: pointToLayer,
-  //       onEachFeature: function(feature, layer) {
-  //         LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
-  //       }
-  //     });
-  //
-  //     return gj;
-  //   } else if (typeof source == "string") {
-  //     return L.tileLayer(source + "/{z}/{x}/{y}.png", sourceLayerOptions);
-  //   } else if (source.id) {
-  //     var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
-  //     if (source.previewLayer) {
-  //       url += '&layer=' + source.previewLayer.Name;
-  //     }
-  //     return L.tileLayer(url, sourceLayerOptions);
-  //   } else if (source.format == "wms") {
-  //     if (source.wmsGetCapabilities && source.previewLayer) {
-  //       return L.tileLayer.wms(source.url, {
-  //         layers: source.previewLayer.Name,
-  //         version: source.wmsGetCapabilities.version,
-  //         transparent: !source.previewLayer.opaque
-  //       });
-  //     }
-  //   } else if (!source.id && source.url) {
-  //     return L.tileLayer(source.url + "/{z}/{x}/{y}.png", sourceLayerOptions);
-  //   }
-  // }
 
   addSourceLayer();
 }

@@ -60,13 +60,40 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
   });
 }
 
+function createDir(cacheName, filepath){
+	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
+    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
+       if (err) console.log(err);
+     });
+	}
+  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
+}
+
 function downloadTile(tileInfo, tileDone) {
-  CacheModel.shouldContinueCaching(tileInfo.cache, function(err, continueCaching) {
-    if (continueCaching) {
-      downloader.download(tileInfo, tileDone);
-    } else {
-      tileDone();
+
+  var dir = createDir(tileInfo.xyzSource._id, tileInfo.z + '/' + tileInfo.x + '/');
+  var filename = (Math.pow(2,tileInfo.z) - tileInfo.y -1) + '.png';
+
+  if (fs.existsSync(dir + filename)) {
+    return tileDone();
+  }
+
+  CacheModel.shouldContinueCaching(tileInfo.xyzSource, function(err, continueCaching) {
+    if (!continueCaching) {
+      return tileDone();
     }
+
+    source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
+
+      var stream = fs.createWriteStream(dir + filename);
+  		stream.on('close',function(status){
+        CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+          tileDone();
+        });
+  		});
+
+			request.pipe(stream);
+		});
   });
 }
 

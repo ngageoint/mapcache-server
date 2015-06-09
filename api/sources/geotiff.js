@@ -69,7 +69,7 @@ exports.getData = function(source, callback) {
   callback(null);
 }
 
-exports.getTile = function(source, z, x, y, params, callback) {
+exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
   var tileEnvelope = tu.tileBboxCalculator(x, y, z);

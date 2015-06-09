@@ -61,6 +61,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
   $scope.saveStyle = function() {
     SourceService.saveSource($scope.source, function(source) {
       console.log('saved successfully', source);
+      $scope.mapOptions.refreshMap = Date.now();
     }, function(error) {
       console.log('error saving source', error);
     });

@@ -157,7 +157,7 @@ exports.createCache = function(cache, callback) {
 	});
 }
 
-exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
+exports.updateZoomLevelStatus = function(cache, zoomLevel, callback) {
 	var update = {$set: {}};
 	update.$set['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
 	Cache.findByIdAndUpdate(cache.id, update, callback);

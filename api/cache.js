@@ -7,8 +7,7 @@ var CacheModel = require('../models/cache')
   , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
   , config = require('../config.json')
-  , exec = require('child_process').exec
-  , downloader = require('./tileDownloader');
+  , exec = require('child_process').exec;
 
 function Cache() {
 }

@@ -107,7 +107,7 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/sources/:sourceId/:z/:x/:y.png',
+    '/api/sources/:sourceId/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -117,11 +117,27 @@ module.exports = function(app, auth) {
 
       var source = req.source;
 
-      sourceProcessor.getTile(source, req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
+      sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 
         tileStream.pipe(res);
+      });
+    }
+  );
+
+  app.get(
+    '/api/sources/:sourceId/features',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var source = req.source;
+
+      sourceProcessor.getFeatures(source, req.param('west'), req.param('south'), req.param('east'), req.param('north'), req.param('zoom'), function(err, features) {
+        if (err) return next(err);
+        if (!features) return res.status(200).send();
+        console.log('features', features);
+        res.json(features);
       });
     }
   );

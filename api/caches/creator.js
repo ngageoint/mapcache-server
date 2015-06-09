@@ -24,15 +24,25 @@ process.on('message', function(m) {
 });
 
 function generateCache(cache, format, minZoom, maxZoom) {
-  var processor = require('./' + format);
-
-  CacheModel.getCacheById(cache.id, function(err, foundCache) {
-    processor.generateCache(foundCache, minZoom, maxZoom, function(err, status) {
-      if (!status) return process.exit();
-      status.cache.status.complete = true;
-      CacheModel.updateFormatCreated(status.cache, format, status.file, function(err) {
-        process.exit();
+  // TODO: doing this try catch isn't right and I will throw a 400 error soon
+  var processor = null;
+  try {
+    processor = require('./' + format);
+    CacheModel.getCacheById(cache.id, function(err, foundCache) {
+      processor.generateCache(foundCache, minZoom, maxZoom, function(err, status) {
+        if (!status || !status.cache) return process.exit();
+        status.cache.status.complete = true;
+        status.cache.save(function() {
+          CacheModel.updateFormatCreated(status.cache, format, status.file, function(err) {
+            process.exit();
+          });
+        });
       });
     });
-  });
+  } catch (e) {
+    if (e.code !== 'MODULE_NOT_FOUND') {
+        // Re-throw not "Module not found" errors
+        throw e;
+    }
+  }
 }
