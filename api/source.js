@@ -15,7 +15,11 @@ Source.prototype.create = function(source, callback) {
   SourceModel.createSource(source, function(err, newSource) {
     if (err) return callback(err);
     newSource.complete = false;
-    newSource.status = "Creating";
+    newSource.status = {
+      message: "Creating",
+      complete: false,
+      zoomLevelStatus: {}
+    };
     newSource.save(function(err){
       sourceProcessor.process(newSource, callback);
     });
@@ -23,7 +27,9 @@ Source.prototype.create = function(source, callback) {
 }
 
 Source.prototype.import = function(source, sourceFile, callback) {
+  console.log('import the source', source);
   SourceModel.createSource(source, function(err, newSource) {
+    console.log('created the source', newSource);
     if (err) return callback(err);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
     fs.mkdirp(dir, function(err) {
@@ -37,10 +43,14 @@ Source.prototype.import = function(source, sourceFile, callback) {
         fs.stat(file, function(err, stat) {
           newSource.filePath = file;
           newSource.size = stat.size;
-          newSource.complete = false;
-          newSource.status = "Creating";
-          newSource.save(function(err) {
-            sourceProcessor.process(newSource, callback);
+          newSource.status = {
+            message: "Creating",
+            complete: false,
+            zoomLevelStatus: {}
+          };
+          SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
+            console.log('saved the source', updatedSource);
+            sourceProcessor.process(updatedSource, callback);
           });
         });
       });

@@ -11,17 +11,24 @@ var SourceSchema = new Schema({
 	format: { type: String, required: true},
 	filePath: { type: String, required: false},
 	projection: { type: String, required: false},
-	status: { type: String, required: false},
   size: { type: Number, required: false},
   tileSizeCount: { type: Number, required: false},
   tileSize: { type: Number, required: false},
-	complete: { type: Boolean, required: false},
 	humanReadableId: { type: String, required: false},
   vector: { type: Boolean, required: true, default: false},
   wmsGetCapabilities: Schema.Types.Mixed,
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,
-	projections: Schema.Types.Mixed
+	projections: Schema.Types.Mixed,
+  status: {
+    message: { type: String, required: false},
+		complete: {type: Boolean, required: true, default: false},
+		totalTiles: {type: Number, required: true, default: 0},
+		generatedTiles: {type: Number, required: true, default: 0},
+		totalFeatures: {type: Number, required: true, default: 0},
+		generatedFeatures: {type: Number, required: true, default: 0},
+		zoomLevelStatus: Schema.Types.Mixed
+	},
 });
 
 function transform(source, ret, options) {

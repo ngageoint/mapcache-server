@@ -95,29 +95,29 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
     SourceService.refreshSource($scope.source, function(source) {
       // success
       $scope.source = source;
-      if (!source.complete && $location.path().startsWith('/source')) {
+      if (!source.status.complete && $location.path().startsWith('/source')) {
         $timeout(getSource, 5000);
       } else {
         if (source.vector) {
           $scope.mapOptions.opacity = 1;
           $scope.source.style = $scope.source.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
-          SourceService.getSourceData(source, function(data) {
-            var allProperties = {};
-            for (var i = 0; i < data.features.length; i++) {
-              var feature = data.features[i];
-              for (var property in feature.properties) {
-                allProperties[property] = allProperties[property] || {key: property, values:[]};
-                if (_.indexOf(allProperties[property].values, feature.properties[property]) == -1) {
-                  allProperties[property].values.push(feature.properties[property]);
-                }
-              }
-            }
-            for (var property in allProperties) {
-              $scope.featureProperties.push(allProperties[property]);
-            }
-            $scope.source.extent = turf.extent(data);
-            $scope.source.data = data;
-          });
+          // SourceService.getSourceData(source, function(data) {
+          //   var allProperties = {};
+          //   for (var i = 0; i < data.features.length; i++) {
+          //     var feature = data.features[i];
+          //     for (var property in feature.properties) {
+          //       allProperties[property] = allProperties[property] || {key: property, values:[]};
+          //       if (_.indexOf(allProperties[property].values, feature.properties[property]) == -1) {
+          //         allProperties[property].values.push(feature.properties[property]);
+          //       }
+          //     }
+          //   }
+          //   for (var property in allProperties) {
+          //     $scope.featureProperties.push(allProperties[property]);
+          //   }
+          //   $scope.source.extent = turf.extent(data);
+          //   $scope.source.data = data;
+          // });
         }
       }
     }, function(data) {

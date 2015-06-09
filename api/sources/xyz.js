@@ -35,8 +35,8 @@ exports.getData = function(source, callback) {
 
 exports.processSource = function(source, callback) {
   console.log("xyz");
-  source.status = "Complete";
-  source.complete = true;
+  source.status.message = "Complete";
+  source.status.complete = true;
   source.save(function(err) {
     callback(err);
   });

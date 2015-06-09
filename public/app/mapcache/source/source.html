@@ -4,13 +4,13 @@
       <span class="page-entity-label">Source: <span class="page-entity-title">{{source.name}}</span>
     </div>
   </div>
-  <div class="row" ng-show="!source.complete">
+  <div class="row" ng-show="!source.status.complete">
     <div class="col-md-12">
       <p class="lead">The source is being processed.  The status of the source processing will be updated here.  If you leave this page the source will continue to be processed on the server.</p>
       <p class="source-status">{{source.status}}</p>
     </div>
   </div>
-  <div class="row" ng-show="source.complete">
+  <div class="row" ng-show="source.status.complete">
     <div class="col-md-12">
       <div class="alert alert-success" role="alert">
         <p class="lead">The source {{source.name}} has been set up and is ready to be used to make a cache. <button class="btn btn-default pull-right" ng-click="createCacheFromSource()">Create A Map From This Source</button></p>
@@ -22,7 +22,7 @@
       <span class="page-sub-entity-label">Format: <span class="page-sub-entity-title">{{source.format}}</span>
     </div>
   </div>
-  <div class="row" ng-show="source.format == 'wms' && source.complete">
+  <div class="row" ng-show="source.format == 'wms' && source.status.complete">
     <div class="col-md-12">
       <div class="form-group">
         <label>Available layers on this WMS server.  This is just a preview, you will be able to create a map from any of these layers.</label>
@@ -48,7 +48,7 @@
       <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/sources/{{source.humanReadableId}}/{z}/{x}/{y}.png<span ng-show="source.previewLayer">?layer={{source.previewLayer.Name}}</span>
     </div>
   </div>
-  <div class="row" ng-if="source.complete">
+  <div class="row" ng-if="source.status.complete">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Source <span ng-show="!source.vector">tiles are</span><span ng-show="source.vector">data is</span> shown below. (light grey map is only for geographic reference)</span>
       <div leaflet-source source="source" options="mapOptions"></div>
@@ -56,7 +56,7 @@
   </div>
   <hr>
 
-  <div ng-if="source.vector && source.complete">
+  <div ng-if="source.vector && source.status.complete">
 
     <div class="row bottom-gap" ng-show="source.style">
       <div class="col-md-12">

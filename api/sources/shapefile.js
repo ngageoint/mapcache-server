@@ -4,6 +4,7 @@ var SourceModel = require('../../models/source')
   , Canvas = require('canvas')
   , Image = Canvas.Image
   , turf = require('turf')
+  , xyzTileWorker = require('../xyzTileWorker')
   , tileUtilities = require('../tileUtilities.js')
   , config = require('../../config.json')
   , geojsonvt = require('geojson-vt')
@@ -120,49 +121,49 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
       }
     });
   } else {
-    console.log('no wmsGetCapabilities');
-    exports.getData(source, 'geojson', function(err, data) {
-      var gj = "";
-      if (data && data.stream) {
-        data.stream.on('data', function(chunk) {
-          gj = gj + chunk;
-        });
-
-        data.stream.on('end', function(chunk) {
-          var gjData = JSON.parse(gj);
-          var tileIndex = geojsonvt(gjData,{
-          	debug: true
-          });
-          var tile = tileIndex.getTile(z, x, y);
-          console.log('tile', tile);
-          callback(null);
-        });
-      } else if (data && data.file) {
-        fs.readFile(data.file, function(err, fileData) {
-          var gjData = JSON.parse(fileData);
-
-          var tileIndex = geojsonvt(gjData,{
-          	debug: 2,
-            indexMaxZoom: 0,
-            maxZoom: 18
-          });
-          var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-          if (tile) {
-            writeTile(tile, source, z, x, y, function() {
-              return exports.getTile(source, format, z, x, y, params, callback);
-            });
-          } else {
-            callback(null);
-          }
-        });
-      }
-
-    });
+    callback(null);
+    // exports.getData(source, 'geojson', function(err, data) {
+    //   var gj = "";
+    //   if (data && data.stream) {
+    //     data.stream.on('data', function(chunk) {
+    //       gj = gj + chunk;
+    //     });
+    //
+    //     data.stream.on('end', function(chunk) {
+    //       var gjData = JSON.parse(gj);
+    //       var tileIndex = geojsonvt(gjData,{
+    //       	debug: true
+    //       });
+    //       var tile = tileIndex.getTile(z, x, y);
+    //       console.log('tile', tile);
+    //       callback(null);
+    //     });
+    //   } else if (data && data.file) {
+    //     fs.readFile(data.file, function(err, fileData) {
+    //       var gjData = JSON.parse(fileData);
+    //
+    //       var tileIndex = geojsonvt(gjData,{
+    //       	debug: 2,
+    //         indexMaxZoom: 0,
+    //         maxZoom: 18
+    //       });
+    //       var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
+    //       if (tile) {
+    //         writeTile(tile, source, z, x, y, function() {
+    //           return exports.getTile(source, format, z, x, y, params, callback);
+    //         });
+    //       } else {
+    //         callback(null);
+    //       }
+    //     });
+    //   }
+    //
+    // });
   }
 }
 
 function styleFunction(feature, style) {
-  if (!style) return {};
+  if (!style) return null;
   // console.log('feature', feature);
   if (style.styles) {
     var sorted = style.styles.sort(styleCompare);
@@ -184,7 +185,7 @@ function styleFunction(feature, style) {
   }
   var defaultStyle = style.defaultStyle;
   if (!defaultStyle) {
-    return {};
+    return null;
   }
 
   return {
@@ -255,12 +256,14 @@ function createImage(tile, source, callback) {
       }
       console.log('source', source);
       var styles = styleFunction(feature, source.style);
-      var rgbFill = hexToRgb(styles.fillColor);
-      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
-      ctx.lineWidth = styles.weight;
-      var rgbStroke = hexToRgb(styles.color);
-      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-
+      console.log('styles', styles);
+      if (styles) {
+        var rgbFill = hexToRgb(styles.fillColor);
+        ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+        ctx.lineWidth = styles.weight;
+        var rgbStroke = hexToRgb(styles.color);
+        ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+      }
       if (type === 3 || type === 1) ctx.fill('evenodd');
       ctx.stroke();
   }
@@ -268,9 +271,9 @@ function createImage(tile, source, callback) {
 }
 
 function writeTile(tile, source, z, x, y, callback) {
-  console.log('writing to the file', JSON.stringify(tile));
-  var dir = path.join(config.server.sourceDirectory.path, source.id, 'tiles', z, x);
-  var file = path.join(dir, y+'.json');
+  // console.log('writing to the file', JSON.stringify(tile));
+  var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
+  var file = path.join(dir, y.toString()+'.json');
 
   if (!fs.existsSync(file)) {
     fs.mkdirsSync(dir, function(err){
@@ -308,10 +311,10 @@ exports.getData = function(source, format, callback) {
 }
 
 exports.processSource = function(source, callback) {
-  source.status = "Parsing shapefile";
-  source.complete = false;
+  source.status.message = "Parsing shapefile";
   source.vector = true;
   source.save(function(err) {
+    console.log('source', source);
     var stream = fs.createReadStream(source.filePath);
 
     var dir = path.join(config.server.sourceDirectory.path, source.id);
@@ -322,27 +325,43 @@ exports.processSource = function(source, callback) {
 
   		var outStream = fs.createWriteStream(file);
       outStream.on('close',function(status){
-        source.status = "Generating metadata tiles";
-        source.save(function(err) {
-          console.log('wrote the file');
-          var gjData = JSON.parse(fileData);
+        source.status.message = "Generating metadata tiles";
+        console.log('wrote the file');
+        fs.readFile(file, function(err, fileData) {
+        var gjData = JSON.parse(fileData);
+          var geometry = turf.envelope(gjData);
+          source.geometry = geometry;
+          source.save(function(err) {
 
-          var tileIndex = geojsonvt(gjData);
-          var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-          if (tile) {
-            writeTile(tile, source, z, x, y, function() {
-              return exports.getTile(source, format, z, x, y, params, callback);
+            var tileIndex = geojsonvt(gjData);
+
+            xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
+              console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
+              var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
+              if (tile) {
+                writeTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+                  return tileDone();
+                });
+              } else {
+                return tileDone();
+              }
+            }, function(source, continueCallback) {
+              continueCallback(null, true);
+            }, function(source, zoom, zoomDoneCallback) {
+              source.status.message="Processing " + (zoom/12*100) + "% complete";
+              source.save(function() {
+                zoomDoneCallback();
+              });
+            }, function(err, cache) {
+              source.status.complete = true;
+              source.status.message = "Complete";
+              source.save(function() {
+                callback(null, source);
+              });
             });
-          } else {
-            callback(null);
-          }
-        });
-
-
-
-          callback(err);
-        });
-  		});
+          });
+    		});
+      });
       shp2json(stream).pipe(outStream);
     }
   });
