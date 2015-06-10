@@ -78,6 +78,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 	console.log('wrote the file');
 	fs.readFile(file, function(err, fileData) {
 	var gjData = JSON.parse(fileData);
+	delete fileData;
 		var geometry = turf.envelope(gjData);
 		source.geometry = geometry;
 		source.properties = [];
@@ -113,8 +114,8 @@ exports.generateMetadataTiles = function(source, file, callback) {
 				indexMaxZoom: 18,
 				maxZoom: 18
 			});
+			delete gjData;
 			console.log("tile index tiles", tileIndex.tiles);
-			console.log('async.forEachOf', async.forEachOf);
 
 			async.forEachOfLimit(tileIndex.tiles, 2, function(tile, key, callback) {
 				console.log('going to get tile ', tile.z2, tile.x, tile.y);
@@ -187,21 +188,6 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
   var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
   var file = path.join(dir, y.toString()+'.json');
 
-
-	/**
-	var stream = fs.createReadStream(path)
-
-stream.on('error', function() {
-  res.destroy()
-})
-
-res.on('close', function() {
-  stream.destroy()
-})
-
-stream.pipe(res)
-**/
-
   if (!fs.existsSync(file)) {
     fs.mkdirsSync(dir, function(err){
        if (err) console.log(err);
@@ -212,18 +198,6 @@ stream.pipe(res)
 		  callback(null);
 		});
 
-		// var s = new Readable();
-    // s.push(JSON.stringify(tile));
-    // s.push(null);
-		//
-    // var outStream = fs.createWriteStream(file);
-    // outStream.on('finish',function(err, status){
-    //   console.log('wrote the file', status);
-		// 	s.destroy();
-    //   callback(null);
-    // });
-		//
-    // s.pipe(outStream);
   } else {
     callback(null);
   }
