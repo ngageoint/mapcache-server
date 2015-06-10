@@ -109,7 +109,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 		source.save(function(err) {
 
 			var tileIndex = geojsonvt(gjData, {
-				indexMaxZoom: 3,
+				indexMaxZoom: 6,
 				maxZoom: 18
 			});
 
