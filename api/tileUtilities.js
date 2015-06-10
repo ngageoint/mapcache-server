@@ -136,10 +136,6 @@ exports.generateMetadataTiles = function(source, file, callback) {
 			}, function(source, zoom, zoomDoneCallback) {
 				source.status.message="Processing " + ((zoom/6)*100) + "% complete";
 				source.save(function() {
-					tileIndex = geojsonvt(gjData, {
-						indexMaxZoom: 14,
-						maxZoom: 18
-					});
 					zoomDoneCallback();
 				});
 			}, function(err, cache) {
