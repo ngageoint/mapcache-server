@@ -419,7 +419,7 @@ function createImage(tile, source, callback) {
 
       for (var j = 0; j < feature.geometry.length; j++) {
           var geom = feature.geometry[j];
-console.log('geom', geom);
+// console.log('geom', geom);
           if (type === 1) {
               ctx.arc(geom[0] * ratio + pad, geom[1] * ratio + pad, 2, 0, 2 * Math.PI, false);
               continue;

@@ -116,7 +116,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 			console.log("tile index tiles", tileIndex.tiles);
 			console.log('async.forEachOf', async.forEachOf);
 
-			async.forEachOf(tileIndex.tiles, function(tile, key, callback) {
+			async.forEachOfLimit(tileIndex.tiles, 2, function(tile, key, callback) {
 				console.log('going to get tile ', tile.z2, tile.x, tile.y);
 				var zoom = 0;
 				if (tile.z2 != 0) {
@@ -127,7 +127,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 						console.log('zoom is ' + zoom + ' shifting is ' + shifting);
 					}
 				}
-				exports.writeVectorTile(tile, /*tileIndex.getTile(zoom, tile.x, tile.y),*/ source, zoom, tile.x, tile.y, function() {
+				exports.writeVectorTile(tileIndex.getTile(zoom, tile.x, tile.y), source, zoom, tile.x, tile.y, function() {
 					console.log('wrote tile %d, %d, %d', zoom, tile.x, tile.y);
 					callback();
 				});
@@ -192,8 +192,8 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
        if (err) console.log(err);
      });
     var outStream = fs.createWriteStream(file);
-    outStream.on('finish',function(status){
-      console.log('wrote the file');
+    outStream.on('finish',function(err, status){
+      console.log('wrote the file', status);
       callback(null);
     });
     var s = new Readable();
