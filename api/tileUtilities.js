@@ -127,7 +127,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 						console.log('zoom is ' + zoom + ' shifting is ' + shifting);
 					}
 				}
-				exports.writeVectorTile(tileIndex.getTile(zoom, tile.x, tile.y), source, zoom, tile.x, tile.y, function() {
+				exports.writeVectorTile(tile, /*tileIndex.getTile(zoom, tile.x, tile.y),*/ source, zoom, tile.x, tile.y, function() {
 					console.log('wrote tile %d, %d, %d', zoom, tile.x, tile.y);
 					callback();
 				});
