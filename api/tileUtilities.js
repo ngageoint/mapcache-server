@@ -3,6 +3,7 @@ var request = require('request')
 	, turf = require('turf')
 	, async = require('async')
 	, xyzTileWorker = require('./xyzTileWorker')
+	, bfj = require('bfj')
 	, geojsonvt = require('geojson-vt')
 	, path = require('path')
 	, CacheModel = require('../models/cache')
@@ -192,7 +193,16 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
     fs.mkdirsSync(dir, function(err){
        if (err) console.log(err);
      });
-		callback(null);
+		bfj.write(file, tile).
+    then(function () {
+        // :)
+				callback(null);
+    }).
+    catch(function (error) {
+        // :(
+    });
+
+		// callback(null);
 		// fs.writeFile(file, JSON.stringify(tile), function (err) {
 		//   if (err) return console.log(err);
 		//   callback(null);
