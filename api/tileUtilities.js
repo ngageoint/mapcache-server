@@ -1,6 +1,7 @@
 var request = require('request')
 	, fs = require('fs-extra')
 	, turf = require('turf')
+	, async = require('async')
 	, xyzTileWorker = require('./xyzTileWorker')
 	, geojsonvt = require('geojson-vt')
 	, path = require('path')
@@ -109,43 +110,73 @@ exports.generateMetadataTiles = function(source, file, callback) {
 		source.save(function(err) {
 
 			var tileIndex = geojsonvt(gjData, {
-				indexMaxZoom: 14,
+				indexMaxZoom: 18,
 				maxZoom: 18
 			});
+			console.log("tile index tiles", tileIndex.tiles);
+			console.log('async.forEachOf', async.forEachOf);
 
-			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
-				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
-				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
-			  var file = path.join(dir, tileInfo.y.toString()+'.json');
-
-			  if (!fs.existsSync(file)) {
-					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
-					if (tile) {
-						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
-							delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
-							return tileDone();
-						});
-					} else {
-						return tileDone();
+			async.forEachOf(tileIndex.tiles, function(tile, key, callback) {
+				var zoom = 0;
+				if (tile.z2 != 0) {
+					var shifting = tile.z2;
+					while(shifting > 1) {
+						zoom++;
+						shifting = shifting/2;
 					}
-				} else {
-					console.log('tile exists');
-					return tileDone();
 				}
-			}, function(source, continueCallback) {
-				continueCallback(null, true);
-			}, function(source, zoom, zoomDoneCallback) {
-				source.status.message="Processing " + ((zoom/6)*100) + "% complete";
-				source.save(function() {
-					zoomDoneCallback();
+				exports.writeVectorTile(tileIndex.getTile(zoom, tile.x, tile.y), source, zoom, tile.x, tile.y, function() {
+					console.log('wrote tile %d, %d, %d', zoom, tile.x, tile.y);
+					callback();
 				});
-			}, function(err, cache) {
+			}, function(err) {
 				source.status.complete = true;
 				source.status.message = "Complete";
 				source.save(function() {
 					callback(null, source);
 				});
 			});
+			// for (var key in tileIndex.tiles) {
+			// 	var tile = tileIndex.tiles[key];
+			// 	// console.log('tile features ', tile.features);
+			// 	// exports.writeVectorTile(tile, source, tile.z2/2, tile.x, tile.y, function() {
+			// 	//
+			// 	// });
+			// }
+
+			// xyzTileWorker.createXYZTiles(source, 0, 0, function(tileInfo, tileDone) {
+			// 	console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
+			// 	var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
+			//   var file = path.join(dir, tileInfo.y.toString()+'.json');
+			//
+			//   if (!fs.existsSync(file)) {
+			// 		var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
+			// 		if (tile) {
+			// 			exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+			// 				// delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
+			// 				return tileDone();
+			// 			});
+			// 		} else {
+			// 			return tileDone();
+			// 		}
+			// 	} else {
+			// 		console.log('tile exists');
+			// 		return tileDone();
+			// 	}
+			// }, function(source, continueCallback) {
+			// 	continueCallback(null, true);
+			// }, function(source, zoom, zoomDoneCallback) {
+			// 	source.status.message="Processing " + ((zoom/6)*100) + "% complete";
+			// 	source.save(function() {
+			// 		zoomDoneCallback();
+			// 	});
+			// }, function(err, cache) {
+			// 	source.status.complete = true;
+			// 	source.status.message = "Complete";
+			// 	source.save(function() {
+			// 		callback(null, source);
+			// 	});
+			// });
 		});
 	});
 }

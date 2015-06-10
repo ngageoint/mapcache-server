@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "archiver": "^0.14.3",
-    "async": "0.9.x",
+    "async": "1.2.1",
     "body-parser": "1.2.x",
     "diskspace": "^0.1.7",
     "du": "^0.1.0",

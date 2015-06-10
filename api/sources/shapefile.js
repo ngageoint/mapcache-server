@@ -395,6 +395,7 @@ function hexToRgb(hex) {
 }
 
 function createImage(tile, source, callback) {
+  console.log('creating image', tile);
   var canvas = new Canvas(256,256);
   var ctx = canvas.getContext('2d');
   var padding = 0;//8 / 4096,
@@ -418,7 +419,7 @@ function createImage(tile, source, callback) {
 
       for (var j = 0; j < feature.geometry.length; j++) {
           var geom = feature.geometry[j];
-
+console.log('geom', geom);
           if (type === 1) {
               ctx.arc(geom[0] * ratio + pad, geom[1] * ratio + pad, 2, 0, 2 * Math.PI, false);
               continue;
