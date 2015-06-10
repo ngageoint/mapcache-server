@@ -109,7 +109,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 		source.save(function(err) {
 
 			var tileIndex = geojsonvt(gjData, {
-				indexMaxZoom: 3,
+				indexMaxZoom: 0,
 				maxZoom: 18
 			});
 
@@ -122,6 +122,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
 					if (tile) {
 						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+
 							return tileDone();
 						});
 					} else {
