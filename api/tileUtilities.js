@@ -192,11 +192,12 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
     fs.mkdirsSync(dir, function(err){
        if (err) console.log(err);
      });
-
-		fs.writeFile(file, JSON.stringify(tile), function (err) {
-		  if (err) return console.log(err);
-		  callback(null);
-		});
+		JSON.stringify(tile);
+		callback(null);
+		// fs.writeFile(file, JSON.stringify(tile), function (err) {
+		//   if (err) return console.log(err);
+		//   callback(null);
+		// });
 
   } else {
     callback(null);
