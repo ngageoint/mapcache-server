@@ -207,18 +207,23 @@ stream.pipe(res)
        if (err) console.log(err);
      });
 
-		var s = new Readable();
-    s.push(JSON.stringify(tile));
-    s.push(null);
+		fs.writeFile(file, JSON.stringify(tile), function (err) {
+		  if (err) return console.log(err);
+		  callback(null);
+		});
 
-    var outStream = fs.createWriteStream(file);
-    outStream.on('finish',function(err, status){
-      console.log('wrote the file', status);
-			s.destroy();
-      callback(null);
-    });
-
-    s.pipe(outStream);
+		// var s = new Readable();
+    // s.push(JSON.stringify(tile));
+    // s.push(null);
+		//
+    // var outStream = fs.createWriteStream(file);
+    // outStream.on('finish',function(err, status){
+    //   console.log('wrote the file', status);
+		// 	s.destroy();
+    //   callback(null);
+    // });
+		//
+    // s.pipe(outStream);
   } else {
     callback(null);
   }
