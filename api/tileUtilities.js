@@ -108,22 +108,33 @@ exports.generateMetadataTiles = function(source, file, callback) {
 		};
 		source.save(function(err) {
 
-			var tileIndex = geojsonvt(gjData);
+			var tileIndex = geojsonvt(gjData, {
+				indexMaxZoom: 5,
+				maxZoom: 18
+			});
 
-			xyzTileWorker.createXYZTiles(source, 0, 0, function(tileInfo, tileDone) {
+			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
 				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
-				var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
-				if (tile) {
-					exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
+			  var file = path.join(dir, y.toString()+'.json');
+
+			  if (!fs.existsSync(file)) {
+					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
+					if (tile) {
+						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+							return tileDone();
+						});
+					} else {
 						return tileDone();
-					});
+					}
 				} else {
+					console.log('tile exists');
 					return tileDone();
 				}
 			}, function(source, continueCallback) {
 				continueCallback(null, true);
 			}, function(source, zoom, zoomDoneCallback) {
-				source.status.message="Processing " + (1*100) + "% complete";
+				source.status.message="Processing " + ((zoom/6)*100) + "% complete";
 				source.save(function() {
 					zoomDoneCallback();
 				});
