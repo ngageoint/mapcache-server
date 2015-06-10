@@ -117,12 +117,14 @@ exports.generateMetadataTiles = function(source, file, callback) {
 			console.log('async.forEachOf', async.forEachOf);
 
 			async.forEachOf(tileIndex.tiles, function(tile, key, callback) {
+				console.log('going to get tile ', tile.z2, tile.x, tile.y);
 				var zoom = 0;
 				if (tile.z2 != 0) {
 					var shifting = tile.z2;
 					while(shifting > 1) {
 						zoom++;
 						shifting = shifting/2;
+						console.log('zoom is ' + zoom + ' shifting is ' + shifting);
 					}
 				}
 				exports.writeVectorTile(tileIndex.getTile(zoom, tile.x, tile.y), source, zoom, tile.x, tile.y, function() {
