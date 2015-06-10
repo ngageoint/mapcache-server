@@ -115,8 +115,8 @@ exports.generateMetadataTiles = function(source, file, callback) {
 
 			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
 				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
-				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
-			  var file = path.join(dir, y.toString()+'.json');
+				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
+			  var file = path.join(dir, tileInfo.y.toString()+'.json');
 
 			  if (!fs.existsSync(file)) {
 					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
