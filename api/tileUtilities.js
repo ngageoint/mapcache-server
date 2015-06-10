@@ -109,11 +109,11 @@ exports.generateMetadataTiles = function(source, file, callback) {
 		source.save(function(err) {
 
 			var tileIndex = geojsonvt(gjData, {
-				indexMaxZoom: 0,
+				indexMaxZoom: 14,
 				maxZoom: 18
 			});
 
-			xyzTileWorker.createXYZTiles(source, 0, 3, function(tileInfo, tileDone) {
+			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
 				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
 				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
 			  var file = path.join(dir, tileInfo.y.toString()+'.json');
@@ -122,7 +122,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
 					if (tile) {
 						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
-
+							delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
 							return tileDone();
 						});
 					} else {
