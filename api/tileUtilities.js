@@ -109,11 +109,11 @@ exports.generateMetadataTiles = function(source, file, callback) {
 		source.save(function(err) {
 
 			var tileIndex = geojsonvt(gjData, {
-				indexMaxZoom: 5,
+				indexMaxZoom: 4,
 				maxZoom: 18
 			});
 
-			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
+			xyzTileWorker.createXYZTiles(source, 0, 4, function(tileInfo, tileDone) {
 				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
 				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
 			  var file = path.join(dir, tileInfo.y.toString()+'.json');
