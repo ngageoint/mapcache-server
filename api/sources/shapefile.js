@@ -487,7 +487,7 @@ exports.processSource = function(source, callback) {
 
       var parser = new Transform();
       parser._transform = function(data, encoding, done) {
-        console.log('transform', data);
+        console.log('data transforming');
         gj = gj + data.toString();
         this.push(data);
         done();
