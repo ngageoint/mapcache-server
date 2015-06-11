@@ -102,7 +102,6 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 exports.getTile = function(source, format, z, x, y, params, callback) {
   var file = path.join(config.server.sourceDirectory.path, source.id, 'tiles', z, x, y+'.json');
   if (fs.existsSync(file)) {
-    console.log('sending back tile ', file);
     var tile = "";
     var stream = fs.createReadStream(file);
 
@@ -115,12 +114,18 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     });
 
     stream.on('end', function(chunk) {
-      var tileData = JSON.parse(tile);
+      console.log('sending back tile ', file);
+      try {
+      var tileData = JSON.parse(tile.replace(/\bNaN\b/g, "null"));
       if (format == 'png') {
         return createImage(tileData, source, callback);
       } else {
         return callback(null);
       }
+    } catch (e) {
+      console.log('error with tile ', file);
+      return callback(null);
+    }
     });
   } else {
     var parentFile = undefined;
@@ -141,8 +146,9 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     }
     if (foundParent) {
       console.log('found the parent file ', parentFile);
-      fs.readFile(parentFile, function(err, fileData) {
-        var gjData = JSON.parse(fileData);
+      fs.readFile(parentFile, {encoding: 'utf8'}, function(err, fileData) {
+          console.log('no file data parentFile ' + parentFile, fileData);
+        var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
         if (!gjData.source) {
           console.log('there was no source, just try to pull it from the regular data');
           exports.getData(source, 'geojson', function(err, data) {
@@ -189,8 +195,8 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
                 }
               });
             } else if (data && data.file) {
-              fs.readFile(data.file, function(err, fileData) {
-                var gjData = JSON.parse(fileData);
+              fs.readFile(data.file, {encoding: 'utf8'}, function(err, fileData) {
+                var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
 
                 var tileIndex = geojsonvt(gjData,{
                 	debug: 2,
@@ -297,7 +303,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
             }
           });
         } else if (data && data.file) {
-          fs.readFile(data.file, function(err, fileData) {
+          fs.readFile(data.file, {encoding: 'utf8'}, function(err, fileData) {
             var gjData = JSON.parse(fileData);
 
             var tileIndex = geojsonvt(gjData,{

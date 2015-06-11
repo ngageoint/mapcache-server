@@ -3,7 +3,8 @@ var request = require('request')
 	, turf = require('turf')
 	, async = require('async')
 	, xyzTileWorker = require('./xyzTileWorker')
-	, bfj = require('bfj')
+	// , bfj = require('bfj')
+	, gutter = require('gutter')
 	, geojsonvt = require('geojson-vt')
 	, path = require('path')
 	, CacheModel = require('../models/cache')
@@ -116,7 +117,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 				maxZoom: 18
 			});
 			delete gjData;
-			console.log("tile index tiles", tileIndex.tiles);
+			// console.log("tile index tiles", tileIndex.tiles);
 
 			async.forEachOfLimit(tileIndex.tiles, 2, function(tile, key, callback) {
 				console.log('going to get tile ', tile.z2, tile.x, tile.y);
@@ -193,14 +194,24 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
     fs.mkdirsSync(dir, function(err){
        if (err) console.log(err);
      });
-		bfj.write(file, tile).
-    then(function () {
-        // :)
-				callback(null);
-    }).
-    catch(function (error) {
-        // :(
-    });
+
+		var readableStream = gutter(tile);
+		var writeStream = fs.createWriteStream(file);
+		writeStream.on('finish', function() {
+			console.log('finished writing file ', file);
+			callback(null);
+		});
+
+		readableStream.pipe(writeStream);
+
+		// bfj.write(file, tile).
+    // then(function () {
+    //     // :)
+		// 		callback(null);
+    // }).
+    // catch(function (error) {
+    //     // :(
+    // });
 
 		// callback(null);
 		// fs.writeFile(file, JSON.stringify(tile), function (err) {
