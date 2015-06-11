@@ -196,8 +196,8 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 }
 
 exports.processSource = function(source, callback) {
-  source.status="Extracting GeoTIFF data";
-  source.complete = false;
+  source.status.message="Extracting GeoTIFF data";
+  source.status.complete = false;
   source.save(function(err) {
     var ds = gdal.open(source.filePath);
     source.projection = ds.srs.getAuthorityCode("PROJCS");
@@ -214,7 +214,7 @@ exports.processSource = function(source, callback) {
 }
 
 function reproject(source, epsgCode, callback) {
-  source.status = "Reprojecting to EPSG:3857";
+  source.status.message = "Reprojecting to EPSG:3857";
   source.save(function(err) {
     var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
     var ds = gdal.open(source.filePath);
@@ -244,8 +244,8 @@ function reproject(source, epsgCode, callback) {
     fs.stat(file, function(err, stat) {
       source.projections = source.projections || {};
       source.projections[epsgCode] = {path: file, size: stat.size};
-      source.status = "Complete";
-      source.complete = true;
+      source.status.message = "Complete";
+      source.status.complete = true;
       source.save(callback);
     });
   });

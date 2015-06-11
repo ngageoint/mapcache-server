@@ -36,13 +36,13 @@ exports.getData = function(source, callback) {
 
 exports.processSource = function(source, callback) {
   console.log('running ' + 'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
-  source.status = "Extracting MBTiles";
+  source.status.message = "Extracting MBTiles";
   source.save(function() {
     var python = exec(
       'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles",
      function(error, stdout, stderr) {
-       source.status = "Complete";
-       source.complete = true;
+       source.status.message = "Complete";
+       source.status.complete = true;
        source.save(function() {
          console.log('done running ' +   'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
          callback();

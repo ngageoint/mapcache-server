@@ -7,7 +7,7 @@
   <div class="row" ng-show="!source.status.complete">
     <div class="col-md-12">
       <p class="lead">The source is being processed.  The status of the source processing will be updated here.  If you leave this page the source will continue to be processed on the server.</p>
-      <p class="source-status">{{source.status}}</p>
+      <p class="source-status">{{source.status.message}}</p>
     </div>
   </div>
   <div class="row" ng-show="source.status.complete">
