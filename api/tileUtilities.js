@@ -3,8 +3,6 @@ var request = require('request')
 	, turf = require('turf')
 	, async = require('async')
 	, xyzTileWorker = require('./xyzTileWorker')
-	// , bfj = require('bfj')
-	, gutter = require('gutter')
 	, geojsonvt = require('geojson-vt')
 	, path = require('path')
 	, CacheModel = require('../models/cache')
@@ -77,13 +75,6 @@ exports.getY = function(lat, zoom) {
 
 exports.generateMetadataTiles = function(source, gjData, callback) {
 	source.status.message = "Generating metadata tiles";
-	// console.log('reading file ', file);
-	// fs.readFile(file, function(err, fileData) {
-	// 	console.log('read it now parsing data');
-	// 	console.time('parsing data');
-	// 	var gjData = JSON.parse(fileData);
-	// 	console.timeEnd('parsing data');
-	// 	delete fileData;
 		console.time('getting geometry');
 		var geometry = turf.envelope(gjData);
 		console.timeEnd('getting geometry');
@@ -119,83 +110,47 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 			console.log('generate tile index');
 			console.time('generate tile index');
 			var tileIndex = geojsonvt(gjData, {
-				indexMaxZoom: 18,
+				indexMaxZoom: 5,
 				maxZoom: 18
 			});
 			console.timeEnd('generate tile index');
 
 			delete gjData;
-			// console.log("tile index tiles", tileIndex.tiles);
 
-			async.forEachOfLimit(tileIndex.tiles, 2, function(tile, key, callback) {
-				console.log('going to get tile ', tile.z2, tile.x, tile.y);
-				var zoom = 0;
-				if (tile.z2 != 0) {
-					var shifting = tile.z2;
-					while(shifting > 1) {
-						zoom++;
-						shifting = shifting/2;
-						console.log('zoom is ' + zoom + ' shifting is ' + shifting);
+			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
+				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
+				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
+			  var file = path.join(dir, tileInfo.y.toString()+'.json');
+
+			  if (!fs.existsSync(file)) {
+					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
+					if (tile) {
+						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+							// delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
+							return tileDone();
+						});
+					} else {
+						return tileDone();
 					}
+				} else {
+					console.log('tile exists');
+					return tileDone();
 				}
-				console.time('transforming tile' + tile.z2 + ' ' + tile.x + ' ' + tile.y);
-				var tile = tileIndex.getTile(zoom, tile.x, tile.y);
-				console.timeEnd('transforming tile' + tile.z2 + ' ' + tile.x + ' ' + tile.y);
-
-				exports.writeVectorTile(tileIndex.getTile(zoom, tile.x, tile.y), source, zoom, tile.x, tile.y, function() {
-					console.log('wrote tile %d, %d, %d', zoom, tile.x, tile.y);
-					callback();
+			}, function(source, continueCallback) {
+				continueCallback(null, true);
+			}, function(source, zoom, zoomDoneCallback) {
+				source.status.message="Processing " + ((zoom/6)*100) + "% complete";
+				source.save(function() {
+					zoomDoneCallback();
 				});
-			}, function(err) {
+			}, function(err, cache) {
 				source.status.complete = true;
 				source.status.message = "Complete";
 				source.save(function() {
 					callback(null, source);
 				});
 			});
-			// for (var key in tileIndex.tiles) {
-			// 	var tile = tileIndex.tiles[key];
-			// 	// console.log('tile features ', tile.features);
-			// 	// exports.writeVectorTile(tile, source, tile.z2/2, tile.x, tile.y, function() {
-			// 	//
-			// 	// });
-			// }
-
-			// xyzTileWorker.createXYZTiles(source, 0, 0, function(tileInfo, tileDone) {
-			// 	console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
-			// 	var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
-			//   var file = path.join(dir, tileInfo.y.toString()+'.json');
-			//
-			//   if (!fs.existsSync(file)) {
-			// 		var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
-			// 		if (tile) {
-			// 			exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
-			// 				// delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
-			// 				return tileDone();
-			// 			});
-			// 		} else {
-			// 			return tileDone();
-			// 		}
-			// 	} else {
-			// 		console.log('tile exists');
-			// 		return tileDone();
-			// 	}
-			// }, function(source, continueCallback) {
-			// 	continueCallback(null, true);
-			// }, function(source, zoom, zoomDoneCallback) {
-			// 	source.status.message="Processing " + ((zoom/6)*100) + "% complete";
-			// 	source.save(function() {
-			// 		zoomDoneCallback();
-			// 	});
-			// }, function(err, cache) {
-			// 	source.status.complete = true;
-			// 	source.status.message = "Complete";
-			// 	source.save(function() {
-			// 		callback(null, source);
-			// 	});
-			// });
 		});
-	// });
 }
 
 exports.writeVectorTile = function(tile, source, z, x, y, callback) {
@@ -207,17 +162,6 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
        if (err) console.log(err);
      });
 
-		// var tile = {features:[
-		// 	{
-		// 		geoemtry:[],
-		// 		tags: {},
-		// 		type: 0
-		// 	}
-		// ]};
-
-
-		// var readableStream = gutter(tile);
-
 		console.time('writing tile' + z + ' ' + x + ' ' + y);
 
 		var writeStream = fs.createWriteStream(file);
@@ -225,8 +169,6 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
 			console.timeEnd('writing tile' + z + ' ' + x + ' ' + y);
 			callback(null);
 		});
-
-		// readableStream.pipe(writeStream);
 
 		writeStream.write('{"features":[');
 		for (var i = 0; i < tile.features.length; i++) {
@@ -252,21 +194,6 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
 		}
 		writeStream.write(']}');
 		writeStream.end();
-
-		// bfj.write(file, tile).
-    // then(function () {
-    //     // :)
-		// 		callback(null);
-    // }).
-    // catch(function (error) {
-    //     // :(
-    // });
-
-		// callback(null);
-		// fs.writeFile(file, JSON.stringify(tile), function (err) {
-		//   if (err) return console.log(err);
-		//   callback(null);
-		// });
 
   } else {
     callback(null);

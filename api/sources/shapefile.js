@@ -423,7 +423,6 @@ function createImage(tile, source, callback) {
 
       for (var j = 0; j < feature.geometry.length; j++) {
           var geom = feature.geometry[j];
-// console.log('geom', geom);
           if (type === 1) {
               ctx.arc(geom[0] * ratio + pad, geom[1] * ratio + pad, 2, 0, 2 * Math.PI, false);
               continue;
@@ -493,19 +492,12 @@ exports.processSource = function(source, callback) {
         done();
       };
 
-      // stream.on('end', function() {
-      //   console.log('stream ended');
-      //
-      // });
-
       outStream.on('close',function(status){
         console.timeEnd('shape to json');
-        // console.log('gj', gj);
         console.time('parsing geojson');
         var gjData = JSON.parse(gj);
         console.timeEnd('parsing geojson');
         tileUtilities.generateMetadataTiles(source, gjData, callback);
-        //tileUtilities.generateMetadataTiles(source, file, callback);
       });
       console.log('parse shapefile to json');
       console.time('shape to json');
