@@ -130,6 +130,10 @@ exports.generateMetadataTiles = function(source, file, callback) {
 						console.log('zoom is ' + zoom + ' shifting is ' + shifting);
 					}
 				}
+				console.time('transforming tile' + tile.z2 + ' ' + tile.x + ' ' + tile.y);
+				var tile = tileIndex.getTile(zoom, tile.x, tile.y);
+				console.timeEnd('transforming tile' + tile.z2 + ' ' + tile.x + ' ' + tile.y);
+
 				exports.writeVectorTile(tileIndex.getTile(zoom, tile.x, tile.y), source, zoom, tile.x, tile.y, function() {
 					console.log('wrote tile %d, %d, %d', zoom, tile.x, tile.y);
 					callback();
@@ -205,9 +209,12 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
 
 
 		// var readableStream = gutter(tile);
+
+		console.time('writing tile' + z + ' ' + x + ' ' + y);
+
 		var writeStream = fs.createWriteStream(file);
 		writeStream.on('finish', function() {
-			console.log('finished writing file ', file);
+			console.timeEnd('writing tile' + z + ' ' + x + ' ' + y);
 			callback(null);
 		});
 
