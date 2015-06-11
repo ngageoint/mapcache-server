@@ -195,14 +195,48 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
        if (err) console.log(err);
      });
 
-		var readableStream = gutter(tile);
+		// var tile = {features:[
+		// 	{
+		// 		geoemtry:[],
+		// 		tags: {},
+		// 		type: 0
+		// 	}
+		// ]};
+
+
+		// var readableStream = gutter(tile);
 		var writeStream = fs.createWriteStream(file);
 		writeStream.on('finish', function() {
 			console.log('finished writing file ', file);
 			callback(null);
 		});
 
-		readableStream.pipe(writeStream);
+		// readableStream.pipe(writeStream);
+
+		writeStream.write('{"features":[');
+		for (var i = 0; i < tile.features.length; i++) {
+			var feature = tile.features[i];
+			writeStream.write('{');
+			writeStream.write('"type":'+feature.type+',');
+			writeStream.write('"tags":'+JSON.stringify(feature.tags)+',');
+			writeStream.write('"geometry":[');
+			for (var g = 0; g < feature.geometry.length; g++) {
+				var geometry = feature.geometry[g];
+				writeStream.write(JSON.stringify(geometry));
+				if (g < (feature.geometry.length -1)) {
+					writeStream.write(',');
+				}
+			}
+			writeStream.write(']');
+
+			writeStream.write('}');
+
+			if (i < (tile.features.length -1)) {
+				writeStream.write(',');
+			}
+		}
+		writeStream.write(']}');
+		writeStream.end();
 
 		// bfj.write(file, tile).
     // then(function () {

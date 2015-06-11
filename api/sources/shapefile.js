@@ -101,7 +101,9 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
   var file = path.join(config.server.sourceDirectory.path, source.id, 'tiles', z, x, y+'.json');
+  console.log('looking for the file ', file);
   if (fs.existsSync(file)) {
+    console.log('it exists, send it back');
     var tile = "";
     var stream = fs.createReadStream(file);
 
@@ -128,6 +130,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     }
     });
   } else {
+    console.log("it doesn't exist, find the parent");
     var parentFile = undefined;
     var foundParent = false;
     var parentZoom = Number(z) - 1;
@@ -147,7 +150,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     if (foundParent) {
       console.log('found the parent file ', parentFile);
       fs.readFile(parentFile, {encoding: 'utf8'}, function(err, fileData) {
-          console.log('no file data parentFile ' + parentFile, fileData);
         var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
         if (!gjData.source) {
           console.log('there was no source, just try to pull it from the regular data');
@@ -179,8 +181,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
                       return !fs.existsSync(parentFile) && parentZoom >= 0;
                     }, function(callback) {
                       var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
-                      console.log('writing parent tile', tile);
-                      console.log('go get the tile %d %d %d', parentZoom, parentX, parentY);
+                      console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
                       if (tile) {
                         tileUtilities.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
                       } else {
@@ -199,7 +200,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
                 var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
 
                 var tileIndex = geojsonvt(gjData,{
-                	debug: 2,
                   indexMaxZoom: 0,
                   maxZoom: 18
                 });
@@ -217,8 +217,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
                       return !fs.existsSync(parentFile) && parentZoom >= 0;
                     }, function(callback) {
                       var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
-                      console.log('writing parent tile', tile);
-                      console.log('go get the tile %d %d %d', parentZoom, parentX, parentY);
+                      console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
                       if (tile) {
                         tileUtilities.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
                       } else {
@@ -261,8 +260,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
                 return !fs.existsSync(parentFile) && parentZoom >= 0;
               }, function(callback) {
                 var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
-                console.log('writing parent tile', tile);
-                console.log('go get the tile %d %d %d', parentZoom, parentX, parentY);
+                console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
                 if (tile) {
                   tileUtilities.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
                 } else {
@@ -401,7 +399,7 @@ function hexToRgb(hex) {
 }
 
 function createImage(tile, source, callback) {
-  console.log('creating image', tile);
+  // console.log('creating image', tile);
   var canvas = new Canvas(256,256);
   var ctx = canvas.getContext('2d');
   var padding = 0;//8 / 4096,
