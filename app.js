@@ -86,4 +86,4 @@ require('./routes')(app, {authentication: authentication});
 // Launches the Node.js Express Server
 var port = argv.port;
 app.listen(port);
-console.log('MapCahe Server: Started listening on port ' + port);
+console.log('MapCache Server: Started listening on port ' + port);

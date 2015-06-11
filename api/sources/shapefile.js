@@ -480,10 +480,36 @@ exports.processSource = function(source, callback) {
   	if (!fs.existsSync(file)) {
 
   		var outStream = fs.createWriteStream(file);
+      var gj = "";
+
+
+      var Transform = require('stream').Transform;
+
+      var parser = new Transform();
+      parser._transform = function(data, encoding, done) {
+        console.log('transform', data);
+        gj = gj + data.toString();
+        this.push(data);
+        done();
+      };
+
+      // stream.on('end', function() {
+      //   console.log('stream ended');
+      //
+      // });
+
       outStream.on('close',function(status){
-        tileUtilities.generateMetadataTiles(source, file, callback);
+        console.timeEnd('shape to json');
+        // console.log('gj', gj);
+        console.time('parsing geojson');
+        var gjData = JSON.parse(gj);
+        console.timeEnd('parsing geojson');
+        tileUtilities.generateMetadataTiles(source, gjData, callback);
+        //tileUtilities.generateMetadataTiles(source, file, callback);
       });
-      shp2json(stream).pipe(outStream);
+      console.log('parse shapefile to json');
+      console.time('shape to json');
+      shp2json(stream).pipe(parser).pipe(outStream);
     }
   });
 }

@@ -75,13 +75,18 @@ exports.getY = function(lat, zoom) {
 	return ytile;
 }
 
-exports.generateMetadataTiles = function(source, file, callback) {
+exports.generateMetadataTiles = function(source, gjData, callback) {
 	source.status.message = "Generating metadata tiles";
-	console.log('wrote the file');
-	fs.readFile(file, function(err, fileData) {
-	var gjData = JSON.parse(fileData);
-	delete fileData;
+	// console.log('reading file ', file);
+	// fs.readFile(file, function(err, fileData) {
+	// 	console.log('read it now parsing data');
+	// 	console.time('parsing data');
+	// 	var gjData = JSON.parse(fileData);
+	// 	console.timeEnd('parsing data');
+	// 	delete fileData;
+		console.time('getting geometry');
 		var geometry = turf.envelope(gjData);
+		console.timeEnd('getting geometry');
 		source.geometry = geometry;
 		source.properties = [];
 		var allProperties = {};
@@ -111,11 +116,14 @@ exports.generateMetadataTiles = function(source, file, callback) {
 			styles: []
 		};
 		source.save(function(err) {
-
+			console.log('generate tile index');
+			console.time('generate tile index');
 			var tileIndex = geojsonvt(gjData, {
 				indexMaxZoom: 18,
 				maxZoom: 18
 			});
+			console.timeEnd('generate tile index');
+
 			delete gjData;
 			// console.log("tile index tiles", tileIndex.tiles);
 
@@ -187,7 +195,7 @@ exports.generateMetadataTiles = function(source, file, callback) {
 			// 	});
 			// });
 		});
-	});
+	// });
 }
 
 exports.writeVectorTile = function(tile, source, z, x, y, callback) {
