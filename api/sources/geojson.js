@@ -14,6 +14,23 @@ exports.process = function(source, callback) {
 exports.getTile = tileUtilities.getVectorTile;
 exports.getFeatures = tileUtilities.getFeatures;
 
+exports.getData = function(source, format, callback) {
+
+  var dir = path.join(config.server.sourceDirectory.path, source.id);
+  if (format == 'geojson') {
+    var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+    var file = path.join(dir, fileName);
+    console.log('pull from path', file);
+
+    if (fs.existsSync(file)) {
+      callback(null, {file: file});
+      // fs.readFile(file, callback);
+    } else {
+      callback(null);
+    }
+  }
+}
+
 exports.processSource = function(source, callback) {
   source.status.message = "Parsing GeoJSON";
   source.vector = true;

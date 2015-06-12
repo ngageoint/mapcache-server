@@ -258,15 +258,20 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
 		writeStream.write('{"features":[');
 		for (var i = 0; i < tile.features.length; i++) {
 			var feature = tile.features[i];
+			// console.log('feature', feature);
 			writeStream.write('{');
 			writeStream.write('"type":'+feature.type+',');
-			writeStream.write('"tags":'+JSON.stringify(feature.tags)+',');
-			writeStream.write('"geometry":[');
-			for (var g = 0; g < feature.geometry.length; g++) {
-				var geometry = feature.geometry[g];
-				writeStream.write(JSON.stringify(geometry));
-				if (g < (feature.geometry.length -1)) {
-					writeStream.write(',');
+			if (feature.tags) {
+				writeStream.write('"tags":'+JSON.stringify(feature.tags)+',');
+			}
+			if (feature.geometry) {
+				writeStream.write('"geometry":[');
+				for (var g = 0; g < feature.geometry.length; g++) {
+					var geometry = feature.geometry[g];
+					writeStream.write(JSON.stringify(geometry));
+					if (g < (feature.geometry.length -1)) {
+						writeStream.write(',');
+					}
 				}
 			}
 			writeStream.write(']');
