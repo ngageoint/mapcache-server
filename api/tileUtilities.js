@@ -1,5 +1,6 @@
 var request = require('request')
 	, fs = require('fs-extra')
+	, async = require('async')
 	, turf = require('turf')
 	, xyzTileWorker = require('./xyzTileWorker')
 	, geojsonvt = require('geojson-vt')
@@ -110,45 +111,42 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 	source.save(function(err) {
 		console.log('generate tile index');
 		console.time('generate tile index');
-		var tileIndex = geojsonvt(gjData, {
-			indexMaxZoom: 5,
-			maxZoom: 18
-		});
-		console.timeEnd('generate tile index');
+		getTileIndexFromData(source.id, gjData, function(err, tileIndex) {
+			console.timeEnd('generate tile index');
+			delete gjData;
 
-		delete gjData;
+			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
+				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
+				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
+				var file = path.join(dir, tileInfo.y.toString()+'.json');
 
-		xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
-			console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
-			var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
-		  var file = path.join(dir, tileInfo.y.toString()+'.json');
-
-		  if (!fs.existsSync(file)) {
-				var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
-				if (tile) {
-					exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
-						// delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
+				if (!fs.existsSync(file)) {
+					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
+					if (tile) {
+						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
+							// delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
+							return tileDone();
+						});
+					} else {
 						return tileDone();
-					});
+					}
 				} else {
+					console.log('tile exists');
 					return tileDone();
 				}
-			} else {
-				console.log('tile exists');
-				return tileDone();
-			}
-		}, function(source, continueCallback) {
-			continueCallback(null, true);
-		}, function(source, zoom, zoomDoneCallback) {
-			source.status.message="Processing " + ((zoom/6)*100) + "% complete";
-			source.save(function() {
-				zoomDoneCallback();
-			});
-		}, function(err, cache) {
-			source.status.complete = true;
-			source.status.message = "Complete";
-			source.save(function() {
-				callback(null, source);
+			}, function(source, continueCallback) {
+				continueCallback(null, true);
+			}, function(source, zoom, zoomDoneCallback) {
+				source.status.message="Processing " + ((zoom/6)*100) + "% complete";
+				source.save(function() {
+					zoomDoneCallback();
+				});
+			}, function(err, cache) {
+				source.status.complete = true;
+				source.status.message = "Complete";
+				source.save(function() {
+					callback(null, source);
+				});
 			});
 		});
 	});
@@ -165,7 +163,6 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 	var y = yRange.min;
 
 	var tileIndex = geojsonvt(queryRegion, {
-		debug: 2,
 		indexMaxZoom: Number(zoom),
 		maxZoom: Number(zoom)
 	});
@@ -309,93 +306,107 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
       }
     } catch (e) {
       console.log('error with tile ', file);
+			console.log(tile);
 			console.log(e);
-      return callback(null);
+			return fs.remove(file, function(err) {
+				if (err) {
+					return callback(null);
+				} else {
+					return exports.getVectorTile(source, format, z, x, y, params, callback);
+				}
+			});
     }
     });
   } else {
     console.log('pull it from the regular data');
-    exports.getData(source, 'geojson', function(err, data) {
-      var gj = "";
-      if (data && data.stream) {
-        data.stream.on('data', function(chunk) {
-          gj = gj + chunk;
-        });
 
-        data.stream.on('end', function(chunk) {
-          var gjData = JSON.parse(gj);
+		var dir = path.join(config.server.sourceDirectory.path, source.id);
+    var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+    var file = path.join(dir, fileName);
+    console.log('pull from path', file);
 
-          var tileIndex = geojsonvt(gjData,{
-            indexMaxZoom: 0,
-            maxZoom: 18
-          });
-          var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-          if (tile) {
-            tileUtilities.writeVectorTile(tile, source, z, x, y, function() {
-              // might as well write all the other ones
-              var parentZoom, parentX, parentY, parentFile = null;
+		getTileIndex(source.id, file, function(err, tileIndex) {
+			if (!tileIndex) return callback(null);
+			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
+			if (!tile) return callback(null);
+			exports.writeVectorTile(tile, source, z, x, y, function() {
+				// might as well write all the other ones
+				var parentZoom, parentX, parentY, parentFile = null;
 
-              async.whilst(function() {
-                parentZoom = Number(z) - 1;
-                parentX = Math.floor(x / 2);
-                parentY = Math.floor(y / 2);
-                parentFile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', parentZoom.toString(),  parentX.toString(),  parentY.toString()+'.json');
-                return !fs.existsSync(parentFile) && parentZoom >= 0;
-              }, function(callback) {
-                var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
-                console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
-                if (tile) {
-                  tileUtilities.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
-                } else {
-                  callback();
-                }
-              }, function(err) {
-                return exports.getVectorTile(source, format, z, x, y, params, callback);
-              });
-            });
-          } else {
-            callback(null);
-          }
-        });
-      } else if (data && data.file) {
-        fs.readFile(data.file, {encoding: 'utf8'}, function(err, fileData) {
-          var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
-
-          var tileIndex = geojsonvt(gjData,{
-            indexMaxZoom: 0,
-            maxZoom: 18
-          });
-          var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-          if (tile) {
-            tileUtilities.writeVectorTile(tile, source, z, x, y, function() {
-              // might as well write all the other ones
-              var parentZoom, parentX, parentY, parentFile = null;
-
-              async.whilst(function() {
-                parentZoom = Number(z) - 1;
-                parentX = Math.floor(x / 2);
-                parentY = Math.floor(y / 2);
-                parentFile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', parentZoom.toString(),  parentX.toString(),  parentY.toString()+'.json');
-                return !fs.existsSync(parentFile) && parentZoom >= 0;
-              }, function(callback) {
-                var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
-                console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
-                if (tile) {
-                  tileUtilities.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
-                } else {
-                  callback();
-                }
-              }, function(err) {
-                return exports.getTile(source, format, z, x, y, params, callback);
-              });
-            });
-          } else {
-            callback(null);
-          }
-        });
-      }
-    });
+				async.whilst(function() {
+					parentZoom = Number(z) - 1;
+					parentX = Math.floor(x / 2);
+					parentY = Math.floor(y / 2);
+					parentFile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', parentZoom.toString(),  parentX.toString(),  parentY.toString()+'.json');
+					return !fs.existsSync(parentFile) && parentZoom >= 0;
+				}, function(callback) {
+					var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
+					console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
+					if (tile) {
+						exports.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
+					} else {
+						callback();
+					}
+				}, function(err) {
+					return exports.getVectorTile(source, format, z, x, y, params, callback);
+				});
+			});
+		});
   }
+}
+
+var tileIndexes = {};
+var tileIndexOrder = [];
+
+function getTileIndex(id, dataLocation, callback) {
+	if (tileIndexes[id]) {
+		tileIndexes[id].accessTime = Date.now();
+		tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
+		return callback(null,tileIndexes[id].index);
+	}
+	if (fs.existsSync(dataLocation)) {
+		fs.readFile(dataLocation, {encoding: 'utf8'}, function(err, fileData) {
+			var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
+			return getTileIndexFromData(id, gjData, callback);
+		});
+	} else {
+		callback(null);
+	}
+}
+
+function getTileIndexFromData(id, data, callback) {
+	if (tileIndexes[id]) {
+		console.log('tile indexes['+id+']', tileIndexes[id]);
+		tileIndexes[id].accessTime = Date.now();
+		tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
+		return callback(null,tileIndexes[id].index);
+	}
+	if (tileIndexOrder.length >= 3) {
+		delete tileIndexes[tileIndexOrder.pop()];
+	}
+	tileIndexes[id] = {
+		index: geojsonvt(data,{
+			indexMaxZoom: 0,
+			maxZoom: 18
+		}),
+		accessTime: Date.now()
+	};
+	tileIndexOrder.push(id);
+	tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
+	console.log('now tile indexes['+id+']', tileIndexes[id]);
+	console.log('tile index order', tileIndexOrder);
+
+	return callback(null, tileIndexes[id].index);
+}
+
+function tileIndexSort(a,b) {
+	if (tileIndexes[a].accessTime < tileIndexes[b].accessTime) {
+		return -1;
+	}
+	if (tileIndexes[b].accessTime < tileIndexes[a].accessTime) {
+		return 1;
+	}
+	return 0;
 }
 
 exports.createImage = function(tile, style, callback) {
