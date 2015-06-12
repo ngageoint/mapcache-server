@@ -136,7 +136,6 @@ module.exports = function(app, auth) {
       sourceProcessor.getFeatures(source, req.param('west'), req.param('south'), req.param('east'), req.param('north'), req.param('zoom'), function(err, features) {
         if (err) return next(err);
         if (!features) return res.status(200).send();
-        console.log('features', features);
         res.json(features);
       });
     }

@@ -157,8 +157,8 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 	var point = turf.centroid(queryRegion);
 
 	var extent = turf.extent(point);
-	var yRange = tileUtilities.yCalculator(extent, zoom);
-	var xRange = tileUtilities.xCalculator(extent, zoom);
+	var yRange = exports.yCalculator(extent, zoom);
+	var xRange = exports.xCalculator(extent, zoom);
 	var x = xRange.min;
 	var y = yRange.min;
 
@@ -224,9 +224,6 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 
 				return 0;
 			});
-
-			console.log('featureList', featureList);
-
 			callback(null, featureList.length == 0 ? null : featureList);
 		});
 	}
@@ -280,7 +277,7 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
 }
 
 exports.getVectorTile = function(source, format, z, x, y, params, callback) {
-	var file = path.join(config.server.sourceDirectory.path, source.id, 'tiles', z, x, y+'.json');
+	var file = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString(), y.toString()+'.json');
   console.log('looking for the file ', file);
   if (fs.existsSync(file)) {
     console.log('it exists, send it back');

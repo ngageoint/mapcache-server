@@ -44,15 +44,22 @@ function writeCache(gj, cache, callback) {
 
   var gjCache = {type: "FeatureCollection",features: []};
   cache.vector = true;
-  cache.totalFeatures = gj.features.length;
+  cache.totalFeatures = 0;//gj.features.length;
 
   var poly = cache.geometry;
+  console.log('there are ' + gj.features.length + ' features to look through');
   for (var i = 0; i < gj.features.length; i++) {
     var feature = gj.features[i];
-    var intersection = turf.intersect(poly, feature);
-    if (intersection) {
-      cache.generatedFeatures++;
-      gjCache.features.push(feature);
+    try {
+      var intersection = turf.intersect(poly, feature);
+      if (intersection) {
+        console.log('adding feature');
+        cache.generatedFeatures++;
+        gjCache.features.push(feature);
+      }
+    } catch (e) {
+      console.log('feature error', feature);
+      console.log('error turfing', e);
     }
   }
   fs.mkdirs(path.dirname(geojsonFile), function (err) {

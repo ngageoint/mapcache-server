@@ -122,25 +122,6 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
         var type = $scope.cache.source.cacheTypes[i];
         $scope.cache.create[type.type] = type.required;
       }
-      if (source.vector) {
-        SourceService.getSourceData(source, function(data) {
-          var allProperties = {};
-          for (var i = 0; i < data.features.length; i++) {
-            var feature = data.features[i];
-            for (var property in feature.properties) {
-              allProperties[property] = allProperties[property] || {key: property, values:[]};
-              if (_.indexOf(allProperties[property].values, feature.properties[property]) == -1) {
-                allProperties[property].values.push(feature.properties[property]);
-              }
-            }
-          }
-          for (var property in allProperties) {
-            $scope.featureProperties.push(allProperties[property]);
-          }
-          $scope.cache.source.data = data;
-          $scope.cache.extent = turf.extent(data);
-        });
-      }
       $scope.requiredFieldsSet();
     }
 
