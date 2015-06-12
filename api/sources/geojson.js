@@ -18,12 +18,13 @@ exports.processSource = function(source, callback) {
   source.status.message = "Parsing GeoJSON";
   source.vector = true;
   source.save(function(err) {
-  	if (!fs.existsSync(source.filePath)) {
+  	if (fs.existsSync(source.filePath)) {
       var stream = fs.createReadStream(source.filePath);
-      fs.readFile(file, function(err, fileData) {
-        var gjData = JSON.parse(fileData);
+      console.log('reading in the file', source.filePath);
+      fs.readFile(source.filePath, function(err, fileData) {
+        console.log('parsing file data', source.filePath);
         console.time('parsing geojson');
-        var gjData = JSON.parse(gj);
+        var gjData = JSON.parse(fileData);
         console.timeEnd('parsing geojson');
         tileUtilities.generateMetadataTiles(source, gjData, callback);
       });
