@@ -40,3 +40,19 @@ exports.createCacheFormat = function(cache, format, minZoom, maxZoom, callback) 
     child.send({operation:'generateCache', cache: cache, format: format, minZoom: minZoom, maxZoom: maxZoom});
   });
 }
+
+exports.getTile = function(cache, format, z, x, y, callback) {
+  console.log('cache.formats', cache.formats);
+  var processor = undefined;
+  if (cache.vector) {
+    processor = require('./geojson');
+  } else {
+    processor = require('./xyz');
+  }
+
+  if (processor.getTile) {
+    processor.getTile(cache, format, z, x, y, callback);
+  } else {
+    callback(null, null);
+  }
+}

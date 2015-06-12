@@ -105,31 +105,16 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/caches/:cacheId/:z/:x/:y.png',
+    '/api/caches/:cacheId/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      var options = {
+      new api.Cache().getTile(req.cache, req.param('format'), req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+        if (err) return next(err);
+        if (!tileStream) return res.status(404).send();
 
-      };
-
-      var cache = req.cache;
-      if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png")) {
-        res.send(404);
-        next();
-      } else {
-        res.writeHead(200, {
-          'Content-Type': 'image/png'
-        });
-        var stream = fs.createReadStream(config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png");
-        stream.on('open', function() {
-          console.log('stream the file', config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png");
-          stream.pipe(res);
-        });
-        stream.on('error', function(err) {
-          next(err);
-        });
-      }
+        tileStream.pipe(res);
+      });
     }
   );
 

@@ -172,6 +172,9 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 
 
 	var file = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', zoom.toString(), x.toString(), y.toString()+'.json');
+	if (source.source) {
+		file = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', zoom.toString(), x.toString(), y.toString()+'.json');
+	}
 	if (fs.existsSync(file)) {
 		fs.readFile(file, function(err, fileData) {
 			var gjData = JSON.parse(fileData);
@@ -230,7 +233,13 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 }
 
 exports.writeVectorTile = function(tile, source, z, x, y, callback) {
-  var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
+	var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
+
+	if (source.source) {
+		// this is a cache
+		dir = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
+
+	}
   var file = path.join(dir, y.toString()+'.json');
 
   if (!fs.existsSync(file)) {
@@ -278,6 +287,10 @@ exports.writeVectorTile = function(tile, source, z, x, y, callback) {
 
 exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	var file = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString(), y.toString()+'.json');
+	if (source.source) {
+			// this means it is a cache
+			file = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString(), y.toString()+'.json');
+	}
   console.log('looking for the file ', file);
   if (fs.existsSync(file)) {
     console.log('it exists, send it back');
@@ -316,9 +329,14 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
     });
   } else {
     console.log('pull it from the regular data');
-
 		var dir = path.join(config.server.sourceDirectory.path, source.id);
-    var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+		var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+
+		if (source.source) {
+				// this means it is a cache
+				dir = path.join(config.server.cacheDirectory.path, source.id);
+				fileName = source.id + '.geojson';
+		}
     var file = path.join(dir, fileName);
     console.log('pull from path', file);
 
@@ -327,26 +345,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
 			if (!tile) return callback(null);
 			exports.writeVectorTile(tile, source, z, x, y, function() {
-				// might as well write all the other ones
-				var parentZoom, parentX, parentY, parentFile = null;
-
-				async.whilst(function() {
-					parentZoom = Number(z) - 1;
-					parentX = Math.floor(x / 2);
-					parentY = Math.floor(y / 2);
-					parentFile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', parentZoom.toString(),  parentX.toString(),  parentY.toString()+'.json');
-					return !fs.existsSync(parentFile) && parentZoom >= 0;
-				}, function(callback) {
-					var tile = tileIndex.getTile(Number(parentZoom), Number(parentX), Number(parentY));
-					console.log('writing parent tile %d %d %d', parentZoom, parentX, parentY);
-					if (tile) {
-						exports.writeVectorTile(tile, source, parentZoom, parentX, parentY, callback);
-					} else {
-						callback();
-					}
-				}, function(err) {
-					return exports.getVectorTile(source, format, z, x, y, params, callback);
-				});
+				return exports.getVectorTile(source, format, z, x, y, params, callback);
 			});
 		});
   }

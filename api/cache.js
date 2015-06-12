@@ -106,4 +106,8 @@ Cache.prototype.getData = function(cache, format, minZoom, maxZoom, callback) {
   cacheProcessor.getCacheData(cache, format, minZoom, maxZoom, callback);
 }
 
+Cache.prototype.getTile = function(cache, format, z, x, y, callback) {
+  cacheProcessor.getTile(cache, format, z, x, y, callback);
+}
+
 module.exports = Cache;

@@ -23,3 +23,7 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   var shapefileZip = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + "_shapefile.zip");
   ogrType.generateCache(cache, shapefileZip, 'ESRI Shapefile', callback);
 }
+
+exports.getTile = function(cache, format, z, x, y, callback) {
+  return tileUtilities.getVectorTile(cache.source, format, z, x, y, null, callback);
+}

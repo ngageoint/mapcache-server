@@ -3,6 +3,7 @@ var CacheModel = require('../../models/cache.js')
   , path = require('path')
   , request = require('request')
   , turf = require('turf')
+  , tileUtilities = require('../tileUtilities')
   , config = require('../../config.json')
   , fs = require('fs-extra');
 
@@ -17,6 +18,10 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
     var stream = fs.createReadStream(geojsonFile);
     callback(null, {stream: stream, extension: '.geojson'});
   }
+}
+
+exports.getTile = function(cache, format, z, x, y, callback) {
+  return tileUtilities.getVectorTile(cache, format, z, x, y, null, callback);
 }
 
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
