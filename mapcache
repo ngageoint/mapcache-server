@@ -83,6 +83,15 @@ operations.getAllSources = function() {
   });
 }
 
+operations.deleteSourceById = function() {
+  new api.Source().getById(argv.id, function(err, source) {
+    new api.Source().delete(source, function(err, source) {
+      console.log('Deleted Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
+      process.exit();
+    });
+  });
+}
+
 function sourceTimerFunction(source) {
   new api.Source().getById(source._id, function(err, source) {
     if (!source.status.complete) {

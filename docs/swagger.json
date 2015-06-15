@@ -811,6 +811,45 @@
                 }
             }
         },
+        "CacheTypes": {
+            "required": [
+                "required",
+                "type"
+            ],
+            "properties": {
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "Status": {
+            "properties": {
+                "complete": {
+                    "type": "boolean"
+                },
+                "generatedFeatures": {
+                    "type": "number"
+                },
+                "generatedTiles": {
+                    "type": "number"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "totalFeatures": {
+                    "type": "number"
+                },
+                "zoomLevelStatus": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Status"
+                    }
+                }
+            }
+        },
         "Source": {
             "required": [
                 "id"
@@ -827,6 +866,36 @@
                 },
                 "format": {
                     "type": "string"
+                },
+                "cacheTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CacheTypes"
+                    }
+                },
+                "geometry": {
+                    "type": "object"
+                },
+                "mapcacheUrl": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "size": {
+                    "type": "number"
+                },
+                "style": {
+                    "type": "object"
+                },
+                "vector": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/Status"
                 }
             }
         },
