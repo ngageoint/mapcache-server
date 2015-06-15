@@ -638,6 +638,66 @@
                     }
                 }
             }
+        },
+        "/api/sources/{sourceId}/{z}/{x}/{y}.{format}": {
+            "get": {
+                "description": "gets the XYZ tile specified in the specified format",
+                "operationId": "getTile",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "parameters": [
+                    {
+                        "name": "sourceId",
+                        "in": "path",
+                        "description": "id of source",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "z",
+                        "in": "path",
+                        "description": "z",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "x",
+                        "in": "path",
+                        "description": "x",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "y",
+                        "in": "path",
+                        "description": "y",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "format",
+                        "in": "path",
+                        "description": "format of tile",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "tile in specified format"
+                    },
+                    "400": {
+                        "description": "requested format is not supported"
+                    },
+                    "404": {
+                        "description": "tile does not exist"
+                    }
+                }
+            }
         }
     },
     "definitions": {

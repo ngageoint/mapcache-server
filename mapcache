@@ -97,8 +97,14 @@ operations.deleteSourceById = function() {
 operations.getSourceTile = function() {
   new api.Source().getById(argv.id, function(err, source) {
     sources.getTile(source, argv.format, argv.z, argv.x, argv.y, {}, function(err, tileStream) {
-      if (err) console.log('Error getting tile');
-      if (!tileStream) console.log('Tile does not exist');
+      if (err) {
+        console.log('Error getting tile');
+        process.exit();
+      }
+      if (!tileStream) {
+        console.log('Tile does not exist');
+        process.exit();
+      }
 
       if (argv.outfile) {
         var outstream = fs.createWriteStream(argv.outfile);
