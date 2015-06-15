@@ -116,7 +116,6 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 			delete gjData;
 
 			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
-				console.log('get the shapefile tile %d, %d, %d', tileInfo.z, tileInfo.x, tileInfo.y);
 				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
 				var file = path.join(dir, tileInfo.y.toString()+'.json');
 
@@ -131,7 +130,6 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 						return tileDone();
 					}
 				} else {
-					console.log('tile exists');
 					return tileDone();
 				}
 			}, function(source, continueCallback) {
@@ -296,9 +294,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 			// this means it is a cache
 			file = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString(), y.toString()+'.json');
 	}
-  console.log('looking for the file ', file);
   if (fs.existsSync(file)) {
-    console.log('it exists, send it back');
     var tile = "";
     var stream = fs.createReadStream(file);
 
@@ -333,7 +329,6 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
     }
     });
   } else {
-    console.log('pull it from the regular data');
 		var dir = path.join(config.server.sourceDirectory.path, source.id);
 		var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
 
@@ -343,7 +338,6 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				fileName = source.id + '.geojson';
 		}
     var file = path.join(dir, fileName);
-    console.log('pull from path', file);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
 			if (!tileIndex) return callback(null);
@@ -377,7 +371,6 @@ function getTileIndex(id, dataLocation, callback) {
 
 function getTileIndexFromData(id, data, callback) {
 	if (tileIndexes[id]) {
-		console.log('tile indexes['+id+']', tileIndexes[id]);
 		tileIndexes[id].accessTime = Date.now();
 		tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
 		return callback(null,tileIndexes[id].index);
@@ -394,8 +387,6 @@ function getTileIndexFromData(id, data, callback) {
 	};
 	tileIndexOrder.push(id);
 	tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
-	console.log('now tile indexes['+id+']', tileIndexes[id]);
-	console.log('tile index order', tileIndexOrder);
 
 	return callback(null, tileIndexes[id].index);
 }

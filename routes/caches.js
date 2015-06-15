@@ -32,9 +32,6 @@ module.exports = function(app, auth) {
     '/api/caches/:cacheId/generate',
     access.authorize('EXPORT_CACHE'),
     function (req, res, next) {
-    	var id = req.params.cacheId;
-    	// var minZoom = parseInt(req.param('minZoom'));
-    	// var maxZoom = parseInt(req.param('maxZoom'));
     	var format = req.param('format');
     	console.log('create cache format ' + format + ' for cache ' + req.cache.name);
       new api.Cache().create(req.cache, format, function(err, newCache) {
@@ -43,9 +40,6 @@ module.exports = function(app, auth) {
         }
         next(err);
       });
-    	// new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
-    	// });
-      // res.sendStatus(202);
   	}
   )
 
