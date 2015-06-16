@@ -167,10 +167,59 @@ exports.getSourceTile = function(yargs) {
   });
 }
 
-exports.getSourceFeatures = function() {
-  console.log('west', argv.west);
-  new api.Source().getById(argv.id, function(err, source) {
-
+exports.getSourceFeatures = function(yargs) {
+  var argv = yargs.usage('Gets the features of the source in the given bounding box.\nUsage: $0 getSourceFeatures [options]')
+  .option('i', {
+    alias: 'ID',
+    description: 'ID of source',
+    demand: true
+  })
+  .option('w', {
+    alias: 'west',
+    nargs: 1,
+    description: 'west side of the bounding box',
+    demand: true
+  })
+  .option('s', {
+    alias: 'south',
+    nargs: 1,
+    description: 'south side of the bounding box',
+    demand: true
+  })
+  .option('e', {
+    alias: 'east',
+    nargs: 1,
+    description: 'east side of the bounding box',
+    demand: true
+  })
+  .option('n', {
+    alias: 'north',
+    nargs: 1,
+    description: 'north side of the bounding box',
+    demand: true
+  })
+  .option('l', {
+    alias: 'limit',
+    description: 'limit the number of features'
+  })
+  .help('help')
+  .argv;
+  new api.Source().getById(argv.i, function(err, source) {
+    sources.getFeatures(source, argv.w, argv.s, argv.e, argv.n, 0, function(err, features) {
+      if (err) {
+        console.log('error retrieving features', err);
+        process.exit();
+      }
+      if (!features) {
+        console.log('No features were returned');
+        process.exit();
+      }
+      console.log('Found ' + features.length + ' features:');
+      for (var i = 0; i < features.length; i++) {
+        console.log('Feature ' + i, features[i].properties);
+      }
+      process.exit();
+    });
   });
 }
 
