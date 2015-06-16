@@ -762,6 +762,42 @@
                     }
                 }
             }
+        },
+        "/api/sources/{sourceId}/{format}": {
+            "get": {
+                "description": "gets the source in the requested format",
+                "operationId": "getData",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "parameters": [
+                    {
+                        "name": "sourceId",
+                        "in": "path",
+                        "description": "id of source",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "path",
+                        "description": "format to return the source as",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "the source in the format requested"
+                    },
+                    "400": {
+                        "description": "format for this source is not supported"
+                    }
+                }
+            }
         }
     },
     "definitions": {

@@ -223,6 +223,56 @@ exports.getSourceFeatures = function(yargs) {
   });
 }
 
+exports.getSourceData = function(yargs) {
+  var argv = yargs.usage('Gets the the source in the requested format.\nUsage: $0 getSourceData [options]')
+  .option('i', {
+    alias: 'ID',
+    description: 'ID of source',
+    demand: true
+  })
+  .option('f', {
+    alias: 'format',
+    nargs: 1,
+    description: 'format to get the source in',
+    demand: true
+  })
+  .option('o', {
+    alias: 'outfile',
+    nargs: 1,
+    description: 'path to file to output the data into'
+  })
+  .help('help')
+  .argv;
+  new api.Source().getById(argv.i, function(err, source) {
+    sources.getData(source, argv.f, function(err, data) {
+      if (err) {
+        console.log('error retrieving data', err);
+        process.exit();
+      }
+      if (!data) {
+        console.log('No data was returned');
+        process.exit();
+      }
+
+      if (argv.o) {
+        var outstream = fs.createWriteStream(argv.o);
+        outstream.on('finish', function() {
+          console.log('data has been written to: ', argv.o);
+          process.exit();
+        });
+        if (data.file) {
+          console.log('streaming', data.file);
+          fs.copy(data.file, argv.o, function(err) {
+            process.exit();
+          });
+        } else if (data.stream) {
+          data.stream.pipe(outstream);
+        }
+      }
+    });
+  });
+}
+
 function sourceTimerFunction(source) {
   new api.Source().getById(source._id, function(err, source) {
     if (!source.status.complete) {
