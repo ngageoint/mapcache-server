@@ -18,12 +18,12 @@ mongoose.Error.messages.general.required = "{PATH} is required.";
 
 log.info('Starting mapcache');
 
-var optimist = require("optimist")
+var yargs = require("yargs")
   .usage("Usage: $0 --port [number]")
   .describe('port', 'Port number that MapCache node server will run on.')
   .default('port', 4242);
-var argv = optimist.argv;
-if (argv.h || argv.help) return optimist.showHelp();
+var argv = yargs.argv;
+if (argv.h || argv.help) return yargs.showHelp();
 
 // Configure authentication
 var authentication = require('./authentication')(config.api.authentication.strategy);

@@ -1,30 +1,35 @@
 #!/usr/bin/env node
 
-var api = require('./api')
-  , mongoose = require('mongoose')
-  , fs = require('fs-extra')
-  , path = require('path')
-  , sources = require('./api/sources')
+var mongoose = require('mongoose')
+  , cli = require('./cli')
   , config = require('./config.json');
 
-var optimist = require("optimist")
-  .usage("Usage: $0 -o [operation] -f [file] -u [url] -t [type] -n [name] -i [id] -s [style file] -x [x] -y [y] -z [z] -w [outfile]")
-  .demand('o')
-  .alias('d', 'debug')
-  .alias('o', 'operation')
-  .alias('f', 'file')
-  .alias('n', 'name')
-  .alias('i', 'id')
-  .alias('t', 'type')
-  .alias('t', 'format')
-  .alias('w', 'outfile')
-  .alias('u', 'url')
-  .alias('s', 'style')
-  .describe('o', 'mapcache operation to run');
-  // .default('o', 4242);
+var operations = cli.operations;
 
-var argv = optimist.argv;
-if (argv.h || argv.help) return optimist.showHelp();
+var yargs = require("yargs")
+  .usage("Usage: $0 <command> [options]")
+  .alias('d', 'debug')
+  .help('help')
+  .check(function(argv, opts){
+    if(!operations[argv._[0]]) {
+      console.log('Invalid command <'+argv._[0]+'>');
+      console.log('Valid commands are:');
+      for (var key in operations) {
+        if (operations.hasOwnProperty(key)) {
+          console.log('\t'+key);
+        }
+      }
+      process.exit();
+    }
+  });
+
+for(var key in operations) {
+  if (operations.hasOwnProperty(key)) {
+    yargs.command(key, key, operations[key]);
+  }
+}
+
+var argv = yargs.argv;
 
 var mongodbConfig = config.server.mongodb;
 
@@ -37,115 +42,3 @@ mongoose.connect(mongoUri, {server: {poolSize: mongodbConfig.poolSize}}, functio
 });
 
 mongoose.set('debug', argv.d);
-
-var operations = {
-};
-
-operations.status = function() {
-  new api.Server().getInfo(function(err, server) {
-    if (err) return console.error('Error getting server status: ', err);
-    console.log('\nServer status: \n\tTotal Server Bytes Available: %s\n\tTotal Server Bytes Used: %s\n\tmapcache Bytes Available: %s\n\tmapcache Bytes Used: %s\n\tMaximum Cache Size: %s', server.serverTotal, server.serverFree, server.total, server.used, server.maximumCacheSize);
-    process.exit();
-  });
-}
-
-operations.createSource = function() {
-  var source = {
-    name: argv.name,
-    format: argv.format
-  };
-  if (argv.f) {
-    fs.copy(argv.f, '/tmp/' + path.basename(argv.f), function(err) {
-      new api.Source().import(source, {path: '/tmp/' + path.basename(argv.f)}, function(err, source) {
-        setTimeout(sourceTimerFunction, 0, source);
-      });
-    });
-  } else {
-    source.url = argv.u;
-    new api.Source().create(source, function(err, source) {
-      setTimeout(sourceTimerFunction, 0, source);
-    });
-  }
-}
-
-operations.getSourceById = function() {
-  new api.Source().getById(argv.id, function(err, source) {
-    console.log('Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
-    process.exit();
-  });
-}
-
-operations.getAllSources = function() {
-  new api.Source().getAll({}, function(err, sources) {
-    for (var i = 0; i < sources.length; i++) {
-      var source = sources[i];
-      console.log('Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
-    }
-    process.exit();
-  });
-}
-
-operations.deleteSourceById = function() {
-  new api.Source().getById(argv.id, function(err, source) {
-    new api.Source().delete(source, function(err, source) {
-      console.log('Deleted Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
-      process.exit();
-    });
-  });
-}
-
-operations.getSourceTile = function() {
-  new api.Source().getById(argv.id, function(err, source) {
-    sources.getTile(source, argv.format, argv.z, argv.x, argv.y, {}, function(err, tileStream) {
-      if (err) {
-        console.log('Error getting tile');
-        process.exit();
-      }
-      if (!tileStream) {
-        console.log('Tile does not exist');
-        process.exit();
-      }
-
-      if (argv.outfile) {
-        var outstream = fs.createWriteStream(argv.outfile);
-        outstream.on('finish', function() {
-          console.log('Tile has been written to: ', argv.outfile);
-          process.exit();
-        });
-        tileStream.pipe(outstream);
-      } else {
-        console.log('Found tile');
-        tileStream.on('end', function() {
-          process.exit();
-        });
-        tileStream.pipe(process.stdout);
-      }
-    });
-  });
-}
-
-function sourceTimerFunction(source) {
-  new api.Source().getById(source._id, function(err, source) {
-    if (!source.status.complete) {
-      console.log('Source is being created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
-      setTimeout(sourceTimerFunction, 5000, source);
-    } else {
-      console.log('Source was created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
-      process.exit();
-    }
-  });
-}
-
-function main() {
-  if (!operations[argv.o]) {
-    console.log('No operation [%s] exists.\n\nValid operations are:', argv.o);
-    for (var key in operations) {
-      console.log('\t%s', key);
-    }
-    process.exit();
-  }
-
-  operations[argv.o]();
-}
-
-main();

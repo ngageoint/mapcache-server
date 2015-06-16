@@ -47,7 +47,8 @@
     "turf": "^2.0.2",
     "winston": "^1.0.0",
     "wms-capabilities": "^0.1.0",
-    "xmldom": "^0.1.19"
+    "xmldom": "^0.1.19",
+    "yargs": "^3.11.0"
   },
   "devDependencies": {
     "bower": "^1.3.12",
