@@ -698,6 +698,70 @@
                     }
                 }
             }
+        },
+        "/api/sources/{sourceId}/features": {
+            "get": {
+                "description": "gets the features contained in the bounding box",
+                "operationId": "getFeatures",
+                "parameters": [
+                    {
+                        "name": "sourceId",
+                        "in": "path",
+                        "description": "id of source",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "zoom",
+                        "in": "query",
+                        "description": "zoom level to search in",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "west",
+                        "in": "query",
+                        "description": "west side of bounding box",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "east",
+                        "in": "query",
+                        "description": "east side of bounding box",
+                        "required": true,
+                        "type": "number"
+                    },
+                    {
+                        "name": "north",
+                        "in": "query",
+                        "description": "north side of bounding box",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "south",
+                        "in": "query",
+                        "description": "south side of bounding box",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Source"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "features found in order of closeness"
+                    },
+                    "400": {
+                        "description": "get features for this source is not supported"
+                    },
+                    "404": {
+                        "description": "no features found"
+                    }
+                }
+            }
         }
     },
     "definitions": {
