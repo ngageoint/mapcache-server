@@ -43,7 +43,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
     if ($scope.source.style.title || $scope.source.style.description) {
 
       var pixelPoint = event.layerPoint;
-      pixelPoint.y = pixelPoint.y - 5;
+      pixelPoint.y = pixelPoint.y + 5;
       pixelPoint.x = pixelPoint.x - 5;
       var latLngCorner = map.layerPointToLatLng(pixelPoint);
       var latLngDelta = {
