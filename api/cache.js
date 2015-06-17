@@ -58,6 +58,10 @@ Cache.prototype.create = function(cache, formats, callback) {
     }
   }
 
+  // if the request did not specify the required caches
+  // add them here
+
+
   if (cache.id) {
     for (var i = 0; i < newFormats.length; i++) {
       console.log("creating format " + newFormats[i] + " for cache " + cache.name);
@@ -95,9 +99,8 @@ Cache.prototype.restart = function(cache, format, callback) {
   if (!cache.status.complete) {
     return callback(new Error('Cache is currently being generated'));
   }
-  cache.status.complete = false;
 
-  cacheProcessor.createCacheFormat(newCache, format, function(err, cache) {
+  cacheProcessor.createCacheFormat(cache, format, function(err, cache) {
     console.log('format ' + format + ' submitted for cache ' + cache.name);
   });
 }
