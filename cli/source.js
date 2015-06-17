@@ -48,7 +48,7 @@ exports.createSource = function(yargs) {
   }
 }
 
-exports.getSourceById = function(yargs) {
+exports.getSource = function(yargs) {
   var argv = yargs.usage('Gets a source.\nUsage: $0 getSourceById -i <id>')
     .option('i', {
       alias: 'id',
@@ -58,6 +58,10 @@ exports.getSourceById = function(yargs) {
     .help('help')
     .argv;
   new api.Source().getById(argv.i, function(err, source) {
+    if (!source) {
+      console.log('No source found.');
+      process.exit();
+    }
     console.log('Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
     process.exit();
   });
@@ -68,6 +72,9 @@ exports.getAllSources = function(yargs) {
   .help('help')
   .argv;
   new api.Source().getAll({}, function(err, sources) {
+    if (sources.length ==0 ) {
+      console.log("Found 0 sources.");
+    }
     for (var i = 0; i < sources.length; i++) {
       var source = sources[i];
       console.log('Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
@@ -76,8 +83,8 @@ exports.getAllSources = function(yargs) {
   });
 }
 
-exports.deleteSourceById = function(yargs) {
-  var argv = yargs.usage('Deletes a source.\nUsage: $0 deleteSourceById -i <id>')
+exports.deleteSource = function(yargs) {
+  var argv = yargs.usage('Deletes a source.\nUsage: $0 deleteSource -i <id>')
     .option('i', {
       alias: 'id',
       description: 'ID of source to delete',

@@ -28,8 +28,8 @@ exports.getAllCaches = function(yargs) {
   });
 }
 
-exports.getCacheById = function(yargs) {
-  var argv = yargs.usage('Gets a cache by id.\nUsage: $0 getCacheById -i <cache id>')
+exports.getCache = function(yargs) {
+  var argv = yargs.usage('Gets a cache by id.\nUsage: $0 getCache -i <cache id>')
   .option('i', {
     alias: 'id',
     description: 'ID of cache'
