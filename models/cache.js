@@ -17,7 +17,7 @@ var TileFailureSchema = new Schema({
 var CacheSchema = new Schema({
   name: { type: String, required: true, unique: true },
   description: { type: String, required: false },
-  date: {type: Date, require: true },
+  date: {type: Date, required: false },
 	geometry: Schema.Types.Mixed,
 	maxZoom: {type: Number, required: true, default: 0 },
 	minZoom: {type: Number, required: true, default: 0},
