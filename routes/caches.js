@@ -41,7 +41,7 @@ module.exports = function(app, auth) {
         next(err);
       });
   	}
-  )
+  );
 
   // get all caches
   app.get(
