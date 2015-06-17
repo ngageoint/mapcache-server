@@ -36,10 +36,15 @@ function writeCache(gj, cache, filePath, format, callback) {
   var poly = cache.geometry;
   for (var i = 0; i < gj.features.length; i++) {
     var feature = gj.features[i];
-    var intersection = turf.intersect(poly, feature);
-    if (intersection) {
-      cache.generatedFeatures++;
-      gjCache.features.push(feature);
+    try {
+      var intersection = turf.intersect(poly, feature);
+      if (intersection) {
+        cache.generatedFeatures++;
+        gjCache.features.push(feature);
+      }
+    } catch (e) {
+      console.log('feature error', feature);
+      console.log('error turfing', e);
     }
   }
   fs.mkdirs(path.dirname(filePath), function (err) {
