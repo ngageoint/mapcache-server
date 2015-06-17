@@ -1,17 +1,3 @@
-// yargs
-//   .alias('d', 'debug')
-//   .alias('o', 'operation')
-//   .alias('f', 'file')
-//   .alias('n', 'name')
-//   .alias('i', 'id')
-//   .alias('t', 'type')
-//   .alias('t', 'format')
-//   .alias('w', 'outfile')
-//   .alias('u', 'url')
-//   .alias('s', 'style')
-//   .help('help');
-
-
 var fs = require('fs-extra')
   , path = require('path')
   , api = require('../api')

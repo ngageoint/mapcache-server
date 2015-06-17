@@ -312,13 +312,10 @@
                 }
             }
         },
-        "/api/caches/{cacheId}.zip": {
+        "/api/caches/{cacheId}": {
             "get": {
-                "description": "get cache zip",
-                "operationId": "getCacheZip",
-                "produces": [
-                    "application/octet-stream"
-                ],
+                "description": "get cache",
+                "operationId": "getCache",
                 "tags": [
                     "Cache"
                 ],
@@ -329,46 +326,43 @@
                         "description": "id of cache to fetch",
                         "required": true,
                         "type": "string"
-                    },
-                    {
-                        "name": "minZoom",
-                        "in": "query",
-                        "description": "minimum zoom level of cache zip",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "maxZoom",
-                        "in": "query",
-                        "description": "maximum zoom level of cache zip",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "format",
-                        "in": "query",
-                        "description": "format of cache export",
-                        "required": true,
-                        "type": "string",
-                        "enum": [
-                            "xyz",
-                            "tms",
-                            "mbtiles",
-                            "geopackage"
-                        ]
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "export of cache"
+                        "description": "cache metadata"
+                    }
+                }
+            },
+            "delete": {
+                "description": "deletes a single cache based on id",
+                "operationId": "deleteCache",
+                "parameters": [
+                    {
+                        "name": "cacheId",
+                        "in": "path",
+                        "description": "id of cache to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "deleted cache",
+                        "schema": {
+                            "$ref": "#/definitions/Cache"
+                        }
                     }
                 }
             }
         },
         "/api/caches/{cacheId}/generate": {
             "get": {
-                "description": "generate cache zip",
-                "operationId": "generateCacheZip",
+                "description": "generate cache format",
+                "operationId": "generateCache",
                 "tags": [
                     "Cache"
                 ],
@@ -376,21 +370,7 @@
                     {
                         "name": "cacheId",
                         "in": "path",
-                        "description": "id of cache to fetch",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "minZoom",
-                        "in": "query",
-                        "description": "minimum zoom level of cache zip",
-                        "required": true,
-                        "type": "string"
-                    },
-                    {
-                        "name": "maxZoom",
-                        "in": "query",
-                        "description": "maximum zoom level of cache zip",
+                        "description": "id of cache",
                         "required": true,
                         "type": "string"
                     },
@@ -399,13 +379,7 @@
                         "in": "query",
                         "description": "format of cache export",
                         "required": true,
-                        "type": "string",
-                        "enum": [
-                            "xyz",
-                            "tms",
-                            "mbtiles",
-                            "geopackage"
-                        ]
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -415,7 +389,37 @@
                 }
             }
         },
-        "/api/caches/{cacheId}/{z}/{x}/{y}.png": {
+        "/api/caches/{cacheId}/restart": {
+            "get": {
+                "description": "restart cache",
+                "operationId": "restartCache",
+                "tags": [
+                    "Cache"
+                ],
+                "parameters": [
+                    {
+                        "name": "cacheId",
+                        "in": "path",
+                        "description": "id of cache",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "format of cache",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "restart request accepted"
+                    }
+                }
+            }
+        },
+        "/api/caches/{cacheId}/{z}/{x}/{y}.{format}": {
             "get": {
                 "description": "get cache tile",
                 "operationId": "getCacheTile",
@@ -453,48 +457,68 @@
                         "description": "y of tile",
                         "required": true,
                         "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "image tile from cache",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/Cache"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/caches/{cacheId}": {
-            "delete": {
-                "description": "deletes a single cache based on id",
-                "operationId": "deleteCache",
-                "parameters": [
+                    },
                     {
-                        "name": "cacheId",
+                        "name": "format",
                         "in": "path",
-                        "description": "id of cache to delete",
+                        "description": "format of tile",
                         "required": true,
                         "type": "string"
                     }
                 ],
-                "tags": [
-                    "Cache"
-                ],
                 "responses": {
                     "200": {
-                        "description": "deleted cache",
-                        "schema": {
-                            "$ref": "#/definitions/Cache"
-                        }
+                        "description": "tile from cache in the requested format"
                     }
                 }
             }
         },
         "/api/caches/{cacheId}/{format}": {
+            "get": {
+                "description": "get cache export",
+                "operationId": "getCacheExport",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Cache"
+                ],
+                "parameters": [
+                    {
+                        "name": "cacheId",
+                        "in": "path",
+                        "description": "id of cache to fetch",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "minZoom",
+                        "in": "query",
+                        "description": "minimum zoom level of cache",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "maxZoom",
+                        "in": "query",
+                        "description": "maximum zoom level of cache",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "format",
+                        "in": "path",
+                        "description": "format of cache export",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "export of cache"
+                    }
+                }
+            },
             "delete": {
                 "description": "deletes a single cache format based on id",
                 "operationId": "deleteCacheFormat",
@@ -519,7 +543,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "deleted cache",
+                        "description": "deleted cache format",
                         "schema": {
                             "$ref": "#/definitions/Cache"
                         }
@@ -1064,8 +1088,7 @@
                 "id",
                 "name",
                 "maxZoom",
-                "minZoom",
-                "date"
+                "minZoom"
             ],
             "properties": {
                 "id": {
@@ -1087,8 +1110,29 @@
                     "type": "string",
                     "format": "date-time"
                 },
+                "humanReadableId": {
+                    "type": "string"
+                },
+                "geometry": {
+                    "type": "object"
+                },
+                "formats": {
+                    "type": "object"
+                },
+                "style": {
+                    "type": "object"
+                },
+                "vector": {
+                    "type": "boolean"
+                },
+                "tileSizeLimit": {
+                    "type": "number"
+                },
                 "source": {
                     "$ref": "#/definitions/Source"
+                },
+                "status": {
+                    "$ref": "#/definitions/Status"
                 }
             }
         }
