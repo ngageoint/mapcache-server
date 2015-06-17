@@ -49,16 +49,18 @@ async.series([
   process.exit();
 });
 
+var sourceId;
+var cache;
+
+
 function xyz(callback) {
   if (argv.xyz) {
 
     var sourceName = 'Smoketest XYZ Source';
     var cacheName = 'Smoketest XYZ Cache';
 
-    var sourceId;
-    var cache;
 
-    async.series([
+    var tests = [
       function(callback) {
         console.log("Testing creating an XYZ source.");
 
@@ -91,28 +93,64 @@ function xyz(callback) {
           });
         });
       }
-      // ,
-      // function(callback) {
-      //   console.log("Testing deleting an XYZ source.");
-      //   var args = ['--id', sourceId];
-      //   launchCommand('deleteSource', args, function() {
-      //
-      //     new api.Source().getAll({name: sourceName}, function(err, sources) {
-      //       if (sources && sources.length == 0) {
-      //         // ensure the directory is gone too
-      //         var exists = fs.existsSync(path.join(config.server.sourceDirectory.path, sourceId));
-      //         if (!exists) {
-      //           callback(null, 'Delete XYZ Source: XYZ source was deleted');
-      //         } else {
-      //           callback(new Error("XYZ Source was not deleted"), 'FAILURE: XYZ Source directory was not deleted');
-      //         }
-      //       } else {
-      //         callback(new Error("XYZ Source was not deleted"), 'FAILURE: XYZ Source was not deleted');
-      //       }
-      //     });
-      //   });
-      // }
-    ], callback);
+    ];
+
+    var cacheTypes = config.sourceCacheTypes['xyz'];
+    for (var i = 0; i < cacheTypes.length; i++) {
+      var item = cacheTypes[i];
+      tests.push(generateCacheFormat(item));
+    }
+
+    // tests.push(
+    //   function(callback) {
+    //     console.log("Testing deleting an XYZ source.");
+    //     var args = ['--id', sourceId];
+    //     launchCommand('deleteSource', args, function() {
+    //
+    //       new api.Source().getAll({name: sourceName}, function(err, sources) {
+    //         if (sources && sources.length == 0) {
+    //           // ensure the directory is gone too
+    //           var exists = fs.existsSync(path.join(config.server.sourceDirectory.path, sourceId));
+    //           if (!exists) {
+    //             callback(null, 'Delete XYZ Source: XYZ source was deleted');
+    //           } else {
+    //             callback(new Error("XYZ Source was not deleted"), 'FAILURE: XYZ Source directory was not deleted');
+    //           }
+    //         } else {
+    //           callback(new Error("XYZ Source was not deleted"), 'FAILURE: XYZ Source was not deleted');
+    //         }
+    //       });
+    //     });
+    //   }
+    // );
+
+    async.series(tests, callback);
+  }
+}
+
+function generateCacheFormat(item) {
+  return function(callback) {
+    if (item.required) {
+      // should already exist
+      return callback(null, 'Cache format ' + item.type + ' should already exist.');
+    } else {
+      var args = ['--cache', cache.id, '--format', item.type];
+      launchCommand('generateFormat', args, function() {
+
+        new api.Cache().getAll({name: cache.name}, function(err, caches) {
+          if (caches && caches[0] && caches[0].name == cache.name) {
+            cache = caches[0];
+            if (cache.formats[item.type] && cache.formats[item.type].size) {
+              return callback(null, 'XYZ Cache format ' + item.type + ' was created.');
+            } else {
+              callback(new Error("XYZ cache format "+ item.type + " was not created"), "FAILURE: XYZ cache format "+ item.type + " was not created");
+            }
+          } else {
+            callback(new Error("XYZ cache was not created"), 'FAILURE: XYZ cache was not created');
+          }
+        });
+      });
+    }
   }
 }
 
