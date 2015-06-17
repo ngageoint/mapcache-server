@@ -148,6 +148,9 @@ exports.createCache = function(cache, callback) {
 			    }
 					if (cache) {
 						cache.source = cache.sourceId;
+						if (!cache.style && cache.source.style) {
+							cache.style = cache.source.style;
+						}
 				    return callback(err, cache);
 					}
 				});
