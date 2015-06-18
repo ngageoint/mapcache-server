@@ -70,8 +70,7 @@ exports.createCache = function(yargs) {
   })
   .option('f', {
     alias: 'format',
-    description: 'Cache format to create',
-    demand: true
+    description: 'Cache format to create'
   })
   .option('w', {
     alias: 'west',
