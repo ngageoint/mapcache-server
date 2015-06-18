@@ -154,11 +154,11 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   }
 
   function updateMapExtent(extent) {
-    // var extent = extent || turf.extent($scope.source.geometry);
-    // map.fitBounds([
-    //   [extent[1],extent[0]],
-    //   [extent[3], extent[2]]
-    // ]);
+    var extent = extent || turf.extent($scope.source.geometry);
+    map.fitBounds([
+      [extent[1],extent[0]],
+      [extent[3], extent[2]]
+    ]);
   }
 
   function styleFunction(feature) {
