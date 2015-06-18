@@ -164,8 +164,12 @@ module.exports = function(app, auth) {
       var DOMParser = global.DOMParser = require('xmldom').DOMParser;
       var WMSCapabilities = require('wms-capabilities');
       var req = request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
-        var json = new WMSCapabilities(body).toJSON();
-        res.json(json);
+        try {
+          var json = new WMSCapabilities(body).toJSON();
+          res.json(json);
+        } catch (e) {
+          res.sendStatus(200);
+        }
       });
     }
   );
