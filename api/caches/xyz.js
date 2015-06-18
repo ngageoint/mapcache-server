@@ -78,15 +78,18 @@ function downloadTile(tileInfo, tileDone) {
     }
 
     source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
+      if (request) {
+        var stream = fs.createWriteStream(dir + filename);
+    		stream.on('close',function(status){
+          CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+            tileDone();
+          });
+    		});
 
-      var stream = fs.createWriteStream(dir + filename);
-  		stream.on('close',function(status){
-        CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-          tileDone();
-        });
-  		});
-
-			request.pipe(stream);
+  			request.pipe(stream);
+      } else {
+        tileDone();
+      }
 		});
   });
 }
