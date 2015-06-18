@@ -67,7 +67,7 @@ Cache.prototype.create = function(cache, formats, callback) {
     var cacheTypes = config.sourceCacheTypes[cache.source.format];
     for (var i = 0; i < cacheTypes.length; i++) {
       var item = cacheTypes[i];
-      if (!newFormats.indexOf(item.type)) {
+      if (item.required && !item.virtual && newFormats.indexOf(item.type) == -1) {
         newFormats.push(item.type);
       }
     }
