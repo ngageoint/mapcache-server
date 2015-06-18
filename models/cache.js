@@ -230,9 +230,11 @@ exports.updateFormatCreated = function(cache, formatName, formatFile, callback) 
 	if (typeof formatFile === 'string') {
 		fs.stat(formatFile, function(err, stat) {
 			if (err) {
-				return callback(err);
+				console.log('error getting format file status');
+				size = 0;
+			} else {
+				size = stat.size;
 			}
-			size = stat.size;
 
 			var update = {$set: {}};
 			for (var i = 0; i < formatArray.length; i++) {

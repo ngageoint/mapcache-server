@@ -30,6 +30,7 @@ function generateCache(cache, format, minZoom, maxZoom) {
     processor = require('./' + format);
     CacheModel.getCacheById(cache.id, function(err, foundCache) {
       processor.generateCache(foundCache, minZoom, maxZoom, function(err, status) {
+        console.log('creator status', status);
         if (!status || !status.cache) return process.exit();
         status.cache.status.complete = true;
         status.cache.save(function() {

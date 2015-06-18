@@ -19,7 +19,7 @@ var CacheModel = require('../../models/cache.js')
  exports.generateCache = function(cache, minZoom, maxZoom, callback) {
    CacheModel.getCacheById(cache.id, function(err, cache) {
      // ensure there is already an xyz cache generated
-     if (cache.formats && cache.formats.xyz && cache.formats.xyz.size) {
+     if (cache.formats && cache.formats.xyz && !cache.formats.xyz.generating) {
       var mbtilesFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".mbtiles");
       console.log('running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id.toString()) + " " + mbtilesFile);
       var python = exec(

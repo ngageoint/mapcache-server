@@ -73,7 +73,14 @@ function formatTest(format) {
       function(callback) {
         console.log('Testing creating an '+format+' source.');
 
-        var args = ['--url', argv[format], '--name', "'"+sourceName+"'", '--type', format];
+        var args = ['--name', "'"+sourceName+"'", '--type', format];
+        if (!argv[format].indexOf('http')) {
+          args.push('--url');
+        } else {
+          args.push('--file');
+        }
+        args.push(argv[format]);
+
         launchCommand('createSource', args, function() {
 
           new api.Source().getAll({name: sourceName}, function(err, sources) {

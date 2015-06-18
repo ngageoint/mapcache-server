@@ -19,8 +19,9 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   CacheModel.getCacheById(cache.id, function(err, cache) {
     // ensure there is already an xyz cache generated
-    if (cache.formats && cache.formats.xyz && cache.formats.xyz.size) {
+    if (cache.formats && cache.formats.xyz && !cache.formats.xyz.generating) {
       var geoPackageFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".gpkg");
+      console.log('running ' + './utilities/geopackage-python-4.0/Packaging/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + path.join(config.server.cacheDirectory.path, cache._id.toString()) + " " + geoPackageFile);
       var python = exec(
         './utilities/geopackage-python-4.0/Packaging/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + path.join(config.server.cacheDirectory.path, cache._id.toString()) + " " + geoPackageFile,
         function(error, stdout, stderr) {
