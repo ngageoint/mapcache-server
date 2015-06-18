@@ -51,7 +51,8 @@ Cache.prototype.create = function(cache, formats, callback) {
     if (typeof formats === "string") {
       console.log('formats is a string', formats);
       formats = [formats];
-    } else if (Array.isArray(formats)) {
+    }
+    if (Array.isArray(formats)) {
       for (var i = 0; i < formats.length; i++) {
         if (!cache.formats || !cache.formats[formats[i]]) {
           newFormats.push(formats[i]);
