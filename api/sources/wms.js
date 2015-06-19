@@ -11,7 +11,7 @@ exports.process = function(source, callback) {
 }
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
-  if (!params.layer) {
+  if (params.layer == undefined || params.layer == null) {
     return callback(null);
   }
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
@@ -45,16 +45,16 @@ exports.getData = function(source, callback) {
 }
 
 exports.processSource = function(source, callback) {
-  source.status = "Parsing GetCapabilities";
-  source.complete = false;
+  source.status.message = "Parsing GetCapabilities";
+  source.status.complete = false;
   source.save(function(err) {
     var DOMParser = global.DOMParser = require('xmldom').DOMParser;
     var WMSCapabilities = require('wms-capabilities');
     var req = request.get({url: source.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
       var json = new WMSCapabilities(body).toJSON();
       source.wmsGetCapabilities = json;
-      source.status = "Complete";
-      source.complete = true;
+      source.status.message = "Complete";
+      source.status.complete = true;
       source.save(function(err) {
         callback(err);
       });
