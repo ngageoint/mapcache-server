@@ -13,7 +13,7 @@ function Cache() {
 }
 
 Cache.prototype.getAll = function(options, callback) {
-  CacheModel.getCaches(callback);
+  CacheModel.getCaches(options, callback);
 }
 
 Cache.prototype.delete = function(cache, callback) {
@@ -88,9 +88,10 @@ Cache.prototype.create = function(cache, formats, callback) {
       generatedFeatures: 0,
       zoomLevelStatus: {}
     };
-
+    console.log('cache to create', cache);
     CacheModel.createCache(cache, function(err, newCache) {
       if (err) return callback(err);
+      console.log('created cache', newCache);
       callback(err, newCache);
       // if the request did not specify the required caches
       // add them here

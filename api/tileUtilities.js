@@ -81,20 +81,6 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 	var geometry = turf.envelope(gjData);
 	console.timeEnd('getting geometry');
 	source.geometry = geometry;
-	source.properties = [];
-	var allProperties = {};
-	for (var i = 0; i < gjData.features.length; i++) {
-		var feature = gjData.features[i];
-		for (var property in feature.properties) {
-			allProperties[property] = allProperties[property] || {key: property, values:[]};
-			if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
-				allProperties[property].values.push(feature.properties[property]);
-			}
-		}
-	}
-	for (var property in allProperties) {
-		source.properties.push(allProperties[property]);
-	}
 
 	source.style = {
 		defaultStyle: {
@@ -108,7 +94,8 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 		},
 		styles: []
 	};
-	source.save(function(err) {
+	console.log('saving the source and then generating tile index');
+	source.save(function() {
 		console.log('generate tile index');
 		console.time('generate tile index');
 		getTileIndexFromData(source.id, gjData, function(err, tileIndex) {
@@ -142,7 +129,22 @@ exports.generateMetadataTiles = function(source, gjData, callback) {
 			}, function(err, cache) {
 				source.status.complete = true;
 				source.status.message = "Complete";
+				source.properties = [];
+				var allProperties = {};
+				for (var i = 0; i < gjData.features.length; i++) {
+					var feature = gjData.features[i];
+					for (var property in feature.properties) {
+						allProperties[property] = allProperties[property] || {key: property, values:[]};
+						if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
+							allProperties[property].values.push(feature.properties[property]);
+						}
+					}
+				}
+				for (var property in allProperties) {
+					source.properties.push(allProperties[property]);
+				}
 				source.save(function() {
+					console.log('Source is complete', source.name);
 					callback(null, source);
 				});
 			});

@@ -65,8 +65,8 @@ function formatTest(format) {
   return function(callback) {
     console.log('--------- Testing Format ' + format + ' ---------------');
 
-    var sourceName = 'Smoketest '+format+' Source';
-    var cacheName = 'Smoketest '+format+' Cache';
+    var sourceName = 'Smoketest '+format+' Source ' + Date.now();
+    var cacheName = 'Smoketest '+format+' Cache ' + Date.now();
 
 
     var tests = [
@@ -81,12 +81,22 @@ function formatTest(format) {
         }
         args.push(argv[format]);
 
-        launchCommand('createSource', args, function() {
+        launchCommand('createSource', args, function(error, stdout, stderr) {
+          console.log('Output from createSource', stdout.toString());
+          console.log('Error output from createSource', stderr.toString());
 
           new api.Source().getAll({name: sourceName}, function(err, sources) {
             if (sources && sources[0] && sources[0].name == sourceName) {
               sourceId = sources[0].id;
-              callback(null, 'Create '+format+' Source: '+format+' source was created');
+              if (sources[0].status.complete) {
+                console.log('created the source ', sources[0]);
+                callback(null, 'Create '+format+' Source: '+format+' source was created');
+              } else {
+                sourceTimerFunction(sources[0], function(err, source) {
+                  console.log('created the source ', source);
+                  callback(null, 'Create '+format+' Source: '+format+' source was created');
+                });
+              }
             } else {
               callback(new Error(format+' Source was not created'), 'FAILURE: '+format+' Source was not created');
             }
@@ -96,7 +106,7 @@ function formatTest(format) {
       function(callback) {
         console.log('Testing creating a cache from an '+format+' source.');
 
-        var args = ['--source', sourceId, '--name', "'"+cacheName+"'", '-w', -104.826909, '-e', -104.623662, '-s', 39.585987, '-n', 39.740334, '--maxZoom', 14, '--minZoom', 0];
+        var args = ['--source', sourceId, '--name', "'"+cacheName+"'", '-w', -124, '-e', -68, '-s', 26, '-n', 50, '--maxZoom', 5, '--minZoom', 0, '--layer', 0];
         launchCommand('createCache', args, function() {
 
           new api.Cache().getAll({name: cacheName}, function(err, caches) {
@@ -176,7 +186,19 @@ function launchCommand(command, args, callback) {
     './mapcache ' + command + ' ' + args.join(' '),
     function(error, stdout, stderr) {
       console.log('done running ' + './mapcache ' + command + ' ' + args.join(' '));
-      callback(error);
+      callback(error, stdout, stderr);
     }
   );
+}
+
+function sourceTimerFunction(source, callback) {
+  new api.Source().getById(source._id, function(err, source) {
+    if (!source.status.complete) {
+      console.log('Source is being created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
+      setTimeout(sourceTimerFunction, 5000, source, callback);
+    } else {
+      console.log('Source was created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
+      callback(null, source);
+    }
+  });
 }

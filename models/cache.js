@@ -89,8 +89,8 @@ function getSourceByUrlAndFormat(url, format, callback) {
   });
 }
 
-exports.getCaches = function(callback) {
-	var query = {};
+exports.getCaches = function(options, callback) {
+	var query = options || {};
 	Cache.find(query).populate('sourceId').exec(function(err, caches) {
     if (err) {
       console.log("Error finding caches in mongo: " + id + ', error: ' + err);

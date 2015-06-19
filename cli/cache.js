@@ -96,6 +96,11 @@ exports.createCache = function(yargs) {
     description: 'north side of the bounding box',
     demand: true
   })
+  .option('l', {
+    alias: 'layer',
+    nargs: 1,
+    description: 'name of wms layer to use to create the cache'
+  })
   .help('help')
   .argv;
 
@@ -114,6 +119,12 @@ exports.createCache = function(yargs) {
   }
   if (argv.x) {
     cache.maxZoom = argv.x;
+  }
+
+  if (argv.l != undefined) {
+    cache.cacheCreationParams = {
+      layer: argv.l
+    };
   }
 
   new api.Cache().create(cache, argv.f, function(err, cache) {

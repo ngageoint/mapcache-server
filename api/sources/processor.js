@@ -11,7 +11,7 @@ mongoose.connect(mongoUri, {server: {poolSize: mongodbConfig.poolSize}}, functio
     throw err;
   }
 });
-mongoose.set('debug', true);
+mongoose.set('debug', false);
 
 process.on('message', function(m) {
   console.log('got a message in child process', m);
