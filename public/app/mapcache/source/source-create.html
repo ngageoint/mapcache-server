@@ -276,7 +276,8 @@
   </div>
   <div class="row bottom-gap-l top-gap">
     <div class="col-md-12">
-      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span><button class="btn btn-primary pull-right" ng-class="{disabled: sourceSubmitted}" ng-click="createSource()">Create Source</button></p>
+      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span><button class="btn btn-primary pull-right"
+        ng-class="{disabled: sourceSubmitted || (!source.name || !source.format || (!source.url && !source.sourceFile))}" ng-click="createSource()">Create Source</button></p>
     </div>
   </div>
 </div>

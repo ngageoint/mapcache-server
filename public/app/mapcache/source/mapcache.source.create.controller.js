@@ -14,7 +14,6 @@ MapcacheSourceCreateController.$inject = [
 function MapcacheSourceCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
 
   $scope.source = {
-    format: 'xyz'
   };
 
   $scope.mapOptions = {
@@ -71,6 +70,17 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
       if (layer.EX_GeographicBoundingBox) {
         $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
       }
+    }
+  });
+
+  $scope.$watch('source.format', function(format, oldFormat) {
+    if (!format) {
+      return;
+    }
+
+    if (format != oldFormat) {
+      $scope.source.url = null;
+      $scope.source.sourceFile = null;
     }
   });
 
