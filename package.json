@@ -46,7 +46,7 @@
     "shp2json": "^1.1.0",
     "turf": "^2.0.2",
     "winston": "^1.0.0",
-    "wms-capabilities": "https://github.com/danielbarela/wms-capabilities/tarball/master",
+    "wms-capabilities": "^0.2.2",
     "xmldom": "^0.1.19",
     "yargs": "^3.11.0"
   },
