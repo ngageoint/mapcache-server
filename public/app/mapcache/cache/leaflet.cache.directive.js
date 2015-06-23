@@ -17,9 +17,9 @@ function leafletCache() {
   return directive;
 }
 
-LeafletCacheController.$inject = ['$scope', '$element', 'LocalStorageService', 'CacheService', 'LeafletUtilities'];
+LeafletCacheController.$inject = ['$scope', '$element', 'LocalStorageService', 'LeafletUtilities'];
 
-function LeafletCacheController($scope, $element, LocalStorageService, CacheService, LeafletUtilities) {
+function LeafletCacheController($scope, $element, LocalStorageService, LeafletUtilities) {
 
   var baseLayerOptions = $scope.options || {
     maxZoom: 18,
@@ -72,26 +72,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, CacheServ
       [extent[3], extent[2]]
     ]);
 
-    if (cache.vector && !cache.data) {
-      CacheService.getCacheData(cache, 'geojson', function(data) {
-        $scope.cache.data = data;
-        // $scope.options.extent = turf.extent(data);
-        // gj.addData(data);
-      });
-    }
   });
-
-  $scope.$watch('cache.data', function(cacheData) {
-    if (!$scope.cache || !$scope.cache.data) return;
-    if (cacheLayer) {
-      map.removeLayer(cacheLayer);
-    }
-    cacheLayer = LeafletUtilities.tileLayer($scope.cache, defaultLayer, cacheLayerOptions, $scope.cache.style, styleFunction);
-    if (cacheLayer) {
-      cacheLayer.addTo(map);
-    }
-  });
-
 
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.cache.style);

@@ -79,8 +79,8 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
 
     if (format != oldFormat) {
-      $scope.source.url = null;
-      $scope.source.sourceFile = null;
+      delete $scope.source.url;
+      delete $scope.source.sourceFile;
     }
   });
 
