@@ -22,6 +22,7 @@
     "archiver": "^0.14.3",
     "async": "1.2.1",
     "body-parser": "1.2.x",
+    "canvas": "^1.2.3",
     "diskspace": "^0.1.7",
     "du": "^0.1.0",
     "express": "4.10.6",
