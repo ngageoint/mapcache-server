@@ -79,8 +79,9 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     }
 
     var gj = L.geoJson(cache.geometry);
+    gj.addData(turf.center(cache.geometry));
     gj.setStyle({fill: false, color: color});
-    gj.bindPopup("<h5>" + cache.name + "</h5>");
+    gj.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
     gj.on('popupopen', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
       $scope.$apply();
