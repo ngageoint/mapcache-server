@@ -280,3 +280,16 @@
   width: 100%;
   text-align: center;
 }
+
+.merged .input-group-addon {
+	background-color: #fff;
+  border-left: 0px;
+  padding: 6px 3px;
+}
+.merged input {
+    border-right: 0px;
+    padding: 6px;
+}
+.merged .input-group-addon + input {
+	border-left: 0px;
+}

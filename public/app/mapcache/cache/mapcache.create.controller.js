@@ -73,6 +73,11 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.cache.useCurrentView = Date.now();
   }
 
+  $scope.dmsChange = function(direction, dms) {
+    $scope.bb[direction] = (!isNaN(dms.degrees) ? Number(dms.degrees) : 0) + (!isNaN(dms.minutes) ? dms.minutes/60 : 0) + (!isNaN(dms.seconds) ? dms.seconds/(60*60) : 0);
+    $scope.manualEntry();
+  }
+
   $scope.manualEntry = function() {
     console.log('manual entry', $scope.bb);
     if (isNaN($scope.bb.north) || !$scope.bb.north || $scope.bb.north.toString().endsWith('.')
@@ -95,21 +100,40 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.$broadcast('extentChanged', envelope);
   }
 
+  function setDirectionDMS (deg, direction) {
+     var d = Math.floor (deg);
+     var minfloat = (deg-d)*60;
+     var m = Math.floor(minfloat);
+     var secfloat = (minfloat-m)*60;
+     var s = Math.round(secfloat);
+     direction.degrees = d;
+     direction.minutes = m;
+     direction.seconds = s;
+}
+
   $scope.$watch('cache.geometry', function(geometry) {
     if (!geometry) {
       $scope.bb.north = null;
       $scope.bb.south = null;
       $scope.bb.west = null;
       $scope.bb.east = null;
+      $scope.north = {};
+      $scope.south = {};
+      $scope.west = {};
+      $scope.east = {};
       boundsSet = false;
       return;
     }
     boundsSet = true;
     var extent = turf.extent(geometry);
     $scope.bb.north = extent[3];
+    setDirectionDMS($scope.bb.north, $scope.north);
     $scope.bb.south = extent[1];
+    setDirectionDMS($scope.bb.south, $scope.south);
     $scope.bb.west = extent[0];
+    setDirectionDMS($scope.bb.west, $scope.west);
     $scope.bb.east = extent[2];
+    setDirectionDMS($scope.bb.east, $scope.east);
 
     calculateCacheSize();
   });

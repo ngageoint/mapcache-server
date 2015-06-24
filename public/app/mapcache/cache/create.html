@@ -65,7 +65,18 @@
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group">
             <label>Northern Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.north" placeholder="e.g. 39.9">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.north" placeholder="e.g. 39.9">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('north', north)" ng-model="north.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('north', north)" ng-model="north.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('north', north)" ng-model="north.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
       </div>
@@ -73,7 +84,18 @@
         <div class="col-sm-2" style="height: 500px">
           <div class="form-group vertical-center">
             <label>Western Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.west" placeholder="e.g. -105.2">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.west" placeholder="e.g. -105.2">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('west', west)" ng-model="west.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('west', west)" ng-model="west.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('west', west)" ng-model="west.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
         <div class="col-sm-8">
@@ -91,7 +113,18 @@
         <div class="col-sm-2" style="height: 500px">
           <div class="form-group vertical-center">
             <label>Eastern Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.east" placeholder="e.g. -104.8">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.east" placeholder="e.g. -104.8">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('east', east)" ng-model="east.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('east', east)" ng-model="east.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('east', east)" ng-model="east.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
       </div>
@@ -99,7 +132,18 @@
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group">
             <label>Southern Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.south" placeholder="e.g. 39.5">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.south" placeholder="e.g. 39.5">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('south', south)" ng-model="south.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('south', south)" ng-model="south.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('south', south)" ng-model="south.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
       </div>
@@ -124,7 +168,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Northern Boundary</label>
-            <input class="form-control" ng-change="manualEntry('north', north)" ng-model="north" placeholder="e.g. 39.9">
+            <input class="form-control" ng-change="manualEntry()" ng-model="north" placeholder="e.g. 39.9">
           </div>
         </div>
       </div>
@@ -132,7 +176,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Eastern Boundary</label>
-            <input class="form-control" ng-change="manualEntry('east', east)" ng-model="east" placeholder="e.g. -104.8">
+            <input class="form-control" ng-change="manualEntry()" ng-model="east" placeholder="e.g. -104.8">
           </div>
         </div>
       </div>
@@ -140,7 +184,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Southern Boundary</label>
-            <input class="form-control" ng-change="manualEntry('south', south)" ng-model="south" placeholder="e.g. 39.5">
+            <input class="form-control" ng-change="manualEntry()" ng-model="south" placeholder="e.g. 39.5">
           </div>
         </div>
       </div>
@@ -148,7 +192,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Western Boundary</label>
-            <input class="form-control" ng-change="manualEntry('west', west)" ng-model="west" placeholder="e.g. -105.2">
+            <input class="form-control" ng-change="manualEntry()" ng-model="west" placeholder="e.g. -105.2">
           </div>
         </div>
       </div>
