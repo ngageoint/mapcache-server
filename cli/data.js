@@ -22,13 +22,20 @@ exports.ensureDataIntegrity = function(yargs) {
     console.log('Found ' + caches.length + ' caches.');
 
     async.eachSeries(caches, function iterator(cache, callback) {
-      if (cache.totalTileSize) {
+      if (cache.totalTileSize && !cache.vector) {
         cache.formats = cache.formats || {};
         if (!cache.formats.xyz || !cache.formats.xyz.size) {
           console.log('Setting cache xyz size for cache ' + cache.name + ' to ' + cache.totalTileSize);
-          cache.formats.xyz = { size: cache.totalTileSize };
-          cache.formats.tms = { size: cache.totalTileSize };
-          cache.save(callback);
+          cacheModel.updateFormatCreated(cache, 'xyz', cache.totalTileSize, function(err, newCache) {
+            if(!err){
+              cacheModel.updateFormatCreated(newCache, 'tms', cache.totalTileSize, function(err, newCache) {
+                callback(err);
+              });
+            } else {
+              console.log('Error saving cache', err);
+              callback(err);
+            }
+          });
         } else {
           callback();
         }
