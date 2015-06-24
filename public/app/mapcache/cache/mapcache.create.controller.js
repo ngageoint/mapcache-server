@@ -80,6 +80,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
 
   $scope.manualEntry = function() {
     console.log('manual entry', $scope.bb);
+    setDirectionDMS($scope.bb.north, $scope.north);
+    setDirectionDMS($scope.bb.south, $scope.south);
+    setDirectionDMS($scope.bb.east, $scope.east);
+    setDirectionDMS($scope.bb.west, $scope.west);
     if (isNaN($scope.bb.north) || !$scope.bb.north || $scope.bb.north.toString().endsWith('.')
     || isNaN($scope.bb.south) || !$scope.bb.south || $scope.bb.south.toString().endsWith('.')
     || isNaN($scope.bb.west) || !$scope.bb.west || $scope.bb.west.toString().endsWith('.')
@@ -101,6 +105,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }
 
   function setDirectionDMS (deg, direction) {
+    if (!deg) return;
      var d = Math.floor (deg);
      var minfloat = (deg-d)*60;
      var m = Math.floor(minfloat);
