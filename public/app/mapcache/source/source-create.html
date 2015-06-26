@@ -9,130 +9,231 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label>Name Your Source</label>
+        <span class="page-sub-entity-title">Name Your Source</span>
         <input class="form-control" ng-model="source.name" placeholder="e.g. Open Street Map">
       </div>
     </div>
   </div>
-  <div class="row top-gap-s">
+
+  <div class="row top-gap">
     <div class="col-md-12">
-      <div>
-        <label> What kind of source? </label>
-      </div>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="tile"> Tile Server
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="wms"> {{'wms' | cacheFormat}}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geotiff"> {{'geotiff' | cacheFormat}}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="mbtiles"> {{'mbtiles' | cacheFormat}}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="shapefile"> {{'shapefile' | cacheFormat}}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geojson"> {{'geojson' | cacheFormat}}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="kmz"> {{'kmz' | cacheFormat}}
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geojsonUrl"> {{'geojson' | cacheFormat}} URL
-      </label>
+      <p class="lead">Where is your source data?</p>
     </div>
   </div>
-  <div ng-switch="sourceType">
-    <div ng-switch-when="geojsonUrl" ng-init="source.format = 'geojson'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Specify a URL to a server with tiles in either xyz or tms format which mapcache will use to create maps.</p>
-        </div>
+
+  <!-- <div class="row">
+    <div class="col-md-6">
+      <div class="form-group has-feedback" ng-class="{'has-success':sourceInformation.url && sourceInformation.valid && sourceInformation.format, 'has-warning': sourceInformation.url && sourceInformation.valid && !sourceInformation.format, 'has-error':sourceInformation.url && !sourceInformation.valid}">
+        <label class="control-label page-sub-entity-title" ng-class="{'text-muted': sourceInformation.file}">Source Data URL <span ng-if="urlDiscovery">Loading URL <i class="fa fa-pulse fa-spinner"></i></label>
+        <input class="form-control" ng-model="source.url" placeholder="e.g. http://osm.geointapps.org/osm">
+        <span ng-if="sourceInformation.url && sourceInformation.valid && sourceInformation.format" class="glyphicon glyphicon-ok form-control-feedback"></span>
+        <span ng-if="sourceInformation.url && sourceInformation.valid && !sourceInformation.format" class="glyphicon glyphicon-warning-sign form-control-feedback"></span>
+        <span ng-if="sourceInformation.url && !sourceInformation.valid" class="glyphicon glyphicon-remove form-control-feedback"></span>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="form-group">
-            <input class="form-control" ng-model="source.url" placeholder="e.g. http://osm.geointapps.org/osm">
-          </div>
+    </div>
+    <div class="col-md-1">
+      <p class="page-sub-entity-title text-center">- or -</p>
+    </div>
+    <div class="col-md-5">
+      <div class="form-group has-feedback" ng-class="{'has-success':sourceInformation.file}">
+        <span class="control-label page-sub-entity-title" ng-class="{'text-muted': sourceInformation.url}">Source Data File</span>
+        <div file-upload></div>
+      </div>
+    </div>
+  </div>
+  <div class="row top-gap" ng-if="progress">
+    <div class="col-md-6">
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
+          <span>{{progress | number: 2}}% Complete</span>
         </div>
       </div>
     </div>
-    <div ng-switch-when="tile" ng-init="source.format = 'xyz'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Specify a URL to a server with tiles in either xyz or tms format which mapcache will use to create maps.</p>
-        </div>
+  </div>
+
+  <div ng-if="sourceInformation.valid && sourceInformation.url && sourceInformation.format">
+    <p class="page-sub-entity-title">
+      Your source '{{sourceInformation.url}}' appears to be a {{sourceInformation.format | cacheFormat}} url.  If this is incorrect please choose the correct source type:
+      <ui-select ng-model="source.format" theme="bootstrap">
+        <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+        <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+          {{format.format | cacheFormat | highlight: $select.search}}
+        </ui-select-choices>
+      </ui-select>
+    </p>
+  </div>
+
+  <div ng-if="sourceInformation.valid && sourceInformation.url && !sourceInformation.format">
+    <p class="page-sub-entity-title">
+      The format of your source '{{sourceInformation.url}}' could not be determined.  If this is incorrect please choose the correct source type:
+      <ui-select ng-model="source.format" theme="bootstrap">
+        <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+        <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+          {{format.format | cacheFormat | highlight: $select.search}}
+        </ui-select-choices>
+      </ui-select>
+    </p>
+  </div>
+
+  <div ng-if="!sourceInformation.valid && sourceInformation.url">
+    <p class="lead">
+      <i class="fa fa-warning"></i> {{sourceInformation.url}} does not look like a valid URL.  If you know it is valid, please choose the correct source type:
+      <ui-select ng-model="source.format" theme="bootstrap">
+        <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+        <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+          {{format.format | cacheFormat | highlight: $select.search}}
+        </ui-select-choices>
+      </ui-select>
+    </p>
+  </div>
+
+  <div ng-if="sourceInformation.file">
+    <p class="page-sub-entity-title">
+      <span ng-if="sourceInformation.format">Your source '{{sourceInformation.file.name}}' appears to be a {{sourceInformation.format | cacheFormat}} file.  If this is incorrect p</span><span ng-if="!sourceInformation.format">The type of '{{sourceInformation.file.name}}' could not be determined. P</span>lease choose the correct source type:
+      <ui-select ng-model="source.format" theme="bootstrap">
+        <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+        <ui-select-choices repeat="format.format as format in validFileFormats | filter: $select.search">
+          {{format.format | cacheFormat | highlight: $select.search}}
+        </ui-select-choices>
+      </ui-select>
+    </p>
+  </div>
+
+<hr/> -->
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group has-feedback" ng-class="{'has-success':locationStatus == 'success', 'has-warning': locationStatus == 'warning', 'has-error': locationStatus == 'error'}">
+        <span class="control-label page-sub-entity-title">Enter a URL or browse for a local file</span>
+        <div location-chooser location-status="locationStatus"></div>
+        <p ng-if="sourceInformation" class="help-block">
+          <span ng-if="locationStatus == 'success'">URL appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
+          <span ng-if="locationStatus == 'warning'">URL is valid but the data format could not be determined.</span>
+          <span ng-if="locationStatus == 'error'">Could not validate URL.  Please ensure it is correct.</span>
+        </p>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="form-group">
-            <input class="form-control" ng-model="source.url" placeholder="e.g. http://osm.geointapps.org/osm">
-          </div>
-        </div>
+    </div>
+    <div class="col-md-6" ng-if="sourceInformation.url">
+
+      <div class="form-group">
+        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.url}}</span>
+        <ui-select ng-model="source.format" theme="bootstrap">
+          <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+          <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+            {{format.format | cacheFormat | highlight: $select.search}}
+          </ui-select-choices>
+        </ui-select>
+        <p ng-if="sourceInformation" class="help-block">
+          <span ng-if="locationStatus == 'success'">URL appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
+        </p>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <p class="lead">Source preview</p>
-          <div leaflet-source source="source"></div>
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" ng-model="source.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
-            </label>
-          </div>
+    </div>
+    <div class="col-md-6" ng-if="sourceInformation.file">
+      <div class="form-group">
+        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.file.name}}</span>
+        <ui-select ng-model="source.format" theme="bootstrap">
+          <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+          <ui-select-choices repeat="format.format as format in validFileFormats | filter: $select.search">
+            {{format.format | cacheFormat | highlight: $select.search}}
+          </ui-select-choices>
+        </ui-select>
+        <p ng-if="sourceInformation" class="help-block">
+          <span ng-if="locationStatus == 'success'">URL appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
+        </p>
+      </div>
+    </div>
+
+      <!-- <div ng-if="sourceInformation.valid && sourceInformation.url && sourceInformation.format">
+        <p class="page-sub-entity-title">
+          {{sourceInformation.url}} appears to be a {{sourceInformation.format | cacheFormat}} url.  If this is incorrect please choose the correct source type:
+          <ui-select ng-model="source.format" theme="bootstrap">
+            <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+            <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+              {{format.format | cacheFormat | highlight: $select.search}}
+            </ui-select-choices>
+          </ui-select>
+        </p>
+      </div>
+
+      <div ng-if="sourceInformation.valid && sourceInformation.url && !sourceInformation.format">
+        <p class="page-sub-entity-title">
+          The format of '{{sourceInformation.url}}' could not be determined.  Please choose the correct source type:
+          <ui-select ng-model="source.format" theme="bootstrap">
+            <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+            <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+              {{format.format | cacheFormat | highlight: $select.search}}
+            </ui-select-choices>
+          </ui-select>
+        </p>
+      </div>
+
+      <div ng-if="!sourceInformation.valid && sourceInformation.url">
+        <p class="lead">
+          <i class="fa fa-warning"></i> {{sourceInformation.url}} does not look like a valid URL.  If it is valid, please choose the correct source type:
+          <ui-select ng-model="source.format" theme="bootstrap">
+            <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+            <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+              {{format.format | cacheFormat | highlight: $select.search}}
+            </ui-select-choices>
+          </ui-select>
+        </p>
+      </div>
+
+      <div ng-if="sourceInformation.file">
+        <p class="page-sub-entity-title">
+          <span ng-if="sourceInformation.format">'{{sourceInformation.file.name}}' appears to be a {{sourceInformation.format | cacheFormat}} file.  If this is incorrect p</span><span ng-if="!sourceInformation.format">The format of '{{sourceInformation.file.name}}' could not be determined. P</span>lease choose the correct source type:
+          <ui-select ng-model="source.format" theme="bootstrap">
+            <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+            <ui-select-choices repeat="format.format as format in validFileFormats | filter: $select.search">
+              {{format.format | cacheFormat | highlight: $select.search}}
+            </ui-select-choices>
+          </ui-select>
+        </p>
+      </div> -->
+  </div>
+
+  <div class="row" ng-show="fetchingCapabilities">
+    <div class="col-md-12">
+      <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Fetching server capabilities</p>
+    </div>
+  </div>
+  <div class="row" ng-show="!fetchingCapabilities && source.format == 'wms' && !source.wmsGetCapabilities.Capability">
+    <div class="col-md-12">
+      <p class="lead"><i class="fa fa-warning"></i> This does not appear to be a valid WMS server.</p>
+    </div>
+  </div>
+
+  <div ng-if="sourceInformation.wmsGetCapabilities.Capability">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label>Available layers on this WMS server.  This is just a preview, you will be able to create a map from any of these layers.</label>
+          <ui-select ng-model="source.previewLayer" theme="bootstrap">
+            <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
+            <ui-select-choices repeat="layer in sourceInformation.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
+              <div ng-bind-html="layer.Title | highlight: $select.search"></div>
+              <small class="muted">
+                <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
+              </small>
+            </ui-select-choices>
+          </ui-select>
         </div>
       </div>
     </div>
-    <div ng-switch-when="wms" ng-init="source.format = 'wms'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Specify a URL to a WMS server which mapcache will use to create maps.</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="form-group">
-            <input class="form-control" ng-model="source.url" placeholder="e.g. http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi">
-          </div>
-        </div>
-      </div>
-      <div class="row" ng-show="fetchingCapabilities">
-        <div class="col-md-12">
-          <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Fetching server capabilities</p>
-        </div>
-      </div>
-      <div class="row" ng-show="!fetchingCapabilities && source.url && !source.wmsGetCapabilities.Capability">
-        <div class="col-md-12">
-          <p class="lead"><i class="fa fa-warning"></i> This does not appear to be a valid WMS server.</p>
-        </div>
-      </div>
-      <div ng-show="source.wmsGetCapabilities.Capability">
-        <div class="row">
-          <div class="col-md-12">
-            <p class="lead">Source preview</p>
-            <div class="form-group">
-              <label>Available layers on this WMS server.  This is just a preview, you will be able to create a map from any of these layers.</label>
-              <ui-select ng-model="source.previewLayer" theme="bootstrap">
-                <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
-                <ui-select-choices repeat="layer in source.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
-                  <div ng-bind-html="layer.Title | highlight: $select.search"></div>
-                  <small class="muted">
-                    <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
-                  </small>
-                </ui-select-choices>
-              </ui-select>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div leaflet-source source="source" options="mapOptions"></div>
-          </div>
-        </div>
+  </div>
+
+  <div class="row" ng-if="showMap">
+    <div class="col-md-12">
+      <p class="lead">Source preview</p>
+      <div leaflet-source source="source" options="mapOptions"></div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="source.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
+        </label>
       </div>
     </div>
+  </div>
+<!--
     <div ng-switch-when="geotiff" ng-init="source.format = 'geotiff'">
       <div class="row top-gap">
         <div class="col-md-12">
@@ -273,7 +374,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
   <div class="row bottom-gap-l top-gap">
     <div class="col-md-12">
       <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span><button class="btn btn-primary pull-right"

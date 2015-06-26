@@ -39,7 +39,7 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   });
   map.addControl(new L.Control.ZoomIndicator());
   map.on('click', function(event) {
-    console.log('click', event);
+    if (!$scope.source.style) return;
     if ($scope.source.style.title || $scope.source.style.description) {
 
       var pixelPoint = event.layerPoint;
@@ -74,7 +74,6 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
   });
 
   $scope.$watch('options', function(options) {
-    console.log('options are', options);
     var newOptions = options || {
       maxZoom: 18,
       tms: false,
@@ -144,7 +143,6 @@ function LeafletSourceController($scope, $element, LocalStorageService, SourceSe
       map.removeLayer(sourceLayer);
     }
     var tl = LeafletUtilities.tileLayer($scope.source, defaultLayer, sourceLayerOptions, $scope.source.style, styleFunction);
-    console.log('tl', tl);
     if (!tl) return;
     sourceLayer = tl;
     sourceLayer.addTo(map);

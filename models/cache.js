@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, config = require('../config.json')
-	, hri = require('human-readable-ids').hri
+	, shortid = require('shortid')
 	, Source = require('./source');
 
 // Creates a new Mongoose Schema object
@@ -139,7 +139,7 @@ exports.createCache = function(cache, callback) {
 		}
 		if (cache.source) {
 			cache.sourceId = cache.source.id;
-			cache.humanReadableId = cache.humanReadableId || hri.random();
+			cache.humanReadableId = cache.humanReadableId || shortid.generate();
 			Cache.create(cache, function(err, newCache) {
 				if(err) return callback(err);
 				Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {

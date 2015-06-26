@@ -13,6 +13,9 @@ MapcacheSourceCreateController.$inject = [
 
 function MapcacheSourceCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
 
+  $scope.validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}];
+  $scope.validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}];
+
   $scope.source = {
   };
 
@@ -49,8 +52,46 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
   }
 
   $scope.$on('uploadFile', function(e, uploadFile) {
-    console.log(uploadFile);
+    console.log('upload file is', uploadFile);
+    $scope.locationStatus = 'success';
+    $scope.sourceInformation = {
+      file: {
+        name: uploadFile.name
+      }
+    };
+    delete $scope.source.url;
+    delete $scope.source.format;
     $scope.source.sourceFile = uploadFile;
+
+    var fileType = uploadFile.name.split('.').pop().toLowerCase();
+    switch(fileType) {
+      case 'tif':
+      case 'tiff':
+      case 'geotiff':
+      case 'geotif':
+        $scope.sourceInformation.format = 'geotiff';
+        $scope.source.format = 'geotiff';
+        break;
+      case 'mbtiles':
+        $scope.sourceInformation.format = 'mbtiles';
+        $scope.source.format = 'mbtiles';
+        break;
+      case 'zip':
+        $scope.sourceInformation.format = 'shapefile';
+        $scope.source.format = 'shapefile';
+        break;
+      case 'kmz':
+        $scope.sourceInformation.format = 'kmz';
+        $scope.source.format = 'kmz';
+        break;
+      case 'json':
+      case 'geojson':
+        $scope.sourceInformation.format = 'geojson';
+        $scope.source.format = 'geojson';
+        break;
+    }
+
+    console.log('source information')
   });
 
   function getSourceProgress() {
@@ -73,32 +114,85 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
   });
 
-  $scope.$watch('source.format', function(format, oldFormat) {
-    if (!format) {
+  $scope.$watch('sourceInformation', function(sourceInformation, oldSourceInformation) {
+    if (!sourceInformation) {
+      $scope.showMap = false;
+      delete $scope.source.wmsGetCapabilities;
       return;
-    }
-
-    if (format != oldFormat) {
-      delete $scope.source.url;
-      delete $scope.source.sourceFile;
     }
   });
 
-  $scope.$watch('source.url', function(url) {
-    if (!url) { return; }
-    if ($scope.source.format == 'wms') {
-      $scope.source.wmsGetCapabilities = null;
-      $scope.fetchingCapabilities = true;
-      $http.get('/api/sources/wmsFeatureRequest',
-      {
-        params: {
-          wmsUrl: url
+  $scope.$watch('source.format', function(format, oldFormat) {
+    switch (format) {
+      case 'wms':
+        if (!$scope.sourceInformation.wmsGetCapabilities) {
+          $scope.fetchingCapabilities = true;
+          $http.get('/api/sources/wmsFeatureRequest',
+          {
+            params: {
+              wmsUrl: $scope.source.url
+            }
+          }).success(function (data) {
+            $scope.fetchingCapabilities = false;
+            $scope.source.wmsGetCapabilities = $scope.sourceInformation.wmsGetCapabilities = data;
+          });
+        } else {
+          $scope.source.wmsGetCapabilities = $scope.sourceInformation.wmsGetCapabilities;
         }
-      }).success(function (data) {
-        $scope.fetchingCapabilities = false;
-        $scope.source.wmsGetCapabilities = data;
-      });
+      case 'xyz':
+      case 'tms':
+        $scope.showMap = true;
+        break;
+      default:
+        $scope.showMap = false;
     }
+  });
+
+  var urlChecker = _.debounce(function() {
+
+    $scope.$apply(function() {
+      $scope.sourceInformation = undefined;
+      $scope.urlDiscovery = true;
+      $scope.source.sourceFile = undefined;
+      $scope.$broadcast('clearFile');
+    });
+
+    console.log('url is valid, what is it?');
+
+    $http.get('/api/sources/discoverSource',
+    {
+      params: {
+        url: $scope.source.url
+      }
+    }).success(function (data) {
+      $scope.urlDiscovery = false;
+      $scope.sourceInformation = data;
+      if (data.format) {
+        $scope.source.format = data.format;
+      }
+
+      if ($scope.sourceInformation.valid && !$scope.sourceInformation.format) {
+        $scope.locationStatus = 'warning';
+      } else if (!$scope.sourceInformation.valid) {
+        $scope.locationStatus = 'error';
+      } else {
+        $scope.locationStatus = 'success';
+      }
+    }).error(function(err) {
+      $scope.urlDiscovery = false;
+      $scope.sourceInformation = undefined;
+      $scope.locationStatus = undefined;
+    });
+  }, 500);
+
+  $scope.$on('location-url', function(e, location) {
+    if (!location) {
+      $scope.sourceInformation = undefined;
+      delete $scope.source.url;
+      return;
+    }
+    $scope.source.url = location;
+    urlChecker();
   });
 
 };

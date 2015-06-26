@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
   , config = require('../config.json')
-  , hri = require('human-readable-ids').hri;
+  , shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -93,7 +93,7 @@ exports.updateSource = function(id, update, callback) {
 }
 
 exports.createSource = function(source, callback) {
-	source.humanReadableId = hri.random();
+	source.humanReadableId = shortid.generate();
 	Source.create(source, callback);
 }
 

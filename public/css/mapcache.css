@@ -293,3 +293,19 @@
 .merged .input-group-addon + input {
 	border-left: 0px;
 }
+
+.has-feedback label.page-sub-entity-title~.form-control-feedback {
+  top: 30px;
+}
+
+.file-input-group .form-control-feedback {
+  right: 85px;
+}
+
+.one-line-ellipsis {
+  text-overflow: ellipsis;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+}
