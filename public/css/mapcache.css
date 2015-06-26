@@ -270,7 +270,6 @@
 }
 
 .create-source-map .leaflet-container:before {
-  content: "derp";
   height: 100%;
   position: absolute;
   top: 0;
