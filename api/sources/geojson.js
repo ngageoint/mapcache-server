@@ -36,8 +36,6 @@ exports.processSource = function(source, callback) {
   source.vector = true;
   source.save(function(err) {
     if (source.url) {
-
-
       var dir = path.join(config.server.sourceDirectory.path, source.id);
       fs.mkdirp(dir, function(err) {
         if (err) return callback(err);
