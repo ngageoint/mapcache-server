@@ -55,12 +55,10 @@ function createDir(cacheName, filepath){
 }
 
 exports.getTile = function(cache, format, z, x, y, callback) {
-  if (format != 'png') return callback(null, null);
-
-  if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cache._id + "/" + z + "/" + x + "/" + y + ".png")) {
+  if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cache._id + "/" + z + "/" + x + "/" + y + "." + format)) {
     return callback(null, null);
   } else {
-    return callback(null, fs.createReadStream(config.server.cacheDirectory.path + '/' + cache._id + "/" + z + "/" + x + "/" + y + ".png"));
+    return callback(null, fs.createReadStream(config.server.cacheDirectory.path + '/' + cache._id + "/" + z + "/" + x + "/" + y + "." + format));
   }
 }
 
