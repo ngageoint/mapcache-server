@@ -1,7 +1,7 @@
 var CacheModel = require('../../models/cache')
   , SourceModel = require('../../models/source')
-  // , PNG = require('png-stream')
-  // , JPG = require('jpg-stream')
+  , Canvas = require('canvas')
+	, Image = Canvas.Image
   , request = require('request');
 
 exports.process = function(source, callback) {
@@ -13,10 +13,41 @@ exports.process = function(source, callback) {
 exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.' + format + ' for source ' + source.name);
   var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
-  var req = request.get({url: url,
-    headers: {'Content-Type': 'image/png'},
-  })
-  .on('error', function(err) {
+  var req = null;
+
+  if (format == 'jpg' || format == 'jpeg') {
+    var canvas = new Canvas(256,256);
+    var ctx = canvas.getContext('2d');
+    var padding = 0;
+    totalExtent = 4096 * (1 + padding * 2),
+    height = canvas.height = canvas.width,
+    ratio = height / totalExtent,
+    pad = 4096 * padding * ratio;
+
+    ctx.clearRect(0, 0, height, height);
+
+    req = request.get({url: url,
+      headers: {'Content-Type': 'image/png'},
+      encoding: null
+    }, function(err, response, squid) {
+  		if (err){
+  			console.log('error in testing', err);
+  		}
+      if (err) throw err;
+      img = new Image;
+      img.src = squid;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      callback(null, canvas.jpegStream());
+
+    })
+  } else {
+    req = request.get({url: url,
+      headers: {'Content-Type': 'image/png'},
+    });
+    callback(null, req);
+  }
+
+  req.on('error', function(err) {
     console.log(err+ url);
 
     callback(err, tileInfo);
@@ -26,31 +57,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     SourceModel.updateSourceAverageSize(source, size, function(err) {
     });
   });
-
-  // var returnStream = req;
-  // // if (format == 'jpg' || format == 'jpeg') {
-  //
-  // var pngStream = req.pipe(new PNG.Decoder);
-  // // console.log('png stream', pngStream);
-  //
-  // pngStream.on('error', function(err) {
-  //   console.log('png stream error', err);
-  // });
-  //
-  //
-  //
-  //
-  //   returnStream = pngStream
-  //     .pipe(new JPG.Encoder(256, 256, {quality: 100}));
-  // // }
-  //
-  // returnStream.on('error', function(err) {
-  //   console.log('return stream error', err);
-  // });
-  //
-  //
-  // callback(null, returnStream);
-  callback(null, req);
 }
 
 exports.getData = function(source, callback) {
