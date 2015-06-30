@@ -313,7 +313,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
       try {
       var tileData = JSON.parse(tile.replace(/\bNaN\b/g, "null"));
       if (format == 'png') {
-        return exports.createImage(tileData, source.style, callback);
+        return exports.createImage(tileData, source.style, z, x, y, callback);
       } else {
         return callback(null);
       }
@@ -342,9 +342,9 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
     var file = path.join(dir, fileName);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
-			if (!tileIndex) return callback(null);
+			if (!tileIndex) return exports.createImage(null, source.style, z, x, y, callback);
 			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-			if (!tile) return callback(null);
+			if (!tile) return exports.createImage(null, source.style, z, x, y, callback);
 			exports.writeVectorTile(tile, source, z, x, y, function() {
 				return exports.getVectorTile(source, format, z, x, y, params, callback);
 			});
@@ -403,7 +403,7 @@ function tileIndexSort(a,b) {
 	return 0;
 }
 
-exports.createImage = function(tile, style, callback) {
+exports.createImage = function(tile, style, z, x, y, callback) {
   var canvas = new Canvas(256,256);
   var ctx = canvas.getContext('2d');
   var padding = 0;
@@ -414,43 +414,70 @@ exports.createImage = function(tile, style, callback) {
 
   ctx.clearRect(0, 0, height, height);
 
-  var features = tile.features;
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'red';
-  ctx.fillStyle = 'rgba(255,0,0,0.05)';
+/**
+Begin testing for layering data on images
 
-  for (var i = 0; i < features.length; i++) {
-      var feature = features[i],
-          type = feature.type;
+	var req = request.get({url: 'http://osm.geointapps.org/osm/'+z+'/'+x+'/'+y+'.png',
+		headers: {'Content-Type': 'image/png'},
+		encoding: null
+	}, function(err, response, squid) {
+		if (err){
+			console.log('error in testing', err);
+		}
 
-      ctx.beginPath();
 
-      for (var j = 0; j < feature.geometry.length; j++) {
-          var geom = feature.geometry[j];
-          if (type === 1) {
-              ctx.arc(geom[0] * ratio + pad, geom[1] * ratio + pad, 2, 0, 2 * Math.PI, false);
-              continue;
-          }
 
-          for (var k = 0; k < geom.length; k++) {
-              var p = geom[k];
-              if (p[0] == null || p[1] == null) continue;
-              if (k) ctx.lineTo(p[0] * ratio + pad, p[1] * ratio + pad);
-              else ctx.moveTo(p[0] * ratio + pad, p[1] * ratio + pad);
-          }
-      }
-      var styles = styleFunction(feature, style);
-      if (styles) {
-        var rgbFill = hexToRgb(styles.fillColor);
-        ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
-        ctx.lineWidth = styles.weight;
-        var rgbStroke = hexToRgb(styles.color);
-        ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-      }
-      if (type === 3 || type === 1) ctx.fill('evenodd');
-      ctx.stroke();
-  }
-  callback(null, canvas.pngStream());
+	  if (err) throw err;
+	  img = new Image;
+	  img.src = squid;
+	  ctx.drawImage(img, 0, 0, img.width, img.height);
+
+		end testing for layering data on images
+		*/
+
+		if (tile && tile.features) {
+			var features = tile.features;
+		  ctx.lineWidth = 1;
+		  ctx.strokeStyle = 'red';
+		  ctx.fillStyle = 'rgba(255,0,0,0.05)';
+
+		  for (var i = 0; i < features.length; i++) {
+		      var feature = features[i],
+		          type = feature.type;
+
+		      ctx.beginPath();
+
+		      for (var j = 0; j < feature.geometry.length; j++) {
+		          var geom = feature.geometry[j];
+		          if (type === 1) {
+		              ctx.arc(geom[0] * ratio + pad, geom[1] * ratio + pad, 2, 0, 2 * Math.PI, false);
+		              continue;
+		          }
+
+		          for (var k = 0; k < geom.length; k++) {
+		              var p = geom[k];
+		              if (p[0] == null || p[1] == null) continue;
+		              if (k) ctx.lineTo(p[0] * ratio + pad, p[1] * ratio + pad);
+		              else ctx.moveTo(p[0] * ratio + pad, p[1] * ratio + pad);
+		          }
+		      }
+		      var styles = styleFunction(feature, style);
+		      if (styles) {
+		        var rgbFill = hexToRgb(styles.fillColor);
+		        ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+		        ctx.lineWidth = styles.weight;
+		        var rgbStroke = hexToRgb(styles.color);
+		        ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+		      }
+		      if (type === 3 || type === 1) ctx.fill('evenodd');
+		      ctx.stroke();
+		  }
+		}
+	  callback(null, canvas.pngStream());
+
+		/*
+	});
+	*/
 }
 
 function styleFunction(feature, style) {
