@@ -14,7 +14,7 @@ MapcacheSourceCreateController.$inject = [
 function MapcacheSourceCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
 
   $scope.validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}];
-  $scope.validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}];
+  $scope.validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}, {format: 'mrsid'}];
 
   $scope.source = {
   };
@@ -34,6 +34,14 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
   }
 
   function pruneSource(s) {
+    // s.dataSources = s.dataSources || [];
+    // s.dataSources.push({
+    //   url: s.url,
+    //   filePath: s.filePath,
+    //   format: s.format,
+    //   zOrder: 0,
+    //   wmsGetCapabilities: s.wmsGetCapabilities
+    // });
     delete s.previewLayer;
     delete s.wmsGetCapabilities;
   }
@@ -71,6 +79,10 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
       case 'geotif':
         $scope.sourceInformation.format = 'geotiff';
         $scope.source.format = 'geotiff';
+        break;
+      case 'sid':
+        $scope.sourceInformation.format = 'mrsid';
+        $scope.source.format = 'mrsid';
         break;
       case 'mbtiles':
         $scope.sourceInformation.format = 'mbtiles';
