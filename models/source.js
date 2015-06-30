@@ -7,16 +7,21 @@ var Schema = mongoose.Schema;
 
 var SourceSchema = new Schema({
 	name: { type: String, required: false },
-	url: { type: String, required: false },
-	format: { type: String, required: true},
-	filePath: { type: String, required: false},
+  dataSources: [{
+    url: { type: String, required: false },
+    format: { type: String, required: true},
+    projection: { type: String, required: false},
+    vector: { type: Boolean, required: true, default: false},
+    wmsGetCapabilities: Schema.Types.Mixed,
+    geometry: Schema.Types.Mixed,
+    filePath: { type: String, required: false},
+    zOrder: { type: Number, required: true, default: -1}
+  }],
 	projection: { type: String, required: false},
   size: { type: Number, required: false},
   tileSizeCount: { type: Number, required: false},
   tileSize: { type: Number, required: false},
 	humanReadableId: { type: String, required: false},
-  vector: { type: Boolean, required: true, default: false},
-  wmsGetCapabilities: Schema.Types.Mixed,
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,
 	projections: Schema.Types.Mixed,
@@ -30,6 +35,12 @@ var SourceSchema = new Schema({
 		generatedFeatures: {type: Number, required: true, default: 0},
 		zoomLevelStatus: Schema.Types.Mixed
 	},
+
+  format: { type: String, required: false},
+  filePath: { type: String, required: false},
+  vector: { type: Boolean, required: false},
+  wmsGetCapabilities: Schema.Types.Mixed,
+  url: { type: String, required: false }
 });
 
 function transform(source, ret, options) {
