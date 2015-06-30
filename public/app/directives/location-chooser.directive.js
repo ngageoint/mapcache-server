@@ -47,7 +47,7 @@ function LocationChooserController($scope, $element) {
   }
 
   $scope.$watch('location', function(location, oldLocation) {
-    if (location) {
+    if (location && isValidURL(location)) {
       $scope.$emit('location-url', location, isValidURL(location));
       $scope.file = {};
       $element.find(':file').val('');
