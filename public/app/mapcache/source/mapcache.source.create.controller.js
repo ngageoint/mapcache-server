@@ -128,7 +128,6 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
 
   $scope.$watch('sourceInformation', function(sourceInformation, oldSourceInformation) {
     if (!sourceInformation) {
-      $scope.showMap = false;
       delete $scope.source.wmsGetCapabilities;
       return;
     }
@@ -142,7 +141,7 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
   });
 
-  $scope.$watch('source.format+sourceInformation.format', function(format, oldFormat) {
+  $scope.$watch('source.format', function(format, oldFormat) {
     console.log('source fomrat', $scope.source.format);
     switch ($scope.source.format) {
       case 'wms':

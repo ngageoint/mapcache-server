@@ -200,8 +200,9 @@ module.exports = function(app, auth) {
               res.json(sourceInformation);
             } else {
               console.log('err from json request was ', err);
-              request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
-                if (!err && response && response.statusCode == 200) {
+              request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: false, timeout: 5000}, function(error, response, body) {
+                console.log('error', error);
+                if (!error && response && response.statusCode == 200) {
                   var json = new WMSCapabilities(body).toJSON();
                   if (json && json.version && json.version != "") {
                     console.log('json.version', json.version);
@@ -212,7 +213,22 @@ module.exports = function(app, auth) {
                     res.json(sourceInformation);
                   }
                 } else {
-                  res.json(sourceInformation);
+                  request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
+                    console.log('error', error);
+                    if (!error && response && response.statusCode == 200) {
+                      var json = new WMSCapabilities(body).toJSON();
+                      if (json && json.version && json.version != "") {
+                        console.log('json.version', json.version);
+                        sourceInformation.format = 'wms';
+                        sourceInformation.wmsGetCapabilities = json;
+                        res.json(sourceInformation);
+                      } else {
+                        res.json(sourceInformation);
+                      }
+                    } else {
+                      res.json(sourceInformation);
+                    }
+                  });
                 }
               });
             }
