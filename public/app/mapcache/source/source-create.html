@@ -27,8 +27,8 @@
         <span class="control-label page-sub-entity-title">Enter a URL or browse for a local file</span>
         <div location-chooser location-status="locationStatus"></div>
         <p ng-if="sourceInformation" class="help-block">
-          <span ng-if="locationStatus == 'success'">URL appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
-          <span ng-if="locationStatus == 'warning'">URL is valid but the data format could not be determined.</span>
+          <span ng-if="locationStatus == 'success'"><span ng-if="sourceInformation.url">URL</span><span ng-if="sourceInformation.file">File</span> appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
+          <span ng-if="locationStatus == 'warning'"><span ng-if="sourceInformation.url">URL</span><span ng-if="sourceInformation.file">File</span> is valid but the data format could not be determined.</span>
           <span ng-if="locationStatus == 'error'">Could not validate URL.  Please ensure it is correct.</span>
         </p>
       </div>
@@ -101,8 +101,19 @@
   </div>
   <div class="row bottom-gap-l top-gap">
     <div class="col-md-12">
-      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span><button class="btn btn-primary pull-right"
+      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span>
+        <button class="btn btn-primary pull-right"
         ng-class="{disabled: sourceSubmitted || (!source.name || !source.format || (!source.url && !source.sourceFile))}" ng-click="createSource()">Create Source</button></p>
+    </div>
+  </div>
+
+  <div class="row top-gap">
+    <div class="col-md-6">
+      <div class="progress" ng-if="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
+          <span>{{progress | number: 2}}% Complete</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
