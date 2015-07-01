@@ -134,8 +134,17 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
   });
 
-  $scope.$watch('source.format', function(format, oldFormat) {
-    switch (format) {
+  $scope.$watch('sourceInformation.wmsGetCapabilities', function(capabilities, oldCapabilities) {
+    if (capabilities) {
+      $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];
+    } else {
+      $scope.wmsLayers = [];
+    }
+  });
+
+  $scope.$watch('source.format+sourceInformation.format', function(format, oldFormat) {
+    console.log('source fomrat', $scope.source.format);
+    switch ($scope.source.format) {
       case 'wms':
         if (!$scope.sourceInformation.wmsGetCapabilities) {
           $scope.fetchingCapabilities = true;
@@ -147,6 +156,7 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
           }).success(function (data) {
             $scope.fetchingCapabilities = false;
             $scope.source.wmsGetCapabilities = $scope.sourceInformation.wmsGetCapabilities = data;
+            $scope.showMap = true;
           });
         } else {
           $scope.source.wmsGetCapabilities = $scope.sourceInformation.wmsGetCapabilities;
@@ -170,7 +180,6 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     });
 
     console.log('url is valid, what is it?');
-
     $http.get('/api/sources/discoverSource',
     {
       params: {
@@ -203,6 +212,7 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
       delete $scope.source.url;
       return;
     }
+    $scope.urlDiscovery = true;
     $scope.source.url = location;
     urlChecker();
   });
