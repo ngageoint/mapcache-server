@@ -19,7 +19,8 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
-    "archiver": "^0.14.3",
+    "adm-zip": "^0.4.7",
+    "archiver": "^0.14.4",
     "async": "1.2.1",
     "body-parser": "1.2.x",
     "canvas": "^1.2.3",

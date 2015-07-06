@@ -37,11 +37,11 @@
     "shapefile": [{"type":"geojson", "required": true}, {"type":"shapefile", "required": false}, {"type":"kml", "required": false}],
     "kmz": [{"type":"geojson", "required": true}, {"type":"shapefile", "required": false}, {"type":"kml", "required": false}],
     "geojson": [{"type":"geojson", "required": true}, {"type":"shapefile", "required": false}, {"type":"kml", "required": false}],
-    "xyz": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "tms": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "wms": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "geotiff": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "mrsid": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "mbtiles": [{"type":"xyz", "required": true}, {"type":"tms", "required": true, "virtual": true}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}]
+    "xyz": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
+    "tms": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
+    "wms": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
+    "geotiff": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
+    "mrsid": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
+    "mbtiles": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}]
   }
 }

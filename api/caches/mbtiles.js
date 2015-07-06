@@ -21,11 +21,11 @@ var CacheModel = require('../../models/cache.js')
      // ensure there is already an xyz cache generated
      if (cache.formats && cache.formats.xyz && !cache.formats.xyz.generating) {
       var mbtilesFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".mbtiles");
-      console.log('running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id.toString()) + " " + mbtilesFile);
+      console.log('running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id.toString(), 'xyztiles') + " " + mbtilesFile);
       var python = exec(
         'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id.toString()) + " " + mbtilesFile,
         function(error, stdout, stderr) {
-          console.log('done running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id.toString()) + " " + mbtilesFile);
+          console.log('done running ' + 'mb-util ' + path.join(config.server.cacheDirectory.path, cache._id.toString(), 'xyztiles') + " " + mbtilesFile);
           callback(error, {cache: cache, file: mbtilesFile});
         }
       );
