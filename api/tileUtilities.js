@@ -332,7 +332,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
     });
   } else {
 		var dir = path.join(config.server.sourceDirectory.path, source.id);
-		var fileName = path.basename(path.basename(source.filePath));
+		var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
 
 		if (source.source) {
 				// this means it is a cache
