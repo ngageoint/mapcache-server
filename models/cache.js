@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, config = require('../config.json')
-	, hri = require('human-readable-ids').hri
+	, shortid = require('shortid')
 	, Source = require('./source');
 
 // Creates a new Mongoose Schema object
@@ -17,10 +17,10 @@ var TileFailureSchema = new Schema({
 var CacheSchema = new Schema({
   name: { type: String, required: true, unique: true },
   description: { type: String, required: false },
-  date: {type: Date, require: true },
+  date: {type: Date, required: false },
 	geometry: Schema.Types.Mixed,
-	maxZoom: {type: Number, required: true },
-	minZoom: {type: Number, required: true},
+	maxZoom: {type: Number, required: true, default: 0 },
+	minZoom: {type: Number, required: true, default: 0},
 	tileSizeLimit: { type: Number, required: false},
 	totalTileSize: { type: Number, required: true, default: 0},
 	humanReadableId: { type: String, required: false},
@@ -28,12 +28,16 @@ var CacheSchema = new Schema({
 	formats: Schema.Types.Mixed,
 	tileFailures: [TileFailureSchema],
 	status: {
-		complete: {type: Boolean, required: true},
-		totalTiles: {type: Number, required: true},
-		generatedTiles: {type: Number, required: true},
+		complete: {type: Boolean, required: true, default: false},
+		totalTiles: {type: Number, required: true, default: 0},
+		generatedTiles: {type: Number, required: true, default: 0},
+		totalFeatures: {type: Number, required: true, default: 0},
+		generatedFeatures: {type: Number, required: true, default: 0},
 		zoomLevelStatus: Schema.Types.Mixed
 	},
 	cacheCreationParams: Schema.Types.Mixed,
+	style: Schema.Types.Mixed,
+	vector: { type: Boolean, required: true, default: false},
 	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }/*,
 	userId: { type: Schema.Types.ObjectId, ref: 'User', required: false }*/
 },{
@@ -51,6 +55,9 @@ function transform(cache, ret, options) {
 
 	if (cache.populated('sourceId')) {
 		ret.source = ret.sourceId;
+		if (ret.source) {
+			ret.source.cacheTypes = config.sourceCacheTypes[ret.source.format];
+		}
 		delete ret.sourceId;
 	}
 
@@ -59,8 +66,7 @@ function transform(cache, ret, options) {
 		delete ret.status;
 	}
 
-	var path = options.path ? options.path : "";
-  ret.url = [path, cache.id].join("/");
+	ret.mapcacheUrl = ['/api/caches', cache.id].join("/");
 }
 
 CacheSchema.set("toJSON", {
@@ -83,8 +89,8 @@ function getSourceByUrlAndFormat(url, format, callback) {
   });
 }
 
-exports.getCaches = function(callback) {
-	var query = {};
+exports.getCaches = function(options, callback) {
+	var query = options || {};
 	Cache.find(query).populate('sourceId').exec(function(err, caches) {
     if (err) {
       console.log("Error finding caches in mongo: " + id + ', error: ' + err);
@@ -99,11 +105,18 @@ exports.getCacheById = function(id, callback) {
       console.log("Error finding cache in mongo: " + id + ', error: ' + err);
     }
 		if (cache) {
-			cache.source = cache.sourceId;
+			if (cache.sourceId) {
+				cache.source = cache.sourceId;
+				cache.source.cacheTypes = config.sourceCacheTypes[cache.source.format];
+			}
 	    return callback(err, cache);
 		}
 		// try to find by human readable
 		Cache.findOne({humanReadableId: id}, function(err, cache) {
+			if (cache) {
+				cache.source = cache.sourceId;
+				cache.source.cacheTypes = config.sourceCacheTypes[cache.source.format];
+			}
 		  return callback(err, cache);
 		});
   });
@@ -126,7 +139,7 @@ exports.createCache = function(cache, callback) {
 		}
 		if (cache.source) {
 			cache.sourceId = cache.source.id;
-			cache.humanReadableId = cache.humanReadableId || hri.random();
+			cache.humanReadableId = cache.humanReadableId || shortid.generate();
 			Cache.create(cache, function(err, newCache) {
 				if(err) return callback(err);
 				Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
@@ -135,7 +148,14 @@ exports.createCache = function(cache, callback) {
 			    }
 					if (cache) {
 						cache.source = cache.sourceId;
-				    return callback(err, cache);
+						if (!cache.style && cache.source.style) {
+							cache.style = cache.source.style;
+							cache.save(function() {
+								return callback(err, cache);
+							});
+						} else {
+					    return callback(err, cache);
+						}
 					}
 				});
 			});
@@ -144,15 +164,15 @@ exports.createCache = function(cache, callback) {
 	});
 }
 
-exports.updateZoomLevelStatus = function(cache, zoomLevel, complete, callback) {
+exports.updateZoomLevelStatus = function(cache, zoomLevel, callback) {
 	var update = {$set: {}};
 	update.$set['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
 	Cache.findByIdAndUpdate(cache.id, update, callback);
 }
 
 exports.updateTileDownloaded = function(cache, z, x, y, callback) {
-	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache.id + '/' + z + '/' + x + '/' + y + '.png');
-	fs.stat(config.server.cacheDirectory.path + "/" + cache.id + '/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
+	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache.id + '/xyztiles/' + z + '/' + x + '/' + y + '.png');
+	fs.stat(config.server.cacheDirectory.path + "/" + cache.id + '/xyztiles/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
 		if (err) return callback(err);
 		var update = {$inc: {}};
 		update.$inc['totalTileSize'] = stat.size;
@@ -196,20 +216,39 @@ exports.shouldContinueCaching = function(cache, callback) {
 }
 
 exports.updateFormatCreated = function(cache, formatName, formatFile, callback) {
-	fs.stat(formatFile, function(err, stat) {
-		if (err) {
-			return callback(err);
+	if( typeof formatFile === "function" && !callback) {
+    callback = formatFile;
+		formatFile = null;
+  }
+  callback = callback || function(){}
+	// cache.formats = cache.formats || {};
+	var formatArray = formatName;
+	if (!Array.isArray(formatName)) {
+		formatArray = [formatName];
+	}
+	var size = 0;
+	if (typeof formatFile === 'string') {
+		fs.stat(formatFile, function(err, stat) {
+			if (err) {
+				console.log('error getting format file status');
+				size = 0;
+			} else {
+				size = stat.size;
+			}
+
+			var update = {$set: {}};
+			for (var i = 0; i < formatArray.length; i++) {
+				update.$set['formats.'+formatArray[i]] = {size: size};
+			}
+			Cache.findByIdAndUpdate(cache.id, update, callback);
+		});
+	} else {
+		var update = {$set: {}};
+		for (var i = 0; i < formatArray.length; i++) {
+			update.$set['formats.'+formatArray[i]] = {size: typeof formatFile === 'number' ? formatFile : 0};
 		}
-		var fileFormat = {
-			size: stat.size
-		};
-		if (!cache.formats) {
-			cache.formats = {};
-		}
-		cache.formats[formatName] = fileFormat;
-		cache.markModified('formats');
-		cache.save(callback);
-	});
+		Cache.findByIdAndUpdate(cache.id, update, callback);
+	}
 }
 
 exports.updateFormatGenerating = function(cache, format, callback) {
@@ -218,5 +257,7 @@ exports.updateFormatGenerating = function(cache, format, callback) {
 		generating: true
 	};
 	cache.markModified('formats');
-	cache.save(callback);
+	cache.save(function(err) {
+		exports.getCacheById(cache.id, callback);
+	});
 }

@@ -9,6 +9,13 @@ function FormatService() {
     mbtiles: "MBTiles",
     xyz: "XYZ",
     tms: "TMS",
-    geotiff: "GeoTIFF"
+    geotiff: "GeoTIFF",
+    shapefile: "Shapefile",
+    geojson: "GeoJSON",
+    kml: "KML",
+    gpx: "GPX",
+    wms: "Web Map Service (WMS)",
+    kmz: "KMZ",
+    mrsid: "MrSID"
   };
 }

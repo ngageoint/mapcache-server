@@ -1,0 +1,204 @@
+#!/usr/bin/env node
+
+var mongoose = require('mongoose')
+  , async = require('async')
+  , fs = require('fs-extra')
+  , path = require('path')
+  , exec = require('child_process').exec
+  , config = require('./config.json')
+  , api = require('./api');
+
+var yargs = require("yargs")
+  .usage("Usage: $0 [--shapefile <path to shapefile> --geotiff <path to geotiff> --geojson <path to geojson> --kmz <path to kmz> --mbtiles <path to mbtiles> --xyz <url to xyz tile source> --wms <url to wms source>]")
+  .help('help');
+
+var argv = yargs.argv;
+
+var mongodbConfig = config.server.mongodb;
+
+var mongoUri = "mongodb://" + mongodbConfig.host + "/" + mongodbConfig.db;
+mongoose.connect(mongoUri, {server: {poolSize: mongodbConfig.poolSize}}, function(err) {
+  if (err) {
+    console.log('Error connecting to mongo database, please make sure mongodb is running...');
+    throw err;
+  }
+});
+
+mongoose.set('debug', true);
+
+console.log('Mongo is set up correctly');
+
+var tests = [];
+for (var key in argv) {
+  if (argv.hasOwnProperty(key)) {
+    console.log('pushing key ['+key+'] with value ['+argv[key]+']');
+    if (config.sourceCacheTypes[key]) {
+      // this just protects against weird options being passed in that are not actual source types
+      tests.push(formatTest(key));
+    }
+  }
+}
+
+async.series(tests, function(err, results) {
+  if (err) {
+    console.log('Not all tests passed', err);
+  }
+  if (results) {
+    for (var i = 0; i < results.length; i++) {
+      if (Array.isArray(results[i])) {
+        for (var j = 0; j < results[i].length; j++) {
+          console.log(results[i][j]);
+        }
+      } else {
+        console.log(results[i]);
+      }
+    }
+  }
+  process.exit();
+});
+
+var sourceId;
+var cache;
+
+
+function formatTest(format) {
+  return function(callback) {
+    console.log('--------- Testing Format ' + format + ' ---------------');
+
+    var sourceName = 'Smoketest '+format+' Source ' + Date.now();
+    var cacheName = 'Smoketest '+format+' Cache ' + Date.now();
+
+
+    var tests = [
+      function(callback) {
+        console.log('Testing creating an '+format+' source.');
+
+        var args = ['--name', "'"+sourceName+"'", '--type', format];
+        if (!argv[format].indexOf('http')) {
+          args.push('--url');
+        } else {
+          args.push('--file');
+        }
+        args.push(argv[format]);
+
+        launchCommand('createSource', args, function(error, stdout, stderr) {
+          console.log('Output from createSource', stdout.toString());
+          console.log('Error output from createSource', stderr.toString());
+
+          new api.Source().getAll({name: sourceName}, function(err, sources) {
+            if (sources && sources[0] && sources[0].name == sourceName) {
+              sourceId = sources[0].id;
+              if (sources[0].status.complete) {
+                console.log('created the source ', sources[0]);
+                callback(null, 'Create '+format+' Source: '+format+' source was created');
+              } else {
+                sourceTimerFunction(sources[0], function(err, source) {
+                  console.log('created the source ', source);
+                  callback(null, 'Create '+format+' Source: '+format+' source was created');
+                });
+              }
+            } else {
+              callback(new Error(format+' Source was not created'), 'FAILURE: '+format+' Source was not created');
+            }
+          });
+        });
+      },
+      function(callback) {
+        console.log('Testing creating a cache from an '+format+' source.');
+
+        var args = ['--source', sourceId, '--name', "'"+cacheName+"'", '-w', -124, '-e', -68, '-s', 26, '-n', 50, '--maxZoom', 5, '--minZoom', 0, '--layer', 0];
+        launchCommand('createCache', args, function() {
+
+          new api.Cache().getAll({name: cacheName}, function(err, caches) {
+            if (caches && caches[0] && caches[0].name == cacheName) {
+              cache = caches[0];
+              callback(null, 'Create '+format+' cache: '+format+' cache was created');
+            } else {
+              callback(new Error(format+' cache was not created'), 'FAILURE: '+format+' cache was not created');
+            }
+          });
+        });
+      }
+    ];
+
+    var cacheTypes = config.sourceCacheTypes[format];
+    for (var i = 0; i < cacheTypes.length; i++) {
+      var item = cacheTypes[i];
+      tests.push(generateCacheFormat(item, format));
+    }
+
+    // tests.push(
+    //   function(callback) {
+    //     console.log('Testing deleting an '+format+' source.');
+    //     var args = ['--id', sourceId];
+    //     launchCommand('deleteSource', args, function() {
+    //
+    //       new api.Source().getAll({name: sourceName}, function(err, sources) {
+    //         if (sources && sources.length == 0) {
+    //           // ensure the directory is gone too
+    //           var exists = fs.existsSync(path.join(config.server.sourceDirectory.path, sourceId));
+    //           if (!exists) {
+    //             callback(null, 'Delete '+format+' Source: '+format+' source was deleted');
+    //           } else {
+    //             callback(new Error(format+' Source was not deleted'), 'FAILURE: '+format+' Source directory was not deleted');
+    //           }
+    //         } else {
+    //           callback(new Error(format+' Source was not deleted'), 'FAILURE: '+format+' Source was not deleted');
+    //         }
+    //       });
+    //     });
+    //   }
+    // );
+
+    async.series(tests, callback);
+  }
+}
+
+function generateCacheFormat(item, format) {
+  return function(callback) {
+    if (item.required) {
+      // should already exist
+      return callback(null, 'Cache format ' + item.type + ' should already exist.');
+    } else {
+      var args = ['--cache', cache.id, '--format', item.type];
+      launchCommand('generateFormat', args, function() {
+
+        new api.Cache().getAll({name: cache.name}, function(err, caches) {
+          if (caches && caches[0] && caches[0].name == cache.name) {
+            cache = caches[0];
+            if (cache.formats[item.type] && cache.formats[item.type].size) {
+              return callback(null, format+' Cache format ' + item.type + ' was created.');
+            } else {
+              callback(new Error(format+' cache format '+ item.type + " was not created"), 'FAILURE: '+format+' cache format '+ item.type + " was not created");
+            }
+          } else {
+            callback(new Error(item.type+' cache was not created'), 'FAILURE: '+item.type+' cache was not created');
+          }
+        });
+      });
+    }
+  }
+}
+
+function launchCommand(command, args, callback) {
+  console.log('running ' + './mapcache ' + command + ' ' + args.join(' '));
+  exec(
+    './mapcache ' + command + ' ' + args.join(' '),
+    function(error, stdout, stderr) {
+      console.log('done running ' + './mapcache ' + command + ' ' + args.join(' '));
+      callback(error, stdout, stderr);
+    }
+  );
+}
+
+function sourceTimerFunction(source, callback) {
+  new api.Source().getById(source._id, function(err, source) {
+    if (!source.status.complete) {
+      console.log('Source is being created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
+      setTimeout(sourceTimerFunction, 5000, source, callback);
+    } else {
+      console.log('Source was created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
+      callback(null, source);
+    }
+  });
+}

@@ -14,9 +14,9 @@ function leaflet() {
   return directive;
 }
 
-LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService', 'LocalStorageService'];
+LeafletController.$inject = ['$rootScope', '$scope', '$interval', '$filter', '$element', 'CacheService', 'LeafletUtilities', 'LocalStorageService'];
 
-function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService, LocalStorageService) {
+function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService, LeafletUtilities, LocalStorageService) {
   var layers = {};
   var cacheFootprints = {};
 
@@ -28,33 +28,13 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     worldCopyJump: true
   });
   map.addControl(new L.Control.ZoomIndicator());
+  var loadingControl = L.Control.loading({
+    separate: true
+  });
+  map.addControl(loadingControl);
 
-
- var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
- baseLayer.addTo(map);
-
-  function createRasterLayer(layerInfo) {
-    var baseLayer = null;
-    var options = {};
-    if (layerInfo.format == 'XYZ' || layerInfo.format == 'TMS') {
-      options = { tms: layerInfo.format == 'TMS', maxZoom: 18}
-      layerInfo.layer = new L.TileLayer(layerInfo.url, options);
-    } else if (layerInfo.format == 'WMS') {
-      options = {
-        layers: layerInfo.wms.layers,
-        version: layerInfo.wms.version,
-        format: layerInfo.wms.format,
-        transparent: layerInfo.wms.transparent
-      };
-
-      if (layerInfo.wms.styles) options.styles = layerInfo.wms.styles;
-      layerInfo.layer = new L.TileLayer.WMS(layerInfo.url, options);
-    }
-
-    layerControl.addBaseLayer(layerInfo.layer, layerInfo.name);
-
-    if (layerInfo.options && layerInfo.options.selected) layerInfo.layer.addTo(map);
-  }
+  var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
+  baseLayer.addTo(map);
 
   $scope.$watch('caches', function(caches) {
     if (!caches) return;
@@ -99,8 +79,9 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     }
 
     var gj = L.geoJson(cache.geometry);
+    gj.addData(turf.center(cache.geometry));
     gj.setStyle({fill: false, color: color});
-    gj.bindPopup("<h5>" + cache.name + "</h5>");
+    gj.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
     gj.on('popupopen', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
       $scope.$apply();
@@ -115,17 +96,22 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
 
   function showCacheTiles(cache) {
     removeCacheTiles(cache);
-    baseLayer.setOpacity(.3);
+    baseLayer.setOpacity(.5);
     var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
     layers[cache.id] = layer;
     layer.addTo(map);
   }
 
   function removeCacheTiles(cache) {
-    baseLayer.setOpacity(1);
+    console.log('layers', layers);
     var layer = layers[cache.id];
     if (layer) {
       map.removeLayer(layer);
+      delete layers[cache.id];
+    }
+    console.log('new layers', layers);
+    if (Object.keys(layers).length == 0) {
+      baseLayer.setOpacity(1);
     }
   }
 }

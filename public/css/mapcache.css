@@ -12,6 +12,16 @@
 	color: #777777;
 }
 
+.style-row {
+  border-width: 1px;
+  border-color: #DDDDDD;
+  border-style: solid;
+  border-radius: 2px;
+  background-color: #EEEEEE;
+  padding-top: 15px;
+  padding-bottom: 5px;
+}
+
 .cache-name {
   font-size: 24px;
   color: #777777;
@@ -66,6 +76,10 @@
 
 .source-type-icon {
   font-size: 80px;
+}
+
+.source-type-icon-stack {
+  font-size: 40px;
 }
 
 .mapcache-header-description {
@@ -256,7 +270,6 @@
 }
 
 .create-source-map .leaflet-container:before {
-  content: "derp";
   height: 100%;
   position: absolute;
   top: 0;
@@ -265,4 +278,33 @@
   right: 0;
   width: 100%;
   text-align: center;
+}
+
+.merged .input-group-addon {
+	background-color: #fff;
+  border-left: 0px;
+  padding: 6px 3px;
+}
+.merged input {
+    border-right: 0px;
+    padding: 6px;
+}
+.merged .input-group-addon + input {
+	border-left: 0px;
+}
+
+.has-feedback label.page-sub-entity-title~.form-control-feedback {
+  top: 30px;
+}
+
+.file-input-group .form-control-feedback {
+  right: 85px;
+}
+
+.one-line-ellipsis {
+  text-overflow: ellipsis;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
 }

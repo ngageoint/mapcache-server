@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label>Name Your Cache</label>
+        <label>Name Your Map</label>
         <input class="form-control" ng-model="cache.name" placeholder="e.g. Denver, CO">
       </div>
     </div>
@@ -20,7 +20,7 @@
     <div class="row">
       <div class="col-md-12">
         <div class="form-group">
-          <label>Choose the source of your cache.  This is what your map cache will be generated from.</label>
+          <label>Choose the source of your map.  This is what your map will be generated from.</label>
           <ui-select ng-model="cache.source" theme="bootstrap">
             <ui-select-match placeholder="Select a source">{{$select.selected.name}}</ui-select-match>
             <ui-select-choices repeat="source in sources | orderBy: 'name' | filter: $select.search">
@@ -43,7 +43,7 @@
     <div class="row" ng-show="cache.source.format == 'wms'">
       <div class="col-md-12">
         <div class="form-group">
-          <label>Choose one of the available layers on this WMS server to create your cache from.</label>
+          <label>Choose one of the available layers on this WMS server to create your map from.</label>
           <ui-select ng-model="cache.source.previewLayer" theme="bootstrap">
             <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
             <ui-select-choices repeat="layer in cache.source.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
@@ -60,12 +60,23 @@
 
   <div ng-if="cache.source" class="bottom-gap-l">
     <div class="hidden-xs">
-      <label>Define the cache boundaries</label>
+      <label>Define the map boundaries</label>
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group">
             <label>Northern Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.north" placeholder="e.g. 39.9">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.north" placeholder="e.g. 39.9">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('north', north)" ng-model="north.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('north', north)" ng-model="north.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('north', north)" ng-model="north.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
       </div>
@@ -73,11 +84,22 @@
         <div class="col-sm-2" style="height: 500px">
           <div class="form-group vertical-center">
             <label>Western Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.west" placeholder="e.g. -105.2">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.west" placeholder="e.g. -105.2">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('west', west)" ng-model="west.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('west', west)" ng-model="west.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('west', west)" ng-model="west.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
         <div class="col-sm-8">
-          <p><a ng-click="useCurrentView()">Set cache boundaries to current view</a></p>
+          <p><a ng-click="useCurrentView()">Set map boundaries to current view</a></p>
           <div leaflet-create options="cache"></div>
           <div class="checkbox">
             <label>
@@ -91,7 +113,18 @@
         <div class="col-sm-2" style="height: 500px">
           <div class="form-group vertical-center">
             <label>Eastern Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.east" placeholder="e.g. -104.8">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.east" placeholder="e.g. -104.8">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('east', east)" ng-model="east.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('east', east)" ng-model="east.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('east', east)" ng-model="east.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
       </div>
@@ -99,7 +132,18 @@
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group">
             <label>Southern Boundary</label>
-            <input class="form-control" ng-change="manualEntry()" ng-model="bb.south" placeholder="e.g. 39.5">
+            <div class="input-group merged">
+              <input class="form-control" ng-change="manualEntry()" ng-model="bb.south" placeholder="e.g. 39.5">
+              <span class="input-group-addon">&deg;</span>
+            </div>
+            <div class="input-group merged top-gap-s">
+              <input type="text" class="form-control" ng-change="dmsChange('south', south)" ng-model="south.degrees">
+              <span class="input-group-addon">&deg;</span>
+              <input type="text" class="form-control" ng-change="dmsChange('south', south)" ng-model="south.minutes">
+              <span class="input-group-addon">'</span>
+              <input type="text" class="form-control" ng-change="dmsChange('south', south)" ng-model="south.seconds">
+              <span class="input-group-addon">&quot;</span>
+            </div>
           </div>
         </div>
       </div>
@@ -124,7 +168,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Northern Boundary</label>
-            <input class="form-control" ng-change="manualEntry('north', north)" ng-model="north" placeholder="e.g. 39.9">
+            <input class="form-control" ng-change="manualEntry()" ng-model="north" placeholder="e.g. 39.9">
           </div>
         </div>
       </div>
@@ -132,7 +176,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Eastern Boundary</label>
-            <input class="form-control" ng-change="manualEntry('east', east)" ng-model="east" placeholder="e.g. -104.8">
+            <input class="form-control" ng-change="manualEntry()" ng-model="east" placeholder="e.g. -104.8">
           </div>
         </div>
       </div>
@@ -140,7 +184,7 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Southern Boundary</label>
-            <input class="form-control" ng-change="manualEntry('south', south)" ng-model="south" placeholder="e.g. 39.5">
+            <input class="form-control" ng-change="manualEntry()" ng-model="south" placeholder="e.g. 39.5">
           </div>
         </div>
       </div>
@@ -148,12 +192,12 @@
         <div class="col-xs-12">
           <div class="form-group">
             <label>Western Boundary</label>
-            <input class="form-control" ng-change="manualEntry('west', west)" ng-model="west" placeholder="e.g. -105.2">
+            <input class="form-control" ng-change="manualEntry()" ng-model="west" placeholder="e.g. -105.2">
           </div>
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" ng-if="!cache.source.vector">
       <div class="col-md-6">
         <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
           <label class="control-label">Minimum Zoom Level</label>
@@ -167,25 +211,45 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row bottom-gap" >
+      <div class="col-md-12">
+          <p><label class="control-label">Choose the map format(s) to create</label></p>
+          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes">
+            <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
+          </label>
+          <p class="help-block">* indicates a format that will automatically be created</p>
+      </div>
+    </div>
+    <div class="row" ng-show="cache.source.vector">
+      <div class="col-md-12">
+        <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Will create a map with <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
+      </div>
+    </div>
+    <div class="row" ng-show="!cache.source.vector">
       <div class="col-md-12">
         <div class="form-group">
-          <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Cache is currently estimated to be <span class="page-sub-entity-label">{{totalCacheSize | fileSize}} with {{totalCacheTiles}} tiles</span></span>
-          <span class="page-sub-entity-title" ng-hide="requiredFieldsSet()">Please set all fields to obtain an estimated cache size</span>
+          <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Map is currently estimated to be <span class="page-sub-entity-title">{{totalCacheSize | fileSize}}</span> with <span class="page-sub-entity-title">{{totalCacheTiles}} tiles</span></span>
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" ng-hide="requiredFieldsSet()">
       <div class="col-md-12">
         <div class="form-group">
-          <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Concerned your cache will be too big? <a ng-click="setMaxSize = true">Set a maximum size</a></span>
+          <span class="page-sub-entity-title">Please set the <span ng-repeat="uf in unsetFields"><span ng-show="!$first && !$last">, </span><span ng-show="!$first && $last"> and </span>{{uf}}</span> to create the map.</span>
+        </div>
+      </div>
+    </div>
+    <div class="row" ng-show="!cache.source.vector">
+      <div class="col-md-12">
+        <div class="form-group">
+          <span class="page-sub-entity-title" ng-show="requiredFieldsSet()">Concerned your map will be too big? <a ng-click="setMaxSize = true">Set a maximum size</a></span>
         </div>
       </div>
     </div>
     <div class="row" ng-show="totalCacheSize > storage.maximumCacheSize">
       <div class="col-md-12">
         <div class="form-group">
-          <span class="page-sub-entity-title text-danger">Your cache is estimated to be greater than the maximum cache size limit of {{storage.maximumCacheSize | fileSize}}. If you continue, your cache will be generated up to the {{storage.maximumCacheSize | fileSize}} limit.</span>
+          <span class="page-sub-entity-title text-danger">Your map is estimated to be greater than the maximum map size limit of {{storage.maximumCacheSize | fileSize}}. If you continue, your map will be generated up to the {{storage.maximumCacheSize | fileSize}} limit.</span>
         </div>
       </div>
     </div>
@@ -193,7 +257,7 @@
       <div class="row">
         <div class="col-md-3">
           <div class="form-group">
-            <label class="control-label">Maximum Tile Cache Size</label>
+            <label class="control-label">Maximum Map Size</label>
             <input class="form-control" type="number" ng-model="cache.rawTileSizeLimit" placeholder="e.g. 750">
           </div>
         </div>
@@ -211,18 +275,18 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <p class="help-block">This value will be used to provide an upper limit on the cache size.  If this value is not set, the maximum cache size will be {{storage.maximumCacheSize | fileSize}}</p>
+          <p class="help-block">This value will be used to provide an upper limit on the map size.  If this value is not set, the maximum map size will be {{storage.maximumCacheSize | fileSize}}</p>
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col-md-12">
-        <button class="btn btn-primary pull-right" ng-class="{disabled: creatingCache || !requiredFieldsSet()}" ng-click="createCache()">Create Cache</button>
+        <button class="btn btn-primary pull-right" ng-class="{disabled: creatingCache || !requiredFieldsSet()}" ng-click="createCache()">Create Map</button>
       </div>
     </div>
     <div class="row" ng-show="cacheCreationError">
       <div class="col-md-12">
-        <div class="alert alert-danger" role="alert">Error Creating Cache: {{cacheCreationError.error}}</div>
+        <div class="alert alert-danger" role="alert">Error Creating Map: {{cacheCreationError.error}}</div>
       </div>
     </div>
   </div>

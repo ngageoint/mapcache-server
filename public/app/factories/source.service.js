@@ -13,7 +13,11 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
     getAllSources: getAllSources,
     refreshSource: refreshSource,
     deleteSource: deleteSource,
-    createSource: createSource
+    createSource: createSource,
+    saveSource: saveSource,
+    getSourceVectorTile: getSourceVectorTile,
+    getSourceData: getSourceData,
+    getFeatures: getFeatures
   };
 
   return service;
@@ -46,6 +50,32 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
       });
   }
 
+  function getSourceData(source, success, error) {
+    $http.get('/api/sources/'+source.id+'/geojson')
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
+
+  function getSourceVectorTile(source, z, x, y, success, error) {
+    $http.get('/api/sources/'+source.id+'/' + z + '/' + x + '/' + y + '.png')
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
+
   function deleteSource(source, format, success) {
     var url = '/api/sources/' + source.id;
     if (format) {
@@ -61,6 +91,37 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
     });
   }
 
+  function saveSource(source, success, error) {
+    var newSource = {};
+    for (var key in source) {
+      if (source.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' ) {
+        newSource[key] = source[key];
+      }
+    }
+    $http.put(
+      '/api/sources/'+newSource.id,
+      newSource,
+      {headers: {"Content-Type": "application/json"}}
+    ).success(function(newSource) {
+      console.log("updated a source", newSource);
+      if (success) {
+        success(newSource);
+      }
+    }).error(error);
+  }
+
+  function getFeatures(source, west, south, east, north, zoom, success, error) {
+    $http.get('/api/sources/'+source.id+'/features?west='+ west + '&south=' + south + '&east=' + east + '&north=' + north + '&zoom=' + zoom)
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
+  }
 
   function createSource(source, success, error, progress) {
 
@@ -68,7 +129,7 @@ function SourceService($q, $http, $rootScope, LocalStorageService) {
         var formData = new FormData();
         formData.append('sourceFile', source.sourceFile);
         for (var key in source) {
-          if (source.hasOwnProperty(key) && key != 'sourceFile' ) {
+          if (source.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' ) {
             formData.append(key, source[key]);
           }
         }

@@ -9,164 +9,116 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label>Name Your Source</label>
+        <span class="page-sub-entity-title">Name Your Source</span>
         <input class="form-control" ng-model="source.name" placeholder="e.g. Open Street Map">
       </div>
     </div>
   </div>
-  <div class="row top-gap-s">
+
+  <div class="row top-gap">
     <div class="col-md-12">
-      <div>
-        <label> What kind of source? </label>
-      </div>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="tile"> Tile Server
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="wms"> Web Map Service (WMS)
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="geotiff"> GeoTIFF
-      </label>
-      <label class="radio-inline">
-        <input type="radio" name="inlineRadioOptions" ng-model="sourceType" value="mbtiles"> MBTiles
-      </label>
+      <p class="lead">Where is your source data?</p>
     </div>
   </div>
-  <div ng-switch="sourceType">
-    <div ng-switch-when="tile" ng-init="source.format = 'xyz'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Specify a URL to a server with tiles in either xyz or tms format which mapcache will use to cache tiles.</p>
-        </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group has-feedback" ng-class="{'has-success':locationStatus == 'success', 'has-warning': locationStatus == 'warning', 'has-error': locationStatus == 'error'}">
+        <span class="control-label page-sub-entity-title">Enter a URL or browse for a local file</span>
+        <div location-chooser location-status="locationStatus"></div>
+        <p ng-if="sourceInformation" class="help-block">
+          <span ng-if="locationStatus == 'success'"><span ng-if="sourceInformation.url">URL</span><span ng-if="sourceInformation.file">File</span> appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
+          <span ng-if="locationStatus == 'warning'"><span ng-if="sourceInformation.url">URL</span><span ng-if="sourceInformation.file">File</span> is valid but the data format could not be determined.</span>
+          <span ng-if="locationStatus == 'error'">Could not validate URL.  Please ensure it is correct.</span>
+        </p>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="form-group">
-            <input class="form-control" ng-model="source.url" placeholder="e.g. http://osm.geointapps.org/osm">
-          </div>
-        </div>
+    </div>
+    <div class="col-md-6" ng-if="sourceInformation.url">
+
+      <div class="form-group">
+        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.url}}</span>
+        <ui-select ng-model="source.format" theme="bootstrap">
+          <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+          <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
+            {{format.format | cacheFormat | highlight: $select.search}}
+          </ui-select-choices>
+        </ui-select>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <p class="lead">Source preview</p>
-          <div leaflet-source source="source"></div>
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" ng-model="source.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
-            </label>
-          </div>
+    </div>
+    <div class="col-md-6" ng-if="sourceInformation.file">
+      <div class="form-group">
+        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.file.name}}</span>
+        <ui-select ng-model="source.format" theme="bootstrap">
+          <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
+          <ui-select-choices repeat="format.format as format in validFileFormats | filter: $select.search">
+            {{format.format | cacheFormat | highlight: $select.search}}
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" ng-show="urlDiscovery">
+    <div class="col-md-12">
+      <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Gathering information about this URL.</p>
+    </div>
+  </div>
+  <div class="row" ng-show="fetchingCapabilities">
+    <div class="col-md-12">
+      <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Fetching server capabilities</p>
+    </div>
+  </div>
+  <div class="row" ng-show="(!fetchingCapabilities && !urlDiscovery) && source.format == 'wms' && !sourceInformation.wmsGetCapabilities.Capability">
+    <div class="col-md-12">
+      <p class="lead"><i class="fa fa-warning"></i> This does not appear to be a valid WMS server.</p>
+    </div>
+  </div>
+
+  <div ng-if="sourceInformation.wmsGetCapabilities.Capability">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label>Available layers on this WMS server.  This is just a preview, you will be able to create a map from any of these layers.</label>
+          <ui-select ng-model="source.previewLayer" theme="bootstrap">
+            <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
+            <ui-select-choices repeat="layer in wmsLayers | orderBy: 'Title' | filter: $select.search">
+              <div ng-bind-html="layer.Title | highlight: $select.search"></div>
+              <small class="muted">
+                <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
+              </small>
+            </ui-select-choices>
+          </ui-select>
         </div>
       </div>
     </div>
-    <div ng-switch-when="wms" ng-init="source.format = 'wms'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Specify a URL to a WMS server which mapcache will use to cache tiles.</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="form-group">
-            <input class="form-control" ng-model="source.url" placeholder="e.g. http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi">
-          </div>
-        </div>
-      </div>
-      <div class="row" ng-show="fetchingCapabilities">
-        <div class="col-md-12">
-          <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Fetching server capabilities</p>
-        </div>
-      </div>
-      <div class="row" ng-show="!fetchingCapabilities && source.url && !source.wmsGetCapabilities.Capability">
-        <div class="col-md-12">
-          <p class="lead"><i class="fa fa-warning"></i> This does not appear to be a valid WMS server.</p>
-        </div>
-      </div>
-      <div ng-show="source.wmsGetCapabilities.Capability">
-        <div class="row">
-          <div class="col-md-12">
-            <p class="lead">Source preview</p>
-            <div class="form-group">
-              <label>Available layers on this WMS server.  This is just a preview, you will be able to create a cache from any of these layers.</label>
-              <ui-select ng-model="source.previewLayer" theme="bootstrap">
-                <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
-                <ui-select-choices repeat="layer in source.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
-                  <div ng-bind-html="layer.Title | highlight: $select.search"></div>
-                  <small class="muted">
-                    <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
-                  </small>
-                </ui-select-choices>
-              </ui-select>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div leaflet-source source="source" options="mapOptions"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div ng-switch-when="geotiff" ng-init="source.format = 'geotiff'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Upload a GeoTIFF file which mapcache will use to create a cache in xyz format.</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <form
-            type="detail"
-            enctype="multipart/form-data"
-            file-upload url="/nowhere"
-            allow-upload="source.go"
-            preview="false"
-            upload-file-form-name="'sourceFile'">
-          </form>
-        </div>
-      </div>
-      <div class="row top-gap">
-        <div class="col-md-6">
-          <div class="progress" ng-if="progress">
-            <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
-              <span>{{progress | number: 2}}% Complete</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div ng-switch-when="mbtiles" ng-init="source.format = 'mbtiles'">
-      <div class="row top-gap">
-        <div class="col-md-12">
-          <p class="lead">Upload a MBTiles file which mapcache will use to create a cache in xyz format.</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-12">
-          <form
-            type="detail"
-            enctype="multipart/form-data"
-            file-upload url="/nowhere"
-            allow-upload="source.go"
-            preview="false"
-            upload-file-form-name="'sourceFile'">
-          </form>
-        </div>
-      </div>
-      <div class="row top-gap">
-        <div class="col-md-6">
-          <div class="progress" ng-if="progress">
-            <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
-              <span>{{progress | number: 2}}% Complete</span>
-            </div>
-          </div>
-        </div>
+  </div>
+
+  <div class="row" ng-if="showMap">
+    <div class="col-md-12">
+      <p class="lead">Source preview</p>
+      <div leaflet-source source="source" options="mapOptions"></div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="source.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
+        </label>
       </div>
     </div>
   </div>
   <div class="row bottom-gap-l top-gap">
     <div class="col-md-12">
-      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span><button class="btn btn-primary pull-right" ng-class="{disabled: sourceSubmitted}" ng-click="createSource()">Create Source</button></p>
+      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span>
+        <button class="btn btn-primary pull-right"
+        ng-class="{disabled: sourceSubmitted || (!source.name || !source.format || (!source.url && !source.sourceFile))}" ng-click="createSource()">Create Source</button></p>
+    </div>
+  </div>
+
+  <div class="row top-gap">
+    <div class="col-md-6">
+      <div class="progress" ng-if="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
+          <span>{{progress | number: 2}}% Complete</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>

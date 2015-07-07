@@ -10,16 +10,23 @@ var gdal = require("gdal")
   , CacheModel = require('../../models/cache')
   , config = require('../../config.json');
 
-exports.createCache = function(cache) {
-  var child = require('child_process').fork('api/sourceTypes/geoTiffProcessor');
-  child.send({operation:'generateCache', cache: cache});
-}
+  exports.processSource = function(source, callback) {
+    source.status.message="Processing source";
+    source.status.complete = false;
+    source.save(function(err) {
+      var ds = gdal.open(source.filePath);
+      source.projection = ds.srs.getAuthorityCode("PROJCS");
+      var polygon = turf.polygon([sourceCorners(ds)]);
+      source.geometry = polygon;
+      source.status.message = "Complete";
+      source.status.complete = true;
+      source.save(function(err) {
+        ds.close();
 
-exports.process = function(source, callback) {
-  callback(null, source);
-  var child = require('child_process').fork('api/sourceTypes/geoTiffProcessor');
-  child.send({operation:'process', sourceId: source.id});
-}
+        callback(err);
+      });
+    });
+  }
 
 // direct port from gdal2tiles.py
 function tileRasterBounds(ds, ulx, uly, lrx, lry) {
@@ -70,7 +77,7 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
   };
 }
 
-exports.getTile = function(source, z, x, y, params, callback) {
+exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
   var tileEnvelope = tu.tileBboxCalculator(x, y, z);
@@ -78,19 +85,20 @@ exports.getTile = function(source, z, x, y, params, callback) {
   var intersection = turf.intersect(tilePoly, source.geometry);
   if (!intersection){
     console.log("GeoTIFF does not intersect the requested tile");
-    callback();
-    return;
+    return callback();
   }
 
-  var out_ds = gdal.open(source.projections["3857"].path);
+  // var out_ds = gdal.open(source.projections["3857"].path);
+  var out_ds = gdal.open(source.filePath);
 
-  var out_srs = gdal.SpatialReference.fromEPSG(3857);
+
+  var out_srs = out_ds.srs;
 
   var out_gt = out_ds.geoTransform;
 
   if (out_gt[2] != 0 || out_gt[4] != 0) {
     console.log("error the geotiff is skewed, need to warp first");
-    callback();
+    return callback();
   }
 
   // output bounds - coordinates in the output SRS
@@ -140,6 +148,10 @@ exports.getTile = function(source, z, x, y, params, callback) {
   var pixelRegion1 = out_ds.bands.get(1).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
   var pixelRegion2 = out_ds.bands.get(2).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
   var pixelRegion3 = out_ds.bands.get(3).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
+
+  if (!pixelRegion1) {
+    return callback();
+  }
 
   var img = new png.PNG({
       width: options.buffer_width,
@@ -192,6 +204,80 @@ exports.getTile = function(source, z, x, y, params, callback) {
 
   out_ds.close();
 }
+
+function reproject(source, epsgCode, callback) {
+  source.status.message = "Reprojecting to EPSG:3857";
+  source.save(function(err) {
+    var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
+    var ds = gdal.open(source.filePath);
+    var warpSuggestion = gdal.suggestedWarpOutput({
+      src: ds,
+      s_srs: ds.srs,
+      t_srs:targetSrs
+    });
+    var dir = path.join(config.server.sourceDirectory.path, source.id);
+    var fileName = path.basename(epsgCode + "_" + path.basename(source.filePath));
+    var file = path.join(dir, fileName);
+
+    console.log("translating " + source.filePath + " to " + file);
+
+    var destination = gdal.open(file, 'w', "GTiff", warpSuggestion.rasterSize.x, warpSuggestion.rasterSize.y, 3);
+    destination.srs = targetSrs;
+    destination.geoTransform = warpSuggestion.geoTransform;
+
+    gdal.reprojectImage({
+      src: ds,
+      dst: destination,
+      s_srs: ds.srs,
+      t_srs: targetSrs
+    });
+    ds.close();
+    destination.close();
+    fs.stat(file, function(err, stat) {
+      source.projections = source.projections || {};
+      source.projections[epsgCode] = {path: file, size: stat.size};
+      source.status.message = "Complete";
+      source.status.complete = true;
+      source.save(callback);
+    });
+  });
+}
+
+function sourceCorners(ds) {
+  var size = ds.rasterSize;
+  var geotransform = ds.geoTransform;
+
+  // corners
+  var corners = {
+  	'Upper Left  ' : {x: 0, y: 0},
+  	'Upper Right ' : {x: size.x, y: 0},
+  	'Bottom Right' : {x: size.x, y: size.y},
+  	'Bottom Left ' : {x: 0, y: size.y}
+  };
+
+  var wgs84 = gdal.SpatialReference.fromEPSG(4326);
+  var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
+
+  var corner_names = Object.keys(corners);
+
+  var coordinateCorners = [];
+
+  corner_names.forEach(function(corner_name) {
+  	// convert pixel x,y to the coordinate system of the raster
+  	// then transform it to WGS84
+  	var corner      = corners[corner_name];
+  	var pt_orig     = {
+  		x: geotransform[0] + corner.x * geotransform[1] + corner.y * geotransform[2],
+  		y: geotransform[3] + corner.x * geotransform[4] + corner.y * geotransform[5]
+  	}
+  	var pt_wgs84    = coord_transform.transformPoint(pt_orig);
+    coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
+  });
+
+  coordinateCorners.push([coordinateCorners[0][0], coordinateCorners[0][1]]);
+  return coordinateCorners;
+}
+
 
 exports.gdalInfo = function(ds) {
   console.log("number of bands: " + ds.bands.count());

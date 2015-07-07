@@ -29,6 +29,16 @@ function StorageController($scope, $http, $location, CacheService, SourceService
     });
   }
 
+  $scope.isCacheFormatDeletable = function(cache, format) {
+    for (var i = 0; i < cache.source.cacheTypes.length; i++) {
+      var ct = cache.source.cacheTypes[i];
+      if (ct.type == format && ct.required) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   $http.get('/api/server')
   .success(function(data, status) {
     $scope.storage = data;
@@ -39,8 +49,7 @@ function StorageController($scope, $http, $location, CacheService, SourceService
   CacheService.getAllCaches(true).success(function(caches) {
     for (var i = 0; i < caches.length; i++) {
       var size = cacheSize(caches[i]);
-      caches[i].totalSize = size.total;
-      caches[i].tileSize = size.tileBytes;
+      caches[i].totalSize = size;
     }
     $scope.caches = caches;
   });
@@ -53,19 +62,21 @@ function StorageController($scope, $http, $location, CacheService, SourceService
 
   function cacheSize(cache) {
     var bytes = 0;
-    var tileBytes = 0;
-    for (var zoomLevel in cache.status.zoomLevelStatus) {
-      if (cache.status.zoomLevelStatus[zoomLevel].size) {
-        bytes += cache.status.zoomLevelStatus[zoomLevel].size;
-      }
-    }
-    tileBytes = bytes;
     for (var format in cache.formats) {
       if (cache.formats.hasOwnProperty(format) && cache.formats[format]) {
-        bytes += cache.formats[format].size;
+        var ct = cache.source.cacheTypes;
+        var found = false;
+        for (var i = 0; i < ct.length && !found; i++) {
+          if (ct[i].type == format) {
+            found = true;
+            if (!ct[i].virtual) {
+              bytes += cache.formats[format].size;
+            }
+          }
+        }
       }
     }
-    return {total: bytes, tileBytes: tileBytes};
+    return bytes;
   }
 
   SourceService.getAllSources(true).success(function(sources) {

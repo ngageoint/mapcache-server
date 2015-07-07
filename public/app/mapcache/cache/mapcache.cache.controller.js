@@ -7,10 +7,13 @@ MapcacheCacheController.$inject = [
   '$location',
   '$timeout',
   '$routeParams',
-  'CacheService'
+  'CacheService',
+  'LocalStorageService'
 ];
 
-function MapcacheCacheController($scope, $location, $timeout, $routeParams, CacheService) {
+function MapcacheCacheController($scope, $location, $timeout, $routeParams, CacheService, LocalStorageService) {
+
+  $scope.token = LocalStorageService.getToken();
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
@@ -37,6 +40,7 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     console.log('zoom rows', cache);
     if (!cache) return;
     var zoomRows = [];
+    if (!cache.status.zoomLevelStatus) return zoomRows;
     for (var i = cache.minZoom; i <= cache.maxZoom; i=i+3) {
       var row = [];
       if (cache.status.zoomLevelStatus[i]) {
@@ -52,16 +56,6 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     }
     console.log('zoom rows', zoomRows);
     return zoomRows;
-  }
-
-  $scope.cacheFormatExists = function(cache, format) {
-    if (!cache) return false;
-    return cache.formats && cache.formats[format] && !cache.formats[format].generating;
-  }
-
-  $scope.cacheFormatGenerating = function(cache, format) {
-    if (!cache) return false;
-    return cache.formats && cache.formats[format] && cache.formats[format].generating;
   }
 
   $scope.generateFormat = function(cache, format) {

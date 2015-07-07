@@ -29,44 +29,19 @@ module.exports = function(app, auth) {
   }
 
   app.get(
-  	'/api/caches/:cacheId.zip',
-  	access.authorize('EXPORT_CACHE'),
-  	function (req, res, next) {
-    	var id = req.params.cacheId;
-    	var minZoom = parseInt(req.param('minZoom'));
-    	var maxZoom = parseInt(req.param('maxZoom'));
-    	var format = req.param('format');
-    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-    	new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
-    		 if (err) {
-           return res.send(400, err);
-         }
-         if (format == "geopackage"){
-      		res.attachment(req.cache.name + ".gpkg");
-        } else if (format == "mbtiles") {
-          res.attachment(req.cache.name + ".mbtiles");
-        } else {
-          res.attachment(req.cache.name + ".zip");
-        }
-    	  archive.pipe(res);
-    	});
-  	}
-  );
-
-  app.get(
     '/api/caches/:cacheId/generate',
     access.authorize('EXPORT_CACHE'),
     function (req, res, next) {
-    	var id = req.params.cacheId;
-    	var minZoom = parseInt(req.param('minZoom'));
-    	var maxZoom = parseInt(req.param('maxZoom'));
     	var format = req.param('format');
-    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-    	new api.Cache().getZip(req.cache, minZoom, maxZoom, format, function(err, archive) {
-    	});
-      res.sendStatus(202);
+    	console.log('create cache format ' + format + ' for cache ' + req.cache.name);
+      new api.Cache().create(req.cache, format, function(err, newCache) {
+        if (!err) {
+          return res.sendStatus(202);
+        }
+        next(err);
+      });
   	}
-  )
+  );
 
   // get all caches
   app.get(
@@ -112,7 +87,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     function(req, res, next) {
 
-      new api.Cache().restart(req.cache, function(err, newCache) {
+      new api.Cache().restart(req.cache, req.param('format'), function(err, newCache) {
         if (err) return res.status(400).send(err.message);
 
         if (!newCache) return res.status(400).send();
@@ -124,32 +99,41 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/caches/:cacheId/:z/:x/:y.png',
+    '/api/caches/:cacheId/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      var options = {
+      new api.Cache().getTile(req.cache, req.param('format'), req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+        if (err) return next(err);
+        if (!tileStream) return res.status(404).send();
 
-      };
-
-      var cache = req.cache;
-      if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png")) {
-        res.send(404);
-        next();
-      } else {
-        res.writeHead(200, {
-          'Content-Type': 'image/png'
-        });
-      }
-
-      var stream = fs.createReadStream(config.server.cacheDirectory.path + '/' + cache._id + "/" + req.param('z') + "/" + req.param('x') + "/" + req.param('y') + ".png");
-      stream.on('open', function() {
-        stream.pipe(res);
-      });
-      stream.on('error', function(err) {
-        next(err);
+        tileStream.pipe(res);
       });
     }
+  );
+
+  app.get(
+  	'/api/caches/:cacheId/:format',
+  	access.authorize('EXPORT_CACHE'),
+  	function (req, res, next) {
+    	var id = req.params.cacheId;
+    	var minZoom = parseInt(req.param('minZoom'));
+    	var maxZoom = parseInt(req.param('maxZoom'));
+    	var format = req.param('format');
+    	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
+      new api.Cache().getData(req.cache, format, minZoom, maxZoom, function(err, status) {
+        if (err) {
+          return res.send(400, err);
+        }
+        if (status.creating) {
+          return res.sendStatus(202);
+        }
+        if (status.stream) {
+          res.attachment(req.cache.name + status.extension);
+          status.stream.pipe(res);
+        }
+      })
+  	}
   );
 
   // get cache

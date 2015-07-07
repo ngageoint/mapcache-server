@@ -15,6 +15,7 @@ function CacheService($q, $http) {
     createCacheFormat: createCacheFormat,
     getCache: getCache,
     deleteCache: deleteCache,
+    getCacheData: getCacheData,
     downloadMissing: downloadMissing
   };
 
@@ -77,19 +78,45 @@ function CacheService($q, $http) {
   }
 
   function createCache(cache, success, error, progress) {
+    var newCache = {};
+    for (var key in cache) {
+      if (cache.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' && key != 'source') {
+        newCache[key] = cache[key];
+      }
+    }
+    var newSource = {};
+    for (var key in cache.source) {
+      if (cache.source.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' ) {
+        newSource[key] = cache.source[key];
+      }
+    }
+    newCache.source = newSource;
     $http.post(
       '/api/caches',
-      cache,
+      newCache,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(cache, status, headers, config) {
-      console.log("created a cache", cache);
+    ).success(function(newCache, status, headers, config) {
+      console.log("created a cache", newCache);
       if (success) {
-        success(cache);
+        success(newCache);
       }
     }).error(function(data, status, headers, config) {
       if (error) {
         error(data, status);
       }
     });
+  }
+
+  function getCacheData(cache, format, success, error) {
+    $http.get('/api/caches/'+cache.id+'/' + format + '?minZoom=0&maxZoom=18')
+      .success(function(data, status) {
+        if (success) {
+          success(data, status);
+        }
+      }).error(function(data, status) {
+        if (error) {
+          error(data, status);
+        }
+      });
   }
 }

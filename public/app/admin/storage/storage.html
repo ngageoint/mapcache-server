@@ -53,11 +53,8 @@
                       <span>{{100*(cache.totalSize/storage.used) | number:2}}% of usage</span>
                     </div>
                   </div>
-                  <div>
-                    <span class="page-sub-entity-label">Tiles <span class="page-sub-entity-title">{{cache.tileSize | fileSize}}</span></span>
-                  </div>
-                  <div ng-repeat="(format, info) in cache.formats">
-                    <span><span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}} </span></span><a href="" ng-click="deleteCache(cache, format)"><i class="fa fa-trash"></i></a></span>
+                  <div ng-repeat="(format, info) in cache.formats" ng-show="info.size">
+                    <span><span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}} </span></span><a ng-show="isCacheFormatDeletable(cache, format)" href="" ng-click="deleteCache(cache, format)"><i class="fa fa-trash"></i></a></span>
                   </div>
                 </div>
                 <div>

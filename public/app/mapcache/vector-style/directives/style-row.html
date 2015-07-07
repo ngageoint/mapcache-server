@@ -1,0 +1,66 @@
+<div class="row style-row">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-1">
+        <div style-preview="style.style"></div>
+      </div>
+      <div class="col-md-9" ng-if="style.key">
+        <span class="page-sub-entity-label">{{style.key}} equals</span> <span class="page-sub-entity-title">{{style.value}}</span>
+      </div>
+      <div class="col-md-9" ng-if="!style.key">
+        <span class="page-sub-entity-title">Default Style</span>
+      </div>
+      <div class="col-md-1">
+        <a ng-if="options.mutable" class="pull-right" ng-click="deleteStyle(style)"><i style="font-size: 21px" class="fa fa-trash"></i></a>
+      </div>
+      <div class="col-md-1" ng-if="options.mutable">
+        <div class="pull-right">
+          <a ng-hide="options.first" ng-click="promoteStyle(style)"><i style="font-size: 21px" class="fa fa-arrow-up"></i></a>
+          <span ng-show="options.last" style="padding-right:25px"></span>
+          <a ng-hide="options.last" ng-click="demoteStyle(style)"><i style="font-size: 21px" class="fa fa-arrow-down"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Fill Color</label>
+          <div class="input-group" color-picker="style.style.fill">
+            <input type="text" value="style.style.fill" class="form-control" />
+            <span class="input-group-addon"><i></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Fill Opacity</label>
+          <input class="form-control" ng-model="style.style['fill-opacity']">
+          <p class="help-block">0.0 - 1.0</p>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Line Color</label>
+          <div class="input-group" color-picker="style.style.stroke">
+            <input type="text" value="style.style.stroke" class="form-control" />
+            <span class="input-group-addon"><i></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Line Opacity</label>
+          <input class="form-control" ng-model="style.style['stroke-opacity']">
+          <p class="help-block">0.0 - 1.0</p>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label>Line Width</label>
+          <input class="form-control" ng-model="style.style['stroke-width']">
+          <p class="help-block">Pixel Width</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

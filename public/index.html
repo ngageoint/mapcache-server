@@ -12,7 +12,9 @@
   <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css"/>
   <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="bower_components/leaflet-draw/dist/leaflet.draw.css"/>
+  <link rel="stylesheet" href="bower_components/leaflet.loading/src/Control.Loading.css"/>
   <link rel="stylesheet" href="bower_components/angular-ui-select/dist/select.min.css"/>
+  <link rel="stylesheet" href="bower_components/mjolnic-bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css"/>
   <!-- endbuild -->
 
   <!-- build:css css/app.min.css -->
@@ -113,10 +115,11 @@
   <script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
   <script type="text/javascript" src="bower_components/angular-route/angular-route.min.js"></script>
   <script type="text/javascript" src="bower_components/leaflet/dist/leaflet.js"></script>
-  <script type="text/javascript" src="bower_components/leaflet-draw/dist/leaflet.draw-src.js"></script>
+  <script type="text/javascript" src="bower_components/leaflet-draw/dist/leaflet.draw.js"></script>
+  <script type="text/javascript" src="bower_components/leaflet.loading/src/Control.Loading.js"></script>
   <script type="text/javascript" src="bower_components/angular-ui-select/dist/select.min.js"></script>
   <script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
-  <script type="text/javascript" src="bower_components/jquery-file-download/src/Scripts/jquery.fileDownload.js"></script>
+  <script type="text/javascript" src="bower_components/mjolnic-bootstrap-colorpicker/dist/js/bootstrap-colorpicker.js"></script>
   <script type="text/javascript" src="vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0-SNAPSHOT.min.js"></script>
   <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="bower_components/turf/turf.min.js"></script>
@@ -134,6 +137,7 @@
   <script type="text/javascript" src="app/mapcache/source/mapcache.source.controller.js"></script>
   <script type="text/javascript" src="app/mapcache/source/mapcache.source.create.controller.js"></script>
   <script type="text/javascript" src="app/mapcache/leaflet.directive.js"></script>
+  <script type="text/javascript" src="app/mapcache/leaflet/utilities.js"></script>
   <script type="text/javascript" src="app/mapcache/cache/leaflet.create.directive.js"></script>
   <script type="text/javascript" src="app/mapcache/cache/leaflet.cache.directive.js"></script>
   <script type="text/javascript" src="app/mapcache/source/leaflet.source.directive.js"></script>
@@ -155,11 +159,19 @@
   <script type="text/javascript" src="app/factories/source.service.js"></script>
   <script type="text/javascript" src="app/factories/format.service.js"></script>
 
+  <script type="text/javascript" src="app/directives/color.picker.directive.js"></script>
+  <script type="text/javascript" src="app/directives/location-chooser.directive.js"></script>
+
+  <script type="text/javascript" src="app/mapcache/vector-style/directives/style.preview.directive.js"></script>
+  <script type="text/javascript" src="app/mapcache/vector-style/directives/style.row.directive.js"></script>
+
   <script type="text/javascript" src="app/file-upload/file-upload.directive.js"></script>
 
   <script type="text/javascript" src="app/filters/user.filter.js"></script>
   <script type="text/javascript" src="app/filters/paging-offset.filter.js"></script>
   <script type="text/javascript" src="app/filters/file-size.filter.js"></script>
+  <script type="text/javascript" src="app/filters/cache-format.filter.js"></script>
+  <script type="text/javascript" src="app/filters/turf.filter.js"></script>
 
   <!-- endbuild -->
 

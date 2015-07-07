@@ -4,11 +4,12 @@
 <div class="container">
   <div class="row top-gap-l bottom-gap">
     <div class="col-md-12">
-      <div class="mapcache-header-description">Use mapcache to save maps for offline use in mobile applications.</div>
+      <div class="mapcache-header-description">Use mapcache to save maps for offline use.</div>
     </div>
   </div>
   <div class="row top-gap-xl" ng-init="login=true">
-    <div class="col-md-3 col-md-offset-9 top-padding-m bottom-padding-s signin-form">
+
+    <div class="col-md-6 col-md-offset-6 top-padding-m bottom-padding-s signin-form">
       <div ng-show="login">
         <form class="form">
           <div class="form-group" ng-class="{'has-error': status > 399}">
@@ -42,14 +43,16 @@
               <input type="text" placeholder="i.e. jappleseed" ng-model="user.username" autocapitalize="off" class="form-control"/>
           </div>
 
-          <div class="form-group">
-            <label>First Name</label>
-              <input type="text" placeholder="Johnny" ng-model="user.firstname" class="form-control">
-          </div>
+          <div class="row">
+            <div class="form-group col-md-6">
+              <label>First Name</label>
+                <input type="text" placeholder="Johnny" ng-model="user.firstname" class="form-control">
+            </div>
 
-          <div class="form-group">
-            <label>Last Name</label>
-              <input type="text" placeholder="Appleseed" ng-model="user.lastname" class="form-control">
+            <div class="form-group col-md-6">
+              <label>Last Name</label>
+                <input type="text" placeholder="Appleseed" ng-model="user.lastname" class="form-control">
+            </div>
           </div>
 
           <div class="form-group">
@@ -59,12 +62,12 @@
 
           <div class="form-group">
             <label>Password</label>
-              <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.password" class="form-control">
+              <input type="password" placeholder="Minimum 14 characters, alphanumeric" ng-model="user.password" class="form-control">
           </div>
 
           <div class="form-group">
             <label>Confirm Password</label>
-              <input type="password" placeholder="14 characters, alphanumeric" ng-model="user.passwordconfirm" class="form-control">
+              <input type="password" placeholder="Minumum 14 characters, alphanumeric" ng-model="user.passwordconfirm" class="form-control">
           </div>
 
           <button type="submit" class="btn btn-primary">Create my account</button>
@@ -74,8 +77,7 @@
 
         <!-- Status message area -->
         <div class="row top-gap" ng-show="showStatus">
-          <div class="col-md-5 alert alert-block" ng-class="statusLevel">
-            <button type="button" class="close" ng-click="showStatus = false">&times;</button>
+          <div class="col-md-12 alert alert-block" ng-class="statusLevel">
             <h4>{{statusTitle}}</h4>
             {{statusMessage}}
           </div>
@@ -131,6 +133,49 @@
       </div>
     </div>
   </div>
+  <div class="row">
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">GeoJSON</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa pull-right source-type-icon">{ }</span>
+        </div>
+        <div class="source-description">Encoding of geogrpahic data as valid JSON.</div>
+      </div>
+    </div>
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">Shapefile</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-file-archive-o pull-right source-type-icon"></span>
+        </div>
+        <div class="source-description">A zip of files including a .shp .shx and .dbf in the Esri shapefile format.  Mapcache uses <a href="https://github.com/substack/shp2json">shp2json</a> to parse shapefiles.</div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">KMZ</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-stack pull-right source-type-icon-stack">
+            <i class="fa fa-file-o fa-stack-2x"></i>
+            <i class="fa fa-globe fa-stack-1x"></i>
+          </span>
+        </div>
+        <div class="source-description">Zipped KML file. Mapcache uses <a href="https://github.com/substack/shp2json">shp2json</a> to parse KMZ files.</div>
+      </div>
+    </div>
+    <!-- <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">Shapefile</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa icon-map2 pull-right source-type-icon"></span>
+        </div>
+        <div class="source-description">A Web Map Service is an OGC specification for serving georeferenced map images.</div>
+      </div>
+    </div> -->
+  </div>
   <div class="row top-gap-l">
     <div class="col-md-12">
       <div class="mapcache-sources-description">Output maps to these formats:</div>
@@ -166,6 +211,38 @@
           <i class="icon-stack pull-right source-type-icon"></i>
         </div>
         <div class="source-description">MBTiles stores tiles in a SQLite database.  Mapcache uses <a href="https://github.com/mapbox/mbutil">mbutil</a> to parse and create MBTiles.</div>
+      </div>
+    </div>
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">GeoJSON</div>
+      <div class="row">
+        <div class="col-md-3">
+          <i class="fa pull-right source-type-icon">{ }</i>
+        </div>
+        <div class="source-description">Encoding of geogrpahic data as valid JSON.</div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">KML</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-stack pull-right source-type-icon-stack">
+            <i class="fa fa-file-o fa-stack-2x"></i>
+            <i class="fa fa-globe fa-stack-1x"></i>
+          </span>
+        </div>
+        <div class="source-description">XML notation for encoding geographic data.</div>
+      </div>
+    </div>
+    <div class="col-md-6 mapcache-supported-source top-gap-l">
+      <div class="source-title">Shapefile</div>
+      <div class="row">
+        <div class="col-md-3">
+          <span class="fa fa-file-archive-o pull-right source-type-icon"></span>
+        </div>
+        <div class="source-description">A zip of files including a .shp .shx and .dbf in the Esri shapefile format.</div>
       </div>
     </div>
   </div>
