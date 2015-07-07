@@ -340,6 +340,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				fileName = source.id + '.geojson';
 		}
     var file = path.join(dir, fileName);
+		console.log('file', file);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
 			if (!tileIndex) return exports.createImage(null, source.style, z, x, y, callback);
