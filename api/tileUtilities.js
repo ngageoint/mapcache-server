@@ -332,7 +332,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
     });
   } else {
 		var dir = path.join(config.server.sourceDirectory.path, source.id);
-		var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+		var fileName = path.basename(path.basename(source.filePath));
 
 		if (source.source) {
 				// this means it is a cache
@@ -340,6 +340,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				fileName = source.id + '.geojson';
 		}
     var file = path.join(dir, fileName);
+		console.log('file', file);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
 			if (!tileIndex) return exports.createImage(null, source.style, z, x, y, callback);
