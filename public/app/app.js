@@ -15,7 +15,8 @@ angular.module("mapcache", [
     "userManagement",
     "ngRoute",
     "ngResource",
-    "ui.bootstrap"
+    "ui.bootstrap",
+    'ui.scrollpoint'
   ]).config(config).run(run);
 
 config.$inject = ['$routeProvider', '$locationProvider', '$httpProvider'];
