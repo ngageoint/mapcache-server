@@ -333,7 +333,7 @@
   vertical-align: bottom;
 }
 
-.leaflet-scrollpoint.ui-scrollpoint {
+.ui-scrollpoint .leaflet-scrollpoint {
   top:50px;
   right: 0px;
   left: 0px;
@@ -341,7 +341,7 @@
   z-index:500000;
 }
 
-.maps-scrollpoint.ui-scrollpoint {
+.ui-scrollpoint .maps-scrollpoint {
   margin-top:450px;
 }
 
