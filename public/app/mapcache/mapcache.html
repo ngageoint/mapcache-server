@@ -36,7 +36,6 @@
               <div class="col-md-12">
                 <div class="cache-name"><a href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span ng-if="!cache.status.complete">Currently Generating</span>
                   <button class="btn btn-link btn-sm" ng-click="view.showingDetails[cache.id] = !view.showingDetails[cache.id]"><span ng-show="view.showingDetails[cache.id]">hide map details</span><span ng-show="!view.showingDetails[cache.id]">view map details</span></button>
-                  <button class="btn btn-link btn-sm" ng-click="toggleCacheTiles(cache)"><span ng-show="view.showingTiles[cache.id]"><i ng-show="view.loadingData[cache.id]" class="fa fa-spinner fa-pulse">loading</i>hide map</span><span ng-show="!view.showingTiles[cache.id]">show map</span></button>
                 </div>
               </div>
             </div>
