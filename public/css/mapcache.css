@@ -308,3 +308,52 @@
   white-space: nowrap;
   display: block;
 }
+
+/* columns of same height styles */
+
+.row-height {
+  display: table;
+  table-layout: fixed;
+  height: 100%;
+  width: 100%;
+}
+.col-height {
+  display: table-cell;
+  float: none;
+  height: 100%;
+}
+
+.col-top {
+  vertical-align: top;
+}
+.col-middle {
+  vertical-align: middle;
+}
+.col-bottom {
+  vertical-align: bottom;
+}
+
+.leaflet-scrollpoint.ui-scrollpoint {
+  top:50px;
+  right: 0px;
+  left: 0px;
+  position:fixed;
+  z-index:500000;
+}
+
+.maps-scrollpoint.ui-scrollpoint {
+  margin-top:450px;
+}
+
+.filter-scrollpoint.ui-scrollpoint {
+  top:510px;
+  position: fixed;
+}
+
+.create-map-scrollpoint.ui-scrollpoint {
+  display: none;
+}
+
+.create-map-toolbar-scrollpoint.ui-scrollpoint {
+  display: visible;
+}
