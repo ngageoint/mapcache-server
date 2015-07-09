@@ -30,6 +30,7 @@ function StorageController($scope, $http, $location, CacheService, SourceService
   }
 
   $scope.isCacheFormatDeletable = function(cache, format) {
+    if (!cache.source) { return true; }
     for (var i = 0; i < cache.source.cacheTypes.length; i++) {
       var ct = cache.source.cacheTypes[i];
       if (ct.type == format && ct.required) {
@@ -64,16 +65,7 @@ function StorageController($scope, $http, $location, CacheService, SourceService
     var bytes = 0;
     for (var format in cache.formats) {
       if (cache.formats.hasOwnProperty(format) && cache.formats[format]) {
-        var ct = cache.source.cacheTypes;
-        var found = false;
-        for (var i = 0; i < ct.length && !found; i++) {
-          if (ct[i].type == format) {
-            found = true;
-            if (!ct[i].virtual) {
               bytes += cache.formats[format].size;
-            }
-          }
-        }
       }
     }
     return bytes;
