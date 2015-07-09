@@ -390,27 +390,29 @@
   vertical-align: bottom;
 }
 
-.ui-scrollpoint .leaflet-scrollpoint {
-  top:50px;
-  right: 0px;
-  left: 0px;
-  position:fixed;
-  z-index:500000;
-}
+@media (min-width: 768px) {
+  .ui-scrollpoint .leaflet-scrollpoint {
+    top:50px;
+    right: 0px;
+    left: 0px;
+    position:fixed;
+    z-index:500000;
+  }
 
-.ui-scrollpoint .maps-scrollpoint {
-  margin-top:450px;
-}
+  .ui-scrollpoint .maps-scrollpoint {
+    margin-top:450px;
+  }
 
-.filter-scrollpoint.ui-scrollpoint {
-  top:510px;
-  position: fixed;
-}
+  .filter-scrollpoint.ui-scrollpoint {
+    top:510px;
+    position: fixed;
+  }
 
-.create-map-scrollpoint.ui-scrollpoint {
-  display: none;
-}
+  .create-map-scrollpoint.ui-scrollpoint {
+    display: none;
+  }
 
-.create-map-toolbar-scrollpoint.ui-scrollpoint {
-  display: visible;
+  .create-map-toolbar-scrollpoint.ui-scrollpoint {
+    display: visible;
+  }
 }
