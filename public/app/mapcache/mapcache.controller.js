@@ -25,18 +25,20 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
       for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
         var cache = caches[i];
         if (!cache.status.complete) {
+          console.log('cache is generating', cache);
           currentlyGenerating = true;
         }
         for (var format in cache.formats) {
           if(cache.formats.hasOwnProperty(format)){
             if (cache.formats[format].generating) {
+              console.log('cache format is generating ' + format, cache);
               currentlyGenerating = true;
             }
           }
         }
       }
       console.log("is a cache generating?", currentlyGenerating);
-      var delay = currentlyGenerating ? 5000 : 300000;
+      var delay = currentlyGenerating ? 30000 : 300000;
       if ($location.path() == '/mapcache') {
         $timeout(getCaches, delay);
       }
