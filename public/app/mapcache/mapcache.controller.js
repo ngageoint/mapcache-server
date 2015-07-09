@@ -36,7 +36,7 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
         }
       }
       console.log("is a cache generating?", currentlyGenerating);
-      var delay = currentlyGenerating ? 30000 : 300000;
+      var delay = currentlyGenerating ? 5000 : 300000;
       if ($location.path() == '/mapcache') {
         $timeout(getCaches, delay);
       }
@@ -130,12 +130,25 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     });
   }
 
+  var cacheHighlightPromise;
   $scope.mouseOver = function(cache) {
-    $rootScope.$broadcast('cacheHighlight', cache);
+    $rootScope.$broadcast('showCacheExtent', cache);
+    if (cacheHighlightPromise) {
+      $timeout.cancel(cacheHighlightPromise);
+    }
+    cacheHighlightPromise = $timeout(function() {
+      $rootScope.$broadcast('showCache', cache);
+    }, 500);
   }
 
   $scope.mouseOut = function(cache) {
-    $rootScope.$broadcast('cacheUnhighlight', cache);
+    $rootScope.$broadcast('hideCacheExtent', cache);
+
+    if (cacheHighlightPromise) {
+      $timeout.cancel(cacheHighlightPromise);
+      cacheHighlightPromise = undefined;
+    }
+    $rootScope.$broadcast('hideCache', cache);
   }
 
   $scope.toggleCacheTiles = function(cache) {

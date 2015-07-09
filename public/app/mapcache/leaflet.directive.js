@@ -20,6 +20,8 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   var layers = {};
   var cacheFootprints = {};
 
+  var oldCenter, oldZoom, highlightedCache;
+
   var map = L.map($element[0], {
     center: [45,0],
     zoom: 3,
@@ -38,24 +40,62 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
 
   $scope.$watch('caches', function(caches) {
     if (!caches) return;
-    // This is not optimal
-    for (var cacheId in cacheFootprints) {
-      var rectangle = cacheFootprints[cacheId];
-      rectangle.setStyle({fillColor: "#333333", color: "#333333"});
-    }
+
     for (var i = 0; i < caches.length; i++) {
       var cache = caches[i];
-      createRectangle(cache, "#0072c5");
+      if (!cacheFootprints[cache.id]) {
+        createRectangle(cache, "#0072c5");
+      }
     }
   });
 
-  $rootScope.$on('cacheHighlight', function(event, cache) {
-    createRectangle(cache, "#ff7800");
+  $rootScope.$on('showCache', function(event, cache) {
+    hideCache(highlightedCache, false);
+    showCache(cache);
   });
 
-  $rootScope.$on('cacheUnhighlight', function(event, cache) {
+  $rootScope.$on('hideCache', function(event, cache) {
+    hideCache(cache, true);
+  });
+
+  $rootScope.$on('showCacheExtent', function(event, cache) {
+    createRectangle(cache, "#ff7800");
+
+  });
+
+  $rootScope.$on('hideCacheExtent', function(event, cache) {
     createRectangle(cache, "#0072c5");
   });
+
+  function showCache(cache) {
+    if (!highlightedCache) {
+      oldCenter = map.getCenter();
+      oldZoom = map.getZoom();
+    }
+    highlightedCache = cache;
+    // createRectangle(cache, "#ff7800");
+
+    var extent = turf.extent(cache.geometry);
+    console.log('extent', extent);
+    map.fitBounds([
+      [extent[1],extent[0]],
+      [extent[3], extent[2]]
+    ]);
+    showCacheTiles(cache);
+  }
+
+  function hideCache(cache, moveMap) {
+    if (highlightedCache && highlightedCache.id == cache.id) {
+      // createRectangle(cache, "#0072c5");
+      if (moveMap) {
+        map.setView(oldCenter, oldZoom);
+      }
+      oldCenter = undefined;
+      oldZoom = undefined;
+      removeCacheTiles(cache);
+      highlightedCache = undefined;
+    }
+  }
 
   $rootScope.$on('showCacheTiles', function(event, cache) {
     showCacheTiles(cache);

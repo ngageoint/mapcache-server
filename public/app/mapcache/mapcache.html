@@ -25,7 +25,7 @@
         </div>
       </div>
     </div>
-    <div class="cache-row bottom-gap-l" ng-repeat="cache in caches | filter:cacheFilter | filter: mapFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
+    <div class="cache-row bottom-gap-l" ng-repeat="cache in caches track by cache.id | filter:cacheFilter | filter: mapFilter " ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
       <div class="row">
         <div class="row-height">
           <div class="col-md-1 col-height col-bottom">
