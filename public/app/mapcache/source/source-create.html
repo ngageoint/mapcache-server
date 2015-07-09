@@ -2,32 +2,17 @@
 
   <div class="row">
     <div class="col-md-12">
-      <p class="lead">Sources provide the data mapcache uses to generate maps.</p>
+      <p class="lead">Mapcache can currently generate maps from the following formats:</p>
+        <span class="page-sub-entity-label">URLs: <span class="page-sub-entity-title" ng-repeat="format in validUrlFormats">{{format.format | cacheFormat}}<span ng-if="!$last">,</span>&nbsp;</span>
+        <br>
+        <span class="page-sub-entity-label">Files: <span class="page-sub-entity-title" ng-repeat="format in validFileFormats">{{format.format | cacheFormat}}<span ng-if="!$last">,</span>&nbsp;</span>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="form-group">
-        <span class="page-sub-entity-title">Name Your Source</span>
-        <input class="form-control" ng-model="source.name" placeholder="e.g. Open Street Map">
-      </div>
-    </div>
-  </div>
-
-  <div class="row top-gap bottom-gap">
-    <div class="col-md-12">
-      <p class="lead">Where is your source data?</p>
-      <span class="page-sub-entity-label">Supported URL formats: <span class="page-sub-entity-title" ng-repeat="format in validUrlFormats">{{format.format | cacheFormat}}<span ng-if="!$last">, </span></span></span>
-      <br>
-      <span class="page-sub-entity-label">Supported File formats: <span class="page-sub-entity-title" ng-repeat="format in validFileFormats">{{format.format | cacheFormat}}<span ng-if="!$last">, </span></span></span>
-    </div>
-  </div>
-
-  <div class="row">
+  <div class="row top-gap-l">
     <div class="col-md-6">
       <div class="form-group has-feedback" ng-class="{'has-success':locationStatus == 'success', 'has-warning': locationStatus == 'warning', 'has-error': locationStatus == 'error'}">
-        <span class="control-label page-sub-entity-title">Enter a URL or browse for a local file</span>
+        <span class="control-label page-sub-entity-title">Enter a URL or choose a local file with your data</span>
         <div location-chooser location-status="locationStatus"></div>
         <p ng-if="sourceInformation" class="help-block">
           <span ng-if="locationStatus == 'success'"><span ng-if="sourceInformation.url">URL</span><span ng-if="sourceInformation.file">File</span> appears to be a {{sourceInformation.format | cacheFormat}} source.</span>
@@ -38,7 +23,7 @@
     </div>
     <div class="col-md-6 nice-radio" ng-if="sourceInformation.file">
       <div class="form-group">
-        <span class="page-sub-entity-title one-line-ellipsis">&nbsp;</span>
+        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.file.name}}</span>
         <span ng-repeat="format in validFileFormats">
           <input value="{{format.format}}" id="{{format.format}}" ng-model="source.format" type="radio" name="team" checked>
           <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
@@ -47,35 +32,13 @@
     </div>
     <div class="col-md-6 nice-radio" ng-if="sourceInformation.url">
       <div class="form-group">
-        <span class="page-sub-entity-title one-line-ellipsis">&nbsp;</span>
+        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.url}}</span>
         <span ng-repeat="format in validUrlFormats">
           <input value="{{format.format}}" id="{{format.format}}" ng-model="source.format" type="radio" name="team" checked>
           <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
         </span>
       </div>
     </div>
-    <!-- <div class="col-md-6" ng-if="sourceInformation.url">
-      <div class="form-group">
-        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.url}}</span>
-        <ui-select ng-model="source.format" theme="bootstrap">
-          <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
-          <ui-select-choices repeat="format.format as format in validUrlFormats | filter: $select.search">
-            {{format.format | cacheFormat | highlight: $select.search}}
-          </ui-select-choices>
-        </ui-select>
-      </div>
-    </div>
-    <div class="col-md-6" ng-if="sourceInformation.file">
-      <div class="form-group">
-        <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.file.name}}</span>
-        <ui-select ng-model="source.format" theme="bootstrap">
-          <ui-select-match placeholder="Source Type">{{$select.selected.format | cacheFormat}}</ui-select-match>
-          <ui-select-choices repeat="format.format as format in validFileFormats | filter: $select.search">
-            {{format.format | cacheFormat | highlight: $select.search}}
-          </ui-select-choices>
-        </ui-select>
-      </div>
-    </div> -->
   </div>
 
   <div class="row" ng-show="urlDiscovery">
@@ -124,11 +87,27 @@
       </div>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <span class="control-label page-sub-entity-title">Name Your Source</span>
+        <div class="input-group file-input-group">
+          <input type="text" class="form-control ng-pristine ng-untouched ng-valid" ng-model="source.name" placeholder="e.g. Denver, CO">
+          <span class="input-group-btn">
+            <button class="btn btn-primary" ng-class="{disabled: sourceSubmitted || (!source.name || !source.format || (!source.url && !source.sourceFile))}" ng-click="createSource()">
+              Create Source
+            </button>
+          </span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row bottom-gap-l top-gap">
     <div class="col-md-12">
-      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span>
-        <button class="btn btn-primary pull-right"
-        ng-class="{disabled: sourceSubmitted || (!source.name || !source.format || (!source.url && !source.sourceFile))}" ng-click="createSource()">Create Source</button></p>
+      <p class="lead"><span ng-show="sourceSubmitted">Creating source...</span></p>
     </div>
   </div>
 
