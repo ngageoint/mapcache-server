@@ -31,7 +31,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     style: angular.copy(defaultStyle)
   };
 
-  $http.get('/api/server')
+  $http.get('/api/server/maxCacheSize')
   .success(function(data, status) {
     $scope.storage = data;
   }).error(function(data, status) {
