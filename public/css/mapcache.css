@@ -12,6 +12,10 @@
 	color: #777777;
 }
 
+.disk-usage-card {
+  height: 200px;
+}
+
 .style-row {
   border-width: 1px;
   border-color: #DDDDDD;
