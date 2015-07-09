@@ -15,9 +15,12 @@
     </div>
   </div>
 
-  <div class="row top-gap">
+  <div class="row top-gap bottom-gap">
     <div class="col-md-12">
       <p class="lead">Where is your source data?</p>
+      <span class="page-sub-entity-label">Supported URL formats: <span class="page-sub-entity-title" ng-repeat="format in validUrlFormats">{{format.format | cacheFormat}}<span ng-if="!$last">, </span></span></span>
+      <br>
+      <span class="page-sub-entity-label">Supported File formats: <span class="page-sub-entity-title" ng-repeat="format in validFileFormats">{{format.format | cacheFormat}}<span ng-if="!$last">, </span></span></span>
     </div>
   </div>
 
@@ -33,8 +36,25 @@
         </p>
       </div>
     </div>
-    <div class="col-md-6" ng-if="sourceInformation.url">
-
+    <div class="col-md-6 nice-radio" ng-if="sourceInformation.file">
+      <div class="form-group">
+        <span class="page-sub-entity-title one-line-ellipsis">&nbsp;</span>
+        <span ng-repeat="format in validFileFormats">
+          <input value="{{format.format}}" id="{{format.format}}" ng-model="source.format" type="radio" name="team" checked>
+          <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
+        </span>
+      </div>
+    </div>
+    <div class="col-md-6 nice-radio" ng-if="sourceInformation.url">
+      <div class="form-group">
+        <span class="page-sub-entity-title one-line-ellipsis">&nbsp;</span>
+        <span ng-repeat="format in validUrlFormats">
+          <input value="{{format.format}}" id="{{format.format}}" ng-model="source.format" type="radio" name="team" checked>
+          <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
+        </span>
+      </div>
+    </div>
+    <!-- <div class="col-md-6" ng-if="sourceInformation.url">
       <div class="form-group">
         <span class="page-sub-entity-title one-line-ellipsis">Format of {{sourceInformation.url}}</span>
         <ui-select ng-model="source.format" theme="bootstrap">
@@ -55,7 +75,7 @@
           </ui-select-choices>
         </ui-select>
       </div>
-    </div>
+    </div> -->
   </div>
 
   <div class="row" ng-show="urlDiscovery">
