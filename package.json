@@ -45,7 +45,7 @@
     "proj4": "^2.3.6",
     "request": "2.51.x",
     "shortid": "^2.2.2",
-    "shp2json": "^1.1.0",
+    "shp2json": "https://github.com/danielbarela/shp2json.git",
     "turf": "^2.0.2",
     "winston": "^1.0.0",
     "wms-capabilities": "^0.2.2",
