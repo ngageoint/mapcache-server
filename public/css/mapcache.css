@@ -13,7 +13,36 @@
 }
 
 .disk-usage-card {
-  height: 200px;
+  height: 125px;
+  float: left;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.btn-purple {
+  color: #fff;
+  background-color: #855de2;
+  border-color: #d43f3a;
+}
+
+.btn-purple.active, .btn-purple.focus, .btn-purple:active, .btn-purple:focus, .btn-purple:hover, .open>.dropdown-toggle.btn-purple {
+  color: #fff;
+  background-color: #6b3bd9;
+  border-color: #ac2925;
+}
+
+.btn-blue {
+  color: #fff;
+  background-color: #3d5ed8;
+  border-color: #d43f3a;
+}
+
+.btn-blue.active, .btn-blue.focus, .btn-blue:active, .btn-blue:focus, .btn-blue:hover, .open>.dropdown-toggle.btn-purple {
+  color: #fff;
+  background-color: #1940cf;
+  border-color: #ac2925;
 }
 
 .style-row {

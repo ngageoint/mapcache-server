@@ -46,9 +46,9 @@ function config($routeProvider, $locationProvider, $httpProvider) {
     controller:     "SigninController",
     resolve: checkLogin()
   });
-  $routeProvider.when('/admin/:adminPanel?', {
-    templateUrl:    'app/admin/admin.html',
-    controller:     "AdminController",
+  $routeProvider.when('/admin', {
+    templateUrl:    'app/admin/storage/storage.html',
+    controller:     "StorageController",
     resolve: resolveLogin(["ADMIN_ROLE"])
   });
   $routeProvider.when('/mapcache', {
