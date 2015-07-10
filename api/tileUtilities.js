@@ -205,6 +205,13 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 									featureList.push(f);
 								}
 							}
+						} else if (feature.type == 2) {
+							// Linestring
+							var turfLine = turf.linestring(innerGeometry);
+							var closestPointOnLine = turf.pointOnLine(turfLine, queryPoint);
+							if (turf.inside(closestPointOnLine, queryPoly)) {
+								featureList.push(f);
+							}
 						}
 					} catch (e) {
 						console.log('error turfing', e);
