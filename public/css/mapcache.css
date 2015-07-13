@@ -21,6 +21,11 @@
   width: 100%;
 }
 
+.awesome-marker i {
+  font-size: 18px;
+  margin-top: 8px;
+}
+
 .btn-purple {
   color: #fff;
   background-color: #855de2;

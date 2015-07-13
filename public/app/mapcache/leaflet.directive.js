@@ -22,6 +22,13 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
 
   var oldCenter, oldZoom, highlightedCache;
 
+  var cacheMarker = L.AwesomeMarkers.icon({
+    icon: 'globe',
+    prefix: 'fa',
+    markerColor: 'darkblue',
+    iconColor: '#FCFCFC'
+  });
+
   var map = L.map($element[0], {
     center: [45,0],
     zoom: 3,
@@ -118,7 +125,11 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
       return;
     }
 
-    var gj = L.geoJson(cache.geometry);
+    var gj = L.geoJson(cache.geometry, {
+      pointToLayer: function(feature, latlng) {
+        return L.marker(latlng, {icon: cacheMarker});
+      }
+    });
     gj.addData(turf.center(cache.geometry));
     gj.setStyle({fill: false, color: color});
     gj.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
