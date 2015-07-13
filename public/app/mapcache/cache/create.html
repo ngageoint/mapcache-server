@@ -23,7 +23,7 @@
           <label>Choose the source of your map.  This is what your map will be generated from.</label>
           <ui-select ng-model="cache.source" theme="bootstrap">
             <ui-select-match placeholder="Select a source">{{$select.selected.name}}</ui-select-match>
-            <ui-select-choices repeat="source in sources | orderBy: 'name' | filter: $select.search">
+            <ui-select-choices repeat="source in sources | filter: {status : {complete:true}} | orderBy: 'name' | filter: $select.search">
               <div ng-bind-html="source.name | highlight: $select.search"></div>
               <small class="muted">
                 <span ng-bind-html="''+source.name + ' ' + source.url | highlight: $select.search"></span>
@@ -225,10 +225,10 @@
         <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Will create a map with <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
       </div>
     </div>
-    <div class="row" ng-show="!cache.source.vector">
+    <div class="row" ng-show="totalCacheSize">
       <div class="col-md-12">
         <div class="form-group">
-          <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Map is currently estimated to be <span class="page-sub-entity-title">{{totalCacheSize | fileSize}}</span> with <span class="page-sub-entity-title">{{totalCacheTiles}} tiles</span></span>
+          <span class="page-sub-entity-label">Map is currently estimated to be <span class="page-sub-entity-title">{{totalCacheSize | fileSize}}</span> with <span class="page-sub-entity-title">{{totalCacheTiles}} tiles</span></span>
         </div>
       </div>
     </div>
@@ -281,9 +281,20 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        <button class="btn btn-primary pull-right" ng-class="{disabled: creatingCache || !requiredFieldsSet()}" ng-click="createCache()">Create Map</button>
+        <div class="form-group">
+          <span class="control-label page-sub-entity-title">Name Your Map</span>
+          <div class="input-group file-input-group">
+            <input type="text" class="form-control" ng-model="cache.name" placeholder="e.g. Denver, CO">
+            <span class="input-group-btn">
+              <button class="btn btn-primary" ng-class="{disabled: creatingCache || !requiredFieldsSet()}" ng-click="createCache()">
+                Create Map
+              </button>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
+
     <div class="row" ng-show="cacheCreationError">
       <div class="col-md-12">
         <div class="alert alert-danger" role="alert">Error Creating Map: {{cacheCreationError.error}}</div>

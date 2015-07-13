@@ -93,7 +93,7 @@
       <div class="form-group">
         <span class="control-label page-sub-entity-title">Name Your Source</span>
         <div class="input-group file-input-group">
-          <input type="text" class="form-control ng-pristine ng-untouched ng-valid" ng-model="source.name" placeholder="e.g. Denver, CO">
+          <input type="text" class="form-control" ng-model="source.name" placeholder="e.g. Denver, CO">
           <span class="input-group-btn">
             <button class="btn btn-primary" ng-class="{disabled: sourceSubmitted || (!source.name || !source.format || (!source.url && !source.sourceFile))}" ng-click="createSource()">
               Create Source
