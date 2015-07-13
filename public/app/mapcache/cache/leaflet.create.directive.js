@@ -102,7 +102,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      $scope.options.geometry = cacheFootprintLayer.toGeoJSON();
+      $scope.options.geometry = cacheFootprintLayer.toGeoJSON().geometry;
     });
   });
 
