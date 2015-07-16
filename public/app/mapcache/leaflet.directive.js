@@ -29,6 +29,13 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     iconColor: '#FCFCFC'
   });
 
+  var grayCacheMarker = L.AwesomeMarkers.icon({
+    icon: 'globe',
+    prefix: 'fa',
+    markerColor: 'lightgray',
+    iconColor: '#FCFCFC'
+  });
+
   var map = L.map($element[0], {
     center: [45,0],
     zoom: 3,
@@ -51,7 +58,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     for (var i = 0; i < caches.length; i++) {
       var cache = caches[i];
       if (!cacheFootprints[cache.id]) {
-        createRectangle(cache, "#0072c5");
+        createRectangle(cache);
       }
     }
   });
@@ -66,13 +73,32 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   });
 
   $rootScope.$on('showCacheExtent', function(event, cache) {
-    createRectangle(cache, "#ff7800");
-
+    showCacheExtent(cache);
   });
 
   $rootScope.$on('hideCacheExtent', function(event, cache) {
-    createRectangle(cache, "#0072c5");
+    hideCacheExtent(cache);
   });
+
+  function hideCacheExtent(cache) {
+    if (!popupOpenId) {
+      createRectangle(cache);
+    }
+    for (var cacheId in cacheFootprints) {
+      if (!popupOpenId) {
+        cacheFootprints[cacheId].center.setIcon(cacheMarker);
+      }
+    }
+  }
+
+  function showCacheExtent(cache) {
+    createRectangle(cache, "#0066A2");
+    for (var cacheId in cacheFootprints) {
+      if (cacheId != cache.id && popupOpenId != cacheId) {
+        cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
+      }
+    }
+  }
 
   function showCache(cache) {
     if (!highlightedCache) {
@@ -80,20 +106,18 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
       oldZoom = map.getZoom();
     }
     highlightedCache = cache;
-    // createRectangle(cache, "#ff7800");
 
     var extent = turf.extent(cache.geometry);
     console.log('extent', extent);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]
-    ]);
+    ], {animate: false});
     showCacheTiles(cache);
   }
 
   function hideCache(cache, moveMap) {
     if (highlightedCache && highlightedCache.id == cache.id) {
-      // createRectangle(cache, "#0072c5");
       if (moveMap) {
         map.setView(oldCenter, oldZoom);
       }
@@ -118,31 +142,49 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     });
   });
 
+  var popupOpenId;
+
   function createRectangle(cache, color) {
+    console.log('what is color', color);
     var rectangle = cacheFootprints[cache.id];
     if (rectangle) {
-      rectangle.setStyle({fillColor: color, color: color});
+      var rectangleStyle = {
+        fillColor: color,
+      };
+      if (color) {
+        rectangleStyle.color = color;
+        rectangleStyle.opacity = 1;
+      } else {
+        rectangleStyle.color = '#333333';
+        rectangleStyle.opacity = 0;
+      }
+      rectangle.footprint.setStyle(rectangleStyle);
+      rectangle.center.setIcon(cacheMarker);
       return;
     }
 
-    var gj = L.geoJson(cache.geometry, {
-      pointToLayer: function(feature, latlng) {
-        return L.marker(latlng, {icon: cacheMarker});
-      }
-    });
-    gj.addData(turf.center(cache.geometry));
-    gj.setStyle({fill: false, color: color});
-    gj.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
-    gj.on('popupopen', function(e) {
+    var cacheRectangle = L.geoJson(cache.geometry);
+    cacheRectangle.setStyle({fill: false, color: color, opacity: color ? 1 : 0, weight: 4});
+
+    var center = turf.center(cache.geometry);
+    var cacheCenter = L.marker([center.geometry.coordinates[1], center.geometry.coordinates[0]], {icon: cacheMarker});
+
+    cacheCenter.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
+    cacheCenter.on('popupopen', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
+      popupOpenId = cache.id;
+      showCacheExtent(cache);
       $scope.$apply();
     });
-    gj.on('popupclose', function(e) {
+    cacheCenter.on('popupclose', function(e) {
       $rootScope.$broadcast('cacheFootprintPopupClose', cache);
+      popupOpenId = undefined;
+      hideCacheExtent(cache);
       $scope.$apply();
     });
-    gj.addTo(map);
-    cacheFootprints[cache.id] = gj;
+    cacheRectangle.addTo(map);
+    cacheCenter.addTo(map);
+    cacheFootprints[cache.id] = {footprint: cacheRectangle, center: cacheCenter};
   }
 
   function showCacheTiles(cache) {
@@ -165,4 +207,41 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
       baseLayer.setOpacity(1);
     }
   }
+
+  function overlaySourceTiles(source) {
+    removeSourceTiles(source);
+    // baseLayer.setOpacity(.5);
+    var layer = L.tileLayer("/api/sources/"+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
+    layers[source.id] = layer;
+    layer.addTo(map);
+  }
+
+  function removeSourceTiles(source) {
+    console.log('layers', layers);
+    var layer = layers[source.id];
+    if (layer) {
+      map.removeLayer(layer);
+      delete layers[source.id];
+    }
+  }
+
+  $rootScope.$on('overlaySourceTiles', function(event, source) {
+    if (source.geometry) {
+      oldCenter = map.getCenter();
+      oldZoom = map.getZoom();
+
+      var extent = turf.extent(source.geometry);
+      console.log('extent', extent);
+      map.fitBounds([
+        [extent[1],extent[0]],
+        [extent[3], extent[2]]
+      ]);
+    }
+    overlaySourceTiles(source);
+  });
+
+  $rootScope.$on('removeSourceTiles', function(event, source) {
+    removeSourceTiles(source);
+    map.setView(oldCenter, oldZoom);
+  });
 }

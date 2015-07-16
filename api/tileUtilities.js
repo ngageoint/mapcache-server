@@ -371,6 +371,7 @@ function getTileIndex(id, dataLocation, callback) {
 	}
 	if (fs.existsSync(dataLocation)) {
 		fs.readFile(dataLocation, {encoding: 'utf8'}, function(err, fileData) {
+			if (!fileData || err) callback(null); 
 			var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
 			return getTileIndexFromData(id, gjData, callback);
 		});

@@ -9,11 +9,12 @@ MapcacheController.$inject = [
   '$timeout',
   '$location',
   'LocalStorageService',
-  'CacheService'
+  'CacheService',
+  'SourceService'
 ];
 
-function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
-
+function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, SourceService) {
+  $scope.tab = 'caches';
   $scope.token = LocalStorageService.getToken();
   $scope.view = {showingTiles: {}, showingDetails: {}};
 
@@ -46,6 +47,10 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   }
 
   getCaches();
+
+  SourceService.getAllSources(true).success(function(sources) {
+    $scope.sources = sources;
+  });
 
   $scope.createCache = function() {
     $location.path('/create');
@@ -160,6 +165,40 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     } else {
       $scope.view.showingTiles[cache.id] = true;
       $rootScope.$broadcast('showCacheTiles', cache);
+    }
+  }
+
+  var sourceOverlay;
+  var showSourcePromise;
+  $scope.mouseOverSource = function(source) {
+    if (showSourcePromise) {
+      $timeout.cancel(showSourcePromise);
+    }
+    showSourcePromise = $timeout(function() {
+      $rootScope.$broadcast('overlaySourceTiles', source);
+    }, 500);
+  }
+
+  $scope.mouseOutSource = function(source) {
+    $rootScope.$broadcast('removeSourceTiles', source);
+
+    if (showSourcePromise) {
+      $timeout.cancel(showSourcePromise);
+      showSourcePromise = undefined;
+    }
+  }
+
+  $scope.toggleSource = function(source) {
+    if (sourceOverlay) {
+      $scope.view.showingTiles[sourceOverlay.id] = false;
+      $rootScope.$broadcast('removeSourceTiles', sourceOverlay);
+    }
+    if (!sourceOverlay || (source.id != sourceOverlay.id)) {
+      $scope.view.showingTiles[source.id] = true;
+      sourceOverlay = source;
+      $rootScope.$broadcast('overlaySourceTiles', source);
+    } else {
+      sourceOverlay = null;
     }
   }
 
