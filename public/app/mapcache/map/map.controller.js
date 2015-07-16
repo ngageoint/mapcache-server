@@ -1,8 +1,8 @@
 angular
   .module('mapcache')
-  .controller('MapcacheSourceController', MapcacheSourceController);
+  .controller('MapController', MapController);
 
-MapcacheSourceController.$inject = [
+MapController.$inject = [
   '$scope',
   '$location',
   '$timeout',
@@ -11,7 +11,7 @@ MapcacheSourceController.$inject = [
   'SourceService'
 ];
 
-function MapcacheSourceController($scope, $location, $timeout, $routeParams, CacheService, SourceService) {
+function MapController($scope, $location, $timeout, $routeParams, CacheService, SourceService) {
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
@@ -19,7 +19,7 @@ function MapcacheSourceController($scope, $location, $timeout, $routeParams, Cac
   };
 
   $scope.source = {
-    id: $routeParams.sourceId
+    id: $routeParams.mapId
   };
 
   var defaultStyle = {

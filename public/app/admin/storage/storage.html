@@ -150,7 +150,7 @@
         </div>
         <div class="row bottom-gap" ng-repeat="source in sources | orderBy: 'totalSize': true">
           <div class="col-md-12" ng-hide="source.deleted">
-            <span class="page-entity-label"><a ng-href="/#/source/{{source.id}}">{{source.name}} : {{formatName(source.format)}}</a> <span class="page-entity-title">{{source.totalSize | fileSize}}</span></span><a ng-hide="source.deleted" href="" ng-click="deleteSource(source)"><i class="pull-right fa fa-trash"></i></a>
+            <span class="page-entity-label"><a ng-href="/#/map/{{source.id}}">{{source.name}} : {{formatName(source.format)}}</a> <span class="page-entity-title">{{source.totalSize | fileSize}}</span></span><a ng-hide="source.deleted" href="" ng-click="deleteSource(source)"><i class="pull-right fa fa-trash"></i></a>
             <div class="progress usage-progress">
               <div class="progress-bar" ng-class="{'progress-bar-success': (source.totalSize/storage.serverTotal) < .75, 'progress-bar-warning': (source.totalSize/storage.serverTotal) > .75 && (source.totalSize/storage.serverTotal) < .90, 'progress-bar-danger': (source.totalSize/storage.serverTotal) > .90}"
                  role="progressbar" style="width: {{100*(source.totalSize/storage.used)}}%">

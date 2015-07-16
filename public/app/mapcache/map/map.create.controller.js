@@ -1,8 +1,8 @@
 angular
   .module('mapcache')
-  .controller('MapcacheSourceCreateController', MapcacheSourceCreateController);
+  .controller('MapCreateController', MapCreateController);
 
-MapcacheSourceCreateController.$inject = [
+MapCreateController.$inject = [
   '$scope',
   '$location',
   '$timeout',
@@ -11,7 +11,7 @@ MapcacheSourceCreateController.$inject = [
   'SourceService'
 ];
 
-function MapcacheSourceCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
+function MapCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
 
   $scope.validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}];
   $scope.validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}, {format: 'mrsid'}];

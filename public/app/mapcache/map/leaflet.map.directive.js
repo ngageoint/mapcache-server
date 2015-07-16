@@ -1,8 +1,8 @@
 angular
   .module('mapcache')
-  .directive('leafletSource', leafletSource);
+  .directive('leafletMap', leafletMap);
 
-function leafletSource() {
+function leafletMap() {
   var directive = {
     restrict: "A",
     replace: true,
@@ -11,15 +11,15 @@ function leafletSource() {
       source: '=',
       options: '='
     },
-    controller: LeafletSourceController
+    controller: LeafletMapController
   };
 
   return directive;
 }
 
-LeafletSourceController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService', 'LeafletUtilities'];
+LeafletMapController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService', 'LeafletUtilities'];
 
-function LeafletSourceController($scope, $element, LocalStorageService, SourceService, LeafletUtilities) {
+function LeafletMapController($scope, $element, LocalStorageService, SourceService, LeafletUtilities) {
 
   var sourceLayerOptions = {
     maxZoom: 18,
