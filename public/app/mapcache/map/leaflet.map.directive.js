@@ -307,7 +307,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     addMapLayer();
   });
 
-  $scope.$watch('map.previewLayer', function(format, oldFormat) {
+  $scope.$watch('map.wmsLayer', function(format, oldFormat) {
     if (format == oldFormat) return;
     addMapLayer();
   });

@@ -59,8 +59,8 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     $scope.sources = sources;
   });
 
-  $scope.createCache = function() {
-    $location.path('/create');
+  $scope.createMap = function() {
+    $location.path('/map');
   }
 
   $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;

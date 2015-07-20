@@ -40,6 +40,7 @@ var SourceSchema = new Schema({
   filePath: { type: String, required: false},
   vector: { type: Boolean, required: false},
   wmsGetCapabilities: Schema.Types.Mixed,
+  wmsLayer: Schema.Types.Mixed,
   url: { type: String, required: false }
 });
 
