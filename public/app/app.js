@@ -71,6 +71,11 @@ function config($routeProvider, $locationProvider, $httpProvider) {
     controller:     "MapCreateController",
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
   });
+  $routeProvider.when('/map/:mapId/edit', {
+    templateUrl:    'app/mapcache/map/map-edit.html',
+    controller:     "MapEditController",
+    resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
+  });
   $routeProvider.when('/map/:mapId', {
     templateUrl:    'app/mapcache/map/map.html',
     controller:     "MapController",

@@ -2,9 +2,9 @@ angular
   .module('mapcache')
   .controller('StorageController', StorageController);
 
-StorageController.$inject = ['$scope', '$http', '$location', '$injector', '$filter', 'CacheService', 'SourceService', 'FormatService', 'LocalStorageService', 'UserService'];
+StorageController.$inject = ['$scope', '$http', '$location', '$injector', '$filter', 'CacheService', 'MapService', 'FormatService', 'LocalStorageService', 'UserService'];
 
-function StorageController($scope, $http, $location, $injector, $filter, CacheService, SourceService, FormatService, LocalStorageService, UserService) {
+function StorageController($scope, $http, $location, $injector, $filter, CacheService, MapService, FormatService, LocalStorageService, UserService) {
 
   $scope.formatName = function(name) {
     return FormatService[name];
@@ -55,8 +55,8 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     $scope.caches = caches;
   });
 
-  $scope.deleteSource = function(source, format) {
-    SourceService.deleteSource(source, format, function(deletedSource) {
+  $scope.deleteMap = function(source, format) {
+    MapService.deleteMap(source, format, function(deletedMap) {
       source.deleted = true;
     });
   }
@@ -71,7 +71,7 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     return bytes;
   }
 
-  SourceService.getAllSources(true).success(function(sources) {
+  MapService.getAllMaps(true).success(function(sources) {
     $scope.sources = [];
     for (var i = 0; i < sources.length; i++) {
       if (sources[i].size && sources[i].size != 0) {
@@ -81,8 +81,11 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
             sources[i].totalSize += sources[i].projections[projection].size;
           }
         }
-        $scope.sources.push(sources[i]);
+      } else {
+        sources[i].totalSize = 0;
       }
+      $scope.sources.push(sources[i]);
+
     }
   });
 

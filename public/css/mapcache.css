@@ -199,8 +199,9 @@
   color: #FFF;
 }
 
+/* 500 allows the full map to be visible at zoom level 1 */
 .leaflet-map {
-  height:450px;
+  height:500px;
 }
 
 .signin-jumbotron > .leaflet-map {

@@ -371,7 +371,7 @@ function getTileIndex(id, dataLocation, callback) {
 	}
 	if (fs.existsSync(dataLocation)) {
 		fs.readFile(dataLocation, {encoding: 'utf8'}, function(err, fileData) {
-			if (!fileData || err) callback(null); 
+			if (!fileData || err) callback(null);
 			var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
 			return getTileIndexFromData(id, gjData, callback);
 		});
@@ -477,6 +477,13 @@ Begin testing for layering data on images
 		        ctx.lineWidth = styles.weight;
 		        var rgbStroke = hexToRgb(styles.color);
 		        ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+						// this is how you can add text.  very bad implementation though, just adds the text to every feature
+						// at the first point of that feature
+						/*
+						ctx.font = "12px sans-serif";
+						var textLocation = feature.geometry[0][0];
+  					ctx.fillText(feature.tags[style.title], textLocation[0]*ratio + pad, textLocation[1]*ratio + pad);
+						*/
 		      }
 		      if (type === 3 || type === 1) ctx.fill('evenodd');
 		      ctx.stroke();

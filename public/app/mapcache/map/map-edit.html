@@ -2,8 +2,15 @@
   <div class="container top-gap-l">
     <div class="row">
       <div class="col-md-12">
+        <ol class="breadcrumb">
+          <li><a ng-href="/#/map/{{map.id}}">Back to {{map.name}} <span ng-if="unsavedChanges">unsaved changes will be lost</span></a></li>
+          <li class="active">Edit</li>
+        </ol>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
         <span class="page-entity-label">Map: <span class="page-entity-title">{{map.name}}</span>
-        <a class="btn btn-primary pull-right" ng-href="/#/map/{{map.id}}/edit">Edit Map</a>
       </div>
     </div>
     <div class="row" ng-show="!map.status.complete">
@@ -12,19 +19,7 @@
         <p class="map-status">{{map.status.message}}</p>
       </div>
     </div>
-    <!-- <div class="row" ng-show="map.status.complete">
-      <div class="col-md-12">
-        <div class="alert alert-success" role="alert">
-          <p class="lead">The map {{map.name}} has been set up and is ready to be used to make a cache. <button class="btn btn-default pull-right" ng-click="createCacheFromMap()">Create A Map From This Map</button></p>
-        </div>
-      </div>
-    </div> -->
-    <!-- <div class="row">
-      <div class="col-md-12">
-        <span class="page-sub-entity-label">Format: <span class="page-sub-entity-title">{{map.format}}</span>
-      </div>
-    </div> -->
-    <!-- <div class="row" ng-show="map.format == 'wms' && map.status.complete">
+    <div class="row" ng-show="map.format == 'wms' && map.status.complete">
       <div class="col-md-12">
         <div class="form-group">
           <label>Available layers on this WMS server.  This is just a preview, you will be able to create a map from any of these layers.</label>
@@ -39,16 +34,6 @@
           </ui-select>
         </div>
       </div>
-    </div> -->
-    <!-- <div class="row" ng-show="map.url">
-      <div class="col-md-12">
-        <span class="page-sub-entity-label">Original Map URL: <span class="page-sub-entity-title">{{map.url}}</span>
-      </div>
-    </div> -->
-    <div class="row" ng-show="!map.vector">
-      <div class="col-md-12">
-        <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/maps/{{map.humanReadableId}}/{z}/{x}/{y}.png<span ng-show="map.previewLayer">?layer={{map.previewLayer.Name}}</span>
-      </div>
     </div>
 
     <div class="row" ng-if="map.status.complete">
@@ -57,17 +42,32 @@
       </div>
     </div>
   </div>
-  <div ui-scrollpoint="-50">
-    <div cache-listing caches="caches" map="map" options="mapOptions" ng-if="map.status.complete"></div>
+  <div cache-listing map="map" options="mapOptions"></div>
+</div>
+<div class="container" ng-if="map.status.complete">
+  <div class="row top-gap bottom-gap">
+    <div class="col-md-12">
+      <span class="page-sub-entity-label">Map Settings</span>
+    </div>
   </div>
-  <!-- <div ng-if="map.vector && map.status.complete">
 
-    <div class="row bottom-gap" ng-show="map.style">
+  <ul class="nav nav-tabs">
+    <li role="presentation" ng-class="{active: tab=='general'}"><a ng-click="tab='general'">General</a></li>
+    <li ng-show="map.vector && map.status.complete" role="presentation" ng-class="{active: tab=='vector'}"><a ng-click="tab='vector'">Vector Options</a></li>
+    <li ng-show="map.vector && map.status.complete" role="presentation" ng-class="{active: tab=='style'}"><a ng-click="tab='style'">Vector Styles</a></li>
+    <li role="presentation" class="pull-right"><button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button></li>
+  </ul>
+  <div ng-show="tab == 'general'">
+    <div class="row top-gap">
       <div class="col-md-12">
-        <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Changes To Map</button>
+        <div class="form-group">
+          <span class="control-label page-sub-entity-title">Map Name</span>
+          <input type="text" class="form-control" ng-model="map.name" placeholder="e.g. Denver, CO">
+        </div>
       </div>
     </div>
-
+  </div>
+  <div ng-show="tab == 'vector'">
     <div class="row top-gap bottom-gap">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Title and Description Properties</span>
@@ -91,8 +91,8 @@
         </ui-select>
       </div>
     </div>
-
-    <hr>
+  </div>
+  <div ng-show="tab == 'style'">
     <div class="row top-gap bottom-gap">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Add New Style</span>
@@ -180,7 +180,11 @@
     <div class="top-gap">
       <div style-row="map.style.defaultStyle"></div>
     </div>
-    <div class="row bottom-gap-l">
     </div>
-  </div>-->
+
+    <div class="row bottom-gap top-gap" ng-show="map.style">
+      <div class="col-md-12">
+        <button class="btn btn-success pull-right" ng-click="saveStyle()">Save Changes To Map</button>
+      </div>
+    </div>
 </div>

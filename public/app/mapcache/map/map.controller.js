@@ -7,100 +7,78 @@ MapController.$inject = [
   '$location',
   '$timeout',
   '$routeParams',
+  '$rootScope',
+  '$filter',
   'CacheService',
-  'SourceService'
+  'MapService',
+  'TileUtilities',
+  'LocalStorageService'
 ];
 
-function MapController($scope, $location, $timeout, $routeParams, CacheService, SourceService) {
+function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, TileUtilities, LocalStorageService) {
 
+  $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
     opacity: .14
   };
 
-  $scope.source = {
+  $rootScope.title = 'Map';
+  $scope.map = {
     id: $routeParams.mapId
   };
 
-  var defaultStyle = {
-    'fill': "#000000",
-    'fill-opacity': 0.5,
-    'stroke': "#0000FF",
-    'stroke-opacity': 1.0,
-    'stroke-width': 1
-  };
-
-  $scope.featureProperties = [];
-  $scope.newRule = {
-    style: angular.copy(defaultStyle)
-  };
-
-  $scope.createCacheFromSource = function() {
-    $location.path('/create/'+$routeParams.sourceId);
-  }
-
-  $scope.$watch('source.previewLayer', function(layer, oldLayer) {
-    if (layer) {
-      if (layer.EX_GeographicBoundingBox) {
-        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
-      }
+  var cacheHighlightPromise;
+  $scope.mouseOver = function(cache) {
+    $rootScope.$broadcast('showCacheExtent', cache);
+    if (cacheHighlightPromise) {
+      $timeout.cancel(cacheHighlightPromise);
     }
-  });
-
-  $scope.applyStyle = function() {
-    var tmp = angular.copy($scope.newRule);
-    $scope.newRule.key = $scope.newRule.property.key;
-    $scope.newRule.value = $scope.newRule.property.value;
-    $scope.newRule.priority = $scope.source.style.length;
-    delete $scope.newRule.property;
-    $scope.source.style.styles.push($scope.newRule);
-    $scope.newRule = tmp;
-    delete $scope.newRule.property;
+    cacheHighlightPromise = $timeout(function() {
+      $rootScope.$broadcast('showCache', cache);
+    }, 500);
   }
 
-  $scope.saveStyle = function() {
-    SourceService.saveSource($scope.source, function(source) {
-      console.log('saved successfully', source);
-      $scope.mapOptions.refreshMap = Date.now();
-    }, function(error) {
-      console.log('error saving source', error);
+  $scope.mouseOut = function(cache) {
+    $rootScope.$broadcast('hideCacheExtent', cache);
+
+    if (cacheHighlightPromise) {
+      $timeout.cancel(cacheHighlightPromise);
+      cacheHighlightPromise = undefined;
+    }
+    $rootScope.$broadcast('hideCache', cache);
+  }
+
+  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
+
+  var allCaches;
+
+  if ($routeParams.mapId) {
+    MapService.getCachesForMap($scope.map, function(caches) {
+      allCaches = caches;
+      $scope.caches = caches;
     });
   }
 
-  $scope.$on('deleteStyle', function(event, style) {
-    $scope.source.style.styles = _.without($scope.source.style.styles, style);
-  });
-
-  $scope.$on('promoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.source.style.styles, {priority: style.priority-1});
-    style.priority = style.priority - 1;
-    if (toMove) {
-      toMove.priority = toMove.priority + 1;
-    }
-  });
-
-  $scope.$on('demoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.source.style.styles, {priority: style.priority+1});
-    style.priority = style.priority + 1;
-    if (toMove) {
-      toMove.priority = toMove.priority - 1;
-    }
-  });
-
-  $scope.isNotDefault = function(style) {
-    return style.key;
+  $scope.createCacheFromMap = function() {
+    $location.path('/create/'+$routeParams.mapId);
   }
 
-  function getSource() {
-    SourceService.refreshSource($scope.source, function(source) {
+  $scope.$on('cacheFilterChange', function(event, filter) {
+    $scope.caches = $filter('filter')($filter('filter')(allCaches, filter.cacheFilter), filter.mapFilter);
+  });
+
+  function getMap() {
+    MapService.refreshMap($scope.map, function(map) {
       // success
-      $scope.source = source;
-      if (!source.status.complete && $location.path().startsWith('/source')) {
-        $timeout(getSource, 5000);
+      $scope.map = map;
+      $rootScope.title = map.name;
+      if (!map.status.complete && $location.path().startsWith('/map')) {
+        $timeout(getMap, 5000);
       } else {
-        if (source.vector) {
+        if (map.vector) {
           $scope.mapOptions.opacity = 1;
-          $scope.source.style = $scope.source.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
+          $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
         }
       }
     }, function(data) {
@@ -108,6 +86,6 @@ function MapController($scope, $location, $timeout, $routeParams, CacheService, 
     });
   }
 
-  getSource();
+  getMap();
 
 };

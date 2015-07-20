@@ -9,7 +9,12 @@
   </div>
 
   <div ui-scrollpoint="-50">
-    <div class="row top-gap hidden-xs">
+
+    <div cache-listing caches="caches" options="mapOptions">
+
+    </div>
+
+    <!-- <div class="row top-gap hidden-xs">
       <div class="col-md-12 leaflet-scrollpoint">
           <div leaflet></div>
       </div>
@@ -102,8 +107,8 @@
               </div>
             </div>
           </div>
-        </div>
-        <div ng-show="tab == 'sources'">
+        </div> -->
+        <!-- <div ng-show="tab == 'sources'">
           <div class="source-row bottom-gap-l" ng-repeat="source in sources | filter: {status : {complete:true}} track by source.id" ng-mouseenter="mouseOverSource(source)" ng-mouseleave="mouseOutSource(source)">
             <div class="row">
               <div class="col-md-12">
@@ -116,8 +121,8 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </div> -->
+      <!-- </div>
+    </div> -->
   </div>
 </div>

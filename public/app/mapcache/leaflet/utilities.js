@@ -2,9 +2,9 @@ angular
   .module('mapcache')
   .factory('LeafletUtilities', LeafletUtilities);
 
-LeafletUtilities.$inject = ['LocalStorageService', 'SourceService'];
+LeafletUtilities.$inject = ['LocalStorageService', 'MapService'];
 
-function LeafletUtilities(LocalStorageService, SourceService) {
+function LeafletUtilities(LocalStorageService, MapService) {
 
   return {
     styleFunction: styleFunction,
