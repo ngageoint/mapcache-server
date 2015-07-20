@@ -1,5 +1,6 @@
 var gdal = require("gdal")
   , util = require('util')
+  , exec = require('child_process').exec
   , turf = require('turf')
   , path = require('path')
   , fs = require('fs-extra')
@@ -15,16 +16,34 @@ var gdal = require("gdal")
     source.status.complete = false;
     source.save(function(err) {
       var ds = gdal.open(source.filePath);
+
       source.projection = ds.srs.getAuthorityCode("PROJCS");
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
-      source.status.message = "Complete";
-      source.status.complete = true;
-      source.save(function(err) {
-        ds.close();
 
-        callback(err);
-      });
+      if (ds.bands.get(1).colorInterpretation == 'Palette') {
+        ds.close();
+        // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
+        var python = exec(
+          'gdal_translate -expand rgb ' + source.filePath + " " + source.filePath + "_expanded.tif",
+         function(error, stdout, stderr) {
+           source.filePath = source.filePath + '_expanded.tif';
+           source.status.message = "Complete";
+           source.status.complete = true;
+           source.save(function() {
+             console.log('done running ' +   'gdal_translate -expand rgb ' + source.filePath + " " + source.filePath + "_expanded.tif");
+             callback();
+           });
+         });
+      } else {
+        source.status.message = "Complete";
+        source.status.complete = true;
+        source.save(function(err) {
+          ds.close();
+
+          callback(err);
+        });
+      }
     });
   }
 
@@ -90,8 +109,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   // var out_ds = gdal.open(source.projections["3857"].path);
   var out_ds = gdal.open(source.filePath);
-
-
   var out_srs = out_ds.srs;
 
   var out_gt = out_ds.geoTransform;
