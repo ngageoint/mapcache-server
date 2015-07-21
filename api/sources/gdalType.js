@@ -31,6 +31,8 @@ var gdal = require("gdal")
 // direct port from gdal2tiles.py
 function tileRasterBounds(ds, ulx, uly, lrx, lry) {
 
+  console.log('ulx %d uly %d lrx %d lry %d', ulx, uly, lrx, lry);
+
   var gt = ds.geoTransform;
   var rx = Math.floor((ulx - gt[0]) / gt[1] + 0.001);
   var ry = Math.floor((uly - gt[3]) / gt[5] + 0.001);
@@ -39,6 +41,8 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
 
   var wxsize = rxsize;
   var wysize = rysize;
+
+  console.log('rxsize %d rysize %d rx %d ry %d', rxsize, rysize, rx, ry);
 
   var wx = 0;
   if (rx < 0) {
@@ -90,7 +94,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   // var out_ds = gdal.open(source.projections["3857"].path);
   var out_ds = gdal.open(source.filePath);
-
+  exports.gdalInfo(out_ds);
 
   var out_srs = out_ds.srs;
 
@@ -105,11 +109,12 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   var ominx = out_gt[0];
   var omaxx = out_gt[0] + out_ds.rasterSize.x * out_gt[1];
   var omaxy = out_gt[3];
-  var ominy = out_gt[3] - out_ds.rasterSize.y * out_gt[1];
+  var ominy = out_gt[3] + out_ds.rasterSize.y * out_gt[5];
+
+  var coord_transform = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), out_srs);
 
   console.log("Bounds (output srs): " + ominx + ", " + ominy + ", " + omaxx + ", " + omaxy);
 
-  var coord_transform = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), out_srs);
   var ul = coord_transform.transformPoint(tileEnvelope.west, tileEnvelope.north);
   var lr = coord_transform.transformPoint(tileEnvelope.east, tileEnvelope.south);
   var tminx = ul.x;
@@ -134,12 +139,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   var tb = tileRasterBounds(out_ds, tminx, tmaxy, tmaxx, tminy);
 
   console.log("Tile Raster Bounds", tb);
-
-  var options = {
-    buffer_width: tb.wxsize,
-    buffer_height: tb.wysize
-  };
-
   var options = {
     buffer_width: Math.ceil(256*Math.min(1,(ctmaxx-ctminx)/(tmaxx-tminx))),
     buffer_height: Math.floor(256*Math.min(1,(ctmaxy-ctminy)/(tmaxy-tminy)))
