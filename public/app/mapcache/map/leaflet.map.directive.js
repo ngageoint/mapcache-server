@@ -54,7 +54,9 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     minZoom: 0,
     maxZoom: 18
   });
-  map.addControl(new L.Control.ZoomIndicator());
+  if (!$scope.options.hideZoomIndicator) {
+    map.addControl(new L.Control.ZoomIndicator());
+  }
   map.on('click', function(event) {
     if (!$scope.map.style) return;
     if ($scope.map.style.title || $scope.map.style.description) {
@@ -247,7 +249,9 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
 
   function showCacheTiles(cache) {
     console.log('show cache tiles');
-    map.removeLayer(mapLayer);
+    if (mapLayer) {
+      map.removeLayer(mapLayer);
+    }
     // removeCacheTiles(cache);
     baseLayer.setOpacity(.5);
     var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
@@ -266,7 +270,9 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     if (Object.keys(layers).length == 0) {
       baseLayer.setOpacity(1);
     }
-    map.addLayer(mapLayer);
+    if (mapLayer) {
+      map.addLayer(mapLayer);
+    }
   }
 
   $scope.$watch('options', function(options) {

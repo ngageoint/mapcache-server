@@ -1,0 +1,41 @@
+<div class="mapcache container-fluid">
+  <div class="container">
+    <div class="row top-gap bottom-gap-s">
+      <div class="col-md-12">
+        <div class="mapcache-header-description">Use mapcache to save maps for offline use.</div>
+      </div>
+    </div>
+    <div class="row bottom-gap-l">
+      <div class="col-md-6">
+        <a class="btn btn-primary pull-right" href="/#/mapcache">View Caches</a>
+      </div>
+      <div class="col-md-6">
+        <a class="btn btn-primary" href="/#/map">Create A Map</a>
+      </div>
+    </div>
+    <div class="row">
+      <div ng-repeat="map in maps">
+        <div class="col-md-3 short-map">
+          <div class="well">
+            <div class="row">
+              <div class="col-md-12">
+                <a ng-href="/#/map/{{map.id}}"><span class="page-sub-entity-title">{{map.name}}</span></a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div leaflet-map map="map" options="mapOptions"></div>
+              </div>
+            </div>
+            <div class="row top-gap">
+              <div class="col-md-12">
+                <a class="btn btn-xs btn-primary" ng-href="/#/map/{{map.id}}">View Caches</a>
+                <a class="btn btn-xs btn-primary" ng-href="/#/create/{{map.id}}">Create A Cache</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

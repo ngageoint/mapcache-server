@@ -348,11 +348,13 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 		}
     var file = path.join(dir, fileName);
 		console.log('file', file);
+		console.log('z %d x %d y %d', z, x, y);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
-			if (!tileIndex) return exports.createImage(null, source.style, z, x, y, callback);
+			console.log('tileIndex', tileIndex);
+			if (!tileIndex) return callback(null);
 			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-			if (!tile) return exports.createImage(null, source.style, z, x, y, callback);
+			if (!tile) return callback(null);
 			exports.writeVectorTile(tile, source, z, x, y, function() {
 				return exports.getVectorTile(source, format, z, x, y, params, callback);
 			});
@@ -372,8 +374,12 @@ function getTileIndex(id, dataLocation, callback) {
 	if (fs.existsSync(dataLocation)) {
 		fs.readFile(dataLocation, {encoding: 'utf8'}, function(err, fileData) {
 			if (!fileData || err) callback(null);
-			var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
-			return getTileIndexFromData(id, gjData, callback);
+			try {
+				var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
+				return getTileIndexFromData(id, gjData, callback);
+			} catch (e) {
+				callback(null);
+			}
 		});
 	} else {
 		callback(null);

@@ -3,7 +3,8 @@
     <div class="row">
       <div class="col-md-12">
         <span class="page-entity-label">Map: <span class="page-entity-title">{{map.name}}</span>
-        <a class="btn pull-right" ng-href="/#/map/{{map.id}}/edit">Edit Map</a>
+        <a class="btn" ng-href="/#/map/{{map.id}}/edit"><i class="fa fa-edit"></i> Edit</a>
+        <a class="btn btn-primary pull-right" ng-href="/#/create/{{map.id}}">Create A Cache From This Map</a>
       </div>
     </div>
     <div class="row" ng-show="!map.status.complete">
@@ -21,7 +22,6 @@
     <div class="row" ng-if="map.status.complete">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Map is shown below. (light grey map is only for geographic reference)</span>
-        <a class="btn btn-primary pull-right" ng-href="/#/create/{{map.id}}">Create A Cache From This Map</a>
       </div>
     </div>
   </div>

@@ -204,6 +204,10 @@
   height:500px;
 }
 
+.short-map .leaflet-map {
+  height: 200px;
+}
+
 .signin-jumbotron > .leaflet-map {
   height: 630px;
 }

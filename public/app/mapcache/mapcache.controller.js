@@ -15,7 +15,6 @@ MapcacheController.$inject = [
 ];
 
 function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, MapService, TileUtilities) {
-  $scope.tab = 'caches';
   $scope.token = LocalStorageService.getToken();
   $scope.view = {showingTiles: {}, showingDetails: {}};
 
