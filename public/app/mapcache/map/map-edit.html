@@ -19,22 +19,6 @@
         <p class="map-status">{{map.status.message}}</p>
       </div>
     </div>
-    <div class="row" ng-show="map.format == 'wms' && map.status.complete">
-      <div class="col-md-12">
-        <div class="form-group">
-          <label>Available layers on this WMS server.  This is just a preview, you will be able to create a map from any of these layers.</label>
-          <ui-select ng-model="map.previewLayer" theme="bootstrap">
-            <ui-select-match placeholder="Select a layer to preview">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
-            <ui-select-choices repeat="layer in map.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
-              <div ng-bind-html="layer.Title | highlight: $select.search"></div>
-              <small class="muted">
-                <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
-              </small>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-      </div>
-    </div>
 
     <div class="row" ng-if="map.status.complete">
       <div class="col-md-12">
@@ -63,6 +47,22 @@
         <div class="form-group">
           <span class="control-label page-sub-entity-title">Map Name</span>
           <input type="text" class="form-control" ng-model="map.name" placeholder="e.g. Denver, CO">
+        </div>
+      </div>
+    </div>
+    <div class="row" ng-show="map.format == 'wms' && map.status.complete">
+      <div class="col-md-12">
+        <div class="form-group">
+          <label>Available layers on this WMS server.  Choose a layer to create your map with:</label>
+          <ui-select ng-model="map.wmsLayer" theme="bootstrap">
+            <ui-select-match placeholder="Select a layer">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
+            <ui-select-choices repeat="layer in map.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
+              <div ng-bind-html="layer.Title | highlight: $select.search"></div>
+              <small class="muted">
+                <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
+              </small>
+            </ui-select-choices>
+          </ui-select>
         </div>
       </div>
     </div>

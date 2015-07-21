@@ -23,7 +23,7 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .14
+    opacity: .5
   };
 
   var uploadProgress = function(e) {
