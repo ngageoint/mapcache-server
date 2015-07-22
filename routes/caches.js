@@ -129,7 +129,7 @@ module.exports = function(app, auth) {
           return res.sendStatus(202);
         }
         if (status.stream) {
-          res.attachment(req.cache.name + status.extension);
+          res.attachment(req.cache.name + '_' + format + status.extension);
           status.stream.pipe(res);
         }
       })

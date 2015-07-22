@@ -1,5 +1,6 @@
 var gdal = require("gdal")
   , util = require('util')
+  , exec = require('child_process').exec
   , turf = require('turf')
   , path = require('path')
   , fs = require('fs-extra')
@@ -15,21 +16,41 @@ var gdal = require("gdal")
     source.status.complete = false;
     source.save(function(err) {
       var ds = gdal.open(source.filePath);
+
       source.projection = ds.srs.getAuthorityCode("PROJCS");
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
-      source.status.message = "Complete";
-      source.status.complete = true;
-      source.save(function(err) {
-        ds.close();
 
-        callback(err);
-      });
+      if (ds.bands.get(1).colorInterpretation == 'Palette') {
+        ds.close();
+        // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
+        var python = exec(
+          'gdal_translate -expand rgb ' + source.filePath + " " + source.filePath + "_expanded.tif",
+         function(error, stdout, stderr) {
+           source.filePath = source.filePath + '_expanded.tif';
+           source.status.message = "Complete";
+           source.status.complete = true;
+           source.save(function() {
+             console.log('done running ' +   'gdal_translate -expand rgb ' + source.filePath + " " + source.filePath + "_expanded.tif");
+             callback();
+           });
+         });
+      } else {
+        source.status.message = "Complete";
+        source.status.complete = true;
+        source.save(function(err) {
+          ds.close();
+
+          callback(err);
+        });
+      }
     });
   }
 
 // direct port from gdal2tiles.py
 function tileRasterBounds(ds, ulx, uly, lrx, lry) {
+
+  console.log('ulx %d uly %d lrx %d lry %d', ulx, uly, lrx, lry);
 
   var gt = ds.geoTransform;
   var rx = Math.floor((ulx - gt[0]) / gt[1] + 0.001);
@@ -39,6 +60,8 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
 
   var wxsize = rxsize;
   var wysize = rysize;
+
+  console.log('rxsize %d rysize %d rx %d ry %d', rxsize, rysize, rx, ry);
 
   var wx = 0;
   if (rx < 0) {
@@ -90,7 +113,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   // var out_ds = gdal.open(source.projections["3857"].path);
   var out_ds = gdal.open(source.filePath);
-
+  exports.gdalInfo(out_ds);
 
   var out_srs = out_ds.srs;
 
@@ -105,11 +128,12 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   var ominx = out_gt[0];
   var omaxx = out_gt[0] + out_ds.rasterSize.x * out_gt[1];
   var omaxy = out_gt[3];
-  var ominy = out_gt[3] - out_ds.rasterSize.y * out_gt[1];
+  var ominy = out_gt[3] + out_ds.rasterSize.y * out_gt[5];
+
+  var coord_transform = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), out_srs);
 
   console.log("Bounds (output srs): " + ominx + ", " + ominy + ", " + omaxx + ", " + omaxy);
 
-  var coord_transform = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), out_srs);
   var ul = coord_transform.transformPoint(tileEnvelope.west, tileEnvelope.north);
   var lr = coord_transform.transformPoint(tileEnvelope.east, tileEnvelope.south);
   var tminx = ul.x;
@@ -134,12 +158,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   var tb = tileRasterBounds(out_ds, tminx, tmaxy, tmaxx, tminy);
 
   console.log("Tile Raster Bounds", tb);
-
-  var options = {
-    buffer_width: tb.wxsize,
-    buffer_height: tb.wysize
-  };
-
   var options = {
     buffer_width: Math.ceil(256*Math.min(1,(ctmaxx-ctminx)/(tmaxx-tminx))),
     buffer_height: Math.floor(256*Math.min(1,(ctmaxy-ctminy)/(tmaxy-tminy)))

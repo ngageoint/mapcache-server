@@ -23,10 +23,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   var c = source.wmsGetCapabilities;
   var url = source.url + '?SERVICE=WMS&REQUEST=GetMap&STYLES=&VERSION=' + c.version + '&LAYERS=' + params.layer + '&FORMAT=image/png&TRANSPARENT=true&HEIGHT=256&WIDTH=256&CRS=EPSG:3857&BBOX=' + epsg3857ll[0] + ',' + epsg3857ll[1] + ',' + epsg3857ur[0] + ',' + epsg3857ur[1];
 
-  console.log('url', url);
-  var req = request.get({url: url,
-    headers: {'Content-Type': 'image/jpeg'},
-  })
+  var req = request.get({url: url})
   .on('error', function(err) {
     console.log(err+ url);
 

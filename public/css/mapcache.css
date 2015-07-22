@@ -12,6 +12,52 @@
 	color: #777777;
 }
 
+.disk-usage-card {
+  height: 125px;
+  float: left;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.map-card {
+  /*text-align: center;*/
+  border-radius: 2px;
+  color: #FFF;
+  background-color: #567AFD;
+  border-color: #333;
+}
+
+.awesome-marker i {
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+.btn-purple {
+  color: #fff;
+  background-color: #855de2;
+  border-color: #d43f3a;
+}
+
+.btn-purple.active, .btn-purple.focus, .btn-purple:active, .btn-purple:focus, .btn-purple:hover, .open>.dropdown-toggle.btn-purple {
+  color: #fff;
+  background-color: #6b3bd9;
+  border-color: #ac2925;
+}
+
+.btn-blue {
+  color: #fff;
+  background-color: #3d5ed8;
+  border-color: #d43f3a;
+}
+
+.btn-blue.active, .btn-blue.focus, .btn-blue:active, .btn-blue:focus, .btn-blue:hover, .open>.dropdown-toggle.btn-purple {
+  color: #fff;
+  background-color: #1940cf;
+  border-color: #ac2925;
+}
+
 .style-row {
   border-width: 1px;
   border-color: #DDDDDD;
@@ -20,6 +66,28 @@
   background-color: #EEEEEE;
   padding-top: 15px;
   padding-bottom: 5px;
+}
+
+.cache-row {
+  padding: 5px;
+}
+
+.cache-row:hover {
+  border-radius: 4px;
+  border-width: 3px;
+  border-color: #0066A2;
+  border-style: solid;
+}
+
+.source-row {
+  padding: 5px;
+}
+
+.source-row:hover {
+  border-radius: 4px;
+  border-width: 3px;
+  border-color: #0066A2;
+  border-style: solid;
 }
 
 .cache-name {
@@ -89,12 +157,63 @@
   text-align: center;
 }
 
+.nice-radio input {
+  position: absolute;
+  left: -9999px;
+}
+
+.nice-radio label {
+  display: inline-block;
+  position: relative;
+  margin-right: 5px;
+  padding: 4px 5px 4px 23px;
+  border: 3px solid #fff;
+  color: #fff;
+  background-color: #a5b6bf;
+  box-shadow: 0 0 20px rgba(0, 0, 0, .2);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color .2s, box-shadow .2s;
+}
+
+.nice-radio label::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: 15px;
+  height: 15px;
+  border: 3px solid #fff;
+  border-radius: 100px;
+  transition: background-color .2s;
+}
+
+.nice-radio label:hover, .nice-radio input:focus + label {
+  box-shadow: 0 0 20px rgba(0, 0, 0, .6);
+}
+
+.nice-radio input:checked + label {
+  background-color: #336699;
+}
+
+.nice-radio input:checked + label::before {
+  background-color: #fff;
+}
+
 .leaflet-draw-tooltip-subtext {
   color: #FFF;
 }
 
+/* 500 allows the full map to be visible at zoom level 1 */
 .leaflet-map {
-  height:450px;
+  height:500px;
+}
+
+.short-map .leaflet-map {
+  height: 200px;
 }
 
 .signin-jumbotron > .leaflet-map {
@@ -165,6 +284,18 @@
   font-size: 28px;
 }
 
+.page-mid-entity-title {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 24px;
+}
+
+.page-mid-entity-label {
+  font-family: Roboto;
+  font-weight: 200;
+  font-size: 24px;
+}
+
 .page-sub-entity-title {
   font-family: Roboto;
   font-weight: 400;
@@ -227,6 +358,10 @@
   padding-top: 15px;
 }
 
+.top-padding {
+  padding-top: 15px;
+}
+
 .top-padding-l {
   padding-top: 30px;
 }
@@ -239,8 +374,24 @@
   padding-bottom: 15px;
 }
 
+.bottom-padding {
+  padding-bottom: 15px;
+}
+
 .bottom-padding-s {
   padding-bottom: 5px;
+}
+
+.left-margin {
+  margin-left: 10px;
+}
+
+.right-margin {
+  margin-right: 10px;
+}
+
+.x-small {
+  font-size: 70%;
 }
 
 .vertical-center {
@@ -333,27 +484,29 @@
   vertical-align: bottom;
 }
 
-.ui-scrollpoint .leaflet-scrollpoint {
-  top:50px;
-  right: 0px;
-  left: 0px;
-  position:fixed;
-  z-index:500000;
-}
+@media (min-width: 768px) {
+  .ui-scrollpoint .leaflet-scrollpoint {
+    top:50px;
+    right: 0px;
+    left: 0px;
+    position:fixed;
+    z-index:500000;
+  }
 
-.ui-scrollpoint .maps-scrollpoint {
-  margin-top:450px;
-}
+  .ui-scrollpoint .maps-scrollpoint {
+    margin-top:450px;
+  }
 
-.filter-scrollpoint.ui-scrollpoint {
-  top:510px;
-  position: fixed;
-}
+  .filter-scrollpoint.ui-scrollpoint {
+    top:510px;
+    position: fixed;
+  }
 
-.create-map-scrollpoint.ui-scrollpoint {
-  display: none;
-}
+  .create-map-scrollpoint.ui-scrollpoint {
+    display: none;
+  }
 
-.create-map-toolbar-scrollpoint.ui-scrollpoint {
-  display: visible;
+  .create-map-toolbar-scrollpoint.ui-scrollpoint {
+    display: visible;
+  }
 }

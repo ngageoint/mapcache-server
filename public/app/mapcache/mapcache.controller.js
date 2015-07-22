@@ -9,13 +9,20 @@ MapcacheController.$inject = [
   '$timeout',
   '$location',
   'LocalStorageService',
-  'CacheService'
+  'CacheService',
+  'MapService',
+  'TileUtilities'
 ];
 
-function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService) {
-
+function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, MapService, TileUtilities) {
   $scope.token = LocalStorageService.getToken();
   $scope.view = {showingTiles: {}, showingDetails: {}};
+
+  $scope.mapOptions = {
+    opacity: 1
+  };
+
+  $rootScope.title = 'Welcome';
 
   function getCaches() {
     console.log("pull the caches");
@@ -25,11 +32,13 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
       for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
         var cache = caches[i];
         if (!cache.status.complete) {
+          console.log('cache is generating', cache);
           currentlyGenerating = true;
         }
         for (var format in cache.formats) {
           if(cache.formats.hasOwnProperty(format)){
             if (cache.formats[format].generating) {
+              console.log('cache format is generating ' + format, cache);
               currentlyGenerating = true;
             }
           }
@@ -45,74 +54,15 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
 
   getCaches();
 
-  $scope.createCache = function() {
-    $location.path('/create');
+  MapService.getAllMaps(true).success(function(sources) {
+    $scope.sources = sources;
+  });
+
+  $scope.createMap = function() {
+    $location.path('/map');
   }
 
-  Math.radians = function(degrees) {
-    return degrees * Math.PI / 180;
-  };
-
-  // Converts from radians to degrees.
-  Math.degrees = function(radians) {
-    return radians * 180 / Math.PI;
-  };
-
-  function getX(lon, zoom) {
-  	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
-  	return xtile;
-  }
-
-  function getY(lat, zoom) {
-  	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
-  	return ytile;
-  }
-
-  function xCalculator(bbox,z) {
-  	var x = [];
-  	var x1 = getX(Number(bbox[0]), z);
-  	var x2 = getX(Number(bbox[2]), z);
-  	x.max = Math.max(x1, x2);
-  	x.min = Math.min(x1, x2);
-  	if (z == 0){
-  		x.current = Math.min(x1, x2);
-  	}
-  	return x;
-  }
-
-  function yCalculator(bbox,z) {
-  	var y = [];
-  	var y1 = getY(Number(bbox[1]), z);
-  	var y2 = getY(Number(bbox[3]), z);
-  	y.max = Math.max(y1, y2);
-  	y.min = Math.min(y1, y2);
-  	y.current = Math.min(y1, y2);
-  	return y;
-  }
-
-  $scope.getOverviewTilePath = function(cache) {
-    var extent = turf.extent(cache.geometry);
-    if (!cache.maxZoom) {
-      cache.maxZoom = 18;
-    }
-    if (!cache.minZoom) {
-      cache.minZoom = 0;
-    }
-    //find the first zoom level with 1 tile
-    var y = yCalculator(extent, cache.maxZoom);
-    var x = xCalculator(extent, cache.maxZoom);
-    var zoom = cache.maxZoom;
-    var found = false;
-    for (zoom; zoom >= cache.minZoom && !found; zoom--) {
-      y = yCalculator(extent, zoom);
-      x = xCalculator(extent, zoom);
-      if (y.min == y.max && x.min == x.max) {
-        found = true;
-      }
-    }
-    zoom = zoom+1;
-    return zoom+'/'+x.min+'/'+y.min+'.png';
-  }
+  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
 
   $scope.downloadMissingTiles = function(cache) {
     CacheService.downloadMissing(cache).success(function(caches) {
@@ -130,12 +80,25 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     });
   }
 
+  var cacheHighlightPromise;
   $scope.mouseOver = function(cache) {
-    $rootScope.$broadcast('cacheHighlight', cache);
+    $rootScope.$broadcast('showCacheExtent', cache);
+    if (cacheHighlightPromise) {
+      $timeout.cancel(cacheHighlightPromise);
+    }
+    cacheHighlightPromise = $timeout(function() {
+      $rootScope.$broadcast('showCache', cache);
+    }, 500);
   }
 
   $scope.mouseOut = function(cache) {
-    $rootScope.$broadcast('cacheUnhighlight', cache);
+    $rootScope.$broadcast('hideCacheExtent', cache);
+
+    if (cacheHighlightPromise) {
+      $timeout.cancel(cacheHighlightPromise);
+      cacheHighlightPromise = undefined;
+    }
+    $rootScope.$broadcast('hideCache', cache);
   }
 
   $scope.toggleCacheTiles = function(cache) {
@@ -145,6 +108,40 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     } else {
       $scope.view.showingTiles[cache.id] = true;
       $rootScope.$broadcast('showCacheTiles', cache);
+    }
+  }
+
+  var sourceOverlay;
+  var showSourcePromise;
+  $scope.mouseOverSource = function(source) {
+    if (showSourcePromise) {
+      $timeout.cancel(showSourcePromise);
+    }
+    showSourcePromise = $timeout(function() {
+      $rootScope.$broadcast('overlaySourceTiles', source);
+    }, 500);
+  }
+
+  $scope.mouseOutSource = function(source) {
+    $rootScope.$broadcast('removeSourceTiles', source);
+
+    if (showSourcePromise) {
+      $timeout.cancel(showSourcePromise);
+      showSourcePromise = undefined;
+    }
+  }
+
+  $scope.toggleSource = function(source) {
+    if (sourceOverlay) {
+      $scope.view.showingTiles[sourceOverlay.id] = false;
+      $rootScope.$broadcast('removeSourceTiles', sourceOverlay);
+    }
+    if (!sourceOverlay || (source.id != sourceOverlay.id)) {
+      $scope.view.showingTiles[source.id] = true;
+      sourceOverlay = source;
+      $rootScope.$broadcast('overlaySourceTiles', source);
+    } else {
+      sourceOverlay = null;
     }
   }
 

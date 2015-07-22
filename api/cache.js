@@ -16,6 +16,13 @@ Cache.prototype.getAll = function(options, callback) {
   CacheModel.getCaches(options, callback);
 }
 
+Cache.prototype.getCachesFromMapId = function(id, callback) {
+  var query = {
+	  'sourceId': id
+  };
+  CacheModel.getCaches(query, callback);
+}
+
 Cache.prototype.delete = function(cache, callback) {
   CacheModel.deleteCache(cache, function(err) {
     if (err) return callback(err);

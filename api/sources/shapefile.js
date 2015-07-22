@@ -67,7 +67,11 @@ exports.processSource = function(source, callback) {
       });
       console.log('parse shapefile to json');
       console.time('shape to json');
-      shp2json(stream).pipe(parser).pipe(outStream);
+      try {
+        shp2json(stream).pipe(parser).pipe(outStream);
+      } catch (err) {
+        callback(err);
+      }
     }
   });
 }

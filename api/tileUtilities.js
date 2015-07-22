@@ -205,6 +205,13 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 									featureList.push(f);
 								}
 							}
+						} else if (feature.type == 2) {
+							// Linestring
+							var turfLine = turf.linestring(innerGeometry);
+							var closestPointOnLine = turf.pointOnLine(turfLine, queryPoint);
+							if (turf.inside(closestPointOnLine, queryPoly)) {
+								featureList.push(f);
+							}
 						}
 					} catch (e) {
 						console.log('error turfing', e);
@@ -341,11 +348,13 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 		}
     var file = path.join(dir, fileName);
 		console.log('file', file);
+		console.log('z %d x %d y %d', z, x, y);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
-			if (!tileIndex) return exports.createImage(null, source.style, z, x, y, callback);
+			console.log('tileIndex', tileIndex);
+			if (!tileIndex) return callback(null);
 			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-			if (!tile) return exports.createImage(null, source.style, z, x, y, callback);
+			if (!tile) return callback(null);
 			exports.writeVectorTile(tile, source, z, x, y, function() {
 				return exports.getVectorTile(source, format, z, x, y, params, callback);
 			});
@@ -364,8 +373,13 @@ function getTileIndex(id, dataLocation, callback) {
 	}
 	if (fs.existsSync(dataLocation)) {
 		fs.readFile(dataLocation, {encoding: 'utf8'}, function(err, fileData) {
-			var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
-			return getTileIndexFromData(id, gjData, callback);
+			if (!fileData || err) callback(null);
+			try {
+				var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
+				return getTileIndexFromData(id, gjData, callback);
+			} catch (e) {
+				callback(null);
+			}
 		});
 	} else {
 		callback(null);
@@ -469,6 +483,13 @@ Begin testing for layering data on images
 		        ctx.lineWidth = styles.weight;
 		        var rgbStroke = hexToRgb(styles.color);
 		        ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+						// this is how you can add text.  very bad implementation though, just adds the text to every feature
+						// at the first point of that feature
+						/*
+						ctx.font = "12px sans-serif";
+						var textLocation = feature.geometry[0][0];
+  					ctx.fillText(feature.tags[style.title], textLocation[0]*ratio + pad, textLocation[1]*ratio + pad);
+						*/
 		      }
 		      if (type === 3 || type === 1) ctx.fill('evenodd');
 		      ctx.stroke();

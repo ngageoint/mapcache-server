@@ -1,27 +1,29 @@
 angular
   .module('mapcache')
-  .controller('MapcacheSourceCreateController', MapcacheSourceCreateController);
+  .controller('MapCreateController', MapCreateController);
 
-MapcacheSourceCreateController.$inject = [
+MapCreateController.$inject = [
   '$scope',
+  '$rootScope',
   '$location',
   '$timeout',
   '$http',
   'CacheService',
-  'SourceService'
+  'MapService'
 ];
 
-function MapcacheSourceCreateController($scope, $location, $timeout, $http, CacheService, SourceService) {
+function MapCreateController($scope, $rootScope, $location, $timeout, $http, CacheService, MapService) {
+  $rootScope.title = 'Create A Map';
 
   $scope.validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}];
   $scope.validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}, {format: 'mrsid'}];
 
-  $scope.source = {
+  $scope.map = {
   };
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .14
+    opacity: .5
   };
 
   var uploadProgress = function(e) {
@@ -33,27 +35,26 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
   }
 
-  function pruneSource(s) {
-    // s.dataSources = s.dataSources || [];
-    // s.dataSources.push({
+  function pruneMap(s) {
+    // s.dataMaps = s.dataMaps || [];
+    // s.dataMaps.push({
     //   url: s.url,
     //   filePath: s.filePath,
     //   format: s.format,
     //   zOrder: 0,
     //   wmsGetCapabilities: s.wmsGetCapabilities
     // });
-    delete s.previewLayer;
     delete s.wmsGetCapabilities;
   }
 
-  $scope.createSource = function() {
+  $scope.createMap = function() {
     console.log($scope.cache);
-    $scope.sourceSubmitted = true;
-    pruneSource($scope.source);
-    SourceService.createSource($scope.source, function(source) {
-      console.log('source created', source);
-      // now start a timer to watch the source be created
-      $location.path('/source/'+source.id);
+    $scope.mapSubmitted = true;
+    pruneMap($scope.map);
+    MapService.createMap($scope.map, function(map) {
+      console.log('map created', map);
+      // now start a timer to watch the map be created
+      $location.path('/map/'+map.id);
     }, function() {
       console.log("error");
     }, uploadProgress);
@@ -62,14 +63,14 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
   $scope.$on('uploadFile', function(e, uploadFile) {
     console.log('upload file is', uploadFile);
     $scope.locationStatus = 'success';
-    $scope.sourceInformation = {
+    $scope.mapInformation = {
       file: {
         name: uploadFile.name
       }
     };
-    delete $scope.source.url;
-    delete $scope.source.format;
-    $scope.source.sourceFile = uploadFile;
+    delete $scope.map.url;
+    delete $scope.map.format;
+    $scope.map.mapFile = uploadFile;
 
     var fileType = uploadFile.name.split('.').pop().toLowerCase();
     switch(fileType) {
@@ -77,48 +78,48 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
       case 'tiff':
       case 'geotiff':
       case 'geotif':
-        $scope.sourceInformation.format = 'geotiff';
-        $scope.source.format = 'geotiff';
+        $scope.mapInformation.format = 'geotiff';
+        $scope.map.format = 'geotiff';
         break;
       case 'sid':
-        $scope.sourceInformation.format = 'mrsid';
-        $scope.source.format = 'mrsid';
+        $scope.mapInformation.format = 'mrsid';
+        $scope.map.format = 'mrsid';
         break;
       case 'mbtiles':
-        $scope.sourceInformation.format = 'mbtiles';
-        $scope.source.format = 'mbtiles';
+        $scope.mapInformation.format = 'mbtiles';
+        $scope.map.format = 'mbtiles';
         break;
       case 'zip':
-        $scope.sourceInformation.format = 'shapefile';
-        $scope.source.format = 'shapefile';
+        $scope.mapInformation.format = 'shapefile';
+        $scope.map.format = 'shapefile';
         break;
       case 'kmz':
-        $scope.sourceInformation.format = 'kmz';
-        $scope.source.format = 'kmz';
+        $scope.mapInformation.format = 'kmz';
+        $scope.map.format = 'kmz';
         break;
       case 'json':
       case 'geojson':
-        $scope.sourceInformation.format = 'geojson';
-        $scope.source.format = 'geojson';
+        $scope.mapInformation.format = 'geojson';
+        $scope.map.format = 'geojson';
         break;
     }
 
-    console.log('source information')
+    console.log('map information')
   });
 
-  function getSourceProgress() {
-    SourceService.refreshSource($scope.source, function(source) {
+  function getMapProgress() {
+    MapService.refreshMap($scope.map, function(map) {
       // success
-      $scope.source = source;
-      if (!source.complete) {
-        $timeout(getSourceProgress, 5000);
+      $scope.map = map;
+      if (!map.complete) {
+        $timeout(getMapProgress, 5000);
       }
     }, function(data) {
       // error
     });
   }
 
-  $scope.$watch('source.previewLayer', function(layer, oldLayer) {
+  $scope.$watch('map.wmsLayer', function(layer, oldLayer) {
     if (layer) {
       if (layer.EX_GeographicBoundingBox) {
         $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
@@ -126,14 +127,14 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
   });
 
-  $scope.$watch('sourceInformation', function(sourceInformation, oldSourceInformation) {
-    if (!sourceInformation) {
-      delete $scope.source.wmsGetCapabilities;
+  $scope.$watch('mapInformation', function(mapInformation, oldMapInformation) {
+    if (!mapInformation) {
+      delete $scope.map.wmsGetCapabilities;
       return;
     }
   });
 
-  $scope.$watch('sourceInformation.wmsGetCapabilities', function(capabilities, oldCapabilities) {
+  $scope.$watch('mapInformation.wmsGetCapabilities', function(capabilities, oldCapabilities) {
     if (capabilities) {
       $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];
     } else {
@@ -141,24 +142,24 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
     }
   });
 
-  $scope.$watch('source.format', function(format, oldFormat) {
-    console.log('source fomrat', $scope.source.format);
-    switch ($scope.source.format) {
+  $scope.$watch('map.format', function(format, oldFormat) {
+    console.log('map format', $scope.map.format);
+    switch ($scope.map.format) {
       case 'wms':
-        if (!$scope.sourceInformation.wmsGetCapabilities) {
+        if (!$scope.mapInformation.wmsGetCapabilities) {
           $scope.fetchingCapabilities = true;
-          $http.get('/api/sources/wmsFeatureRequest',
+          $http.get('/api/maps/wmsFeatureRequest',
           {
             params: {
-              wmsUrl: $scope.source.url
+              wmsUrl: $scope.map.url
             }
           }).success(function (data) {
             $scope.fetchingCapabilities = false;
-            $scope.source.wmsGetCapabilities = $scope.sourceInformation.wmsGetCapabilities = data;
+            $scope.map.wmsGetCapabilities = $scope.mapInformation.wmsGetCapabilities = data;
             $scope.showMap = true;
           });
         } else {
-          $scope.source.wmsGetCapabilities = $scope.sourceInformation.wmsGetCapabilities;
+          $scope.map.wmsGetCapabilities = $scope.mapInformation.wmsGetCapabilities;
         }
       case 'xyz':
       case 'tms':
@@ -172,47 +173,47 @@ function MapcacheSourceCreateController($scope, $location, $timeout, $http, Cach
   var urlChecker = _.debounce(function() {
 
     $scope.$apply(function() {
-      $scope.sourceInformation = undefined;
+      $scope.mapInformation = undefined;
       $scope.urlDiscovery = true;
-      $scope.source.sourceFile = undefined;
+      $scope.map.mapFile = undefined;
       $scope.$broadcast('clearFile');
     });
 
     console.log('url is valid, what is it?');
-    $http.get('/api/sources/discoverSource',
+    $http.get('/api/maps/discoverMap',
     {
       params: {
-        url: $scope.source.url
+        url: $scope.map.url
       }
     }).success(function (data) {
       $scope.urlDiscovery = false;
-      $scope.sourceInformation = data;
+      $scope.mapInformation = data;
       if (data.format) {
-        $scope.source.format = data.format;
+        $scope.map.format = data.format;
       }
 
-      if ($scope.sourceInformation.valid && !$scope.sourceInformation.format) {
+      if ($scope.mapInformation.valid && !$scope.mapInformation.format) {
         $scope.locationStatus = 'warning';
-      } else if (!$scope.sourceInformation.valid) {
+      } else if (!$scope.mapInformation.valid) {
         $scope.locationStatus = 'error';
       } else {
         $scope.locationStatus = 'success';
       }
     }).error(function(err) {
       $scope.urlDiscovery = false;
-      $scope.sourceInformation = undefined;
+      $scope.mapInformation = undefined;
       $scope.locationStatus = undefined;
     });
   }, 500);
 
   $scope.$on('location-url', function(e, location) {
     if (!location) {
-      $scope.sourceInformation = undefined;
-      delete $scope.source.url;
+      $scope.mapInformation = undefined;
+      delete $scope.map.url;
       return;
     }
     $scope.urlDiscovery = true;
-    $scope.source.url = location;
+    $scope.map.url = location;
     urlChecker();
   });
 

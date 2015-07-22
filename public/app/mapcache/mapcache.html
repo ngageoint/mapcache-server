@@ -1,116 +1,22 @@
 <div class="mapcache container-fluid">
-
   <div class="container">
-    <div class="row top-gap-l bottom-gap">
+    <div class="row top-gap bottom-gap-s">
       <div class="col-md-12">
-        <div class="mapcache-header-description">Use mapcache to save maps for offline use. <button class="btn btn-primary create-map-scrollpoint" ng-click="createCache()">Create A Map</button></div>
+        <div class="mapcache-header-description">Use mapcache to save maps for offline use.</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <a class="btn btn-primary pull-right" href="/#/maps">View Maps</a>
+      </div>
+      <div class="col-md-6">
+        <a class="btn btn-primary" href="/#/create">Create A Cache</a>
       </div>
     </div>
   </div>
 
   <div ui-scrollpoint="-50">
-  <div class="row top-gap">
-    <div class="col-md-12 leaflet-scrollpoint">
-        <div leaflet></div>
+    <div cache-listing caches="caches" options="mapOptions">
     </div>
   </div>
-
-  <div class="container">
-    <div class="maps-scrollpoint">
-    <div class="row">
-      <div class="col-md-12 top-gap">
-        <div class="form-group">
-          <label>Filter Maps</label>
-          <input class="form-control" ng-model="cacheFilter" placeholder="Please enter at least two letters to filter maps">
-        </div>
-      </div>
-    </div>
-    <div class="cache-row bottom-gap-l" ng-repeat="cache in caches | filter:cacheFilter | filter: mapFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
-      <div class="row">
-        <div class="row-height">
-          <div class="col-md-1 col-height col-bottom">
-            <a href="/#/cache/{{cache.id}}"><img src="/api/caches/{{cache.id}}/{{getOverviewTilePath(cache)}}?access_token={{token}}" width="100%"/></a>
-          </div>
-          <div class="col-md-11 col-height">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="cache-name"><a href="/#/cache/{{cache.id}}">{{cache.name}}</a> <span ng-if="!cache.status.complete">Currently Generating</span>
-                  <button class="btn btn-link btn-sm" ng-click="view.showingDetails[cache.id] = !view.showingDetails[cache.id]"><span ng-show="view.showingDetails[cache.id]">hide map details</span><span ng-show="!view.showingDetails[cache.id]">view map details</span></button>
-                </div>
-              </div>
-            </div>
-            <div class="row top-gap-s" ng-show="view.showingDetails[cache.id] && cache.status.complete">
-              <div class="col-md-12">
-                <dl class="dl-horizontal">
-                  <dt>Zoom Levels</dt>
-                  <dd>{{cache.minZoom}} - {{cache.maxZoom}}</dd>
-                  <dt ng-hide="cache.vector">Map URL</dt>
-                  <dd ng-hide="cache.vector">/api/caches/{{cache.id}}/{z}/{x}/{y}.png</dd>
-                  <dt ng-show="cache.vector">Map Data URL</dt>
-                  <dd ng-show="cache.vector">/api/caches/{{cache.id}}/geojson</dd>
-                  <dt>Total Tiles</dt>
-                  <dd>{{cache.status.generatedTiles}}</dd>
-                  <dt>Bounding Box</dt>
-                  <dd>West: {{cache.geometry | turf : 'extent' : 'w' | number : 6}} South: {{cache.geometry | turf : 'extent' : 's' | number : 6}} East: {{cache.geometry | turf : 'extent' : 'e' | number : 6}} North: {{cache.geometry | turf : 'extent' : 'n' | number : 6}}</dd>
-                  <dt>Source</dt>
-                  <dd><a href="/#/source/{{cache.source.id}}">{{cache.source.name}}</a></dd>
-                  <dt ng-if="!cache.source.vector">Source URL</dt>
-                  <dd ng-if="!cache.source.vector">{{cache.source.url}}/{z}/{x}/{y}.png</dd>
-                  <dt ng-if="cache.source.vector">Source Data URL</dt>
-                  <dd ng-if="cache.source.vector">{{cache.source.mapcacheUrl}}/geojson</dd>
-                  <!--<dt>Download Missing Tiles</dt>
-                  <dd><a ng-click="downloadMissingTiles(cache)">download missing tiles</a></dd>-->
-                </dl>
-              </div>
-            </div>
-            <div class="row top-gap" ng-show="cache.status.complete">
-              <div class="col-md-12">
-                <div ng-repeat="cacheType in cache.source.cacheTypes">
-                  <div class="col-md-2 cache-type-details">
-                    <a ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].generating" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
-                      <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
-                      <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
-                    </a>
-                    <div ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].generating">
-                      <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
-                      <div class="cache-size">Generating...</div>
-                    </div>
-                    <a ng-hide="cache.formats[cacheType.type]" class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
-                      <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
-                      <div class="cache-size">Click to Generate</div>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row" ng-show="!cache.status.complete">
-              <div class="col-md-12">
-                <div class="progress">
-                  <div class="progress-bar" role="progressbar" style="width: {{cacheProgress(cache)}}%">
-                    <span>{{cacheProgress(cache) | number: 2}}% Complete</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row cache-types-row" ng-show="!cache.status.complete && view.showingDetails[cache.id]">
-              <div class="col-md-12" ng-init="zoomRows = sortedZooms(cache)">
-                <div class="row" ng-repeat="zoomRow in zoomRows">
-                  <div class="col-md-4" ng-repeat="zoom in zoomRow">
-                    Zoom Level {{zoom.zoom}} {{zoom.status.size | fileSize}}
-                    <div class="progress">
-                      <div class="progress-bar" role="progressbar" style="width: {{zoomProgress(zoom.status)}}%">
-                        <span>{{zoomProgress(zoom.status) | number: 2}}% Complete</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
 </div>

@@ -47,10 +47,19 @@ exports.getInfo = function(callback) {
   });
 }
 
+exports.getMaxCacheSize = function(callback) {
+  Server.findOne().exec(function(err, server) {
+		var maxSize = {};
+		maxSize.maximumCacheSize = config.server.maximumCacheSize * 1024 * 1024;
+		callback(err, maxSize);
+  });
+}
+
 function updateServer(server, callback) {
   diskspace.check('/', function(err, total, free, status) {
     server.serverTotal = total;
     server.serverFree = free;
+		server.total = config.server.storageLimit * 1024 * 1024;
     du(config.server.cacheDirectory.path, function(err, size) {
       server.used = size;
 			server.maximumCacheSize = config.server.maximumCacheSize * 1024 * 1024;

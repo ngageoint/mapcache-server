@@ -23,4 +23,16 @@ module.exports = function(app, auth) {
       });
   	}
   );
+
+  app.get(
+  	'/api/server/maxCacheSize',
+  	access.authorize('READ_CACHE'),
+  	function (req, res, next) {
+      new api.Server().getMaxCacheSize(function(err, server) {
+        if (err) return next(err);
+
+        res.json(server);
+      });
+  	}
+  );
 }

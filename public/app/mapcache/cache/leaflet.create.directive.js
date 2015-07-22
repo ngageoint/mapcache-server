@@ -16,9 +16,9 @@ function leafletCreate() {
   return directive;
 }
 
-LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService', 'SourceService', 'LeafletUtilities'];
+LeafletCreateController.$inject = ['$scope', '$element', 'LocalStorageService', 'LeafletUtilities'];
 
-function LeafletCreateController($scope, $element, LocalStorageService, SourceService, LeafletUtilities) {
+function LeafletCreateController($scope, $element, LocalStorageService, LeafletUtilities) {
 
   var options = {
     maxZoom: 18,
@@ -102,7 +102,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      $scope.options.geometry = cacheFootprintLayer.toGeoJSON();
+      $scope.options.geometry = cacheFootprintLayer.toGeoJSON().geometry;
     });
   });
 
@@ -137,7 +137,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
     drawnItems.removeLayer(cacheFootprintLayer);
     cacheFootprintLayer = null;
     var bounds = map.getBounds();
-    var gj = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+    var gj = turf.bboxPolygon([Math.max(-180,bounds.getWest()), Math.max(-90,bounds.getSouth()), Math.min(180,bounds.getEast()), Math.min(90,bounds.getNorth())]);
     $scope.options.geometry = gj.geometry;
     cacheFootprintLayer = L.rectangle([bounds]);
     cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
@@ -198,46 +198,4 @@ function LeafletCreateController($scope, $element, LocalStorageService, SourceSe
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.options.style);
   }
-
-  // function pointToLayer(feature, latlng) {
-  //   return L.circleMarker(latlng, {radius: 3});
-  // }
-  //
-  // function getTileLayer(source) {
-  //   console.log('changing source to ', source);
-  //   if (source == null) {
-  //     return L.tileLayer(defaultLayer, options);
-  //   } else if (source.vector) {
-  //     var gj = L.geoJson(source.data, {
-  //       style: styleFunction,
-  //       pointToLayer: pointToLayer,
-  //       onEachFeature: function(feature, layer) {
-  //         LeafletUtilities.popupFunction(feature, layer, $scope.source.style);
-  //       }
-  //     });
-  //     SourceService.getSourceData(source, function(data) {
-  //       $scope.options.source.data = data;
-  //       $scope.options.extent = turf.extent(data);
-  //       gj.addData(data);
-  //     });
-  //
-  //     return gj;
-  //   } else if (typeof source == "string") {
-  //     return L.tileLayer(source + "/{z}/{x}/{y}.png", options);
-  //   } else if (source.id) {
-  //     var url = '/api/sources/'+ source.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
-  //     if (source.previewLayer) {
-  //       url += '&layer=' + source.previewLayer.Name;
-  //     }
-  //     return L.tileLayer(url, options);
-  //   } else if (source.format == "wms") {
-  //     if (source.wmsGetCapabilities && source.previewLayer) {
-  //       return L.tileLayer.wms(source.url, {
-  //         layers: source.previewLayer.Name,
-  //         version: source.wmsGetCapabilities.version,
-  //         transparent: !source.previewLayer.opaque
-  //       });
-  //     }
-  //   }
-  // }
 }

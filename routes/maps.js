@@ -8,12 +8,13 @@ module.exports = function(app, auth) {
     , DOMParser = global.DOMParser = require('xmldom').DOMParser
     , WMSCapabilities = require('wms-capabilities')
     , sourceXform = require('../transformers/source')
-    , sourceProcessor = require('../api/sources');
+    , sourceProcessor = require('../api/sources')
+    , cacheXform = require('../transformers/cache');
 
   var passport = auth.authentication.passport
     , authenticationStrategy = auth.authentication.authenticationStrategy;
 
-  app.all('/api/sources*', passport.authenticate(authenticationStrategy));
+  app.all('/api/maps*', passport.authenticate(authenticationStrategy));
 
   var validateSource = function(req, res, next) {
     var source = req.body;
@@ -33,7 +34,7 @@ module.exports = function(app, auth) {
 
   // get all sources
   app.get(
-    '/api/sources',
+    '/api/maps',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -54,17 +55,17 @@ module.exports = function(app, auth) {
   );
 
   app.post(
-    '/api/sources',
+    '/api/maps',
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
       if (!req.is('multipart/form-data')) return next();
       console.log('req.files', req.files);
-      if (!req.files.sourceFile) {
+      if (!req.files.mapFile) {
         console.log('no files');
         return res.sendStatus(400);
       }
-      new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
+      new api.Source().import(req.newSource, req.files.mapFile, function(err, newSource) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
@@ -79,7 +80,7 @@ module.exports = function(app, auth) {
 
   // create a new source
   app.post(
-    '/api/sources',
+    '/api/maps',
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
@@ -96,7 +97,7 @@ module.exports = function(app, auth) {
 
   // Update a specific source
   app.put(
-    '/api/sources/:sourceId',
+    '/api/maps/:sourceId',
     passport.authenticate(authenticationStrategy),
     access.authorize('CREATE_CACHE'),
     validateSource,
@@ -125,7 +126,23 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/sources/:sourceId/features',
+    '/api/maps/:sourceId/:z/:x/:y.:format',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      var source = req.source;
+
+      sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
+        if (err) return next(err);
+        if (!tileStream) return res.status(404).send();
+
+        tileStream.pipe(res);
+      });
+    }
+  );
+
+  app.get(
+    '/api/maps/:sourceId/features',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -139,8 +156,23 @@ module.exports = function(app, auth) {
     }
   );
 
+  // get source
   app.get(
-    '/api/sources/:sourceId/:format',
+    '/api/maps/:sourceId/caches',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      new api.Cache().getCachesFromMapId(req.param('sourceId'), function(err, caches) {
+        if (err) return next(err);
+
+        var caches = cacheXform.transform(caches);
+        res.json(caches);
+      });
+    }
+  );
+
+  app.get(
+    '/api/maps/:sourceId/:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -159,7 +191,7 @@ module.exports = function(app, auth) {
 
   // get source
   app.get(
-    '/api/sources/wmsFeatureRequest',
+    '/api/maps/wmsFeatureRequest',
     access.authorize('READ_CACHE'),
     function (req, res, next) {
       console.log('wms feature request for ', req.param('wmsUrl'));
@@ -174,7 +206,7 @@ module.exports = function(app, auth) {
 
   // get source
   app.get(
-    '/api/sources/discoverSource',
+    '/api/maps/discoverMap',
     access.authorize('READ_CACHE'),
     function (req, res, next) {
       console.log('figure out what this URL is ', req.param('url'));
@@ -240,7 +272,7 @@ module.exports = function(app, auth) {
 
   // get source
   app.get(
-    '/api/sources/:sourceId',
+    '/api/maps/:sourceId',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -251,7 +283,7 @@ module.exports = function(app, auth) {
 
   // Delete a specific source
   app.delete(
-    '/api/sources/:sourceId',
+    '/api/maps/:sourceId',
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
@@ -262,6 +294,4 @@ module.exports = function(app, auth) {
       });
     }
   );
-
-
 }
