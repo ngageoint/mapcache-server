@@ -61,11 +61,11 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       if (!req.is('multipart/form-data')) return next();
       console.log('req.files', req.files);
-      if (!req.files.sourceFile) {
+      if (!req.files.mapFile) {
         console.log('no files');
         return res.sendStatus(400);
       }
-      new api.Source().import(req.newSource, req.files.sourceFile, function(err, newSource) {
+      new api.Source().import(req.newSource, req.files.mapFile, function(err, newSource) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
