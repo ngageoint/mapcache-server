@@ -21,6 +21,18 @@
   width: 100%;
 }
 
+.map-card {
+  /*text-align: center;*/
+  border-radius: 2px;
+  color: #FFF;
+  background-color: #567AFD;
+  border-color: #333;
+}
+
+.map-card a {
+  color: #FFF;
+}
+
 .awesome-marker i {
   font-size: 18px;
   margin-top: 8px;
@@ -276,6 +288,18 @@
   font-size: 28px;
 }
 
+.page-mid-entity-title {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 24px;
+}
+
+.page-mid-entity-label {
+  font-family: Roboto;
+  font-weight: 200;
+  font-size: 24px;
+}
+
 .page-sub-entity-title {
   font-family: Roboto;
   font-weight: 400;
@@ -338,6 +362,10 @@
   padding-top: 15px;
 }
 
+.top-padding {
+  padding-top: 15px;
+}
+
 .top-padding-l {
   padding-top: 30px;
 }
@@ -350,8 +378,20 @@
   padding-bottom: 15px;
 }
 
+.bottom-padding {
+  padding-bottom: 15px;
+}
+
 .bottom-padding-s {
   padding-bottom: 5px;
+}
+
+.left-margin {
+  margin-left: 10px;
+}
+
+.right-margin {
+  margin-right: 10px;
 }
 
 .x-small {

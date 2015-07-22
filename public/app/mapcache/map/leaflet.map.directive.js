@@ -48,12 +48,14 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   var baseLayer = null;
   var defaultLayer = null;
 
-  var map = L.map($element[0], {
-    center: [45,-100],
-    zoom: 4,
-    minZoom: 0,
-    maxZoom: 18
-  });
+  var mapOptions = $scope.options && $scope.options.mapOptions ? $scope.options.mapOptions : {};
+  mapOptions.center = mapOptions.center || [45,-100];
+  mapOptions.zoom = mapOptions.zoom || 4;
+  mapOptions.minZoom = mapOptions.minZoom || 0;
+  mapOptions.maxZoom = mapOptions.maxZoom || 18;
+  console.log('map options', mapOptions);
+
+  var map = L.map($element[0], mapOptions);
   if (!$scope.options.hideZoomIndicator) {
     map.addControl(new L.Control.ZoomIndicator());
   }
