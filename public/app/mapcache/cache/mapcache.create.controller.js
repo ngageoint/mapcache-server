@@ -9,10 +9,10 @@ MapcacheCreateController.$inject = [
   '$routeParams',
   '$modal',
   'CacheService',
-  'SourceService'
+  'MapService'
 ];
 
-function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, CacheService, SourceService) {
+function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, CacheService, MapService) {
 
   $scope.currentAdminPanel = $routeParams.adminPanel || "user";
 
@@ -54,19 +54,19 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }];
 
   $scope.cache.selectedSizeMultiplier = $scope.sizes[0];
-  $scope.loadingSources = true;
-  SourceService.getAllSources(true).success(function(sources) {
-    $scope.loadingSources = false;
-    $scope.sources = sources;
-    if ($routeParams.sourceId) {
-      for (var i = 0; i < $scope.sources.length && $scope.cache.source == null; i++) {
-        if ($routeParams.sourceId == $scope.sources[i].id) {
-          $scope.cache.source = $scope.sources[i];
+  $scope.loadingMaps = true;
+  MapService.getAllMaps(true).success(function(maps) {
+    $scope.loadingMaps = false;
+    $scope.maps = maps;
+    if ($routeParams.mapId) {
+      for (var i = 0; i < $scope.maps.length && $scope.cache.source == null; i++) {
+        if ($routeParams.mapId == $scope.maps[i].id) {
+          $scope.cache.source = $scope.maps[i];
         }
       }
     }
   }).error(function(error) {
-    $scope.loadingSources = false;
+    $scope.loadingMaps = false;
   });
 
   $scope.useCurrentView = function() {
@@ -143,7 +143,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     calculateCacheSize();
   });
 
-  $scope.$watch('cache.source', function(source) {
+  $scope.$watch('cache.source', function(map) {
     $scope.cache.create = {};
     if ($scope.cache.source) {
       $scope.cache.style = $scope.cache.source.style;
@@ -154,7 +154,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.requiredFieldsSet();
     }
 
-    if (!source || !source.geometry) {
+    if (!map || !map.geometry) {
       $scope.bb.north = null;
       $scope.bb.south = null;
       $scope.bb.west = null;
@@ -162,8 +162,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.cache.geometry = null;
       return;
     }
-    if (source && source.format == 'geotiff') {
-      var geometry = source.geometry;
+    if (map && map.format == 'geotiff') {
+      var geometry = map.geometry;
       while(geometry.type != "Polygon" && geometry != null){
         geometry = geometry.geometry;
       }
@@ -185,7 +185,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.unsetFields = [];
 
     if (!$scope.cache.source) {
-      $scope.unsetFields.push('cache source');
+      $scope.unsetFields.push('cache map');
       return false;
     }
 
@@ -258,8 +258,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     });
   }
 
-  $scope.createSource = function() {
-    $location.path('/source');
+  $scope.createMap = function() {
+    $location.path('/map');
   }
 
   function calculateCacheSize() {

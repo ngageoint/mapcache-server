@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="mapcache">
 <head>
-  <title>mapcache</title>
+  <title ng-bind="'mapcache - ' + $root.title">mapcache</title>
   <meta id="view" name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -118,7 +118,7 @@
   <script type="text/javascript" src="bower_components/mjolnic-bootstrap-colorpicker/dist/js/bootstrap-colorpicker.js"></script>
   <script type="text/javascript" src="vendor/angular-bootstrap/ui-bootstrap-tpls-0.13.0-SNAPSHOT.min.js"></script>
   <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-  <script type="text/javascript" src="bower_components/turf/turf.min.js"></script>
+  <script type="text/javascript" src="bower_components/turf/turf.js"></script>
   <!-- endbuild -->
 
   <!-- build:js app.min.js -->
@@ -128,15 +128,18 @@
 
   <script type="text/javascript" src="app/mapcache/mapcache-nav.controller.js"></script>
   <script type="text/javascript" src="app/mapcache/mapcache.controller.js"></script>
+  <script type="text/javascript" src="app/mapcache/maps.controller.js"></script>
   <script type="text/javascript" src="app/mapcache/cache/mapcache.create.controller.js"></script>
   <script type="text/javascript" src="app/mapcache/cache/mapcache.cache.controller.js"></script>
-  <script type="text/javascript" src="app/mapcache/source/mapcache.source.controller.js"></script>
-  <script type="text/javascript" src="app/mapcache/source/mapcache.source.create.controller.js"></script>
+  <script type="text/javascript" src="app/mapcache/map/map.controller.js"></script>
+  <script type="text/javascript" src="app/mapcache/map/map.create.controller.js"></script>
+  <script type="text/javascript" src="app/mapcache/map/map.edit.controller.js"></script>
   <script type="text/javascript" src="app/mapcache/leaflet.directive.js"></script>
   <script type="text/javascript" src="app/mapcache/leaflet/utilities.js"></script>
   <script type="text/javascript" src="app/mapcache/cache/leaflet.create.directive.js"></script>
   <script type="text/javascript" src="app/mapcache/cache/leaflet.cache.directive.js"></script>
-  <script type="text/javascript" src="app/mapcache/source/leaflet.source.directive.js"></script>
+  <script type="text/javascript" src="app/mapcache/map/leaflet.map.directive.js"></script>
+  <script type="text/javascript" src="app/mapcache/directives/cache-listing.directive.js"></script>
 
   <script type="text/javascript" src="app/auth/http-auth-interceptor.js"></script>
 
@@ -150,7 +153,7 @@
   <script type="text/javascript" src="app/factories/local-storage.service.js"></script>
   <script type="text/javascript" src="app/factories/user.service.js"></script>
   <script type="text/javascript" src="app/factories/cache.service.js"></script>
-  <script type="text/javascript" src="app/factories/source.service.js"></script>
+  <script type="text/javascript" src="app/factories/map.service.js"></script>
   <script type="text/javascript" src="app/factories/format.service.js"></script>
 
   <script type="text/javascript" src="app/directives/color.picker.directive.js"></script>
@@ -160,6 +163,7 @@
   <script type="text/javascript" src="app/mapcache/vector-style/directives/style.row.directive.js"></script>
 
   <script type="text/javascript" src="app/file-upload/file-upload.directive.js"></script>
+  <script type="text/javascript" src="app/mapcache/util/tile-utilities.js"></script>
 
   <script type="text/javascript" src="app/filters/user.filter.js"></script>
   <script type="text/javascript" src="app/filters/paging-offset.filter.js"></script>

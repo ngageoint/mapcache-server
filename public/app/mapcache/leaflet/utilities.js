@@ -2,9 +2,9 @@ angular
   .module('mapcache')
   .factory('LeafletUtilities', LeafletUtilities);
 
-LeafletUtilities.$inject = ['LocalStorageService', 'SourceService'];
+LeafletUtilities.$inject = ['LocalStorageService', 'MapService'];
 
-function LeafletUtilities(LocalStorageService, SourceService) {
+function LeafletUtilities(LocalStorageService, MapService) {
 
   return {
     styleFunction: styleFunction,
@@ -118,8 +118,8 @@ function LeafletUtilities(LocalStorageService, SourceService) {
 
       // if (!layerSource.data) {
         var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+Date.now();
-        if (layerSource.previewLayer) {
-          url += '&layer=' + layerSource.previewLayer.Name;
+        if (layerSource.wmsLayer) {
+          url += '&layer=' + layerSource.wmsLayer.Name;
         }
         var layer = L.tileLayer(url, layerOptions);
         return layer;
@@ -137,24 +137,24 @@ function LeafletUtilities(LocalStorageService, SourceService) {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}.png", layerOptions);
     } else if (layerSource.mapcacheUrl) {
       var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
-      if (layerSource.previewLayer) {
-        url += '&layer=' + layerSource.previewLayer.Name;
+      if (layerSource.wmsLayer) {
+        url += '&layer=' + layerSource.wmsLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
     } else if (layerSource.format == 'wms') {
-      if (layerSource.wmsGetCapabilities && layerSource.previewLayer) {
+      if (layerSource.wmsGetCapabilities && layerSource.wmsLayer) {
         return L.tileLayer.wms(layerSource.url, {
-          layers: layerSource.previewLayer.Name,
+          layers: layerSource.wmsLayer.Name,
           version: layerSource.wmsGetCapabilities.version,
-          transparent: !layerSource.previewLayer.opaque,
-          format: layerSource.previewLayer.opaque ? 'image/jpeg' : 'image/png'
+          transparent: !layerSource.wmsLayer.opaque,
+          format: layerSource.wmsLayer.opaque ? 'image/jpeg' : 'image/png'
         });
       }
     }else if (layerSource.url) {
       console.log('layersource.url', layerSource.url);
       var url = layerSource.url + "/{z}/{x}/{y}.png";
-      if (layerSource.previewLayer) {
-        url += '&layer=' + source.previewLayer.Name;
+      if (layerSource.wmsLayer) {
+        url += '&layer=' + source.wmsLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
     }
