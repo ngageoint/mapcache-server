@@ -137,7 +137,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     drawnItems.removeLayer(cacheFootprintLayer);
     cacheFootprintLayer = null;
     var bounds = map.getBounds();
-    var gj = turf.bboxPolygon([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+    var gj = turf.bboxPolygon([Math.max(-180,bounds.getWest()), Math.max(-90,bounds.getSouth()), Math.min(180,bounds.getEast()), Math.min(90,bounds.getNorth())]);
     $scope.options.geometry = gj.geometry;
     cacheFootprintLayer = L.rectangle([bounds]);
     cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});

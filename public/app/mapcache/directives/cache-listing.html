@@ -31,6 +31,7 @@
                   </div>
                 </div>
               </div>
+
               <div class="row top-gap" ng-show="cache.status.complete">
                 <div class="col-md-12">
                   <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes">
@@ -57,6 +58,11 @@
                       </a>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div class="row" ng-show="cache.source">
+                <div class="col-md-12">
+                  <span class="x-small">Created From: <a ng-href="/#/map/{{cache.source.id}}">{{cache.source.name}}</a></span>
                 </div>
               </div>
               <div class="row" ng-show="!cache.status.complete">
