@@ -145,7 +145,7 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     }
   }
 
-  $scope.generateFormat = function(cache, format) {
+  $scope.$on('generateFormat', function(event, cache, format) {
     CacheService.createCacheFormat(cache, format, function() {
       cache.formats = cache.formats || {};
       cache.formats[format] = cache.formats[format] || {};
