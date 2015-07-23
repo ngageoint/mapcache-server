@@ -74,4 +74,8 @@ function CacheListingController($scope, $rootScope, $timeout, LocalStorageServic
       }
     }
   });
+
+  $scope.generateFormat = function(cache, format) {
+    $scope.$emit('generateFormat', cache, format);
+  }
 }
