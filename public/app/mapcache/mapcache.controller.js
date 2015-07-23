@@ -152,7 +152,7 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
       cache.formats[format].generating = true;
       getCaches();
     });
-  }
+  });
 
   $rootScope.$on('cacheFootprintPopupOpen', function(event, cache) {
     $scope.mapFilter = cache.id;
