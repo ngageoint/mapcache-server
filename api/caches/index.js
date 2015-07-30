@@ -41,6 +41,15 @@ exports.createCacheFormat = function(cache, format, minZoom, maxZoom, callback) 
   });
 }
 
+exports.deleteCacheFormat = function(cache, format, callback) {
+  var processor = require('./' + format);
+  if (processor.deleteCache) {
+    processor.deleteCache(cache, callback);
+  } else {
+    callback();
+  }
+}
+
 exports.getTile = function(cache, format, z, x, y, callback) {
   console.log('cache.formats', cache.formats);
   var processor = undefined;

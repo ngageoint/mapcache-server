@@ -78,3 +78,9 @@ function writeCache(gj, cache, callback) {
     });
   });
 }
+
+exports.deleteCache = function(cache, callback) {
+  fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".geojson", function(err) {
+    callback(err, cache);
+  });
+}

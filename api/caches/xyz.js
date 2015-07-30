@@ -4,6 +4,7 @@ var CacheModel = require('../../models/cache.js')
   , path = require('path')
   , source = require('../sources')
   , config = require('../../config.json')
+  , tileUtilities = require('../tileUtilities.js')
   , Readable = require('stream').Readable;
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
@@ -50,20 +51,38 @@ function downloadTile(tileInfo, tileDone) {
       return tileDone();
     }
 
-    source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
-      if (request) {
-        var stream = fs.createWriteStream(dir + filename);
-    		stream.on('close',function(status){
-          CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-            tileDone();
-          });
-    		});
+    console.log('source is a vector? ', tileInfo.xyzSource.source.vector);
+    if (tileInfo.xyzSource.source.vector) {
+      tileUtilities.getVectorTile(tileInfo.xyzSource, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
+        if (request) {
+          var stream = fs.createWriteStream(dir + filename);
+      		stream.on('close',function(status){
+            CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+              tileDone();
+            });
+      		});
 
-  			request.pipe(stream);
-      } else {
-        tileDone();
-      }
-		});
+    			request.pipe(stream);
+        } else {
+          tileDone();
+        }
+  		});
+    } else {
+      source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
+        if (request) {
+          var stream = fs.createWriteStream(dir + filename);
+      		stream.on('close',function(status){
+            CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+              tileDone();
+            });
+      		});
+
+    			request.pipe(stream);
+        } else {
+          tileDone();
+        }
+  		});
+    }
   });
 }
 
@@ -83,5 +102,11 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
         });
       });
     });
+  });
+}
+
+exports.deleteCache = function(cache, callback) {
+  fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/xyztiles", function(err) {
+    callback(err, cache);
   });
 }

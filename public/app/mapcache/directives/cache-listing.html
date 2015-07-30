@@ -17,7 +17,7 @@
       <div class="cache-row bottom-gap-l" ng-repeat="cache in caches track by cache.id | filter:cacheFilter | filter: mapFilter" ng-mouseenter="mouseOver(cache)" ng-mouseleave="mouseOut(cache)">
         <div class="row">
           <div class="row-height">
-            <div class="col-md-1 col-height col-bottom">
+            <div class="col-md-1 col-height col-middle">
               <a href="/#/cache/{{cache.id}}"><img src="/api/caches/{{cache.id}}/{{getOverviewTilePath(cache)}}?access_token={{token}}" width="100%"/></a>
             </div>
             <div class="col-md-11 col-height">
@@ -27,27 +27,59 @@
                     <span ng-if="!cache.status.complete">Currently Generating
                       <button class="btn btn-link btn-sm" ng-click="view.showingDetails[cache.id] = !view.showingDetails[cache.id]"><span ng-show="view.showingDetails[cache.id]">hide details</span><span ng-show="!view.showingDetails[cache.id]">details</span></button>
                     </span>
-                    <span class="x-small" ng-if="cache.status.complete && !cache.vector">Zoom Levels {{cache.minZoom}} - {{cache.maxZoom}}</span>
                   </div>
                 </div>
               </div>
-
-              <div class="row top-gap" ng-show="cache.status.complete">
+              <div class="row" ng-show="cache.status.complete && cache.formats['geojson']">
                 <div class="col-md-12">
-                  <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes">
-                    <div class="col-md-2 cache-type-details">
-                      <a ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].generating" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
-                        <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
-                        <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
-                      </a>
-                      <div ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].generating">
-                        <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
-                        <div class="cache-size">Generating...</div>
+                  <span class="small">Vectors:</span>
+                </div>
+              </div>
+              <div class="row" ng-show="cache.status.complete && cache.formats['geojson']">
+                <div class="col-md-12">
+                  <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes | filter: {vector: true}">
+                    <div ng-if="cache.formats[cacheType.type] || !cacheType.secondary || (cacheType.secondary && cacheType.depends && cache.formats[cacheType.depends])">
+                      <div class="col-md-2 cache-type-details">
+                        <a ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].generating" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
+                          <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
+                          <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
+                        </a>
+                        <div ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].generating">
+                          <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
+                          <div class="cache-size">Generating...</div>
+                        </div>
+                        <a ng-hide="cache.formats[cacheType.type]" class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
+                          <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
+                          <div class="cache-size">Click to Generate</div>
+                        </a>
                       </div>
-                      <a ng-hide="cache.formats[cacheType.type]" class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
-                        <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
-                        <div class="cache-size">Click to Generate</div>
-                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row top-gap">
+                <div class="col-md-12">
+                  <span class="small">Tiles:<span  ng-show="cache.status.complete && cache.formats['xyz']"> Zoom Levels {{cache.minZoom}} - {{cache.maxZoom}}</span></span>
+                </div>
+              </div>
+              <div class="row" ng-show="cache.status.complete && cache.formats['xyz']">
+                <div class="col-md-12">
+                  <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes | filter: {vector: '!true'}">
+                    <div ng-if="cache.formats[cacheType.type] || !cacheType.secondary || (cacheType.secondary && cacheType.depends && cache.formats[cacheType.depends])">
+                      <div class="col-md-2 cache-type-details">
+                        <a ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].generating" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
+                          <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
+                          <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
+                        </a>
+                        <div ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].generating">
+                          <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
+                          <div class="cache-size">Generating...</div>
+                        </div>
+                        <a ng-hide="cache.formats[cacheType.type]" class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
+                          <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
+                          <div class="cache-size">Click to Generate</div>
+                        </a>
+                      </div>
                     </div>
                   </div>
                   <div ng-if="!cache.source" ng-repeat="(formatType, format) in cache.formats">
@@ -60,7 +92,21 @@
                   </div>
                 </div>
               </div>
-              <div class="row" ng-show="cache.source">
+              <div class="row top-gap-s" ng-show="cache.source.vector && !cache.formats['xyz']">
+                <div class="col-md-12">
+                  <div class="col-md-12 cache-type-details" style="text-align: left;">
+                      <div class="cache-type">Generate Tiles</div>
+                      <div class="cache-size bottom-gap-s top-gap-s">
+                        <input type="text" placeholder="Min Zoom" ng-change="calculateCacheSize(cache, cache.minTileZoom, cache.maxTileZoom)" ng-model="cache.minTileZoom"></input>
+                        to
+                        <input placeholder="Max Zoom" ng-change="calculateCacheSize(cache, cache.minTileZoom, cache.maxTileZoom)" type="text" ng-model="cache.maxTileZoom"></input>
+                        <a class="btn btn-xs btn-primary" ng-click="createTiles(cache, cache.minTileZoom, cache.maxTileZoom)">Create Tiles</a>
+                        <div ng-show="cache.totalCacheSize">Estimated Size: {{cache.totalCacheSize | fileSize}} Tiles: {{cache.totalCacheTiles}}</div>
+                      </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row top-gap-s" ng-show="cache.source">
                 <div class="col-md-12">
                   <span class="x-small">Created From: <a ng-href="/#/map/{{cache.source.id}}">{{cache.source.name}}</a></span>
                 </div>

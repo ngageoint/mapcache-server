@@ -16,7 +16,7 @@ function TileUtilities() {
   return {
     getOverviewTilePath: getOverviewTilePath
   };
-  
+
   function getX(lon, zoom) {
     var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
     return xtile;
@@ -51,18 +51,13 @@ function TileUtilities() {
 
   function getOverviewTilePath(cache) {
     var extent = turf.extent(cache.geometry);
-    if (!cache.maxZoom) {
-      cache.maxZoom = 18;
-    }
-    if (!cache.minZoom) {
-      cache.minZoom = 0;
-    }
+    var zoom = cache.maxZoom || 18;
+    var min = cache.minZoom || 0;
     //find the first zoom level with 1 tile
     var y = yCalculator(extent, cache.maxZoom);
     var x = xCalculator(extent, cache.maxZoom);
-    var zoom = cache.maxZoom;
     var found = false;
-    for (zoom; zoom >= cache.minZoom && !found; zoom--) {
+    for (zoom; zoom >= min && !found; zoom--) {
       y = yCalculator(extent, zoom);
       x = xCalculator(extent, zoom);
       if (y.min == y.max && x.min == x.max) {

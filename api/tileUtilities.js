@@ -8,6 +8,7 @@ var request = require('request')
 	, Canvas = require('canvas')
 	, Image = Canvas.Image
 	, CacheModel = require('../models/cache')
+	, SourceModel = require('../models/source')
 	, Readable = require('stream').Readable
  	, config = require('../config.json');
 
@@ -320,7 +321,17 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
       try {
       var tileData = JSON.parse(tile.replace(/\bNaN\b/g, "null"));
       if (format == 'png') {
-        return exports.createImage(tileData, source.style, z, x, y, callback);
+        return exports.createImage(tileData, source.style, z, x, y, function(err, pngStream) {
+					var size = 0;
+					pngStream.on('data', function(chunk) {
+						size += chunk.length;
+					});
+					pngStream.on('end', function() {
+						SourceModel.updateSourceAverageSize(source, size, function(err) {
+						});
+					});
+					return callback(err, pngStream);
+				});
       } else {
         return callback(null);
       }

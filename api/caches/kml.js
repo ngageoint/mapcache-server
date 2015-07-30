@@ -22,3 +22,9 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   var file = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".kml");
   ogrType.generateCache(cache, file, 'KML', callback);
 }
+
+exports.deleteCache = function(cache, callback) {
+  fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".kml", function(err) {
+    callback(err, cache);
+  });
+}

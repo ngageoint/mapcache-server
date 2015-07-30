@@ -35,12 +35,7 @@ Cache.prototype.delete = function(cache, callback) {
 Cache.prototype.deleteFormat = function(cache, format, callback) {
   CacheModel.deleteFormat(cache, format, function(err) {
     if (err) return callback(err);
-    var extension = "." + format;
-    if (format == 'geopackage') {
-      extension = '.gpkg';
-    }
-
-    fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + extension, function(err) {
+    cacheProcessor.deleteCacheFormat(cache, format, function(err) {
       callback(err, cache);
     });
   });

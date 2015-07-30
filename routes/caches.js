@@ -34,6 +34,9 @@ module.exports = function(app, auth) {
     function (req, res, next) {
     	var format = req.param('format');
     	console.log('create cache format ' + format + ' for cache ' + req.cache.name);
+      var cache = req.cache;
+      req.cache.minZoom = req.param('minZoom') || req.cache.minZoom;
+      req.cache.maxZoom = req.param('maxZoom') || req.cache.maxZoom;
       new api.Cache().create(req.cache, format, function(err, newCache) {
         if (!err) {
           return res.sendStatus(202);

@@ -26,3 +26,9 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
 exports.getTile = function(cache, format, z, x, y, callback) {
   return tileUtilities.getVectorTile(cache.source, format, z, x, y, null, callback);
 }
+
+exports.deleteCache = function(cache, callback) {
+  fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + "_shapefile.zip", function(err) {
+    callback(err, cache);
+  });
+}
