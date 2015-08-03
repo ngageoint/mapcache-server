@@ -12,7 +12,11 @@ exports.process = function(source, callback) {
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
   if (params.layer == undefined || params.layer == null) {
-    return callback(null);
+    if (source.wmsLayer && source.wmsLayer.Name) {
+      params.layer = source.wmsLayer.Name;
+    } else {
+      return callback(null);
+    }
   }
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 

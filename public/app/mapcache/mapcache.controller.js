@@ -62,8 +62,6 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
     $location.path('/map');
   }
 
-  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
-
   $scope.downloadMissingTiles = function(cache) {
     CacheService.downloadMissing(cache).success(function(caches) {
       $scope.caches = caches;

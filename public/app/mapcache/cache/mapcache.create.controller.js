@@ -10,12 +10,14 @@ MapcacheCreateController.$inject = [
   '$modal',
   '$rootScope',
   'CacheService',
-  'MapService'
+  'MapService',
+  'LocalStorageService'
 ];
 
-function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, $rootScope, CacheService, MapService) {
+function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, $rootScope, CacheService, MapService, LocalStorageService) {
 
   $rootScope.title = 'Create A Cache';
+  $scope.token = LocalStorageService.getToken();
 
   var seenCorners;
   var boundsSet = false;

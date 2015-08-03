@@ -59,8 +59,6 @@ function CacheListingController($scope, $rootScope, $timeout, LocalStorageServic
     $scope.$emit('cacheFilterChange', {cacheFilter: $scope.cacheFilter, mapFilter: $scope.mapFilter});
   });
 
-  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
-
   $scope.featureProperties = [];
 
   $scope.createCacheFromMap = function() {

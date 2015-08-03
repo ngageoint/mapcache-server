@@ -2,6 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
     , fs = require('fs-extra')
+    , tileUtilities = require('../api/tileUtilities')
     , config = require('../config.json')
     , cacheXform = require('../transformers/cache');
 
@@ -107,6 +108,20 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       new api.Cache().getTile(req.cache, req.param('format'), req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+        if (err) return next(err);
+        if (!tileStream) return res.status(404).send();
+
+        tileStream.pipe(res);
+      });
+    }
+  );
+
+  app.get(
+    '/api/caches/:cacheId/overviewTile',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      tileUtilities.getOverviewTile(req.cache, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 

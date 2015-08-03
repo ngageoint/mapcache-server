@@ -25,6 +25,7 @@
             <ui-select-match placeholder="Select a map">{{$select.selected.name}}</ui-select-match>
             <ui-select-choices repeat="source in maps | filter: {status : {complete:true}} | orderBy: 'name' | filter: $select.search">
               <div ng-bind-html="source.name | highlight: $select.search"></div>
+              <img ng-src="/api/maps/{{source.id}}/overviewTile?access_token={{token}}" width="50px"/>
               <small class="muted">
                 <span ng-bind-html="''+source.name + ' ' + source.url | highlight: $select.search"></span>
               </small>

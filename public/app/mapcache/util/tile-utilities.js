@@ -14,7 +14,7 @@ angular
 function TileUtilities() {
 
   return {
-    getOverviewTilePath: getOverviewTilePath
+    
   };
 
   function getX(lon, zoom) {
@@ -47,24 +47,5 @@ function TileUtilities() {
     y.min = Math.min(y1, y2);
     y.current = Math.min(y1, y2);
     return y;
-  }
-
-  function getOverviewTilePath(cache) {
-    var extent = turf.extent(cache.geometry);
-    var zoom = cache.maxZoom || 18;
-    var min = cache.minZoom || 0;
-    //find the first zoom level with 1 tile
-    var y = yCalculator(extent, cache.maxZoom);
-    var x = xCalculator(extent, cache.maxZoom);
-    var found = false;
-    for (zoom; zoom >= min && !found; zoom--) {
-      y = yCalculator(extent, zoom);
-      x = xCalculator(extent, zoom);
-      if (y.min == y.max && x.min == x.max) {
-        found = true;
-      }
-    }
-    zoom = zoom+1;
-    return zoom+'/'+x.min+'/'+y.min+'.png';
   }
 }
