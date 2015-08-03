@@ -87,7 +87,7 @@ exports.getOverviewMapTile = function(map, callback) {
 	zoom = zoom+1;
 
 	var params = {};
-	
+
 	Maps.getTile(map, 'png', zoom, x.min, y.min, params, callback);
 }
 
@@ -409,7 +409,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 		console.log('z %d x %d y %d', z, x, y);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
-			console.log('tileIndex', tileIndex);
+			// console.log('tileIndex', tileIndex);
 			if (!tileIndex) return callback(null);
 			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
 			if (!tile) return callback(null);
