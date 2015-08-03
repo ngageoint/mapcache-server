@@ -84,14 +84,9 @@
         <div class="col-sm-8">
           <p><a ng-click="useCurrentView()">Set cache boundaries to current view</a></p>
           <div leaflet-create options="cache"></div>
-          <!-- <div class="checkbox"> -->
-            <!-- <label>
-              <input type="checkbox" ng-model="cache.source.format" ng-true-value="'tms'" ng-false-value="'xyz'"> Do the map tiles not line up? Click here
-            </label> -->
-            <div class="pull-right" ng-if="cache.source.format == 'geotiff'">
-              Green box indicates GeoTIFF boundaries
+            <div class="pull-right" ng-if="cache.source.geometry">
+              Green box indicates map boundaries
             </div>
-          <!-- </div> -->
         </div>
         <div class="col-sm-2" style="height: 500px">
           <div class="form-group vertical-center">
@@ -134,21 +129,6 @@
     <div class="visible-xs-block">
       <div class="row">
         <div class="col-xs-12">
-          <!--
-          <div leaflet-create options="cache"></div>
-        -->
-          <!-- <div class="checkbox"> -->
-            <!-- <label>
-              <input type="checkbox" ng-model="cache.tms"> Do the map tiles not line up? Click here
-            </label> -->
-            <div ng-if="cache.source.format == 'geotiff'">
-              Green box indicates GeoTIFF boundaries
-            </div>
-          <!-- </div> -->
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12">
           <div class="form-group">
             <label>Northern Boundary</label>
             <input class="form-control" ng-change="manualEntry()" ng-model="north" placeholder="e.g. 39.9">
@@ -180,32 +160,40 @@
         </div>
       </div>
     </div>
-    <div class="row" ng-if="!cache.source.vector">
-      <div class="col-md-6">
-        <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
-          <label class="control-label">Minimum Zoom Level</label>
-          <input class="form-control" type="number" ng-model="cache.minZoom" placeholder="e.g. 0">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group" ng-class="{'has-error': cache.maxZoom < cache.minZoom}">
-          <label class="control-label">Maximum Zoom Level</label>
-          <input class="form-control" type="number" ng-model="cache.maxZoom" placeholder="e.g. 18">
-        </div>
-      </div>
-    </div>
-    <div class="row bottom-gap" >
+
+    <div class="row bottom-gap">
       <div class="col-md-12">
-          <p><label class="control-label">Choose the cache format(s) to create</label></p>
-          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes">
+          <fieldset><legend class="control-label">Choose the tile cache format(s) to create</legend>
+          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: '!true'}">
             <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
           </label>
           <p class="help-block">* indicates a format that will automatically be created</p>
+          <div class="row" ng-if="tileCacheRequested">
+            <div class="col-md-6">
+              <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
+                <label class="control-label">Minimum Zoom Level</label>
+                <input class="form-control" type="number" ng-model="cache.minZoom" placeholder="e.g. 0">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group" ng-class="{'has-error': cache.maxZoom < cache.minZoom}">
+                <label class="control-label">Maximum Zoom Level</label>
+                <input class="form-control" type="number" ng-model="cache.maxZoom" placeholder="e.g. 18">
+              </div>
+            </div>
+          </div>
+        </fieldset>
       </div>
     </div>
-    <div class="row" ng-show="cache.source.vector">
+
+    <div class="row bottom-gap" ng-if="cache.source.vector">
       <div class="col-md-12">
-        <span class="page-sub-entity-label" ng-show="requiredFieldsSet()">Will create a cache with <span class="page-sub-entity-title">{{cacheFeatures}} </span> of <span class="page-sub-entity-title"> {{cache.source.totalFeatures}} </span> features</span>
+          <fieldset><legend class="control-label">Choose the vector format(s) to create</legend>
+          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: true}">
+            <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
+          </label>
+          <p class="help-block">* indicates a format that will automatically be created</p>
+        </fieldset>
       </div>
     </div>
     <div class="row" ng-show="totalCacheSize">
@@ -218,7 +206,7 @@
     <div class="row" ng-hide="requiredFieldsSet()">
       <div class="col-md-12">
         <div class="form-group">
-          <span class="page-sub-entity-title">Please set the <span ng-repeat="uf in unsetFields"><span ng-show="!$first && !$last">, </span><span ng-show="!$first && $last"> and </span>{{uf}}</span> to create the cache.</span>
+          <span class="page-sub-entity-title text-danger"><i class="fa fa-warning"></i> Please set the <span ng-repeat="uf in unsetFields"><span ng-show="!$first && !$last">, </span><span ng-show="!$first && $last"> and </span>{{uf}}</span> to create the cache.</span>
         </div>
       </div>
     </div>

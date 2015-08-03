@@ -7,11 +7,12 @@ MapcacheCacheController.$inject = [
   '$location',
   '$timeout',
   '$routeParams',
+  '$rootScope',
   'CacheService',
   'LocalStorageService'
 ];
 
-function MapcacheCacheController($scope, $location, $timeout, $routeParams, CacheService, LocalStorageService) {
+function MapcacheCacheController($scope, $location, $timeout, $routeParams, $rootScope, CacheService, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
 
@@ -83,6 +84,8 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, Cach
     CacheService.getCache(cache, function(cache) {
       // success
       $scope.cache = cache;
+      $rootScope.title = $scope.cache.name;
+
       $scope.zoomRows = $scope.sortedZooms(cache);
       if (!cache.status.complete && $location.path().startsWith('/cache')) {
         $timeout(getCache, 5000);

@@ -8,13 +8,14 @@ MapcacheCreateController.$inject = [
   '$http',
   '$routeParams',
   '$modal',
+  '$rootScope',
   'CacheService',
   'MapService'
 ];
 
-function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, CacheService, MapService) {
+function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, $rootScope, CacheService, MapService) {
 
-  $scope.currentAdminPanel = $routeParams.adminPanel || "user";
+  $rootScope.title = 'Create A Cache';
 
   var seenCorners;
   var boundsSet = false;
@@ -179,7 +180,25 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
   });
 
-  $scope.$watch('cache.minZoom+cache.maxZoom', calculateCacheSize);
+  $scope.$watch('cache.create', function() {
+    if (!$scope.cache.create) return;
+    var tileCacheRequested = false;
+    for (var key in $scope.cache.create) {
+      if ($scope.cache.create[key] == true) {
+        console.log('create', key);
+        for (var i = 0; i < $scope.cache.source.cacheTypes.length && !tileCacheRequested; i++) {
+          console.log('derp', $scope.cache.source.cacheTypes[i]);
+          if ($scope.cache.source.cacheTypes[i].type == key && !$scope.cache.source.cacheTypes[i].vector) {
+            tileCacheRequested = true;
+          }
+        }
+      }
+    }
+    console.log('tile cache requested', tileCacheRequested);
+    $scope.tileCacheRequested = tileCacheRequested;
+  }, true);
+
+  $scope.$watch('cache.minZoom+cache.maxZoom+tileCacheRequested', calculateCacheSize);
 
   $scope.requiredFieldsSet = function() {
     $scope.unsetFields = [];
@@ -194,14 +213,18 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
 
     var zoomValidated = false;
-    if (isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom) || $scope.cache.maxZoom === null || $scope.cache.minZoom === null) {
-      zoomValidated = false;
-    } else if ($scope.cache.minZoom === 0 && $scope.cache.maxZoom === 0) {
+    if (!$scope.tileCacheRequested) {
       zoomValidated = true;
-    } else if ($scope.cache.minZoom === 0 && $scope.cache.maxZoom > 0) {
-      zoomValidated = true;
-    } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
-      zoomValidated = true;
+    } else {
+      if (isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom) || $scope.cache.maxZoom === null || $scope.cache.minZoom === null) {
+        zoomValidated = false;
+      } else if ($scope.cache.minZoom === 0 && $scope.cache.maxZoom === 0) {
+        zoomValidated = true;
+      } else if ($scope.cache.minZoom === 0 && $scope.cache.maxZoom > 0) {
+        zoomValidated = true;
+      } else if ($scope.cache.maxZoom >= $scope.cache.minZoom) {
+        zoomValidated = true;
+      }
     }
 
     var cacheTypeSet = false;
@@ -228,7 +251,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       return false;
     }
 
-    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && (zoomValidated || $scope.cache.source.vector);
+    return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && zoomValidated;
   }
 
   $scope.createCache = function() {
@@ -263,7 +286,11 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   }
 
   function calculateCacheSize() {
-    if (!$scope.cache.source || ((isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom)) && !$scope.cache.source.vector) || !$scope.cache.geometry) return;
+    if (!$scope.tileCacheRequested || !$scope.cache.source || ((isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom)) && !$scope.cache.source.vector) || !$scope.cache.geometry) {
+      $scope.totalCacheSize = 0;
+      $scope.totalCacheTiles = 0;
+      return;
+    }
     $scope.totalCacheSize = 0;
     $scope.totalCacheTiles = 0;
     var extent = turf.extent($scope.cache.geometry);
