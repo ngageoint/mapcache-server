@@ -11,11 +11,10 @@ MapController.$inject = [
   '$filter',
   'CacheService',
   'MapService',
-  'TileUtilities',
   'LocalStorageService'
 ];
 
-function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, TileUtilities, LocalStorageService) {
+function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
@@ -48,8 +47,6 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
     }
     $rootScope.$broadcast('hideCache', cache);
   }
-
-  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
 
   var allCaches;
 

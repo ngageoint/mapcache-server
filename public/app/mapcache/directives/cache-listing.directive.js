@@ -18,9 +18,9 @@ function cacheListing() {
   return directive;
 }
 
-CacheListingController.$inject = ['$scope', '$rootScope', '$timeout', 'LocalStorageService', 'TileUtilities'];
+CacheListingController.$inject = ['$scope', '$rootScope', '$timeout', 'LocalStorageService'];
 
-function CacheListingController($scope, $rootScope, $timeout, LocalStorageService, TileUtilities) {
+function CacheListingController($scope, $rootScope, $timeout, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
   $scope.options.opacity = $scope.options.opacity || .14;
