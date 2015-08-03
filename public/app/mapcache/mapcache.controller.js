@@ -10,11 +10,10 @@ MapcacheController.$inject = [
   '$location',
   'LocalStorageService',
   'CacheService',
-  'MapService',
-  'TileUtilities'
+  'MapService'
 ];
 
-function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, MapService, TileUtilities) {
+function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, MapService) {
   $scope.token = LocalStorageService.getToken();
   $scope.view = {showingTiles: {}, showingDetails: {}};
 
@@ -61,8 +60,6 @@ function MapcacheController($scope, $rootScope, $compile, $timeout, $location, L
   $scope.createMap = function() {
     $location.path('/map');
   }
-
-  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
 
   $scope.downloadMissingTiles = function(cache) {
     CacheService.downloadMissing(cache).success(function(caches) {

@@ -52,3 +52,9 @@ var CacheModel = require('../../models/cache.js')
     }
   });
 }
+
+exports.deleteCache = function(cache, callback) {
+  fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".mbtiles", function(err) {
+    callback(err, cache);
+  });
+}

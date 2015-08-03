@@ -11,11 +11,10 @@ MapController.$inject = [
   '$filter',
   'CacheService',
   'MapService',
-  'TileUtilities',
   'LocalStorageService'
 ];
 
-function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, TileUtilities, LocalStorageService) {
+function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
@@ -49,15 +48,10 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
     $rootScope.$broadcast('hideCache', cache);
   }
 
-  $scope.getOverviewTilePath = TileUtilities.getOverviewTilePath;
-
   var allCaches;
 
   if ($routeParams.mapId) {
-    MapService.getCachesForMap($scope.map, function(caches) {
-      allCaches = caches;
-      $scope.caches = caches;
-    });
+    getCaches();
   }
 
   $scope.createCacheFromMap = function() {
@@ -67,6 +61,43 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
   $scope.$on('cacheFilterChange', function(event, filter) {
     $scope.caches = $filter('filter')($filter('filter')(allCaches, filter.cacheFilter), filter.mapFilter);
   });
+
+  $scope.$on('generateFormat', function(event, cache, format) {
+    CacheService.createCacheFormat(cache, format, function() {
+      cache.formats = cache.formats || {};
+      cache.formats[format] = cache.formats[format] || {};
+      cache.formats[format].generating = true;
+      getCaches();
+    });
+  });
+
+  function getCaches() {
+    MapService.getCachesForMap($scope.map, function(caches) {
+      allCaches = caches;
+      $scope.caches = caches;
+
+      var currentlyGenerating = false;
+      for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
+        var cache = caches[i];
+        if (!cache.status.complete) {
+          console.log('cache is generating', cache);
+          currentlyGenerating = true;
+        }
+        for (var format in cache.formats) {
+          if(cache.formats.hasOwnProperty(format)){
+            if (cache.formats[format].generating) {
+              console.log('cache format is generating ' + format, cache);
+              currentlyGenerating = true;
+            }
+          }
+        }
+      }
+      console.log("is a cache generating?", currentlyGenerating);
+      var delay = currentlyGenerating ? 30000 : 300000;
+      $timeout(getCaches, delay);
+
+    });
+  }
 
   function getMap() {
     MapService.refreshMap($scope.map, function(map) {

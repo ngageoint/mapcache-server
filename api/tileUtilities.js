@@ -8,7 +8,10 @@ var request = require('request')
 	, Canvas = require('canvas')
 	, Image = Canvas.Image
 	, CacheModel = require('../models/cache')
+	, SourceModel = require('../models/source')
+	, Maps = require('./sources')
 	, Readable = require('stream').Readable
+	, Caches = require('./caches')
  	, config = require('../config.json');
 
 Math.radians = function(degrees) {
@@ -43,12 +46,57 @@ exports.tileBboxCalculator = function(x, y, z) {
   return tileBounds;
 }
 
+exports.getOverviewTile = function(cache, callback) {
+	var extent = turf.extent(cache.geometry);
+	var zoom = cache.maxZoom || 18;
+	var min = cache.minZoom || 0;
+	//find the first zoom level with 1 tile
+	var y = exports.yCalculator(extent, cache.maxZoom);
+	var x = exports.xCalculator(extent, cache.maxZoom);
+	var found = false;
+	for (zoom; zoom >= min && !found; zoom--) {
+		y = exports.yCalculator(extent, zoom);
+		x = exports.xCalculator(extent, zoom);
+		if (y.min == y.max && x.min == x.max) {
+			found = true;
+		}
+	}
+	zoom = zoom+1;
+
+	Caches.getTile(cache, 'png', zoom, x.min, y.min, callback);
+}
+
+exports.getOverviewMapTile = function(map, callback) {
+	var extent = [-180, -85, 180, 85];
+	if (map.geometry) {
+		extent = turf.extent(map.geometry);
+	}
+	var zoom = 18;
+	var min = 0;
+	//find the first zoom level with 1 tile
+	var y = exports.yCalculator(extent, zoom);
+	var x = exports.xCalculator(extent, zoom);
+	var found = false;
+	for (zoom; zoom >= min && !found; zoom--) {
+		y = exports.yCalculator(extent, zoom);
+		x = exports.xCalculator(extent, zoom);
+		if (y.min == y.max && x.min == x.max) {
+			found = true;
+		}
+	}
+	zoom = zoom+1;
+
+	var params = {};
+
+	Maps.getTile(map, 'png', zoom, x.min, y.min, params, callback);
+}
+
 exports.xCalculator = function(bbox,z) {
 	var x = [];
 	var x1 = exports.getX(Number(bbox[0]), z);
 	var x2 = exports.getX(Number(bbox[2]), z);
 	x.max = Math.max(x1, x2);
-	x.min = Math.min(x1, x2);
+	x.min = Math.max(0,Math.min(x1, x2));
 	if (z == 0){
 		x.current = Math.min(x1, x2);
 	}
@@ -60,7 +108,7 @@ exports.yCalculator = function(bbox,z) {
 	var y1 = exports.getY(Number(bbox[1]), z);
 	var y2 = exports.getY(Number(bbox[3]), z);
 	y.max = Math.max(y1, y2);
-	y.min = Math.min(y1, y2);
+	y.min = Math.max(0,Math.min(y1, y2));
 	y.current = Math.min(y1, y2);
 	return y;
 }
@@ -320,7 +368,17 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
       try {
       var tileData = JSON.parse(tile.replace(/\bNaN\b/g, "null"));
       if (format == 'png') {
-        return exports.createImage(tileData, source.style, z, x, y, callback);
+        return exports.createImage(tileData, source.style, z, x, y, function(err, pngStream) {
+					var size = 0;
+					pngStream.on('data', function(chunk) {
+						size += chunk.length;
+					});
+					pngStream.on('end', function() {
+						SourceModel.updateSourceAverageSize(source, size, function(err) {
+						});
+					});
+					return callback(err, pngStream);
+				});
       } else {
         return callback(null);
       }
@@ -351,7 +409,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 		console.log('z %d x %d y %d', z, x, y);
 
 		getTileIndex(source.id, file, function(err, tileIndex) {
-			console.log('tileIndex', tileIndex);
+			// console.log('tileIndex', tileIndex);
 			if (!tileIndex) return callback(null);
 			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
 			if (!tile) return callback(null);

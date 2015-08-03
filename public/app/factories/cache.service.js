@@ -69,7 +69,7 @@ function CacheService($q, $http) {
   };
 
   function createCacheFormat(cache, format, success) {
-    return $http.get('/api/caches/'+cache.id+'/generate?minZoom=0&maxZoom=18&format='+format)
+    return $http.get('/api/caches/'+cache.id+'/generate?minZoom='+cache.minZoom+'&maxZoom='+cache.maxZoom+'&format='+format)
     .success(function(data, status, headers, config) {
       if (success) {
         success(cache);

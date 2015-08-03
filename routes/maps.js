@@ -3,6 +3,7 @@ module.exports = function(app, auth) {
     , api = require('../api')
     , fs = require('fs-extra')
     , path = require('path')
+    , tileUtilities = require('../api/tileUtilities')
     , request = require('request')
     , config = require('../config.json')
     , DOMParser = global.DOMParser = require('xmldom').DOMParser
@@ -105,6 +106,20 @@ module.exports = function(app, auth) {
       new api.Source().update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
         var response = sourceXform.transform(updatedSource);
         res.json(response);
+      });
+    }
+  );
+
+  app.get(
+    '/api/maps/:sourceId/overviewTile',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      tileUtilities.getOverviewMapTile(req.source, function(err, tileStream) {
+        if (err) return next(err);
+        if (!tileStream) return res.status(404).send();
+
+        tileStream.pipe(res);
       });
     }
   );

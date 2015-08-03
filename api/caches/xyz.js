@@ -4,6 +4,7 @@ var CacheModel = require('../../models/cache.js')
   , path = require('path')
   , source = require('../sources')
   , config = require('../../config.json')
+  , tileUtilities = require('../tileUtilities.js')
   , Readable = require('stream').Readable;
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
@@ -50,38 +51,69 @@ function downloadTile(tileInfo, tileDone) {
       return tileDone();
     }
 
-    source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
-      if (request) {
-        var stream = fs.createWriteStream(dir + filename);
-    		stream.on('close',function(status){
-          CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-            tileDone();
-          });
-    		});
+    console.log('source is a vector? ', tileInfo.xyzSource.source.vector);
+    if (tileInfo.xyzSource.source.vector) {
+      tileUtilities.getVectorTile(tileInfo.xyzSource, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
+        if (request) {
+          var stream = fs.createWriteStream(dir + filename);
+      		stream.on('close',function(status){
+            CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+              tileDone();
+            });
+      		});
 
-  			request.pipe(stream);
-      } else {
-        tileDone();
-      }
-		});
+    			request.pipe(stream);
+        } else {
+          tileDone();
+        }
+  		});
+    } else {
+      source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
+        if (request) {
+          var stream = fs.createWriteStream(dir + filename);
+      		stream.on('close',function(status){
+            CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+              tileDone();
+            });
+      		});
+
+    			request.pipe(stream);
+        } else {
+          tileDone();
+        }
+  		});
+    }
   });
 }
 
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
-  xyzTileWorker.createXYZTiles(cache, minZoom, maxZoom, downloadTile, function(cache, continueCallback) {
-    CacheModel.shouldContinueCaching(cache, continueCallback);
-  }, function(cache, zoom, zoomDoneCallback) {
-    CacheModel.updateZoomLevelStatus(cache, zoom, function(err) {
-      zoomDoneCallback();
-    });
-  }, function(err, cache) {
-    CacheModel.getCacheById(cache.id, function(err, foundCache) {
-      CacheModel.updateFormatCreated(foundCache, 'xyz', foundCache.totalTileSize, function(err, cache) {
-        cache.status.complete = true;
-        cache.save(function() {
-          callback(null, cache);
+  CacheModel.getCacheById(cache.id, function(err, cache) {
+    if (!cache.source.vector || (cache.formats && cache.formats.geojson && !cache.formats.geojson.generating)) {
+      xyzTileWorker.createXYZTiles(cache, minZoom, maxZoom, downloadTile, function(cache, continueCallback) {
+        CacheModel.shouldContinueCaching(cache, continueCallback);
+      }, function(cache, zoom, zoomDoneCallback) {
+        CacheModel.updateZoomLevelStatus(cache, zoom, function(err) {
+          zoomDoneCallback();
+        });
+      }, function(err, cache) {
+        CacheModel.getCacheById(cache.id, function(err, foundCache) {
+          CacheModel.updateFormatCreated(foundCache, 'xyz', foundCache.totalTileSize, function(err, cache) {
+            cache.status.complete = true;
+            cache.save(function() {
+              callback(null, cache);
+            });
+          });
         });
       });
-    });
+    } else {
+      console.log('geojson cache is not done generating, waiting 30 seconds to generate tms...');
+      setTimeout(exports.generateCache, 30000, cache, minZoom, maxZoom, callback);
+    }
+  });
+}
+
+exports.deleteCache = function(cache, callback) {
+  fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/xyztiles", function(err) {
+    callback(err, cache);
   });
 }

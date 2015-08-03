@@ -12,6 +12,7 @@ MapsController.$inject = [
 
 function MapsController($scope, $rootScope, LocalStorageService, CacheService, MapService) {
   $scope.token = LocalStorageService.getToken();
+  $rootScope.title = 'Maps';
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
