@@ -59,6 +59,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   if (!$scope.options.hideZoomIndicator) {
     map.addControl(new L.Control.ZoomIndicator());
   }
+
   map.on('click', function(event) {
     if (!$scope.map.style) return;
     if ($scope.map.style.title || $scope.map.style.description) {
@@ -306,6 +307,17 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     if (url != null) {
       debounceUrl(url);
     }
+  });
+
+  var legend = undefined;
+
+  $scope.$watch('map.style', function(styles) {
+    if (legend) {
+      map.removeControl(legend);
+    }
+    if (!styles) return;
+    legend = new L.Control.Legend(styles, {name: $scope.map.name});
+    map.addControl(legend);
   });
 
   $scope.$watch('map.format', function(format, oldFormat) {

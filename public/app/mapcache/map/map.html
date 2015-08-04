@@ -13,9 +13,9 @@
         <p class="map-status">{{map.status.message}}</p>
       </div>
     </div>
-    <div class="row" ng-show="!map.vector">
+    <div class="row" ng-show="map.status.totalFeatures">
       <div class="col-md-12">
-        <span class="page-sub-entity-label">Tile URL: <span class="page-sub-entity-title">/api/maps/{{map.id}}/{z}/{x}/{y}.png<span ng-show="map.previewLayer">?layer={{map.previewLayer.Name}}</span>
+        <span class="page-sub-entity-label">Total Features: <span class="page-sub-entity-title">{{map.status.totalFeatures}}</span>
       </div>
     </div>
 

@@ -94,6 +94,9 @@ function parseGeoJSONFile(source, callback) {
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
-    tileUtilities.generateMetadataTiles(source, gjData, callback);
+    source.status.totalFeatures = gjData.features.length;
+    source.save(function(err) {
+      tileUtilities.generateMetadataTiles(source, gjData, callback);
+    });
   });
 }
