@@ -303,8 +303,8 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     });
   }, 500);
 
-  $scope.$watch('map.mapcacheUrl', function(url) {
-    if (url != null) {
+  $scope.$watch('map.mapcacheUrl', function(url, oldUrl) {
+    if (url != null && url != oldUrl) {
       debounceUrl(url);
     }
   });
