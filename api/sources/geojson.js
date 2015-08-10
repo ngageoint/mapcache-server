@@ -1,4 +1,6 @@
 var SourceModel = require('../../models/source')
+  , FeatureModel = require('../../models/feature')
+  , async = require('async')
   , path = require('path')
   , request = require('request')
   , fs = require('fs-extra')
@@ -94,9 +96,34 @@ function parseGeoJSONFile(source, callback) {
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
-    source.status.totalFeatures = gjData.features.length;
-    source.save(function(err) {
-      tileUtilities.generateMetadataTiles(source, gjData, callback);
+    // save the geojson to the db
+    var count = 0;
+    async.eachSeries(gjData.features, function iterator(feature, callback) {
+      // console.log('saving feature %d', count++);
+      FeatureModel.createFeatureForSource(feature, source.id, function(err) {
+        count++;
+        // console.log('err', err);
+        async.setImmediate(function() {
+          if (count % 1000 == 0) {
+            source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
+    				source.save(function() {
+              callback(null, feature);
+    				});
+          } else {
+            callback(null, feature);
+          }
+        });
+      });
+
+      // async.setImmediate(function () {
+      //   callback(null, cache[item]);
+      // });
+    }, function done() {
+      source.status.totalFeatures = gjData.features.length;
+      source.save(function(err) {
+        tileUtilities.generateMetadataTiles(source, gjData, callback);
+      });
     });
+
   });
 }

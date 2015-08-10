@@ -75,4 +75,13 @@ module.exports = function(app, security) {
       });
   });
 
+  // Grab the cache for any endpoint that uses cacheId
+  app.param('sourceIdFormat', function(req, res, next, sourceId) {
+      Source.getSourceFormat(sourceId, function(err, source) {
+        if (!source) return res.status(404).send('Source ' + sourceId + ' not found');
+        req.source = source;
+        next();
+      });
+  });
+
 }

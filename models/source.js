@@ -96,6 +96,15 @@ exports.getSourceById = function(id, callback) {
   });
 }
 
+exports.getSourceFormat = function(id, callback) {
+  Source.findById(id, {format: 1, style: 1}).exec(function(err, source) {
+    if (err) {
+      console.log("Error finding source in mongo: " + id + ', error: ' + err);
+    }
+    return callback(err, source);
+  });
+}
+
 exports.updateSource = function(id, update, callback) {
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);
