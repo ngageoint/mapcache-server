@@ -44,3 +44,24 @@ exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, nor
     callback(null, collection);
   });
 }
+
+exports.fetchTileForSourceId = function(sourceId, bbox, z, callback) {
+		var featureCount = 0;
+		var coordCount = 0;
+  knex.select('*').from(knex.raw("tile("+bbox.west+","+bbox.south+","+bbox.east+","+bbox.north+","+z+", 'select properties as properties, geometry as the_geom from features where \"sourceId\"=''"+sourceId+"''')")).map(function(thing) {
+		featureCount++;
+		var geom = JSON.parse(thing.geometry);
+		if (geom.coordinates[0] && geom.coordinates[0][0]) {
+			console.log('geom coords', geom.coordinates[0]);
+			coordCount += geom.coordinates[0].length;
+		}
+    return {
+      properties: thing.properties,
+      geometry: geom
+    };
+  }).then(function(collection){
+		console.log('feature count', featureCount);
+		console.log('coord count', coordCount);
+    callback(null, collection);
+  });
+}

@@ -39,68 +39,7 @@ knex.schema.hasTable('vector_tiles').then(function(exists) {
   }
 });
 
-var tileFunction =
-"CREATE OR REPLACE FUNCTION tile (west double precision, south double precision, east double precision, north double precision, z integer, query text) RETURNS TABLE(geom geometry)"+
-"AS $$"+
-"DECLARE"+
-"sql TEXT;"+
-"BEGIN"+
-"sql := 'with _conf as ("+
-"    select"+
-"        CDB_XYZ_resolution(' || z || ') as res,"+
-"        1.0/CDB_XYZ_resolution(' || z || ') as invres,"+
-"        ' || west || ' as tile_x,"+
-"        ' || south || ' as tile_y"+
-" ),"+
-" _geom as ("+
-"    select ST_Intersection("+
-"        ST_Simplify("+
-"          ST_SnapToGrid(the_geom, res/20, res/20),"+
-"          res/20"+
-"        ),"+
-"        ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ')"+
-"    ) as _clip_geom from (' || query || ') _wrap, _conf where the_geom && ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ')"+
-")"+
-"select ST_Affine(_clip_geom, invres, 0, 0, invres, -tile_x, -tile_y) as geom from _geom, _conf where not ST_IsEmpty(_clip_geom)"+
-"';"+
-"-- RAISE NOTICE 'sql: %', sql;"+
-"RETURN QUERY EXECUTE sql;"+
-
-"END;"+
-"$$ LANGUAGE plpgsql;";
-
 /*
-
-CREATE OR REPLACE FUNCTION tile (west double precision, south double precision, east double precision, north double precision, z integer, query text) RETURNS TABLE(text text)
-AS $$
-DECLARE
-sql TEXT;
-BEGIN
-sql := 'with _conf as (
-    select
-        CDB_XYZ_resolution(' || z || ') as res,
-        1.0/CDB_XYZ_resolution(' || z || ') as invres,
-        ST_XMin(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_x,
-        ST_XMax(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_x_max,
-        ST_YMin(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_y,
-        ST_YMax(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_y_max
- ),
- _geom as (
-    select ST_Intersection(
-        the_geom,
-        ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326)
-    ) as _clip_geom from (' || query || ') _wrap, _conf where the_geom && ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326)
-)
-select ST_AsGeoJSON(ST_TransScale(ST_Transform(ST_SimplifyPreserveTopology(_clip_geom, invres), 3857), -tile_x, -tile_y, (4096/(tile_x_max-tile_x)), (4096/(tile_y_max-tile_y))), 1) as geom from _geom, _conf where not ST_IsEmpty(_clip_geom)
-
-
-';
--- RAISE NOTICE 'sql: %', sql;
-RETURN QUERY EXECUTE sql;
-
-END;
-$$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION tile (west double precision, south double precision, east double precision, north double precision, z integer, query text) RETURNS TABLE(geometry text, properties json)
 AS $$
@@ -109,8 +48,6 @@ sql TEXT;
 BEGIN
 sql := 'with _conf as (
     select
-        CDB_XYZ_resolution(' || z || ') as res,
-        1.0/CDB_XYZ_resolution(' || z || ') as invres,
         ST_XMin(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_x,
         ST_XMax(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_x_max,
         ST_YMin(ST_Transform(ST_MakeEnvelope(' || west || ', ' || south || ' , ' || east || ', ' || north || ', 4326),3857)) as tile_y,
@@ -122,8 +59,7 @@ sql := 'with _conf as (
         ST_MakeEnvelope(' || west - abs(west*.05) || ', ' || south - abs(south*.05) || ' , ' || east + abs(east*.05) || ', ' || north + abs(north*.05) || ', 4326)
     ) as _clip_geom, properties as properties from (' || query || ') _wrap, _conf where the_geom && ST_MakeEnvelope(' || west - abs(west*.05) || ', ' || south - abs(south*.05) || ' , ' || east + abs(east*.05) || ', ' || north + abs(north*.05) || ', 4326)
 )
-select ST_AsGeoJSON(ST_TransScale(ST_Transform(_clip_geom, 3857), -tile_x, -tile_y, (4096/(tile_x_max-tile_x)), (4096/(tile_y_max-tile_y))), 1) as geom, properties from _geom, _conf where not ST_IsEmpty(_clip_geom)
-
+select ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Transform(_clip_geom, 3857), -tile_x, -tile_y, (4096/(tile_x_max-tile_x)), (4096/(tile_y_max-tile_y))), 2*(4096/256)), 1) as geom, properties from _geom, _conf where not ST_IsEmpty(_clip_geom) limit 10000
 
 ';
 -- RAISE NOTICE 'sql: %', sql;
@@ -133,11 +69,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
 */
-
-knex.raw(tileFunction);
-
-
-
 
 module.exports = knex;
