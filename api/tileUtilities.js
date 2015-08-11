@@ -213,6 +213,11 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	var bbox = exports.tileBboxCalculator(x, y, z);
 
+	if (source.geometry && !turf.intersect(turf.bboxPolygon([bbox.west - Math.abs(bbox.west*.05), bbox.south - Math.abs(bbox.south*.05), bbox.east + Math.abs(bbox.east*.05), bbox.north + Math.abs(bbox.north*.05)]), source.geometry)) {
+		console.log("No data, returning early");
+		return callback(null);
+	}
+
 	FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
 
 		try {

@@ -60,6 +60,36 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     map.addControl(new L.Control.ZoomIndicator());
   }
 
+  var mapTilesLoaded = {};
+  var canvasTiles = L.tileLayer.canvas();
+
+  canvasTiles.drawTile = function(canvas, tilePoint, zoom) {
+    console.log('tilePoint', tilePoint);
+    console.log('zoom', zoom);
+
+
+
+      var crs = this._map.options.crs,
+  		    size = crs.getSize(this._map.getZoom());
+  		var limit = size.divideBy(this._getTileSize())._floor();
+
+  		var limit = this._getWrapTileNum();
+
+  			tilePoint.x = ((tilePoint.x % limit.x) + limit.x) % limit.x;
+
+        console.log('tilePoint', tilePoint);
+        var ctx = canvas.getContext('2d');
+
+        if (mapTilesLoaded[zoom+'-'+tilePoint.x+'-'+tilePoint.y]) {
+          ctx.fillStyle = "rgba(128, 128, 128, 0)";
+        } else {
+
+      ctx.fillStyle="rgba(128, 128, 128, .5)";
+    }
+      ctx.fillRect(0, 0, 256, 256);
+      // draw something on the tile canvas
+  }
+
   map.on('click', function(event) {
     if (!$scope.map.style) return;
     if ($scope.map.style.title || $scope.map.style.description) {
@@ -198,12 +228,6 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   $rootScope.$on('hideCacheTiles', function(event, cache) {
     removeCacheTiles(cache);
   });
-
-  // $rootScope.$on('cacheFilterChange', function(event, filter) {
-  //   CacheService.getAllCaches().success(function(caches) {
-  //     $scope.caches = $filter('filter')($filter('filter')(caches, filter.cacheFilter), filter.mapFilter);
-  //   });
-  // });
 
   var popupOpenId;
 
@@ -364,6 +388,23 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     var tl = LeafletUtilities.tileLayer($scope.map, defaultLayer, mapLayerOptions, $scope.map.style, styleFunction);
     if (!tl) return;
     mapLayer = tl;
+    tl.on('tileload', function(event) {
+      var split = event.url.split('/');
+      var z = split[6];
+      var x = split[7];
+      var y = split[8].split('.')[0];
+      mapTilesLoaded[z+'-'+x+'-'+y] = true;
+      canvasTiles.redraw();
+    });
+    tl.on('tileerror', function(event) {
+      var split = event.url.split('/');
+      var z = split[6];
+      var x = split[7];
+      var y = split[8].split('.')[0];
+      mapTilesLoaded[z+'-'+x+'-'+y] = true;
+      canvasTiles.redraw();
+    });
+    map.addLayer(canvasTiles);
     mapLayer.addTo(map);
     if ($scope.map.geometry) {
       updateMapExtent();

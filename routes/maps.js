@@ -125,7 +125,7 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/sources/:sourceId/:z/:x/:y.:format',
+    '/api/sources/:sourceIdNoProperties/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -141,7 +141,7 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/maps/:sourceId/:z/:x/:y.:format',
+    '/api/maps/:sourceIdNoProperties/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {

@@ -56,10 +56,10 @@ sql := 'with _conf as (
  _geom as (
     select ST_Intersection(
         the_geom,
-        ST_MakeEnvelope(' || west - abs(west*.05) || ', ' || south - abs(south*.05) || ' , ' || east + abs(east*.05) || ', ' || north + abs(north*.05) || ', 4326)
-    ) as _clip_geom, properties as properties from (' || query || ') _wrap, _conf where the_geom && ST_MakeEnvelope(' || west - abs(west*.05) || ', ' || south - abs(south*.05) || ' , ' || east + abs(east*.05) || ', ' || north + abs(north*.05) || ', 4326)
+        ST_MakeEnvelope(' || GREATEST(-180, west - abs(east-west*.05)) || ', ' || GREATEST(-85,south - abs(north-south*.05)) || ' , ' || LEAST(180, east + abs(east-west*.05)) || ', ' || LEAST(85, north + abs(north-south*.05)) || ', 4326)
+    ) as _clip_geom, properties as properties from (' || query || ') _wrap, _conf where the_geom && ST_MakeEnvelope(' || GREATEST(-180, west - abs(east-west*.05)) || ', ' || GREATEST(-85, south - abs(north-south*.05)) || ' , ' || LEAST(180, east + abs(east-west*.05)) || ', ' || LEAST(85, north + abs(north-south*.05)) || ', 4326)
 )
-select ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Transform(_clip_geom, 3857), -tile_x, -tile_y, (4096/(tile_x_max-tile_x)), (4096/(tile_y_max-tile_y))), 2*(4096/256)), 1) as geom, properties from _geom, _conf where not ST_IsEmpty(_clip_geom) limit 10000
+select ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Transform(_clip_geom, 3857), -tile_x, -tile_y, (4096/(tile_x_max-tile_x)), (4096/(tile_y_max-tile_y))), 4096/256), 1) as geom, properties from _geom, _conf where not ST_IsEmpty(_clip_geom) limit 10000
 
 ';
 -- RAISE NOTICE 'sql: %', sql;

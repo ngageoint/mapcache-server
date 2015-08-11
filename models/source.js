@@ -96,8 +96,8 @@ exports.getSourceById = function(id, callback) {
   });
 }
 
-exports.getSourceFormat = function(id, callback) {
-  Source.findById(id, {format: 1, style: 1}).exec(function(err, source) {
+exports.getSourceNoProperties = function(id, callback) {
+  Source.findById(id, {properties: 0}).exec(function(err, source) {
     if (err) {
       console.log("Error finding source in mongo: " + id + ', error: ' + err);
     }

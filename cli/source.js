@@ -1,6 +1,8 @@
 var fs = require('fs-extra')
   , path = require('path')
   , api = require('../api')
+  , knex = require('../db/knex')
+  , async = require('async')
   , sources = require('../api/sources');
 
 exports.createSource = function(yargs) {
@@ -263,6 +265,54 @@ exports.getSourceData = function(yargs) {
         }
       }
     });
+  });
+}
+
+exports.ingestMissingVectors = function(yargs) {
+  var argv = yargs.usage('Ingests the maps with vector data not in postgres.\nUsage: $0 ingestMissingVectors [options]')
+  .help('help')
+  .argv;
+
+  new api.Source().getAll({}, function(err, mongoSources) {
+    if (mongoSources.length ==0 ) {
+      console.log("Found 0 sources.");
+      return;
+    }
+    console.log('found ' + mongoSources.length + ' sources to look for');
+    async.eachSeries(mongoSources, function iterator(source, callback) {
+      console.log('looking for source in postgis', source);
+      if (source.vector) {
+        knex.select().where('sourceId', source.id).from('features').then(function(postgisSources) {
+          console.log('found source', postgisSources);
+          if (postgisSources.length == 0) {
+            sources.process(source, function(err, source) {
+              callback();
+            });
+          } else {
+            callback();
+          }
+        });
+      } else {
+        callback();
+      }
+    }, function done() {
+      process.exit();
+    });
+  });
+}
+
+exports.reingestVectors = function(yargs) {
+  var argv = yargs.usage('Reingests the map specified with vector data.\nUsage: $0 reingestVectors [options]')
+  .option('i', {
+    alias: 'ID',
+    description: 'ID of source',
+    demand: true
+  })
+  .help('help')
+  .argv;
+
+  new api.Source().getById(argv.i, function(err, source) {
+    
   });
 }
 

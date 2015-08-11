@@ -4,12 +4,12 @@ var knex = require('../db/knex')
 
 exports.createFeatureForSource = function(feature, sourceId, callback) {
   var gj = JSON.stringify(feature.geometry);
-  knex('features').insert({sourceId: sourceId, properties: feature.properties, geometry: knex.raw('ST_SetSRID(ST_Force_2D(ST_GeomFromGeoJSON(\''+gj+'\')), 4326)')}).then(callback);
+  knex('features').insert({sourceId: sourceId, properties: feature.properties, geometry: knex.raw('ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326)')}).then(callback);
 }
 
 exports.createFeatureForCache = function(feature, cacheId, callback) {
   var gj = JSON.stringify(feature.geometry);
-  knex('features').insert({cacheId: cacheId, properties: feature.properties, geometry: knex.raw('ST_SetSRID(ST_Force_2D(ST_GeomFromGeoJSON(\''+gj+'\')), 4326)')}).then(callback);
+  knex('features').insert({cacheId: cacheId, properties: feature.properties, geometry: knex.raw('ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326)')}).then(callback);
 }
 
 exports.deleteFeaturesByCacheId = function(id, callback) {
@@ -46,22 +46,13 @@ exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, nor
 }
 
 exports.fetchTileForSourceId = function(sourceId, bbox, z, callback) {
-		var featureCount = 0;
-		var coordCount = 0;
-  knex.select('*').from(knex.raw("tile("+bbox.west+","+bbox.south+","+bbox.east+","+bbox.north+","+z+", 'select properties as properties, geometry as the_geom from features where \"sourceId\"=''"+sourceId+"''')")).map(function(thing) {
-		featureCount++;
+  knex.select('*').from(knex.raw("tile("+bbox.west+","+bbox.south+","+bbox.east+","+bbox.north+","+z+", 'select properties as properties, geometry as the_geom from features where   \"sourceId\"=''"+sourceId+"''')")).map(function(thing) {
 		var geom = JSON.parse(thing.geometry);
-		if (geom.coordinates[0] && geom.coordinates[0][0]) {
-			console.log('geom coords', geom.coordinates[0]);
-			coordCount += geom.coordinates[0].length;
-		}
     return {
       properties: thing.properties,
       geometry: geom
     };
   }).then(function(collection){
-		console.log('feature count', featureCount);
-		console.log('coord count', coordCount);
     callback(null, collection);
   });
 }

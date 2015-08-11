@@ -4,6 +4,7 @@ var SourceModel = require('../../models/source')
   , path = require('path')
   , request = require('request')
   , fs = require('fs-extra')
+  , turf = require('turf')
   , tileUtilities = require('../tileUtilities.js')
   , config = require('../../config.json');
 
@@ -114,15 +115,39 @@ function parseGeoJSONFile(source, callback) {
           }
         });
       });
-
-      // async.setImmediate(function () {
-      //   callback(null, cache[item]);
-      // });
     }, function done() {
       source.status.totalFeatures = gjData.features.length;
-      source.save(function(err) {
-        tileUtilities.generateMetadataTiles(source, gjData, callback);
-      });
+      var geometry = turf.envelope(gjData);
+    	source.geometry = geometry;
+      source.style = {
+    		defaultStyle: {
+    			style: {
+    				'fill': "#000000",
+    				'fill-opacity': 0.5,
+    				'stroke': "#0000FF",
+    				'stroke-opacity': 1.0,
+    				'stroke-width': 1
+    			}
+    		},
+    		styles: []
+    	};
+      source.status.complete = true;
+			source.status.message = "Complete";
+			source.properties = [];
+			var allProperties = {};
+			for (var i = 0; i < gjData.features.length; i++) {
+				var feature = gjData.features[i];
+				for (var property in feature.properties) {
+					allProperties[property] = allProperties[property] || {key: property, values:[]};
+					if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
+						allProperties[property].values.push(feature.properties[property]);
+					}
+				}
+			}
+			for (var property in allProperties) {
+				source.properties.push(allProperties[property]);
+			}
+      source.save(callback);
     });
 
   });
