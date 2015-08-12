@@ -75,20 +75,69 @@ function LeafletUtilities(LocalStorageService, MapService) {
   }
 
   function tileLayer(layerSource, defaultLayer, layerOptions, style, styleFunction) {
+    console.log('layerSource', layerSource);
     if (layerSource == null) {
       return L.tileLayer(defaultLayer, layerOptions);
     } else if (layerSource.vector) {
-      console.log('layersource', layerSource);
-      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+(layerSource.styleTime ? "&_dc="+ layerSource.styleTime : "");
-      if (layerSource.wmsLayer) {
-        url += '&layer=' + layerSource.wmsLayer.Name;
-      }
-      var layer = L.tileLayer(url, layerOptions);
-      return layer;
+
+      // var canvasLayer = L.tileLayer.canvas({async: true});
+      // canvasLayer.drawTile = function(canvas, tilePoint, zoom) {
+      //   var ctx = canvas.getContext('2d');
+      //   SourceService.getSourceVectorTile(layerSource, zoom, tilePoint.x, tilePoint.y, function(data, status) {
+      //     console.log('data', data);
+      //     var features = data.features;
+      //     for (var i = 0; i < features.length; i++) {
+      //       var feature = features[i], typeChanged = type !== feature.type,
+      //         type = feature.type;
+      //       ctx.beginPath();
+      //       for (var j = 0; j < feature.geometry.length; j++) {
+      //         var ring = feature.geometry[j];
+      //         for (var k = 0; k < ring.length; k++) {
+      //           var p = ring[k];
+      //           if (k) ctx.lineTo(p[0] / 16.0, p[1] / 16.0);
+      //           else ctx.moveTo(p[0] / 16.0, p[1] / 16.0);
+      //         }
+      //       }
+      //       var styles = styleFunction(feature);
+      //       var rgbFill = hexToRgb(styles.fillColor);
+      //       ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+      //       ctx.lineWidth = styles.weight;
+      //       var rgbStroke = hexToRgb(styles.color);
+      //       ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+      //
+      //       if (type === 3) ctx.fill('evenodd');
+      //       ctx.stroke();
+      //
+      //       /*
+      //
+      //       */
+      //     }
+      //     canvasLayer.tileDrawn(canvas);
+      //   });
+      // };
+      // return canvasLayer;
+
+      // if (!layerSource.data) {
+        var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+Date.now();
+        if (layerSource.wmsLayer) {
+          url += '&layer=' + layerSource.wmsLayer.Name;
+        }
+        var layer = L.tileLayer(url, layerOptions);
+        return layer;
+      // } else {
+      //   var gj = L.geoJson(layerSource.data, {
+      //     style: styleFunction,
+      //     pointToLayer: pointToLayer,
+      //     onEachFeature: function(feature, layer) {
+      //       popupFunction(feature, layer, style);
+      //     }
+      //   });
+      //   return gj;
+      // }
     } else if (typeof layerSource == "string") {
-      return L.tileLayer(layerSource + "/{z}/{x}/{y}.png", layerOptions);
+      return L.tileLayer(layerSource + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png"), layerOptions);
     } else if (layerSource.mapcacheUrl) {
-      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken();
       if (layerSource.wmsLayer) {
         url += '&layer=' + layerSource.wmsLayer.Name;
       }
@@ -102,9 +151,11 @@ function LeafletUtilities(LocalStorageService, MapService) {
           format: layerSource.wmsLayer.opaque ? 'image/jpeg' : 'image/png'
         });
       }
-    }else if (layerSource.url) {
+    } else if (layerSource.format == 'arcgis') {
+      return L.tileLayer(layerSource.wmsGetCapabilities.tileServers[0] + "/tile/{z}/{y}/{x}", layerOptions);
+    } else if (layerSource.url) {
       console.log('layersource.url', layerSource.url);
-      var url = layerSource.url + "/{z}/{x}/{y}.png";
+      var url = layerSource.url + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png");
       if (layerSource.wmsLayer) {
         url += '&layer=' + source.wmsLayer.Name;
       }

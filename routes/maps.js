@@ -232,48 +232,66 @@ module.exports = function(app, auth) {
       };
 
       request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response, body) {
-        if (!err && response && response.statusCode == 200 && response.headers['content-type'] == 'image/png') {
+        if (!err && response && response.statusCode == 200 && response.headers['content-type'].startsWith('image')) {
           sourceInformation.valid = true;
           sourceInformation.format = 'xyz';
           res.json(sourceInformation);
         } else {
-
-          request.get({url: req.param('url'), json: true, timeout: 5000}, function(err, response, body){
-            if (!err && response && (response.statusCode == 200 || response.statusCode == 406)) {
+          request.get({url: req.param('url') + '?f=pjson', timeout: 5000}, function(err, response, body) {
+            if (!err && response && response.statusCode == 200) {
               sourceInformation.valid = true;
-            }
-            if (!err && response && response.statusCode == 200 && body && typeof body == "object") {
-              sourceInformation.format = 'geojson';
+              sourceInformation.format = 'arcgis';
+              sourceInformation.wmsGetCapabilities = JSON.parse(body);
               res.json(sourceInformation);
             } else {
-              console.log('err from json request was ', err);
-              request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: false, timeout: 5000}, function(error, response, body) {
-                console.log('error', error);
-                if (!error && response && response.statusCode == 200) {
-                  var json = new WMSCapabilities(body).toJSON();
-                  if (json && json.version && json.version != "") {
-                    console.log('json.version', json.version);
-                    sourceInformation.format = 'wms';
-                    sourceInformation.wmsGetCapabilities = json;
-                    res.json(sourceInformation);
-                  } else {
-                    res.json(sourceInformation);
-                  }
+              request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response, body) {
+                if (!err && response && response.statusCode == 200 && response.headers['content-type'].startsWith('image')) {
+                  sourceInformation.valid = true;
+                  sourceInformation.format = 'xyz';
+                  sourceInformation.tilesLackExtensions = true;
+                  res.json(sourceInformation);
                 } else {
-                  request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
-                    console.log('error', error);
-                    if (!error && response && response.statusCode == 200) {
-                      var json = new WMSCapabilities(body).toJSON();
-                      if (json && json.version && json.version != "") {
-                        console.log('json.version', json.version);
-                        sourceInformation.format = 'wms';
-                        sourceInformation.wmsGetCapabilities = json;
-                        res.json(sourceInformation);
-                      } else {
-                        res.json(sourceInformation);
-                      }
-                    } else {
+
+                  request.get({url: req.param('url'), json: true, timeout: 5000}, function(err, response, body){
+                    if (!err && response && (response.statusCode == 200 || response.statusCode == 406)) {
+                      sourceInformation.valid = true;
+                    }
+                    if (!err && response && response.statusCode == 200 && body && typeof body == "object") {
+                      sourceInformation.format = 'geojson';
                       res.json(sourceInformation);
+                    } else {
+                      console.log('err from json request was ', err);
+                      request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: false, timeout: 5000}, function(error, response, body) {
+                        console.log('error', error);
+                        if (!error && response && response.statusCode == 200) {
+                          var json = new WMSCapabilities(body).toJSON();
+                          if (json && json.version && json.version != "") {
+                            console.log('json.version', json.version);
+                            sourceInformation.format = 'wms';
+                            sourceInformation.wmsGetCapabilities = json;
+                            res.json(sourceInformation);
+                          } else {
+                            res.json(sourceInformation);
+                          }
+                        } else {
+                          request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
+                            console.log('error', error);
+                            if (!error && response && response.statusCode == 200) {
+                              var json = new WMSCapabilities(body).toJSON();
+                              if (json && json.version && json.version != "") {
+                                console.log('json.version', json.version);
+                                sourceInformation.format = 'wms';
+                                sourceInformation.wmsGetCapabilities = json;
+                                res.json(sourceInformation);
+                              } else {
+                                res.json(sourceInformation);
+                              }
+                            } else {
+                              res.json(sourceInformation);
+                            }
+                          });
+                        }
+                      });
                     }
                   });
                 }

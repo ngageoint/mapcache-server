@@ -20,7 +20,7 @@ var SourceSchema = new Schema({
 	projection: { type: String, required: false},
   size: { type: Number, required: false},
   tileSizeCount: { type: Number, required: false},
-  tileSize: { type: Number, required: false},
+  tileSize: { type: Number, required: false, default: 0},
 	humanReadableId: { type: String, required: false},
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,
@@ -36,7 +36,7 @@ var SourceSchema = new Schema({
 		generatedFeatures: {type: Number, required: true, default: 0},
 		zoomLevelStatus: Schema.Types.Mixed
 	},
-
+  tilesLackExtensions: {type: Boolean, default: false},
   format: { type: String, required: false},
   filePath: { type: String, required: false},
   vector: { type: Boolean, required: false},
@@ -74,7 +74,11 @@ exports.getSources = function(options, callback) {
 exports.updateSourceAverageSize = function(source, size, callback) {
   var update = {$inc: {}};
   update.$inc['tileSizeCount'] = 1;
-  update.$inc['tileSize'] = size;
+  if (source.tileSize == 0){
+    update.tileSize = size;
+  } else {
+    update.$inc['tileSize'] = size;
+  }
   Source.findByIdAndUpdate(source.id, update, callback);
 }
 
