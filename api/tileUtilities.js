@@ -265,6 +265,8 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 }
 
 exports.createImage = function(tile, style, z, x, y, callback) {
+	console.log('creating image');
+	console.time('creating image for tile');
   var canvas = new Canvas(256,256);
   var ctx = canvas.getContext('2d');
   var ratio = 256 / 4096;
@@ -275,15 +277,18 @@ exports.createImage = function(tile, style, z, x, y, callback) {
   ctx.strokeStyle = 'red';
   ctx.fillStyle = 'rgba(255,0,0,0.05)';
 
+	var points = 0;
+
   for (var i = 0; i < features.length; i++) {
-    var feature = features[i].geometry,
-      type = feature.type;
+		var feature = JSON.parse(features[i].geometry);
+		var type = feature.type;
 
     ctx.beginPath();
 
     var geom = feature.coordinates;
 
-    if (type === 'Point') {
+    if (type === 'Point' && points < 10000) {
+			points++;
       drawPoint(geom, ctx, ratio);
     } else if (type === 'MultiPoint') {
 			for (var point = 0; point < geom.length; point++) {
@@ -313,6 +318,7 @@ exports.createImage = function(tile, style, z, x, y, callback) {
     ctx.fill('evenodd');
     ctx.stroke();
   }
+	console.timeEnd('creating image for tile');
   callback(null, canvas.pngStream());
 }
 

@@ -46,13 +46,15 @@ exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, nor
 }
 
 exports.fetchTileForSourceId = function(sourceId, bbox, z, callback) {
-  knex.select('*').from(knex.raw("tile("+bbox.west+","+bbox.south+","+bbox.east+","+bbox.north+","+z+", 'select properties as properties, geometry as the_geom from features where   \"sourceId\"=''"+sourceId+"''')")).map(function(thing) {
+	console.time('fetching data');
+  knex.select('*').from(knex.raw("tile("+bbox.west+","+bbox.south+","+bbox.east+","+bbox.north+","+z+", 'select properties as properties, geometry as the_geom from features where   \"sourceId\"=''"+sourceId+"''')"))/*.map(function(thing) {
 		var geom = JSON.parse(thing.geometry);
     return {
       properties: thing.properties,
       geometry: geom
     };
-  }).then(function(collection){
+  })*/.then(function(collection){
+		console.timeEnd('fetching data');
     callback(null, collection);
   });
 }
