@@ -75,6 +75,7 @@ function LeafletUtilities(LocalStorageService, MapService) {
   }
 
   function tileLayer(layerSource, defaultLayer, layerOptions, style, styleFunction) {
+    console.log('layerSource', layerSource);
     if (layerSource == null) {
       return L.tileLayer(defaultLayer, layerOptions);
     } else if (layerSource.vector) {
@@ -117,7 +118,7 @@ function LeafletUtilities(LocalStorageService, MapService) {
       // return canvasLayer;
 
       // if (!layerSource.data) {
-        var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+Date.now();
+        var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+Date.now();
         if (layerSource.wmsLayer) {
           url += '&layer=' + layerSource.wmsLayer.Name;
         }
@@ -134,9 +135,9 @@ function LeafletUtilities(LocalStorageService, MapService) {
       //   return gj;
       // }
     } else if (typeof layerSource == "string") {
-      return L.tileLayer(layerSource + "/{z}/{x}/{y}.png", layerOptions);
+      return L.tileLayer(layerSource + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png"), layerOptions);
     } else if (layerSource.mapcacheUrl) {
-      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken();
+      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken();
       if (layerSource.wmsLayer) {
         url += '&layer=' + layerSource.wmsLayer.Name;
       }
@@ -150,9 +151,11 @@ function LeafletUtilities(LocalStorageService, MapService) {
           format: layerSource.wmsLayer.opaque ? 'image/jpeg' : 'image/png'
         });
       }
-    }else if (layerSource.url) {
+    } else if (layerSource.format == 'arcgis') {
+      return L.tileLayer(layerSource.wmsGetCapabilities.tileServers[0] + "/tile/{z}/{y}/{x}", layerOptions);
+    } else if (layerSource.url) {
       console.log('layersource.url', layerSource.url);
-      var url = layerSource.url + "/{z}/{x}/{y}.png";
+      var url = layerSource.url + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png");
       if (layerSource.wmsLayer) {
         url += '&layer=' + source.wmsLayer.Name;
       }
