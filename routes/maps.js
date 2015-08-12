@@ -134,7 +134,7 @@ module.exports = function(app, auth) {
       sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
-
+        res.setHeader('Cache-Control', 'max-age=86400');
         tileStream.pipe(res);
       });
     }

@@ -64,30 +64,22 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   var canvasTiles = L.tileLayer.canvas();
 
   canvasTiles.drawTile = function(canvas, tilePoint, zoom) {
-    console.log('tilePoint', tilePoint);
-    console.log('zoom', zoom);
+    var crs = this._map.options.crs,
+		    size = crs.getSize(this._map.getZoom());
+		var limit = size.divideBy(this._getTileSize())._floor();
 
+		var limit = this._getWrapTileNum();
 
+		tilePoint.x = ((tilePoint.x % limit.x) + limit.x) % limit.x;
 
-      var crs = this._map.options.crs,
-  		    size = crs.getSize(this._map.getZoom());
-  		var limit = size.divideBy(this._getTileSize())._floor();
+    var ctx = canvas.getContext('2d');
 
-  		var limit = this._getWrapTileNum();
-
-  			tilePoint.x = ((tilePoint.x % limit.x) + limit.x) % limit.x;
-
-        console.log('tilePoint', tilePoint);
-        var ctx = canvas.getContext('2d');
-
-        if (mapTilesLoaded[zoom+'-'+tilePoint.x+'-'+tilePoint.y]) {
-          ctx.fillStyle = "rgba(128, 128, 128, 0)";
-        } else {
-
+    if (mapTilesLoaded[zoom+'-'+tilePoint.x+'-'+tilePoint.y]) {
+      ctx.fillStyle = "rgba(128, 128, 128, 0)";
+    } else {
       ctx.fillStyle="rgba(128, 128, 128, .5)";
     }
-      ctx.fillRect(0, 0, 256, 256);
-      // draw something on the tile canvas
+    ctx.fillRect(0, 0, 256, 256);
   }
 
   map.on('click', function(event) {
