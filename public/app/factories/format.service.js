@@ -16,6 +16,7 @@ function FormatService() {
     gpx: "GPX",
     wms: "Web Map Service (WMS)",
     kmz: "KMZ",
-    mrsid: "MrSID"
+    mrsid: "MrSID",
+    arcgis: "ArcGIS"
   };
 }

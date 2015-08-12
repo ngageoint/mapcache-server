@@ -42,6 +42,7 @@
     "wms": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
     "geotiff": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
     "mrsid": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "mbtiles": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}]
+    "mbtiles": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
+    "arcgis": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}]
   }
 }

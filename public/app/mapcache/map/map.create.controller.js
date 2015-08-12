@@ -15,7 +15,7 @@ MapCreateController.$inject = [
 function MapCreateController($scope, $rootScope, $location, $timeout, $http, CacheService, MapService) {
   $rootScope.title = 'Create A Map';
 
-  $scope.validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}];
+  $scope.validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}, {format:'arcgis'}];
   $scope.validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}, {format: 'mrsid'}];
 
   $scope.map = {
@@ -135,7 +135,7 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
   });
 
   $scope.$watch('mapInformation.wmsGetCapabilities', function(capabilities, oldCapabilities) {
-    if (capabilities) {
+    if (capabilities && capabilities.Capability) {
       $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];
     } else {
       $scope.wmsLayers = [];
@@ -161,6 +161,12 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
         } else {
           $scope.map.wmsGetCapabilities = $scope.mapInformation.wmsGetCapabilities;
         }
+        $scope.showMap = true;
+        break;
+      case 'arcgis':
+        $scope.showMap = true;
+        $scope.map.wmsGetCapabilities = $scope.mapInformation.wmsGetCapabilities;
+        break;
       case 'xyz':
       case 'tms':
         $scope.showMap = true;
@@ -191,6 +197,7 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
       if (data.format) {
         $scope.map.format = data.format;
       }
+      $scope.map.tilesLackExtensions = data.tilesLackExtensions;
 
       if ($scope.mapInformation.valid && !$scope.mapInformation.format) {
         $scope.locationStatus = 'warning';
