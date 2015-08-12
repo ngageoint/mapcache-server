@@ -1,5 +1,6 @@
 var request = require('request')
 	, fs = require('fs-extra')
+	, path = require('path')
 	, async = require('async')
 	, turf = require('turf')
 	, xyzTileWorker = require('./xyzTileWorker')
@@ -218,30 +219,49 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 		return callback(null);
 	}
 
-	FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
-
-		try {
-			if (format == 'png') {
-				return exports.createImage(tile, source.style, z, x, y, function(err, pngStream) {
-					var size = 0;
-					pngStream.on('data', function(chunk) {
-						size += chunk.length;
-					});
-					pngStream.on('end', function() {
-						SourceModel.updateSourceAverageSize(source, size, function(err) {
+	// use the style time to determine if there has already been an image created for this source and style
+	var imageTile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
+	if (source.source) {
+		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
+	}
+	if (fs.existsSync(imageTile)) {
+		console.log('pulling tile from prebuilt', imageTile);
+		return callback(null, fs.createReadStream(imageTile));
+	} else {
+		console.log('getting tile from db', imageTile);
+		FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
+			try {
+				if (format == 'png') {
+					return exports.createImage(tile, source.style, z, x, y, function(err, pngStream) {
+						var size = 0;
+						var done = true;
+						pngStream.on('data', function(chunk) {
+							size += chunk.length;
 						});
+						pngStream.on('end', function() {
+							if (!done){
+								SourceModel.updateSourceAverageSize(source, size, function(err) {
+								});
+								done = true;
+							}
+						});
+						fs.mkdirsSync(path.dirname(imageTile), function(err){
+				       if (err) console.log(err);
+				     });
+						var tileWriter = fs.createWriteStream(imageTile);
+						pngStream.pipe(tileWriter);
+						return callback(err, pngStream);
 					});
-					return callback(err, pngStream);
-				});
-			} else {
-				return callback(null);
+				} else {
+					return callback(null);
+				}
+			} catch (e) {
+				console.log('error with tile ', tile);
+				console.log(tile);
+				console.log(e);
 			}
-		} catch (e) {
-			console.log('error with tile ', tile);
-			console.log(tile);
-			console.log(e);
-		}
-	});
+		});
+	}
 }
 
 exports.createImage = function(tile, style, z, x, y, callback) {
