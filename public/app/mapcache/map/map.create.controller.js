@@ -166,6 +166,11 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
       case 'arcgis':
         $scope.showMap = true;
         $scope.map.wmsGetCapabilities = $scope.mapInformation.wmsGetCapabilities;
+        if ($scope.map.wmsGetCapabilities.fullExtent && $scope.map.wmsGetCapabilities.fullExtent.spatialReference && $scope.map.wmsGetCapabilities.fullExtent.spatialReference.wkid && ($scope.map.wmsGetCapabilities.fullExtent.spatialReference.wkid == 102100 || $scope.map.wmsGetCapabilities.fullExtent.spatialReference.wkid == 102113 || $scope.map.wmsGetCapabilities.fullExtent.spatialReference.wkid == 3857)) {
+          var ll = proj4('EPSG:3857', 'EPSG:4326', [$scope.map.wmsGetCapabilities.fullExtent.xmin, $scope.map.wmsGetCapabilities.fullExtent.ymin]);
+          var ur = proj4('EPSG:3857', 'EPSG:4326', [$scope.map.wmsGetCapabilities.fullExtent.xmax, $scope.map.wmsGetCapabilities.fullExtent.ymax]);
+          $scope.map.extent = [ll[0], ll[1], ur[0], ur[1]];
+        }
         break;
       case 'xyz':
       case 'tms':
