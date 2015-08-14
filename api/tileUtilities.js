@@ -295,10 +295,10 @@ exports.createImage = function(tile, style, z, x, y, callback) {
 				drawPoint(geom[point], ctx, ratio);
 			}
 		} else if (type === 'LineString') {
-			drawLine(geom, ctx);
+			drawLine(geom, ctx, ratio);
 		} else if (type === 'MultiLineString') {
 			for (var line = 0; line < geom.length; line++) {
-				drawPoint(geom[line], ctx, ratio);
+				drawLine(geom[line], ctx, ratio);
 			}
 		} else if (type === 'Polygon') {
 			drawPolygon(geom, ctx, ratio);
