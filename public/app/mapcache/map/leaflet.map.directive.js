@@ -73,7 +73,6 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
 		tilePoint.x = ((tilePoint.x % limit.x) + limit.x) % limit.x;
 
     var ctx = canvas.getContext('2d');
-
     if (mapTilesLoaded[zoom+'-'+tilePoint.x+'-'+tilePoint.y]) {
       ctx.fillStyle = "rgba(128, 128, 128, 0)";
     } else {
@@ -382,17 +381,27 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     mapLayer = tl;
     tl.on('tileload', function(event) {
       var split = event.url.split('/');
-      var z = split[6];
-      var x = split[7];
-      var y = split[8].split('.')[0];
+      var z = split[split.length-3];
+      var x = split[split.length-2];
+      var y = split[split.length-1].split('.')[0];
+      if ($scope.map.format == 'arcgis') {
+        z = split[split.length-3];
+        x = split[split.length-1];
+        y = split[split.length-2];
+      }
       mapTilesLoaded[z+'-'+x+'-'+y] = true;
       canvasTiles.redraw();
     });
     tl.on('tileerror', function(event) {
       var split = event.url.split('/');
-      var z = split[6];
-      var x = split[7];
-      var y = split[8].split('.')[0];
+      var z = split[split.length-3];
+      var x = split[split.length-2];
+      var y = split[split.length-1].split('.')[0];
+      if ($scope.map.format == 'arcgis') {
+        z = split[split.length-3];
+        x = split[split.length-1];
+        y = split[split.length-2];
+      }
       mapTilesLoaded[z+'-'+x+'-'+y] = true;
       canvasTiles.redraw();
     });
