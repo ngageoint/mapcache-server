@@ -232,20 +232,30 @@ module.exports = function(app, auth) {
       };
 
       request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response, body) {
-        if (!err && response && response.statusCode == 200 && response.headers['content-type'].startsWith('image')) {
+        if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
           sourceInformation.valid = true;
           sourceInformation.format = 'xyz';
           res.json(sourceInformation);
         } else {
           request.get({url: req.param('url') + '?f=pjson', timeout: 5000}, function(err, response, body) {
+            var parsable = false;
+            var body;
             if (!err && response && response.statusCode == 200) {
+              try {
+                body = JSON.parse(body);
+                parsable = true;
+              } catch (e) {
+                parsable = false;
+              }
+            }
+            if (parsable) {
               sourceInformation.valid = true;
               sourceInformation.format = 'arcgis';
-              sourceInformation.wmsGetCapabilities = JSON.parse(body);
+              sourceInformation.wmsGetCapabilities = body;
               res.json(sourceInformation);
             } else {
               request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response, body) {
-                if (!err && response && response.statusCode == 200 && response.headers['content-type'].startsWith('image')) {
+                if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
                   sourceInformation.valid = true;
                   sourceInformation.format = 'xyz';
                   sourceInformation.tilesLackExtensions = true;
