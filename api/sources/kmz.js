@@ -66,38 +66,58 @@ exports.processSource = function(source, callback) {
         console.time('parsing geojson');
         var gjData = JSON.parse(gj);
         console.timeEnd('parsing geojson');
-        var geometry = turf.envelope(gjData);
-      	console.timeEnd('getting geometry');
-      	source.geometry = geometry;
-        source.style = {
-      		defaultStyle: {
-      			style: {
-      				'fill': "#000000",
-      				'fill-opacity': 0.5,
-      				'stroke': "#0000FF",
-      				'stroke-opacity': 1.0,
-      				'stroke-width': 1
-      			}
-      		},
-      		styles: []
-      	};
-        source.status.complete = true;
-  			source.status.message = "Complete";
-  			source.properties = [];
-  			var allProperties = {};
-  			for (var i = 0; i < gjData.features.length; i++) {
-  				var feature = gjData.features[i];
-  				for (var property in feature.properties) {
-  					allProperties[property] = allProperties[property] || {key: property, values:[]};
-  					if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
-  						allProperties[property].values.push(feature.properties[property]);
-  					}
-  				}
-  			}
-  			for (var property in allProperties) {
-  				source.properties.push(allProperties[property]);
-  			}
-        source.save(callback);
+
+        var count = 0;
+        async.eachSeries(gjData.features, function iterator(feature, callback) {
+          // console.log('saving feature %d', count++);
+          FeatureModel.createFeatureForSource(feature, source.id, function(err) {
+            count++;
+            // console.log('err', err);
+            async.setImmediate(function() {
+              if (count % 1000 == 0) {
+                source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
+        				source.save(function() {
+                  callback(null, feature);
+        				});
+              } else {
+                callback(null, feature);
+              }
+            });
+          });
+        }, function done() {
+          source.status.totalFeatures = gjData.features.length;
+          var geometry = turf.envelope(gjData);
+        	source.geometry = geometry;
+          source.style = {
+        		defaultStyle: {
+        			style: {
+        				'fill': "#000000",
+        				'fill-opacity': 0.5,
+        				'stroke': "#0000FF",
+        				'stroke-opacity': 1.0,
+        				'stroke-width': 1
+        			}
+        		},
+        		styles: []
+        	};
+          source.status.complete = true;
+    			source.status.message = "Complete";
+    			source.properties = [];
+    			var allProperties = {};
+    			for (var i = 0; i < gjData.features.length; i++) {
+    				var feature = gjData.features[i];
+    				for (var property in feature.properties) {
+    					allProperties[property] = allProperties[property] || {key: property, values:[]};
+    					if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
+    						allProperties[property].values.push(feature.properties[property]);
+    					}
+    				}
+    			}
+    			for (var property in allProperties) {
+    				source.properties.push(allProperties[property]);
+    			}
+          source.save(callback);
+        });
       });
       console.log('parse shapefile to json');
       console.time('shape to json');
