@@ -224,7 +224,8 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	if (source.source) {
 		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
 	}
-	if (fs.existsSync(imageTile)) {
+	console.log('params.nocache', params.noCache);
+	if (!params.noCache && fs.existsSync(imageTile)) {
 		console.log('pulling tile from prebuilt', imageTile);
 		return callback(null, fs.createReadStream(imageTile));
 	} else {
@@ -265,6 +266,8 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 }
 
 exports.createImage = function(tile, style, z, x, y, callback) {
+	var canvases = [];
+
 	console.log('creating image');
 	console.time('creating image for tile');
   var canvas = new Canvas(256,256);
@@ -282,6 +285,21 @@ exports.createImage = function(tile, style, z, x, y, callback) {
   for (var i = 0; i < features.length; i++) {
 		var feature = JSON.parse(features[i].geometry);
 		var type = feature.type;
+
+		var ctx;
+		var styles = styleFunction(features[i], style);
+    if (styles && !canvases[styles.styleId]) {
+			var canvas = new Canvas(256,256);
+		  var ctx = canvas.getContext('2d');
+			canvases[styles.styleId] = {canvas: canvas, ctx: ctx};
+      var rgbFill = hexToRgb(styles.fillColor);
+      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+      ctx.lineWidth = styles.weight;
+      var rgbStroke = hexToRgb(styles.color);
+      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+    } else {
+			ctx = canvases[styles.styleId].ctx;
+		}
 
     ctx.beginPath();
 
@@ -307,31 +325,33 @@ exports.createImage = function(tile, style, z, x, y, callback) {
 				drawPolygon(geom[poly], ctx, ratio);
 			}
 		}
-    var styles = styleFunction(features[i], style);
-    if (styles) {
-      var rgbFill = hexToRgb(styles.fillColor);
-      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
-      ctx.lineWidth = styles.weight;
-      var rgbStroke = hexToRgb(styles.color);
-      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-    }
-    ctx.fill('evenodd');
+
+		ctx.closePath();
+		ctx.fill('evenodd');
     ctx.stroke();
   }
+
+	var finalCanvas = new Canvas(256,256);
+	var finalCtx = finalCanvas.getContext('2d');
+
+	for (var i = canvases.length-1; i >= 0; i--) {
+		finalCtx.drawImage(canvases[i].canvas, 0, 0);
+	}
+
 	console.timeEnd('creating image for tile');
-  callback(null, canvas.pngStream());
+  callback(null, finalCanvas.pngStream());
 }
 
 function drawPoint(point, ctx, ratio) {
-	ctx.arc(point[0] * ratio, 256-(point[1] * ratio), 2, 0, 2 * Math.PI, false);
+	ctx.arc(~~(point[0] * ratio), ~~(256-(point[1] * ratio)), 2, 0, 2 * Math.PI, false);
 }
 
 function drawLine(line, ctx, ratio) {
 	for (var k = 0; k < line.length; k++) {
 		var coord = line[k];
 		if (coord[0] == null || coord[1] == null) continue;
-		if (k) ctx.lineTo(coord[0] * ratio, 256-(coord[1] * ratio));
-		else ctx.moveTo(coord[0] * ratio, 256-(coord[1] * ratio));
+		if (k) ctx.lineTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
+		else ctx.moveTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
 	}
 }
 
@@ -356,7 +376,8 @@ function styleFunction(feature, style) {
             fillOpacity: styleProperty.style['fill-opacity'],
             opacity: styleProperty.style['stroke-opacity'],
             weight: styleProperty.style['stroke-width'],
-            fillColor: styleProperty.style['fill']
+            fillColor: styleProperty.style['fill'],
+						styleId: i
           };
         }
       }
@@ -372,7 +393,8 @@ function styleFunction(feature, style) {
     fillOpacity: defaultStyle.style['fill-opacity'],
     opacity: defaultStyle.style['stroke-opacity'],
     weight: defaultStyle.style['stroke-width'],
-    fillColor: defaultStyle.style['fill']
+    fillColor: defaultStyle.style['fill'],
+		styleId: style.styles.length
   }
 }
 
