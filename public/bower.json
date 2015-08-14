@@ -34,6 +34,7 @@
     "turf": "1.4.0",
     "leaflet.loading": "~0.1.16",
     "angular-ui-scrollpoint": "~1.0.1",
-    "Leaflet.awesome-markers": "~2.0.2"
+    "Leaflet.awesome-markers": "~2.0.2",
+    "proj4": "~2.3.7"
   }
 }
