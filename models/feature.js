@@ -10,7 +10,7 @@ exports.createFeatureForSource = function(feature, sourceId, callback) {
   knex('features').insert({
 		source_id: sourceId,
 		properties: feature.properties,
-		geometry: knex.raw('ST_Transform(ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326), 3857)'),
+		geometry: knex.raw('ST_Transform(ST_Intersection(ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326), ST_MakeEnvelope(-180, -85, 180, 85, 4326)), 3857)'),
 		box: knex.raw('ST_SetSRID(ST_Force_2D(ST_GeomFromGeoJSON(\''+JSON.stringify(envelope.geometry) +'\')), 4326)')
 	}).then(callback);
 }
@@ -98,18 +98,14 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, callback) {
 
 
 	knex.select(knex.raw(
-		'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326),3857)), '+(-epsg3857ll[0])+', '+(-epsg3857ll[1])+', '+(4096/(epsg3857ur[0]-epsg3857ll[0]))+', '+(4096/(epsg3857ur[1]-epsg3857ll[1]))+'), 16), 1) as geometry'
-		), 'properties'
-	).from('features')
-	.where(
-		knex.raw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
+		'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+ bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326),3857)), '+ (-epsg3857ll[0])+', '+ (-epsg3857ll[1])+', '+ (4096/(epsg3857ur[0]-epsg3857ll[0]))+', '+ (4096/(epsg3857ur[1]-epsg3857ll[1])) + '), 16), 1) as geometry'
+		),
+		'properties'
 	)
+	.from('features')
+	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
 	.andWhere({source_id: sourceId})
 	.limit(100000)
-
-
-
-	// knex.select('*').from(knex.raw("projectedTile("+bbox.west+","+bbox.south+","+bbox.east+","+bbox.north+","+z+", 'select properties as properties, geometry as the_geom from features where ST_Intersects(box, ST_MakeEnvelope("+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+", 4326)) and source_id=''"+sourceId+"''')"))
 	.then(function(collection){
 		console.timeEnd('fetching data');
 		console.log('returned ' + collection.length + ' features');

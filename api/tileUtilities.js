@@ -278,6 +278,7 @@ exports.createImage = function(tile, style, z, x, y, callback) {
   for (var i = 0; i < features.length; i++) {
 		var feature = JSON.parse(features[i].geometry);
 		var type = feature.type;
+		console.log('feature', features[i]);
 
 		var ctx;
 		var styles = styleFunction(features[i], style);
