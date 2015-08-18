@@ -224,8 +224,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	if (source.source) {
 		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
 	}
-	console.log('params.nocache', params.noCache);
-	if (!params.noCache && fs.existsSync(imageTile)) {
+	if (params && !params.noCache && fs.existsSync(imageTile)) {
 		console.log('pulling tile from prebuilt', imageTile);
 		return callback(null, fs.createReadStream(imageTile));
 	} else {
@@ -257,28 +256,22 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 					return callback(null);
 				}
 			} catch (e) {
-				console.log('error with tile ', tile);
-				console.log(tile);
+				// console.log('error with tile ', tile);
+				// console.log(tile);
 				console.log(e);
+				throw e;
 			}
 		});
 	}
 }
 
 exports.createImage = function(tile, style, z, x, y, callback) {
-	var canvases = [];
+	var canvases = {};
 
 	console.log('creating image');
 	console.time('creating image for tile');
-  var canvas = new Canvas(256,256);
-  var ctx = canvas.getContext('2d');
-  var ratio = 256 / 4096;
-
-  ctx.clearRect(0, 0, 256, 256);
+	var ratio = 256 / 4096;
 	var features = tile;
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'red';
-  ctx.fillStyle = 'rgba(255,0,0,0.05)';
 
 	var points = 0;
 
@@ -288,6 +281,7 @@ exports.createImage = function(tile, style, z, x, y, callback) {
 
 		var ctx;
 		var styles = styleFunction(features[i], style);
+		// console.log('styles.styleId', styles.styleId);
     if (styles && !canvases[styles.styleId]) {
 			var canvas = new Canvas(256,256);
 		  var ctx = canvas.getContext('2d');
@@ -334,8 +328,8 @@ exports.createImage = function(tile, style, z, x, y, callback) {
 	var finalCanvas = new Canvas(256,256);
 	var finalCtx = finalCanvas.getContext('2d');
 
-	for (var i = canvases.length-1; i >= 0; i--) {
-		finalCtx.drawImage(canvases[i].canvas, 0, 0);
+	for (var key in canvases) {
+		finalCtx.drawImage(canvases[key].canvas, 0, 0);
 	}
 
 	console.timeEnd('creating image for tile');
