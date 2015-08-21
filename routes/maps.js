@@ -192,7 +192,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var source = req.source;
-      sourceProcessor.getData(source, req.param('format'), function(err, data) {
+      sourceProcessor.getData(source, req.param('format'), -180, -85, 180, 85, function(err, data) {
         if (data.file) {
           console.log('streaming', data.file);
           var stream = fs.createReadStream(data.file);

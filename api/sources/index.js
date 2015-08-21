@@ -10,9 +10,9 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   processor.getTile(source, format, z, x, y, params, callback);
 }
 
-exports.getData = function(source, format, callback) {
+exports.getData = function(source, format, west, south, east, north, callback) {
   var processor = require('./' + source.format);
-  processor.getData(source, format, callback);
+  processor.getData(source, format, west, south, east, north, callback);
 }
 
 exports.getFeatures = function(source, west, south, east, north, z, callback) {

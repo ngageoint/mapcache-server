@@ -16,39 +16,77 @@ exports.createFeatureForSource = function(feature, sourceId, callback) {
 }
 
 exports.createFeatureForCache = function(feature, cacheId, callback) {
-  var gj = JSON.stringify(feature.geometry);
-  knex('features').insert({cacheId: cacheId, properties: feature.properties, geometry: knex.raw('ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326)')}).then(callback);
+	var gj = JSON.stringify(feature.geometry);
+	var envelope = turf.envelope(feature.geometry);
+  knex('features').insert({
+		cache_id: cacheId,
+		properties: feature.properties,
+		geometry: knex.raw('ST_Transform(ST_Intersection(ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326), ST_MakeEnvelope(-180, -85, 180, 85, 4326)), 3857)'),
+		box: knex.raw('ST_SetSRID(ST_Force_2D(ST_GeomFromGeoJSON(\''+JSON.stringify(envelope.geometry) +'\')), 4326)')
+	}).then(callback);
 }
 
 exports.deleteFeaturesByCacheId = function(id, callback) {
-  knex.where('cacheId', id).from('features').del().then(callback);
+  knex.where('cache_id', id).from('features').del().then(callback);
 }
 
 exports.deleteFeaturesBySourceId = function(id, callback) {
-  knex.where('sourceId', id).from('features').del().then(callback);
+  knex.where('source_id', id).from('features').del().then(callback);
 }
 
 exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north, callback) {
-  knex.select('properties').select(knex.raw('ST_AsGeoJSON(geometry) as geometry')).where({cacheId: cacheId}).where(knex.raw('geometry && ST_MakeEnvelope('+west+','+south+','+east+','+north+')')).from('features').map(function(feature) {
-    return {
-      type:"Feature",
-      properties: feature.properties,
-      geometry: JSON.parse(feature.geometry)
-    };
-  }).then(function(collection){
+	knex.select('properties', 'geometry').where({cache_id: cacheId}).where(knex.raw('ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))')).from('features').then(function(collection){
+		console.log('collection', collection);
     callback(null, collection);
   });
 }
 
 exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, north, callback) {
+  knex.select('properties', 'geometry').where({source_id: sourceId}).where(knex.raw('ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))')).from('features').then(function(collection){
+    callback(null, collection);
+  });
+}
 
-  knex.select('properties').select(knex.raw('ST_AsGeoJSON(geometry) as geometry')).where({sourceId: sourceId}).where(knex.raw('geometry && ST_MakeEnvelope('+west+','+south+','+east+','+north+')')).from('features').map(function(feature) {
-    return {
-      type:"Feature",
-      properties: feature.properties,
-      geometry: JSON.parse(feature.geometry)
-    };
-  }).then(function(collection){
+exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south, east, north, callback) {
+	knex.raw('WITH row AS (SELECT source_id, \''+cacheId + '\' as cache_id, box, geometry, properties FROM features WHERE source_id = \''+ sourceId + '\' and ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))) INSERT INTO features (source_id, cache_id, box, geometry, properties) (SELECT * from row)')
+	.then(function(collection) {
+		callback(null, collection);
+	});
+}
+
+exports.getAllCacheFeatures = function(cacheId, callback) {
+	knex('features').select().where({cache_id: cacheId}).then(function(collection) {
+		callback(null, collection);
+	});
+}
+
+exports.fetchTileForCacheId = function(cacheId, bbox, z, callback) {
+	console.time('fetching data');
+
+	var bufferedBox = {
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
+	};
+
+	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
+	var epsg3857ur = proj4('EPSG:3857', [bbox.east, bbox.north]);
+	console.log('epsg3857ll', epsg3857ll);
+
+
+	knex.select(knex.raw(
+		'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+ bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326),3857)), '+ (-epsg3857ll[0])+', '+ (-epsg3857ll[1])+', '+ (4096/(epsg3857ur[0]-epsg3857ll[0]))+', '+ (4096/(epsg3857ur[1]-epsg3857ll[1])) + '), 16), 1) as geometry'
+		),
+		'properties'
+	)
+	.from('features')
+	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
+	.andWhere({cache_id: cacheId})
+	.limit(100000)
+	.then(function(collection){
+		console.timeEnd('fetching data');
+		console.log('returned ' + collection.length + ' features');
     callback(null, collection);
   });
 }

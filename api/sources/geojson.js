@@ -17,19 +17,8 @@ exports.process = function(source, callback) {
 exports.getTile = tileUtilities.getVectorTile;
 exports.getFeatures = tileUtilities.getFeatures;
 
-exports.getData = function(source, format, callback) {
-
-  if (format == 'geojson') {
-    var fileName = source.filePath;
-    console.log('pull from path', fileName);
-
-    if (fs.existsSync(fileName)) {
-      callback(null, {file: fileName});
-      // fs.readFile(file, callback);
-    } else {
-      callback(null);
-    }
-  }
+exports.getData = function(source, west, south, east, north, callback) {
+  FeatureModel.findFeaturesBySourceIdWithin(sourceId, west, south, east, north, callback);
 }
 
 exports.processSource = function(source, callback) {
