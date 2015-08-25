@@ -120,6 +120,12 @@ Cache.prototype.restart = function(cache, format, callback) {
   });
 }
 
+Cache.prototype.generateMoreZooms = function(cache, format, newMinZoom, newMaxZoom, callback) {
+  cacheProcessor.generateMoreZooms(cache, format, newMinZoom, newMaxZoom, function(err, cache) {
+    console.log('more zooms for ' + format + ' for cache ' + cache.name);
+  });
+}
+
 Cache.prototype.getData = function(cache, format, minZoom, maxZoom, callback) {
   cacheProcessor.getCacheData(cache, format, minZoom, maxZoom, callback);
 }

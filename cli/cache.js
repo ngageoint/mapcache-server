@@ -215,6 +215,51 @@ exports.restartFormat = function(yargs) {
   });
 }
 
+exports.generateMoreZooms = function(yargs) {
+  var argv = yargs.usage('Adds more zooms to a cache format.\nUsage: $0 generateMoreZooms [options]')
+  .option('i', {
+    alias: 'cache',
+    description: 'id of cache to generate zooms for',
+    demand: true
+  })
+  .option('f', {
+    alias: 'format',
+    description: 'cache format to zoom',
+    demand: true
+  })
+  .option('x', {
+    alias: 'maxZoom',
+    description: 'Maximum zoom level of cache tiles'
+  })
+  .option('m', {
+    alias: 'minZoom',
+    description: 'Minimum zoom level of cache tiles'
+  })
+  .help('help')
+  .argv;
+
+  cacheModel.getCacheById(argv.i, function(err, cache) {
+    if (!cache) {
+      console.log("Cache does not exist");
+      process.exit();
+    }
+    new api.Cache().generateMoreZooms(cache, argv.f, argv.m, argv.x, function(err, cache) {
+      if (err) {
+        console.log('Error creating the cache format ', err);
+        process.exit();
+      }
+
+      if (!cache) {
+        console.log('Cache format was not created');
+        process.exit();
+      }
+
+    });
+    setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
+
+  });
+}
+
 exports.getCacheTile = function(yargs) {
   var argv = yargs.usage('Gets a cache tile.\nUsage: $0 getCacheTile [options]')
   .option('i', {
