@@ -104,7 +104,7 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
       // success
       $scope.map = map;
       $rootScope.title = map.name;
-      if (!map.status.complete && $location.path().startsWith('/map')) {
+      if (!map.status.complete && $location.path().indexOf('/map') == 0) {
         $timeout(getMap, 5000);
       } else {
         if (map.vector) {
