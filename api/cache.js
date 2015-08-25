@@ -115,12 +115,8 @@ Cache.prototype.create = function(cache, formats, callback) {
 }
 
 Cache.prototype.restart = function(cache, format, callback) {
-  if (!cache.status.complete) {
-    return callback(new Error('Cache is currently being generated'));
-  }
-
-  cacheProcessor.createCacheFormat(cache, format, function(err, cache) {
-    console.log('format ' + format + ' submitted for cache ' + cache.name);
+  cacheProcessor.restartCacheFormat(cache, format, function(err, cache) {
+    console.log('format ' + format + ' restarted for cache ' + cache.name);
   });
 }
 

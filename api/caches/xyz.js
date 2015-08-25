@@ -112,6 +112,10 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   });
 }
 
+exports.restart = function(cache, callback) {
+  exports.generateCache(cache, cache.minZoom, cache.maxZoom, callback);
+}
+
 exports.deleteCache = function(cache, callback) {
   fs.remove(config.server.cacheDirectory.path + "/" + cache._id + "/xyztiles", function(err) {
     callback(err, cache);

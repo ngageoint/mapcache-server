@@ -20,6 +20,15 @@ exports.getCacheData = function(cache, format, minZoom, maxZoom, callback) {
   processor.getCacheData(cache, minZoom, maxZoom, callback);
 }
 
+exports.restartCacheFormat = function(cache, format, callback) {
+  var processor = require('./' + format);
+  if (processor.restart) {
+    processor.restart(cache, callback);
+  } else {
+    callback(new Error('Unable to restart this cache'));
+  }
+}
+
 exports.createCacheFormat = function(cache, format, minZoom, maxZoom, callback) {
   if( typeof minZoom === "function" && !callback) {
     callback = minZoom;
