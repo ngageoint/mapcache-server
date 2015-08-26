@@ -115,12 +115,14 @@ Cache.prototype.create = function(cache, formats, callback) {
 }
 
 Cache.prototype.restart = function(cache, format, callback) {
-  if (!cache.status.complete) {
-    return callback(new Error('Cache is currently being generated'));
-  }
+  cacheProcessor.restartCacheFormat(cache, format, function(err, cache) {
+    console.log('format ' + format + ' restarted for cache ' + cache.name);
+  });
+}
 
-  cacheProcessor.createCacheFormat(cache, format, function(err, cache) {
-    console.log('format ' + format + ' submitted for cache ' + cache.name);
+Cache.prototype.generateMoreZooms = function(cache, format, newMinZoom, newMaxZoom, callback) {
+  cacheProcessor.generateMoreZooms(cache, format, newMinZoom, newMaxZoom, function(err, cache) {
+    console.log('more zooms for ' + format + ' for cache ' + cache.name);
   });
 }
 

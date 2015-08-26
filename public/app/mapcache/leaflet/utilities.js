@@ -79,61 +79,12 @@ function LeafletUtilities(LocalStorageService, MapService) {
     if (layerSource == null) {
       return L.tileLayer(defaultLayer, layerOptions);
     } else if (layerSource.vector) {
-
-      // var canvasLayer = L.tileLayer.canvas({async: true});
-      // canvasLayer.drawTile = function(canvas, tilePoint, zoom) {
-      //   var ctx = canvas.getContext('2d');
-      //   SourceService.getSourceVectorTile(layerSource, zoom, tilePoint.x, tilePoint.y, function(data, status) {
-      //     console.log('data', data);
-      //     var features = data.features;
-      //     for (var i = 0; i < features.length; i++) {
-      //       var feature = features[i], typeChanged = type !== feature.type,
-      //         type = feature.type;
-      //       ctx.beginPath();
-      //       for (var j = 0; j < feature.geometry.length; j++) {
-      //         var ring = feature.geometry[j];
-      //         for (var k = 0; k < ring.length; k++) {
-      //           var p = ring[k];
-      //           if (k) ctx.lineTo(p[0] / 16.0, p[1] / 16.0);
-      //           else ctx.moveTo(p[0] / 16.0, p[1] / 16.0);
-      //         }
-      //       }
-      //       var styles = styleFunction(feature);
-      //       var rgbFill = hexToRgb(styles.fillColor);
-      //       ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
-      //       ctx.lineWidth = styles.weight;
-      //       var rgbStroke = hexToRgb(styles.color);
-      //       ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-      //
-      //       if (type === 3) ctx.fill('evenodd');
-      //       ctx.stroke();
-      //
-      //       /*
-      //
-      //       */
-      //     }
-      //     canvasLayer.tileDrawn(canvas);
-      //   });
-      // };
-      // return canvasLayer;
-
-      // if (!layerSource.data) {
-        var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+Date.now();
-        if (layerSource.wmsLayer) {
-          url += '&layer=' + layerSource.wmsLayer.Name;
-        }
-        var layer = L.tileLayer(url, layerOptions);
-        return layer;
-      // } else {
-      //   var gj = L.geoJson(layerSource.data, {
-      //     style: styleFunction,
-      //     pointToLayer: pointToLayer,
-      //     onEachFeature: function(feature, layer) {
-      //       popupFunction(feature, layer, style);
-      //     }
-      //   });
-      //   return gj;
-      // }
+      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
+      if (layerSource.wmsLayer) {
+        url += '&layer=' + layerSource.wmsLayer.Name;
+      }
+      var layer = L.tileLayer(url, layerOptions);
+      return layer;
     } else if (typeof layerSource == "string") {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png"), layerOptions);
     } else if (layerSource.mapcacheUrl) {

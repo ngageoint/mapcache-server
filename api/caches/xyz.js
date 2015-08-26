@@ -43,6 +43,7 @@ function downloadTile(tileInfo, tileDone) {
   var filename = tileInfo.y + '.png';
 
   if (fs.existsSync(dir + filename)) {
+    console.log('file already exists, skipping: %s', dir+filename);
     return tileDone();
   }
 
@@ -89,6 +90,7 @@ function downloadTile(tileInfo, tileDone) {
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   CacheModel.getCacheById(cache.id, function(err, cache) {
     if (!cache.source.vector || (cache.formats && cache.formats.geojson && !cache.formats.geojson.generating)) {
+      console.log('xyz generating');
       xyzTileWorker.createXYZTiles(cache, minZoom, maxZoom, downloadTile, function(cache, continueCallback) {
         CacheModel.shouldContinueCaching(cache, continueCallback);
       }, function(cache, zoom, zoomDoneCallback) {
@@ -110,6 +112,14 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
       setTimeout(exports.generateCache, 30000, cache, minZoom, maxZoom, callback);
     }
   });
+}
+
+exports.restart = function(cache, callback) {
+  exports.generateCache(cache, cache.minZoom, cache.maxZoom, callback);
+}
+
+exports.generateMoreZooms = function(cache, newMinZoom, newMaxZoom, callback) {
+  exports.generateCache(cache, cache.minZoom, cache.maxZoom, callback);
 }
 
 exports.deleteCache = function(cache, callback) {

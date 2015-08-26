@@ -20,6 +20,44 @@ exports.getCacheData = function(cache, format, minZoom, maxZoom, callback) {
   processor.getCacheData(cache, minZoom, maxZoom, callback);
 }
 
+exports.restartCacheFormat = function(cache, format, callback) {
+  var processor = require('./' + format);
+  if (processor.restart) {
+    cache.status.complete = false;
+    cache.save(function() {
+      CacheModel.updateFormatGenerating(cache, format, function(err) {
+        callback(null, cache);
+        var child = require('child_process').fork('api/caches/creator.js');
+        child.send({operation:'restart', cache: cache, format: format});
+      });
+    });
+  } else {
+    callback(new Error('Unable to restart this cache'));
+  }
+}
+
+exports.generateMoreZooms = function(cache, format, newMinZoom, newMaxZoom, callback) {
+  var processor = require('./' + format);
+  if (processor.generateMoreZooms) {
+    if (newMinZoom < cache.minZoom) {
+      cache.minZoom = newMinZoom;
+    }
+    if (newMaxZoom > cache.maxZoom) {
+      cache.maxZoom = newMaxZoom;
+    }
+    cache.status.complete = false;
+    cache.save(function() {
+      CacheModel.updateFormatGenerating(cache, format, function(err) {
+        callback(null, cache);
+        var child = require('child_process').fork('api/caches/creator.js');
+        child.send({operation:'generateMoreZooms', cache: cache, format: format, minZoom: cache.minZoom, maxZoom: cache.maxZoom});
+      });
+    });
+  } else {
+    callback(new Error('Unable to generate more zooms for this cache'));
+  }
+}
+
 exports.createCacheFormat = function(cache, format, minZoom, maxZoom, callback) {
   if( typeof minZoom === "function" && !callback) {
     callback = minZoom;

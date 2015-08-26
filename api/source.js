@@ -1,6 +1,7 @@
 var SourceModel = require('../models/source')
   , fs = require('fs-extra')
   , path = require('path')
+  , Feature = require('../models/feature')
   , sourceProcessor = require('./sources')
   , config = require('../config.json');
 
@@ -68,7 +69,13 @@ Source.prototype.delete = function(source, callback) {
   SourceModel.deleteSource(source, function(err) {
     if (err) return callback(err);
     fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
-      callback(err, source);
+      if (source.vector) {
+        Feature.deleteFeaturesBySourceId(source.id, function(err) {
+          callback(err, source);
+        });
+      } else {
+        callback(err, source);
+      }
     });
   });
 }

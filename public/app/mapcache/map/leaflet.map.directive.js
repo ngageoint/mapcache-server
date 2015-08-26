@@ -60,6 +60,27 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     map.addControl(new L.Control.ZoomIndicator());
   }
 
+  var mapTilesLoaded = {};
+  var canvasTiles = L.tileLayer.canvas();
+
+  canvasTiles.drawTile = function(canvas, tilePoint, zoom) {
+    var crs = this._map.options.crs,
+		    size = crs.getSize(this._map.getZoom());
+		var limit = size.divideBy(this._getTileSize())._floor();
+
+		var limit = this._getWrapTileNum();
+
+		tilePoint.x = ((tilePoint.x % limit.x) + limit.x) % limit.x;
+
+    var ctx = canvas.getContext('2d');
+    if (mapTilesLoaded[zoom+'-'+tilePoint.x+'-'+tilePoint.y]) {
+      ctx.fillStyle = "rgba(128, 128, 128, 0)";
+    } else {
+      ctx.fillStyle="rgba(128, 128, 128, .5)";
+    }
+    ctx.fillRect(0, 0, 256, 256);
+  }
+
   map.on('click', function(event) {
     if (!$scope.map.style) return;
     if ($scope.map.style.title || $scope.map.style.description) {
@@ -199,12 +220,6 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     removeCacheTiles(cache);
   });
 
-  // $rootScope.$on('cacheFilterChange', function(event, filter) {
-  //   CacheService.getAllCaches().success(function(caches) {
-  //     $scope.caches = $filter('filter')($filter('filter')(caches, filter.cacheFilter), filter.mapFilter);
-  //   });
-  // });
-
   var popupOpenId;
 
   function createRectangle(cache, color) {
@@ -303,8 +318,8 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     });
   }, 500);
 
-  $scope.$watch('map.mapcacheUrl', function(url) {
-    if (url != null) {
+  $scope.$watch('map.mapcacheUrl', function(url, oldUrl) {
+    if (url != null && url != oldUrl) {
       debounceUrl(url);
     }
   });
@@ -364,6 +379,33 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     var tl = LeafletUtilities.tileLayer($scope.map, defaultLayer, mapLayerOptions, $scope.map.style, styleFunction);
     if (!tl) return;
     mapLayer = tl;
+    tl.on('tileload', function(event) {
+      var split = event.url.split('/');
+      var z = split[split.length-3];
+      var x = split[split.length-2];
+      var y = split[split.length-1].split('.')[0];
+      if ($scope.map.format == 'arcgis') {
+        z = split[split.length-3];
+        x = split[split.length-1];
+        y = split[split.length-2];
+      }
+      mapTilesLoaded[z+'-'+x+'-'+y] = true;
+      canvasTiles.redraw();
+    });
+    tl.on('tileerror', function(event) {
+      var split = event.url.split('/');
+      var z = split[split.length-3];
+      var x = split[split.length-2];
+      var y = split[split.length-1].split('.')[0];
+      if ($scope.map.format == 'arcgis') {
+        z = split[split.length-3];
+        x = split[split.length-1];
+        y = split[split.length-2];
+      }
+      mapTilesLoaded[z+'-'+x+'-'+y] = true;
+      canvasTiles.redraw();
+    });
+    map.addLayer(canvasTiles);
     mapLayer.addTo(map);
     if ($scope.map.geometry) {
       updateMapExtent();

@@ -5,6 +5,7 @@ var express = require("express")
   , mongoose = require('mongoose')
   , fs = require('fs-extra')
   , log = require('winston')
+  , knex = require('./db/knex')
   , config = require('./config.json');
 
 log.remove(log.transports.Console);

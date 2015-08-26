@@ -1,14 +1,15 @@
 var request = require('request')
 	, fs = require('fs-extra')
+	, path = require('path')
 	, async = require('async')
 	, turf = require('turf')
 	, xyzTileWorker = require('./xyzTileWorker')
-	, geojsonvt = require('geojson-vt')
 	, path = require('path')
 	, Canvas = require('canvas')
 	, Image = Canvas.Image
 	, CacheModel = require('../models/cache')
 	, SourceModel = require('../models/source')
+	, FeatureModel = require('../models/feature')
 	, Maps = require('./sources')
 	, Readable = require('stream').Readable
 	, Caches = require('./caches')
@@ -123,441 +124,188 @@ exports.getY = function(lat, zoom) {
 	return ytile;
 }
 
-exports.generateMetadataTiles = function(source, gjData, callback) {
-	source.status.message = "Generating metadata tiles";
-	console.time('getting geometry');
-	var geometry = turf.envelope(gjData);
-	console.timeEnd('getting geometry');
-	source.geometry = geometry;
-
-	source.style = {
-		defaultStyle: {
-			style: {
-				'fill': "#000000",
-				'fill-opacity': 0.5,
-				'stroke': "#0000FF",
-				'stroke-opacity': 1.0,
-				'stroke-width': 1
-			}
-		},
-		styles: []
-	};
-	console.log('saving the source and then generating tile index');
-	source.save(function() {
-		console.log('generate tile index');
-		console.time('generate tile index');
-		getTileIndexFromData(source.id, gjData, function(err, tileIndex) {
-			console.timeEnd('generate tile index');
-			delete gjData;
-
-			xyzTileWorker.createXYZTiles(source, 0, 5, function(tileInfo, tileDone) {
-				var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', tileInfo.z.toString(), tileInfo.x.toString());
-				var file = path.join(dir, tileInfo.y.toString()+'.json');
-
-				if (!fs.existsSync(file)) {
-					var tile = tileIndex.getTile(Number(tileInfo.z), Number(tileInfo.x), Number(tileInfo.y));
-					if (tile) {
-						exports.writeVectorTile(tile, source, tileInfo.z, tileInfo.x, tileInfo.y, function() {
-							// delete tileIndex.tiles[(((1 << tileInfo.z) * tileInfo.y + tileInfo.x) * 32) + tileInfo.z];
-							return tileDone();
-						});
-					} else {
-						return tileDone();
-					}
-				} else {
-					return tileDone();
-				}
-			}, function(source, continueCallback) {
-				continueCallback(null, true);
-			}, function(source, zoom, zoomDoneCallback) {
-				source.status.message="Processing " + ((zoom/6)*100) + "% complete";
-				source.save(function() {
-					zoomDoneCallback();
-				});
-			}, function(err, cache) {
-				source.status.complete = true;
-				source.status.message = "Complete";
-				source.properties = [];
-				var allProperties = {};
-				for (var i = 0; i < gjData.features.length; i++) {
-					var feature = gjData.features[i];
-					for (var property in feature.properties) {
-						allProperties[property] = allProperties[property] || {key: property, values:[]};
-						if (allProperties[property].values.indexOf(feature.properties[property]) == -1) {
-							allProperties[property].values.push(feature.properties[property]);
-						}
-					}
-				}
-				for (var property in allProperties) {
-					source.properties.push(allProperties[property]);
-				}
-				source.save(function() {
-					console.log('Source is complete', source.name);
-					callback(null, source);
-				});
-			});
-		});
-	});
-}
-
 exports.getFeatures = function(source, west, south, east, north, zoom, callback) {
-	var queryRegion = turf.bboxPolygon([Number(west), Number(south), Number(east), Number(north)]);
-	var point = turf.centroid(queryRegion);
-
-	var extent = turf.extent(point);
-	var yRange = exports.yCalculator(extent, zoom);
-	var xRange = exports.xCalculator(extent, zoom);
-	var x = xRange.min;
-	var y = yRange.min;
-
-	var tileIndex = geojsonvt(queryRegion, {
-		indexMaxZoom: Number(zoom),
-		maxZoom: Number(zoom)
-	});
-	var tile = tileIndex.getTile(Number(zoom), Number(x), Number(y));
-	var queryPoly = turf.polygon([tile.features[0].geometry[0]]);
-	var queryPoint = turf.centroid(queryPoly);
-
-
-	var file = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', zoom.toString(), x.toString(), y.toString()+'.json');
-	if (source.source) {
-		file = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', zoom.toString(), x.toString(), y.toString()+'.json');
-	}
-	if (fs.existsSync(file)) {
-		fs.readFile(file, function(err, fileData) {
-			var gjData = JSON.parse(fileData);
-
-			var featureList = [];
-			for (var i = 0; i < gjData.features.length; i++) {
-				var feature = gjData.features[i];
-				var f = {type: 'Feature', properties: feature.tags, geoType: feature.type, geometry: feature.geometry};
-				for (var g = 0; g < feature.geometry.length; g++) {
-					var innerGeometry = feature.geometry[g];
-
-
-					try {
-
-						if (feature.type == 1) {
-							//Point
-							var featurePoint = turf.point(innerGeometry);
-							if (turf.inside(featurePoint, queryPoly)) {
-								featureList.push(f);
-							}
-						} else if (feature.type == 3) {
-							// Polygon
-							var turfPoly = turf.polygon([innerGeometry]);
-							if (turf.inside(queryPoint, turfPoly)) {
-								featureList.push(f);
-							} else {
-								if(turf.intersect(queryPoly, turfPoly)) {
-									featureList.push(f);
-								}
-							}
-						} else if (feature.type == 2) {
-							// Linestring
-							var turfLine = turf.linestring(innerGeometry);
-							var closestPointOnLine = turf.pointOnLine(turfLine, queryPoint);
-							if (turf.inside(closestPointOnLine, queryPoly)) {
-								featureList.push(f);
-							}
-						}
-					} catch (e) {
-						console.log('error turfing', e);
-					}
-				}
+	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, function(err, featureList) {
+		featureList = featureList.sort(function (a, b) {
+			if (a.geoType === 1 && b.geoType === 1) {
+				var aDistance = turf.distance(turf.point(a.geometry[0]), queryPoint);
+				var bDistance = turf.distance(turf.point(b.geometry[0]), queryPoint);
+				if (aDistance < bDistance) return -1;
+				if (bDistance > aDistance) return 1;
+				return 0;
+			} else if (a.geoType === 1) {
+				return -1;
+			} else if (b.geoType === 1) {
+				return 1;
 			}
 
-			featureList = featureList.sort(function (a, b) {
-				if (a.geoType === 1 && b.geoType === 1) {
-					var aDistance = turf.distance(turf.point(a.geometry[0]), queryPoint);
-					var bDistance = turf.distance(turf.point(b.geometry[0]), queryPoint);
-					if (aDistance < bDistance) return -1;
-					if (bDistance > aDistance) return 1;
-					return 0;
-				} else if (a.geoType === 1) {
-					return -1;
-				} else if (b.geoType === 1) {
-					return 1;
-				}
-
-				return 0;
-			});
-			callback(null, featureList.length == 0 ? null : featureList);
+			return 0;
 		});
-	}
+		callback(null, featureList);
+	});
 }
 
-exports.writeVectorTile = function(tile, source, z, x, y, callback) {
-	var dir = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
-
-	if (source.source) {
-		// this is a cache
-		dir = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString());
-
+function tileContainsData(source, bbox) {
+	if (source.geometry && !turf.intersect(turf.bboxPolygon([bbox.west - Math.abs(bbox.west*.05), bbox.south - Math.abs(bbox.south*.05), bbox.east + Math.abs(bbox.east*.05), bbox.north + Math.abs(bbox.north*.05)]), source.geometry)) {
+		console.log("No data, returning early");
+		return false;
 	}
-  var file = path.join(dir, y.toString()+'.json');
-
-  if (!fs.existsSync(file)) {
-    fs.mkdirsSync(dir, function(err){
-       if (err) console.log(err);
-     });
-
-		console.time('writing tile' + z + ' ' + x + ' ' + y);
-
-		var writeStream = fs.createWriteStream(file);
-		writeStream.on('finish', function() {
-			console.timeEnd('writing tile' + z + ' ' + x + ' ' + y);
-			callback(null);
-		});
-
-		writeStream.write('{"features":[');
-		for (var i = 0; i < tile.features.length; i++) {
-			var feature = tile.features[i];
-			// console.log('feature', feature);
-			writeStream.write('{');
-			writeStream.write('"type":'+feature.type+',');
-			if (feature.tags) {
-				writeStream.write('"tags":'+JSON.stringify(feature.tags)+',');
-			}
-			if (feature.geometry) {
-				writeStream.write('"geometry":[');
-				for (var g = 0; g < feature.geometry.length; g++) {
-					var geometry = feature.geometry[g];
-					writeStream.write(JSON.stringify(geometry));
-					if (g < (feature.geometry.length -1)) {
-						writeStream.write(',');
-					}
-				}
-			}
-			writeStream.write(']');
-
-			writeStream.write('}');
-
-			if (i < (tile.features.length -1)) {
-				writeStream.write(',');
-			}
-		}
-		writeStream.write(']}');
-		writeStream.end();
-
-  } else {
-    callback(null);
-  }
+	return true;
 }
 
 exports.getVectorTile = function(source, format, z, x, y, params, callback) {
-	var file = path.join(config.server.sourceDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString(), y.toString()+'.json');
-	if (source.source) {
-			// this means it is a cache
-			file = path.join(config.server.cacheDirectory.path, source.id.toString(), 'tiles', z.toString(), x.toString(), y.toString()+'.json');
+	console.log('getting vector tile %d %d %d', z, x, y);
+	var bbox = exports.tileBboxCalculator(x, y, z);
+
+	if (!tileContainsData(source.source ? source.source : source, bbox)) {
+		console.log("No data, returning early");
+		return callback(null);
 	}
-  if (fs.existsSync(file)) {
-    var tile = "";
-    var stream = fs.createReadStream(file);
 
-    if (format == 'json' || format == 'geojson') {
-      return callback(null, stream);
-    }
+	// use the style time to determine if there has already been an image created for this source and style
+	var imageTile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
+	if (source.source) {
+		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
+	}
+	if (params && !params.noCache && fs.existsSync(imageTile)) {
+		console.log('pulling tile from prebuilt', imageTile);
+		return callback(null, fs.createReadStream(imageTile));
+	} else {
+		console.log('getting tile from db', imageTile);
+		if (source.source) {
+			FeatureModel.fetchTileForCacheId(source.id, bbox, z, function(err, tile) {
+				handleTileData(tile, format, source.source, imageTile, callback);
+			});
+		} else {
+			FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
+				handleTileData(tile, format, source, imageTile, callback);
+			});
+		}
+	}
+}
 
-    stream.on('data', function(chunk) {
-      tile = tile + chunk;
-    });
-
-    stream.on('end', function(chunk) {
-      console.log('sending back tile ', file);
-      try {
-      var tileData = JSON.parse(tile.replace(/\bNaN\b/g, "null"));
-      if (format == 'png') {
-        return exports.createImage(tileData, source.style, z, x, y, function(err, pngStream) {
-					var size = 0;
-					pngStream.on('data', function(chunk) {
-						size += chunk.length;
-					});
-					pngStream.on('end', function() {
+function handleTileData(tile, format, source, imageTile, callback) {
+	try {
+		if (format == 'png') {
+			return exports.createImage(tile, source.style, function(err, pngStream) {
+				var size = 0;
+				var done = true;
+				pngStream.on('data', function(chunk) {
+					size += chunk.length;
+				});
+				pngStream.on('end', function() {
+					if (!done && source){
 						SourceModel.updateSourceAverageSize(source, size, function(err) {
 						});
-					});
-					return callback(err, pngStream);
+						done = true;
+					}
 				});
-      } else {
-        return callback(null);
-      }
-    } catch (e) {
-      console.log('error with tile ', file);
-			console.log(tile);
-			console.log(e);
-			return fs.remove(file, function(err) {
-				if (err) {
-					return callback(null);
-				} else {
-					return exports.getVectorTile(source, format, z, x, y, params, callback);
-				}
+				fs.mkdirsSync(path.dirname(imageTile), function(err){
+					 if (err) console.log(err);
+				 });
+				var tileWriter = fs.createWriteStream(imageTile);
+				pngStream.pipe(tileWriter);
+				return callback(err, pngStream);
 			});
-    }
-    });
-  } else {
-		var dir = path.join(config.server.sourceDirectory.path, source.id);
-		var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
-
-		if (source.source) {
-				// this means it is a cache
-				dir = path.join(config.server.cacheDirectory.path, source.id);
-				fileName = source.id + '.geojson';
+		} else {
+			return callback(null);
 		}
-    var file = path.join(dir, fileName);
-		console.log('file', file);
-		console.log('z %d x %d y %d', z, x, y);
-
-		getTileIndex(source.id, file, function(err, tileIndex) {
-			// console.log('tileIndex', tileIndex);
-			if (!tileIndex) return callback(null);
-			var tile = tileIndex.getTile(Number(z), Number(x), Number(y));
-			if (!tile) return callback(null);
-			exports.writeVectorTile(tile, source, z, x, y, function() {
-				return exports.getVectorTile(source, format, z, x, y, params, callback);
-			});
-		});
-  }
+	} catch (e) {
+		// console.log('error with tile ', tile);
+		// console.log(tile);
+		console.log(e);
+		throw e;
+	}
 }
 
-var tileIndexes = {};
-var tileIndexOrder = [];
+exports.createImage = function(tile, style, callback) {
+	var canvases = {};
 
-function getTileIndex(id, dataLocation, callback) {
-	if (tileIndexes[id]) {
-		tileIndexes[id].accessTime = Date.now();
-		tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
-		return callback(null,tileIndexes[id].index);
-	}
-	if (fs.existsSync(dataLocation)) {
-		fs.readFile(dataLocation, {encoding: 'utf8'}, function(err, fileData) {
-			if (!fileData || err) callback(null);
-			try {
-				var gjData = JSON.parse(fileData.replace(/\bNaN\b/g, "null"));
-				return getTileIndexFromData(id, gjData, callback);
-			} catch (e) {
-				callback(null);
+	console.log('creating image');
+	console.time('creating image for tile');
+	var ratio = 256 / 4096;
+	var features = tile;
+
+	var points = 0;
+
+  for (var i = 0; i < features.length; i++) {
+		var feature = JSON.parse(features[i].geometry);
+		var type = feature.type;
+		var ctx;
+		var styles = styleFunction(features[i], style);
+		// console.log('styles.styleId', styles.styleId);
+    if (styles && !canvases[styles.styleId]) {
+			var canvas = new Canvas(256,256);
+		  var ctx = canvas.getContext('2d');
+			canvases[styles.styleId] = {canvas: canvas, ctx: ctx};
+      var rgbFill = hexToRgb(styles.fillColor);
+      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+      ctx.lineWidth = styles.weight;
+      var rgbStroke = hexToRgb(styles.color);
+      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+    } else {
+			ctx = canvases[styles.styleId].ctx;
+		}
+
+    ctx.beginPath();
+
+    var geom = feature.coordinates;
+
+    if (type === 'Point' && points < 10000) {
+			points++;
+      drawPoint(geom, ctx, ratio);
+    } else if (type === 'MultiPoint') {
+			for (var point = 0; point < geom.length; point++) {
+				drawPoint(geom[point], ctx, ratio);
 			}
-		});
-	} else {
-		callback(null);
-	}
-}
-
-function getTileIndexFromData(id, data, callback) {
-	if (tileIndexes[id]) {
-		tileIndexes[id].accessTime = Date.now();
-		tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
-		return callback(null,tileIndexes[id].index);
-	}
-	if (tileIndexOrder.length >= 3) {
-		delete tileIndexes[tileIndexOrder.pop()];
-	}
-	tileIndexes[id] = {
-		index: geojsonvt(data,{
-			indexMaxZoom: 0,
-			maxZoom: 18
-		}),
-		accessTime: Date.now()
-	};
-	tileIndexOrder.push(id);
-	tileIndexOrder = tileIndexOrder.sort(tileIndexSort);
-
-	return callback(null, tileIndexes[id].index);
-}
-
-function tileIndexSort(a,b) {
-	if (tileIndexes[a].accessTime < tileIndexes[b].accessTime) {
-		return -1;
-	}
-	if (tileIndexes[b].accessTime < tileIndexes[a].accessTime) {
-		return 1;
-	}
-	return 0;
-}
-
-exports.createImage = function(tile, style, z, x, y, callback) {
-  var canvas = new Canvas(256,256);
-  var ctx = canvas.getContext('2d');
-  var padding = 0;
-  totalExtent = 4096 * (1 + padding * 2),
-  height = canvas.height = canvas.width,
-  ratio = height / totalExtent,
-  pad = 4096 * padding * ratio;
-
-  ctx.clearRect(0, 0, height, height);
-
-/**
-Begin testing for layering data on images
-
-	var req = request.get({url: 'http://osm.geointapps.org/osm/'+z+'/'+x+'/'+y+'.png',
-		headers: {'Content-Type': 'image/png'},
-		encoding: null
-	}, function(err, response, squid) {
-		if (err){
-			console.log('error in testing', err);
+		} else if (type === 'LineString') {
+			drawLine(geom, ctx, ratio);
+		} else if (type === 'MultiLineString') {
+			for (var line = 0; line < geom.length; line++) {
+				drawLine(geom[line], ctx, ratio);
+			}
+		} else if (type === 'Polygon') {
+			drawPolygon(geom, ctx, ratio);
+		} else if (type === 'MultiPolygon') {
+			for (var poly = 0; poly < geom.length; poly++) {
+				drawPolygon(geom[poly], ctx, ratio);
+			}
 		}
 
+		ctx.closePath();
+		ctx.fill('evenodd');
+    ctx.stroke();
+  }
 
+	var finalCanvas = new Canvas(256,256);
+	var finalCtx = finalCanvas.getContext('2d');
 
-	  if (err) throw err;
-	  img = new Image;
-	  img.src = squid;
-	  ctx.drawImage(img, 0, 0, img.width, img.height);
+	for (var key in canvases) {
+		finalCtx.drawImage(canvases[key].canvas, 0, 0);
+	}
 
-		end testing for layering data on images
-		*/
+	console.timeEnd('creating image for tile');
+  callback(null, finalCanvas.pngStream());
+}
 
-		if (tile && tile.features) {
-			var features = tile.features;
-		  ctx.lineWidth = 1;
-		  ctx.strokeStyle = 'red';
-		  ctx.fillStyle = 'rgba(255,0,0,0.05)';
+function drawPoint(point, ctx, ratio) {
+	ctx.arc(~~(point[0] * ratio), ~~(256-(point[1] * ratio)), 2, 0, 2 * Math.PI, false);
+}
 
-		  for (var i = 0; i < features.length; i++) {
-		      var feature = features[i],
-		          type = feature.type;
+function drawLine(line, ctx, ratio) {
+	for (var k = 0; k < line.length; k++) {
+		var coord = line[k];
+		if (coord[0] == null || coord[1] == null) continue;
+		if (k) ctx.lineTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
+		else ctx.moveTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
+	}
+}
 
-		      ctx.beginPath();
-
-		      for (var j = 0; j < feature.geometry.length; j++) {
-		          var geom = feature.geometry[j];
-		          if (type === 1) {
-		              ctx.arc(geom[0] * ratio + pad, geom[1] * ratio + pad, 2, 0, 2 * Math.PI, false);
-		              continue;
-		          }
-
-		          for (var k = 0; k < geom.length; k++) {
-		              var p = geom[k];
-		              if (p[0] == null || p[1] == null) continue;
-		              if (k) ctx.lineTo(p[0] * ratio + pad, p[1] * ratio + pad);
-		              else ctx.moveTo(p[0] * ratio + pad, p[1] * ratio + pad);
-		          }
-		      }
-		      var styles = styleFunction(feature, style);
-		      if (styles) {
-		        var rgbFill = hexToRgb(styles.fillColor);
-		        ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
-		        ctx.lineWidth = styles.weight;
-		        var rgbStroke = hexToRgb(styles.color);
-		        ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-						// this is how you can add text.  very bad implementation though, just adds the text to every feature
-						// at the first point of that feature
-						/*
-						ctx.font = "12px sans-serif";
-						var textLocation = feature.geometry[0][0];
-  					ctx.fillText(feature.tags[style.title], textLocation[0]*ratio + pad, textLocation[1]*ratio + pad);
-						*/
-		      }
-		      if (type === 3 || type === 1) ctx.fill('evenodd');
-		      ctx.stroke();
-		  }
-		}
-	  callback(null, canvas.pngStream());
-
-		/*
-	});
-	*/
+function drawPolygon(polygon, ctx, ratio) {
+	for (var ring = 0; ring < polygon.length; ring++) {
+		var linearRing = polygon[ring];
+		drawLine(linearRing, ctx, ratio);
+	}
 }
 
 function styleFunction(feature, style) {
@@ -567,14 +315,15 @@ function styleFunction(feature, style) {
     for (var i = 0; i < sorted.length; i++) {
       var styleProperty = sorted[i];
       var key = styleProperty.key;
-      if (feature.tags && feature.tags[key]) {
-        if (feature.tags[key] == styleProperty.value) {
+      if (feature.properties && feature.properties[key]) {
+        if (feature.properties[key] == styleProperty.value) {
           return {
             color: styleProperty.style['stroke'],
             fillOpacity: styleProperty.style['fill-opacity'],
             opacity: styleProperty.style['stroke-opacity'],
             weight: styleProperty.style['stroke-width'],
-            fillColor: styleProperty.style['fill']
+            fillColor: styleProperty.style['fill'],
+						styleId: i
           };
         }
       }
@@ -590,7 +339,8 @@ function styleFunction(feature, style) {
     fillOpacity: defaultStyle.style['fill-opacity'],
     opacity: defaultStyle.style['stroke-opacity'],
     weight: defaultStyle.style['stroke-width'],
-    fillColor: defaultStyle.style['fill']
+    fillColor: defaultStyle.style['fill'],
+		styleId: style.styles.length
   }
 }
 

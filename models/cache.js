@@ -1,5 +1,7 @@
 var mongoose = require('mongoose')
 	, fs = require('fs-extra')
+	, FeatureModel = require('./feature')
+	, turf = require('turf')
 	, config = require('../config.json')
 	, shortid = require('shortid')
 	, Source = require('./source');
@@ -148,13 +150,13 @@ exports.createCache = function(cache, callback) {
 			    }
 					if (cache) {
 						cache.source = cache.sourceId;
-						if (!cache.style && cache.source.style) {
-							cache.style = cache.source.style;
-							cache.save(function() {
+						if (cache.source.vector) {
+							var extent = turf.extent(cache.geometry);
+							FeatureModel.createCacheFeaturesFromSource(cache.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
 								return callback(err, cache);
 							});
 						} else {
-					    return callback(err, cache);
+							return callback(err, cache);
 						}
 					}
 				});

@@ -17,8 +17,13 @@ L.Control.Legend = L.Control.extend({
     return this._div;
   },
 
+	showLegend: true,
+
   update: function (map) {
-    for (var i = 0; i < this.styles.length; i++) {
+		$(this._div).empty();
+		if (this.styles.length == 0) return;
+
+    for (var i = 0; i < this.styles.length && this.showLegend; i++) {
 			var style = this.styles[i].style;
 			var el = $('<canvas height="30" width="32" style="zoom:50%; -moz-transform:scale(.5)"></canvas>');
 			var canvas = el[0];
@@ -48,8 +53,15 @@ L.Control.Legend = L.Control.extend({
 	      console.log('no canvas support');
 	    }
 			$(this._div).append(el);
-			$(this._div).append('&nbsp;&nbsp;&nbsp;<span class="page-sub-entity-title top-padding-l">' + this.styles[i].key +' = ' + this.styles[i].value + '</span><br>')
+			$(this._div).append('&nbsp;&nbsp;&nbsp;<span class="page-sub-entity-title top-padding-l">' + this.styles[i].key +' = ' + this.styles[i].value + '</span><br>');
+
     }
+		var toggle = $('<a style="cursor: pointer;">'+(this.showLegend ? 'Hide Legend' : 'Show Legend') + '</a>');
+		toggle.on('click', $.proxy(function() {
+			this.showLegend = !this.showLegend;
+			this.update(map);
+		}, this));
+		$(this._div).append(toggle);
   },
 
 	hexToRgb: function(hex) {

@@ -125,7 +125,7 @@ module.exports = function(app, auth) {
   );
 
   app.get(
-    '/api/sources/:sourceId/:z/:x/:y.:format',
+    '/api/sources/:sourceIdNoProperties/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -134,14 +134,14 @@ module.exports = function(app, auth) {
       sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
-
+        res.setHeader('Cache-Control', 'max-age=86400');
         tileStream.pipe(res);
       });
     }
   );
 
   app.get(
-    '/api/maps/:sourceId/:z/:x/:y.:format',
+    '/api/maps/:sourceIdNoProperties/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
@@ -192,7 +192,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var source = req.source;
-      sourceProcessor.getData(source, req.param('format'), function(err, data) {
+      sourceProcessor.getData(source, req.param('format'), -180, -85, 180, 85, function(err, data) {
         if (data.file) {
           console.log('streaming', data.file);
           var stream = fs.createReadStream(data.file);
@@ -232,20 +232,30 @@ module.exports = function(app, auth) {
       };
 
       request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response, body) {
-        if (!err && response && response.statusCode == 200 && response.headers['content-type'].startsWith('image')) {
+        if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
           sourceInformation.valid = true;
           sourceInformation.format = 'xyz';
           res.json(sourceInformation);
         } else {
           request.get({url: req.param('url') + '?f=pjson', timeout: 5000}, function(err, response, body) {
+            var parsable = false;
+            var body;
             if (!err && response && response.statusCode == 200) {
+              try {
+                body = JSON.parse(body);
+                parsable = true;
+              } catch (e) {
+                parsable = false;
+              }
+            }
+            if (parsable) {
               sourceInformation.valid = true;
               sourceInformation.format = 'arcgis';
-              sourceInformation.wmsGetCapabilities = JSON.parse(body);
+              sourceInformation.wmsGetCapabilities = body;
               res.json(sourceInformation);
             } else {
               request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response, body) {
-                if (!err && response && response.statusCode == 200 && response.headers['content-type'].startsWith('image')) {
+                if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
                   sourceInformation.valid = true;
                   sourceInformation.format = 'xyz';
                   sourceInformation.tilesLackExtensions = true;

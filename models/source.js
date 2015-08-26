@@ -24,6 +24,7 @@ var SourceSchema = new Schema({
 	humanReadableId: { type: String, required: false},
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,
+  styleTime: { type: Number, required: false, default: 1 },
 	projections: Schema.Types.Mixed,
   properties: Schema.Types.Mixed,
   status: {
@@ -100,10 +101,19 @@ exports.getSourceById = function(id, callback) {
   });
 }
 
+exports.getSourceNoProperties = function(id, callback) {
+  Source.findById(id, {properties: 0}).exec(function(err, source) {
+    if (err) {
+      console.log("Error finding source in mongo: " + id + ', error: ' + err);
+    }
+    return callback(err, source);
+  });
+}
+
 exports.updateSource = function(id, update, callback) {
+  update.styleTime = Date.now();
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);
-
     callback(err, updatedSource)
   });
 }

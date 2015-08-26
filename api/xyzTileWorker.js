@@ -13,7 +13,7 @@ function pushNextTileTasks(q, xyzSource, zoom, x, yRange, numberOfTasks) {
 }
 
 function getXRow(xyzSource, xRow, yRange, zoom, xRowDone, downloadTile, shouldContinueFunction) {
-  var q = async.queue(downloadTile, 10);
+  var q = async.queue(downloadTile, 100);
 
   q.drain = function() {
     shouldContinueFunction(xyzSource, function(err, keepGoing) {
@@ -64,13 +64,16 @@ exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, sho
 
       var totalTiles = (1 + (yRange.max - yRange.min)) * (1 + (xRange.max - xRange.min));
       totalXYZTiles += totalTiles;
-      xyzSource.status.zoomLevelStatus[zoom] = {
+      xyzSource.status.zoomLevelStatus[zoom] = xyzSource.status.zoomLevelStatus[zoom] || {
         complete: false,
         totalTiles: totalTiles,
         generatedTiles: 0
       };
+      if (xyzSource.status.zoomLevelStatus[zoom].complete) {
+        xyzSource.status.zoomLevelStatus[zoom].generatedTiles = totalTiles;
+      }
     }
-
+    xyzSource.markModified('status.zoomLevelStatus');
     xyzSource.status.totalTiles = totalXYZTiles;
     xyzSource.save(function() {
       var zoom = minZoom;
@@ -81,6 +84,7 @@ exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, sho
         },
         function (zoomLevelDone) {
           console.log("Starting zoom level " + zoom);
+
           shouldContinueFunction(xyzSource, function(err, keepGoing) {
             if (!keepGoing) {
               zoom++;

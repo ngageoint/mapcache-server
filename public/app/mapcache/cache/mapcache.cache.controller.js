@@ -87,11 +87,11 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, $roo
       $rootScope.title = $scope.cache.name;
 
       $scope.zoomRows = $scope.sortedZooms(cache);
-      if (!cache.status.complete && $location.path().startsWith('/cache')) {
+      if (!cache.status.complete && $location.path().indexOf('/cache') == 0) {
         $timeout(getCache, 5000);
       } else {
         for (var format in cache.formats) {
-          if(cache.formats.hasOwnProperty(format) && cache.formats[format].generating && $location.path().startsWith('/cache')) {
+          if(cache.formats.hasOwnProperty(format) && cache.formats[format].generating && $location.path().indexOf('/cache') == 0) {
             $timeout(getCache, 5000);
           }
         }

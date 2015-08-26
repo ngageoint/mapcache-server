@@ -1,4 +1,6 @@
 var CacheModel = require('../../models/cache.js')
+  , FeatureModel = require('../../models/feature.js')
+  , async = require('async')
   , sourceTypes = require('../sources')
   , path = require('path')
   , request = require('request')
@@ -24,56 +26,35 @@ exports.getTile = function(cache, format, z, x, y, callback) {
   return tileUtilities.getVectorTile(cache, format, z, x, y, null, callback);
 }
 
-exports.generateCache = function(cache, minZoom, maxZoom, callback) {
-  sourceTypes.getData(cache.source, 'geojson', function(err, data) {
-    var gj = "";
-    if (data && data.stream) {
-      data.stream.on('data', function(chunk) {
-        gj = gj + chunk;
-      });
+exports.generateCache = function(cache, minZoom, maxZoom, cacheGenerated) {
+  var extent = turf.extent(cache.geometry);
 
-      data.stream.on('end', function(chunk) {
-        writeCache(JSON.parse(gj), cache, callback);
-      });
-    } else if (data && data.file) {
-      fs.readFile(data.file, function(err, fileData) {
-        gj = JSON.parse(fileData);
-        writeCache(gj, cache, callback);
-      });
-    }
-  });
-}
+  FeatureModel.getAllCacheFeatures(cache.id, function(err, features) {
+    var geojsonFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".geojson");
+    fs.mkdirs(path.dirname(geojsonFile), function (err) {
+      if (err) return console.error(err);
+      console.log("success!");
+      var writeStream = fs.createWriteStream(geojsonFile);
+      writeStream.write('{type: "FeatureCollection", features:[');
 
-function writeCache(gj, cache, callback) {
-  var geojsonFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".geojson");
+      async.forEachOf(features, function iterator(feature, index, featureDone) {
 
-  var gjCache = {type: "FeatureCollection",features: []};
-  cache.vector = true;
-  cache.totalFeatures = 0;//gj.features.length;
+        writeStream.write(JSON.stringify(feature));
+        if (index != features.length-1) {
+          writeStream.write(',')
+        }
+        async.setImmediate(function() {
+          featureDone();
+        });
 
-  var poly = cache.geometry;
-  console.log('there are ' + gj.features.length + ' features to look through');
-  for (var i = 0; i < gj.features.length; i++) {
-    var feature = gj.features[i];
-    try {
-      var intersection = turf.intersect(poly, feature);
-      if (intersection) {
-        console.log('adding feature');
-        cache.generatedFeatures++;
-        gjCache.features.push(feature);
-      }
-    } catch (e) {
-      console.log('feature error', feature);
-      console.log('error turfing', e);
-    }
-  }
-  fs.mkdirs(path.dirname(geojsonFile), function (err) {
-    if (err) return console.error(err);
-    console.log("success!");
-
-    fs.writeFile(geojsonFile, JSON.stringify(gjCache), function(err) {
-      cache.save(function() {
-        callback(null, {file: geojsonFile, cache: cache});
+      }, function done() {
+        writeStream.write(']}');
+        cache.vector = true;
+        cache.totalFeatures = features.length;
+        cache.generatedFeatures = features.length;
+        cache.save(function() {
+          cacheGenerated(null, {file: geojsonFile, cache: cache});
+        });
       });
     });
   });
