@@ -100,9 +100,52 @@ function tileRasterBounds(ds, ulx, uly, lrx, lry) {
   };
 }
 
+function createCutlineInProjection(envelope, srs) {
+  var tx = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), srs);
+
+  var ul = tx.transformPoint(envelope.west, envelope.north);
+	var ur = tx.transformPoint(envelope.east, envelope.north);
+	var lr = tx.transformPoint(envelope.east, envelope.south);
+	var ll = tx.transformPoint(envelope.west, envelope.south);
+
+	var cutline = new gdal.Polygon();
+	var ring = new gdal.LinearRing();
+	ring.points.add([ul,ur,lr,ll,ul]);
+	cutline.rings.add(ring);
+  return cutline;
+}
+
+function createPixelCoordinateCutline(envelope, ds) {
+  var sourceCoords = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), ds.srs);
+
+  var sourcePixels = new gdal.CoordinateTransformation(ds.srs, ds);
+
+  var cutlineCoords = createCutlineInProjection(envelope, ds.srs);
+
+  var ul = sourceCoords.transformPoint(envelope.west, envelope.north);
+	var ur = sourceCoords.transformPoint(envelope.east, envelope.north);
+	var lr = sourceCoords.transformPoint(envelope.east, envelope.south);
+	var ll = sourceCoords.transformPoint(envelope.west, envelope.south);
+
+  var ul = sourcePixels.transformPoint(ul.x, ul.y);
+  var ur = sourcePixels.transformPoint(ur.x, ur.y);
+  var lr = sourcePixels.transformPoint(lr.x, lr.y);
+  var ll = sourcePixels.transformPoint(ll.x, ll.y);
+
+  console.log('ul', ul);
+  console.log('ur', ur);
+  console.log('lr', lr);
+  console.log('ll', ll);
+
+	var cutline = new gdal.Polygon();
+	var ring = new gdal.LinearRing();
+	ring.points.add([ul,ur,lr,ll,ul]);
+	cutline.rings.add(ring);
+  return cutline;
+}
+
 exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
-
   var tileEnvelope = tu.tileBboxCalculator(x, y, z);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
   var intersection = turf.intersect(tilePoly, source.geometry);
@@ -111,65 +154,42 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     return callback();
   }
 
-  // var out_ds = gdal.open(source.projections["3857"].path);
-  var out_ds = gdal.open(source.filePath);
-  exports.gdalInfo(out_ds);
+  var in_ds = gdal.open(source.filePath);
+  exports.gdalInfo(in_ds);
 
-  var out_srs = out_ds.srs;
+  var in_srs = in_ds.srs;
 
-  var out_gt = out_ds.geoTransform;
+  var in_gt = in_ds.geoTransform;
 
-  if (out_gt[2] != 0 || out_gt[4] != 0) {
+  if (in_gt[2] != 0 || in_gt[4] != 0) {
     console.log("error the geotiff is skewed, need to warp first");
     return callback();
   }
 
-  // output bounds - coordinates in the output SRS
-  var ominx = out_gt[0];
-  var omaxx = out_gt[0] + out_ds.rasterSize.x * out_gt[1];
-  var omaxy = out_gt[3];
-  var ominy = out_gt[3] + out_ds.rasterSize.y * out_gt[5];
+  var w =  in_ds.rasterSize.x;
+  var h =  in_ds.rasterSize.y;
 
-  var coord_transform = new gdal.CoordinateTransformation(gdal.SpatialReference.fromEPSG(4326), out_srs);
+  var fullExtent = turf.extent(source.geometry);
 
-  console.log("Bounds (output srs): " + ominx + ", " + ominy + ", " + omaxx + ", " + omaxy);
+  var cutline = createCutlineInProjection(tileEnvelope, gdal.SpatialReference.fromEPSG(3857));
+  var srcCutline = createPixelCoordinateCutline({west: fullExtent[0], south: fullExtent[1], east: fullExtent[2], north: fullExtent[3]}, in_ds);
 
-  var ul = coord_transform.transformPoint(tileEnvelope.west, tileEnvelope.north);
-  var lr = coord_transform.transformPoint(tileEnvelope.east, tileEnvelope.south);
-  var tminx = ul.x;
-  var tmaxx = lr.x;
-  var tminy = lr.y;
-  var tmaxy = ul.y;
+  var extent = cutline.getEnvelope();
 
-  // these represent the bounds of the tile in the output SRS.  They could be bigger or smaller than the actual image
-  console.log("Tile Bounds (output srs): " + tminx + ", " + tminy + ", " + tmaxx + ", " + tmaxy);
+  var out_ds = reproject(in_ds, 3857, cutline, srcCutline);
 
-  var ctminx = tminx;
-  var ctmaxx = tmaxx;
-  var ctminy = tminy;
-  var ctmaxy = tmaxy;
-  if (tminx < ominx) ctminx = ominx;
-  if (tmaxx > omaxx) ctmaxx = omaxx;
-  if (tminy < ominy) ctminy = ominy;
-  if (tmaxy > omaxy) ctmaxy = omaxy;
-
-  console.log("Corrected Tile Bounds (output srs): " + ctminx + ", " + ctminy + ", " + ctmaxx + ", " + ctmaxy);
-
-  var tb = tileRasterBounds(out_ds, tminx, tmaxy, tmaxx, tminy);
-
-  console.log("Tile Raster Bounds", tb);
-  var options = {
-    buffer_width: Math.ceil(256*Math.min(1,(ctmaxx-ctminx)/(tmaxx-tminx))),
-    buffer_height: Math.floor(256*Math.min(1,(ctmaxy-ctminy)/(tmaxy-tminy)))
-  };
-
-  var pixelRegion1 = out_ds.bands.get(1).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
-  var pixelRegion2 = out_ds.bands.get(2).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
-  var pixelRegion3 = out_ds.bands.get(3).pixels.read(tb.rx, tb.ry, tb.rxsize, tb.rysize, null, options);
+  var pixelRegion1 = out_ds.bands.get(1).pixels.read(0, 0, 256, 256, null, options);
+  var pixelRegion2 = out_ds.bands.get(2).pixels.read(0, 0, 256, 256, null, options);
+  var pixelRegion3 = out_ds.bands.get(3).pixels.read(0, 0, 256, 256, null, options);
+  var pixelRegion4 = out_ds.bands.get(4).pixels.read(0, 0, 256, 256, null, options);
 
   if (!pixelRegion1) {
     return callback();
   }
+  var options = {
+    buffer_width: 256,
+    buffer_height: 256
+  };
 
   var img = new png.PNG({
       width: options.buffer_width,
@@ -180,37 +200,11 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     img.data[i*4] = pixelRegion1[i];
     img.data[(i*4)+1] = pixelRegion2[i];
     img.data[(i*4)+2] = pixelRegion3[i];
-    img.data[(i*4)+3] = 255;
+    img.data[(i*4)+3] = pixelRegion4[i];
   }
 
-  var finalImg = new png.PNG({
-    width: 256,
-    height: 256,
-    filterType: 0
-  });
-
-  for (var i = 0; i < 256 * 256 * 4; i++) {
-    finalImg.data[i] = 0;
-  }
-
-  var xtrans = (ctminx - tminx)/(tmaxx-tminx);
-  var ytrans = (ctmaxy - tmaxy)/(tmaxy-tminy);
-
-  var finalDestination = {
-    x: Math.floor(256*(ctminx - tminx)/(tmaxx-tminx)),
-    y: Math.floor(256*(ctmaxy - tmaxy)/(tmaxy-tminy))
-  };
-
-  if (xtrans < 0) {
-    finalDestination.x = -finalDestination.x;
-  }
-  if (ytrans < 0) {
-    finalDestination.y = -finalDestination.y;
-  }
-
-  img.bitblt(finalImg, 0, 0, options.buffer_width, options.buffer_height, finalDestination.x, finalDestination.y);
   var tileSize = 0;
-  var stream = finalImg.pack();
+  var stream = img.pack();
   stream.on('data', function(chunk) {
     tileSize += chunk.length;
   });
@@ -223,42 +217,32 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   out_ds.close();
 }
 
-function reproject(source, epsgCode, callback) {
-  source.status.message = "Reprojecting to EPSG:3857";
-  source.save(function(err) {
-    var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
-    var ds = gdal.open(source.filePath);
-    var warpSuggestion = gdal.suggestedWarpOutput({
-      src: ds,
-      s_srs: ds.srs,
-      t_srs:targetSrs
-    });
-    var dir = path.join(config.server.sourceDirectory.path, source.id);
-    var fileName = path.basename(epsgCode + "_" + path.basename(source.filePath));
-    var file = path.join(dir, fileName);
+function reproject(ds, epsgCode, cutline, srcCutline) {
+  var extent = cutline.getEnvelope();
+  var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
 
-    console.log("translating " + source.filePath + " to " + file);
+  var gt = ds.geoTransform;
 
-    var destination = gdal.open(file, 'w', "GTiff", warpSuggestion.rasterSize.x, warpSuggestion.rasterSize.y, 3);
-    destination.srs = targetSrs;
-    destination.geoTransform = warpSuggestion.geoTransform;
+  var tr = {x:Math.max(extent.maxX-extent.minX)/256, y: Math.max(extent.maxY-extent.minY)/256 };
 
-    gdal.reprojectImage({
-      src: ds,
-      dst: destination,
-      s_srs: ds.srs,
-      t_srs: targetSrs
-    });
-    ds.close();
-    destination.close();
-    fs.stat(file, function(err, stat) {
-      source.projections = source.projections || {};
-      source.projections[epsgCode] = {path: file, size: stat.size};
-      source.status.message = "Complete";
-      source.status.complete = true;
-      source.save(callback);
-    });
+  var destination = gdal.open('memory', 'w', "MEM", 256, 256, 4);
+
+  destination.srs = targetSrs;
+  destination.geoTransform = [
+		extent.minX, tr.x, gt[2],
+		extent.maxY, gt[4], -tr.y
+	];
+
+  gdal.reprojectImage({
+    src: ds,
+    dst: destination,
+    s_srs: ds.srs,
+    t_srs: targetSrs,
+    cutline: srcCutline,
+    dstAlphaBand: 4
   });
+  ds.close();
+  return destination;
 }
 
 function sourceCorners(ds) {
