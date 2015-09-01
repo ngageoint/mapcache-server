@@ -29,7 +29,7 @@
       "user": "postgres",
       "password": "postgres",
       "database": "mapcache"
-    }
+    },
     "cacheDirectory": {
       "path": "/data/mapcache"
     },
