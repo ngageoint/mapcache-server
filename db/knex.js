@@ -1,11 +1,12 @@
+var config = require('../config.json');
+
 var dbConfig = {
   client: 'pg',
-  //"postgres://username:password@127.0.0.1/dbname"
   connection: {
-    host     : '127.0.0.1',
-    // user     : 'user',
-    // password : 'password',
-    database : 'mapcache',
+    host     : config.server.postgres.host,
+    user     : config.server.postgres.user,
+    password : config.server.postgres.password,
+    database : config.server.postgres.database,
     charset  : 'utf8'
   }
 };
