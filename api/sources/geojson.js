@@ -6,7 +6,7 @@ var SourceModel = require('../../models/source')
   , fs = require('fs-extra')
   , turf = require('turf')
   , tileUtilities = require('../tileUtilities.js')
-  , config = require('../../config.json');
+  , config = require('../../config.js');
 
 exports.process = function(source, callback) {
   callback(null, source);

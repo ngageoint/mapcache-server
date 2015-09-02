@@ -2,7 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
     , fs = require('fs-extra')
-    , config = require('../config.json')
+    , config = require('../config.js')
     , serverXform = require('../transformers/server');
 
   var passport = auth.authentication.passport

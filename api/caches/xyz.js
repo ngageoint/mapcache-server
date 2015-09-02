@@ -3,7 +3,7 @@ var CacheModel = require('../../models/cache.js')
   , fs = require('fs-extra')
   , path = require('path')
   , source = require('../sources')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , tileUtilities = require('../tileUtilities.js')
   , Readable = require('stream').Readable;
 

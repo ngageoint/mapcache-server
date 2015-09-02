@@ -2,7 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , xyzTileWorker = require('../xyzTileWorker')
   , fs = require('fs-extra')
   , path = require('path')
-  , config = require('../../config.json');
+  , config = require('../../config.js');
 
 function xyzToTms(z, y, x) {
   return {

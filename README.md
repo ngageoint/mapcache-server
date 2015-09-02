@@ -167,6 +167,60 @@ sudo python setup.py install
 mb-util```
 
 
+Install posgres and postgis
+
+sudo su -
+adduser postgres
+
+yum install postgresql postgresql-server postgresql-devel postgresql-contrib postgresql-docs
+
+
+
+Install postgis
+sudo su -
+mkdir postgis
+cd postgis
+
+
+yum install geos-devel
+yum install libxml2-devel
+yum install json-c-devel
+
+cd ~/postgis/
+wget http://download.osgeo.org/postgis/source/postgis-2.1.7.tar.gz
+tar zxvf postgis-2.1.7.tar.gz
+cd postgis-2.1.7
+./configure --with-geosconfig=/usr/local/bin/geos-config
+make
+make install
+
+sudo su
+echo /usr/local/lib >> /etc/ld.so.conf
+exit
+sudo ldconfig
+
+service postgresql initdb
+service postgresql start
+
+su postgres -
+
+psql
+
+CREATE DATABASE mapcache;
+
+CREATE SCHEMA mapcache;
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+CREATE EXTENSION fuzzystrmatch;
+CREATE EXTENSION postgis_tiger_geocoder;
+
+alter user postgres password 'postgres';
+
+edit /var/lib/pgsql/data/pg_hba.conf and set the connection confgurations from ident to trust
+
+
+
+
 ## Contact
 
 If you have any questions, or would like to get in touch, contact Ben Tuttle.

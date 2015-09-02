@@ -39,7 +39,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
       ctx.drawImage(img, 0, 0, img.width, img.height);
       callback(null, canvas.jpegStream());
 
-    })
+    });
   } else {
     req = request.get({url: url,
       headers: {'Content-Type': 'image/png'},

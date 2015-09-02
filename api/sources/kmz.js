@@ -1,7 +1,7 @@
 var SourceModel = require('../../models/source')
   , path = require('path')
   , fs = require('fs-extra')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , Canvas = require('canvas')
   , Image = Canvas.Image
   , turf = require('turf')

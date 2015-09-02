@@ -3,7 +3,7 @@ module.exports = function(app, auth) {
     , api = require('../api')
     , fs = require('fs-extra')
     , tileUtilities = require('../api/tileUtilities')
-    , config = require('../config.json')
+    , config = require('../config.js')
     , cacheXform = require('../transformers/cache');
 
   var passport = auth.authentication.passport

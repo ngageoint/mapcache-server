@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
 	, diskspace = require('diskspace')
   , du = require('du')
-	, config = require('../config.json');
+	, config = require('../config.js');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;

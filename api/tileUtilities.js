@@ -1,7 +1,6 @@
 var request = require('request')
 	, fs = require('fs-extra')
 	, path = require('path')
-	, async = require('async')
 	, turf = require('turf')
 	, xyzTileWorker = require('./xyzTileWorker')
 	, path = require('path')
@@ -13,7 +12,7 @@ var request = require('request')
 	, Maps = require('./sources')
 	, Readable = require('stream').Readable
 	, Caches = require('./caches')
- 	, config = require('../config.json');
+ 	, config = require('../config.js');
 
 Math.radians = function(degrees) {
   return degrees * Math.PI / 180;

@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-  , config = require('../config.json')
+  , config = require('../config.js')
   , shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
@@ -8,13 +8,15 @@ var Schema = mongoose.Schema;
 var SourceSchema = new Schema({
 	name: { type: String, required: false },
   dataSources: [{
+    name: { type: String, required: false },
     url: { type: String, required: false },
     format: { type: String, required: true},
     projection: { type: String, required: false},
-    vector: { type: Boolean, required: true, default: false},
-    wmsGetCapabilities: Schema.Types.Mixed,
+    vector: { type: Boolean, required: false, default: false},
+    metadata: Schema.Types.Mixed,
     geometry: Schema.Types.Mixed,
     filePath: { type: String, required: false},
+    tilesLackExtensions: {type: Boolean, default: false},
     zOrder: { type: Number, required: true, default: -1}
   }],
 	projection: { type: String, required: false},

@@ -5,7 +5,7 @@ module.exports = function(app, auth) {
     , path = require('path')
     , tileUtilities = require('../api/tileUtilities')
     , request = require('request')
-    , config = require('../config.json')
+    , config = require('../config.js')
     , DOMParser = global.DOMParser = require('xmldom').DOMParser
     , WMSCapabilities = require('wms-capabilities')
     , sourceXform = require('../transformers/source')

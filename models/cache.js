@@ -2,7 +2,7 @@ var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, FeatureModel = require('./feature')
 	, turf = require('turf')
-	, config = require('../config.json')
+	, config = require('../config.js')
 	, shortid = require('shortid')
 	, Source = require('./source');
 

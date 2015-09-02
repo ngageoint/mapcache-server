@@ -10,47 +10,41 @@ exports.ensureDataIntegrity = function(yargs) {
     .argv;
 
   async.series([
-    fixCacheSizes,
-    // moveSourceUrlAndFileLocation,
+    createDataSources,
   ], function(err, results) {
     process.exit();
   })
 }
 
-function fixCacheSizes(finished) {
-  new api.Cache().getAll({}, function(err, caches) {
+function createDataSources(finished) {
+  new api.Source().getAll({}, function(err, sources) {
     if (err) {
-      console.log('There was an error retrieving caches.');
+      console.log("There was an error retrieving sources.");
       finished();
     }
-    if (!caches) {
-      console.log('No caches were found.');
+    if (sources.length ==0 ) {
+      console.log("Found 0 sources.");
       finished();
     }
 
-    console.log('Found ' + caches.length + ' caches.');
-
-    async.eachSeries(caches, function iterator(cache, callback) {
-      if (cache.totalTileSize && !cache.vector) {
-        cache.formats = cache.formats || {};
-        if (!cache.formats.xyz || !cache.formats.xyz.size) {
-          console.log('Setting cache xyz size for cache ' + cache.name + ' to ' + cache.totalTileSize);
-          cacheModel.updateFormatCreated(cache, 'xyz', cache.totalTileSize, function(err, newCache) {
-            if(!err){
-              cacheModel.updateFormatCreated(newCache, 'tms', cache.totalTileSize, function(err, newCache) {
-                callback(err);
-              });
-            } else {
-              console.log('Error saving cache', err);
-              callback(err);
-            }
-          });
-        } else {
-          callback();
-        }
-      } else {
-        callback();
-      }
+    async.eachSeries(sources, function iterator(source, callback) {
+      console.log('fixing source ' + source.name);
+      var dataSource = {
+        name: source.name + ' ' + source.format,
+        metadata: source.wmsGetCapabilities,
+        url: source.url,
+        filePath: source.filePath,
+        vector: source.vector,
+        layer: source.wmsLayer,
+        geometry: source.geometry,
+        format: source.format,
+        tilesLackExtensions: source.tilesLackExtensions
+      };
+      source.dataSources = [dataSource];
+      source.save(function(err) {
+        console.log('err fixing source', err);
+        callback(err);
+      });
     }, function done() {
       finished();
     });

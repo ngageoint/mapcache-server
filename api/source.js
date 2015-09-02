@@ -3,7 +3,7 @@ var SourceModel = require('../models/source')
   , path = require('path')
   , Feature = require('../models/feature')
   , sourceProcessor = require('./sources')
-  , config = require('../config.json');
+  , config = require('../config.js');
 
 function Source() {
 }

@@ -1,0 +1,117 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', 'pngquant', '--save' ]
+2 info using npm@2.10.1
+3 info using node@v0.12.4
+4 verbose node symlink /usr/local/bin/node
+5 verbose install initial load of /data/git/mapcache-server/package.json
+6 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/adm-zip/package.json
+7 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/archiver/package.json
+8 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/async/package.json
+9 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/bestzip/package.json
+10 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/bfj/package.json
+11 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/body-parser/package.json
+12 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/bookshelf/package.json
+13 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/bower/package.json
+14 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/canvas/package.json
+15 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/diskspace/package.json
+16 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/du/package.json
+17 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/easy-zip/package.json
+18 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/express/package.json
+19 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/fs-extra/package.json
+20 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/gdal/package.json
+21 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/geojson-vt/package.json
+22 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt/package.json
+23 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-cli/package.json
+24 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-contrib-clean/package.json
+25 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-contrib-concat/package.json
+26 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-contrib-copy/package.json
+27 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-contrib-cssmin/package.json
+28 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-contrib-uglify/package.json
+29 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/grunt-usemin/package.json
+30 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/gutter/package.json
+31 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/human-readable-ids/package.json
+32 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/jpg-stream/package.json
+33 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/knex/package.json
+34 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/method-override/package.json
+35 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/moment/package.json
+36 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/mongodb-migrations/package.json
+37 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/mongoose/package.json
+38 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/multer/package.json
+39 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/ogr2ogr/package.json
+40 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/optimist/package.json
+41 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/passport/package.json
+42 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/passport-anonymous/package.json
+43 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/passport-http-bearer/package.json
+44 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/passport-local/package.json
+45 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/pg/package.json
+46 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/png-stream/package.json
+47 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/pngjs/package.json
+48 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/proj4/package.json
+49 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/request/package.json
+50 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/shortid/package.json
+51 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/shp2json/package.json
+52 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/turf/package.json
+53 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/winston/package.json
+54 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/wms-capabilities/package.json
+55 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/xmldom/package.json
+56 verbose installManyTop reading scoped package data from /data/git/mapcache-server/node_modules/yargs/package.json
+57 info package.json adm-zip@0.4.7 No license field.
+58 info package.json gdal@0.4.4 No license field.
+59 info package.json easy-zip@0.0.4 license should be a valid SPDX license expression
+60 info package.json passport-anonymous@1.0.1 No license field.
+61 info package.json passport-http-bearer@0.2.1 No license field.
+62 info package.json optimist@0.3.7 license should be a valid SPDX license expression
+63 info package.json pngjs@0.4.0 No repository field.
+64 info package.json pngjs@0.4.0 No license field.
+65 info package.json diskspace@0.1.7 No license field.
+66 info package.json bower@1.4.1 No license field.
+67 info package.json du@0.1.0 No license field.
+68 info package.json grunt-contrib-clean@0.6.0 No license field.
+69 info package.json fs-extra@0.11.1 No license field.
+70 info package.json grunt@0.4.5 No license field.
+71 info package.json grunt-cli@0.1.13 No license field.
+72 info package.json grunt-contrib-copy@0.8.0 No license field.
+73 info package.json grunt-contrib-concat@0.5.1 No license field.
+74 info package.json grunt-contrib-cssmin@0.12.3 No license field.
+75 info package.json grunt-contrib-uglify@0.8.1 No license field.
+76 info package.json human-readable-ids@1.0.1 license should be a valid SPDX license expression
+77 info package.json ogr2ogr@0.5.1 No license field.
+78 info package.json mongoose@3.8.24 No license field.
+79 info package.json moment@2.1.0 No license field.
+80 info package.json passport-local@1.0.0 No license field.
+81 info package.json passport@0.1.18 No license field.
+82 info package.json xmldom@0.1.19 No license field.
+83 info package.json winston@1.0.0 No license field.
+84 verbose readDependencies loading dependencies from /data/git/mapcache-server/package.json
+85 silly cache add args [ 'pngquant', null ]
+86 verbose cache add spec pngquant
+87 silly cache add parsed spec { raw: 'pngquant',
+87 silly cache add   scope: null,
+87 silly cache add   name: null,
+87 silly cache add   rawSpec: 'pngquant',
+87 silly cache add   spec: '/data/git/mapcache-server/utilities/pngquant/pngquant',
+87 silly cache add   type: 'local' }
+88 silly addLocalTarball shasum (computed) d2b52010207c673f84112d75df8ffb225725eaa5
+89 verbose addTmpTarball /data/git/mapcache-server/utilities/pngquant/pngquant not in flight; adding
+90 verbose addTmpTarball validating metadata from /data/git/mapcache-server/utilities/pngquant/pngquant
+91 verbose tar unpack /data/git/mapcache-server/utilities/pngquant/pngquant
+92 verbose tar unpacking to /var/folders/3_/cwq0xm2d6jz1b6hksgj1gd2w0000gn/T/npm-30813-c3daa18f/unpack-8f8557dd6008
+93 silly gentlyRm /var/folders/3_/cwq0xm2d6jz1b6hksgj1gd2w0000gn/T/npm-30813-c3daa18f/unpack-8f8557dd6008 is being purged
+94 verbose gentlyRm don't care about contents; nuking /var/folders/3_/cwq0xm2d6jz1b6hksgj1gd2w0000gn/T/npm-30813-c3daa18f/unpack-8f8557dd6008
+95 silly gunzTarPerm modes [ '755', '644' ]
+96 error not a package /data/git/mapcache-server/utilities/pngquant/pngquant
+97 error addLocal Could not install /data/git/mapcache-server/utilities/pngquant/pngquant
+98 verbose stack Error: ENOENT, open '/var/folders/3_/cwq0xm2d6jz1b6hksgj1gd2w0000gn/T/npm-30813-c3daa18f/unpack-8f8557dd6008/package.json'
+98 verbose stack     at Error (native)
+99 verbose cwd /data/git/mapcache-server/utilities/pngquant
+100 error Darwin 14.4.0
+101 error argv "node" "/usr/local/bin/npm" "install" "pngquant" "--save"
+102 error node v0.12.4
+103 error npm  v2.10.1
+104 error path /var/folders/3_/cwq0xm2d6jz1b6hksgj1gd2w0000gn/T/npm-30813-c3daa18f/unpack-8f8557dd6008/package.json
+105 error code ENOENT
+106 error errno -2
+107 error enoent ENOENT, open '/var/folders/3_/cwq0xm2d6jz1b6hksgj1gd2w0000gn/T/npm-30813-c3daa18f/unpack-8f8557dd6008/package.json'
+107 error enoent This is most likely not a problem with npm itself
+107 error enoent and is related to npm not being able to find a file.
+108 verbose exit [ -2, true ]

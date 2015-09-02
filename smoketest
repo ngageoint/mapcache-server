@@ -5,7 +5,7 @@ var mongoose = require('mongoose')
   , fs = require('fs-extra')
   , path = require('path')
   , exec = require('child_process').exec
-  , config = require('./config.json')
+  , config = require('./config.js')
   , api = require('./api');
 
 var yargs = require("yargs")

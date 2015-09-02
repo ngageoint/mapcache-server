@@ -2,7 +2,7 @@ var knex = require('../db/knex')
 	, turf = require('turf')
 	, proj4 = require('proj4')
 	, async = require('async')
-	, config = require('../config.json');
+	, config = require('../config.js');
 
 exports.createFeatureForSource = function(feature, sourceId, callback) {
   var gj = JSON.stringify(feature.geometry);

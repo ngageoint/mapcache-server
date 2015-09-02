@@ -5,7 +5,7 @@ var SourceModel = require('../../models/source')
   , async = require('async')
   , FeatureModel = require('../../models/feature')
   , tileUtilities = require('../tileUtilities.js')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , shp2json = require('shp2json');
 
 exports.process = function(source, callback) {

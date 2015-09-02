@@ -6,7 +6,7 @@ var CacheModel = require('../../models/cache.js')
   , request = require('request')
   , turf = require('turf')
   , tileUtilities = require('../tileUtilities')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , fs = require('fs-extra');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {

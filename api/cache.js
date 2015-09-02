@@ -2,11 +2,11 @@ var CacheModel = require('../models/cache')
   , turf = require('turf')
   , fs = require('fs-extra')
   , archiver = require('archiver')
-  , config = require('../config.json')
+  , config = require('../config.js')
   , tileUtilities = require('./tileUtilities')
   , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
-  , config = require('../config.json')
+  , config = require('../config.js')
   , exec = require('child_process').exec;
 
 function Cache() {

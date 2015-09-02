@@ -1,5 +1,4 @@
-{
-  "api": {
+exports.api = {
     "name": "Map Cache",
     "version": {
       "major": 1,
@@ -13,8 +12,8 @@
     "provision": {
       "strategy": "uid"
     }
-  },
-  "server": {
+  };
+exports.server = {
     "token": {
       "expiration": 28800
     },
@@ -24,6 +23,12 @@
       "db": "mapcachedb",
       "poolSize": 5
     },
+    "postgres": {
+      "host": "127.0.0.1",
+      //"user": "postgres",
+      //"password": "postgres",
+      "database": "mapcache"
+    },
     "cacheDirectory": {
       "path": "/data/mapcache"
     },
@@ -32,8 +37,8 @@
     },
     "storageLimit":20000,
     "maximumCacheSize":2048
-  },
-  "sourceCacheTypes": {
+  };
+exports.sourceCacheTypes = {
     "shapefile": [{"type":"geojson", "required": true, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"xyz", "required": false, "secondary": true}, {"type":"tms", "required": false, "depends": "xyz", "secondary": true}, {"type":"geopackage", "required": false, "depends": "xyz", "secondary": true}, {"type":"mbtiles", "required": false, "depends": "xyz", "secondary": true}],
     "kmz": [{"type":"geojson", "required": true, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"xyz", "required": false, "secondary": true}, {"type":"tms", "required": false, "depends": "xyz", "secondary": true}, {"type":"geopackage", "required": false, "depends": "xyz", "secondary": true}, {"type":"mbtiles", "required": false, "depends": "xyz", "secondary": true}],
     "geojson": [{"type":"geojson", "required": true, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"xyz", "required": false, "secondary": true}, {"type":"tms", "required": false, "depends": "xyz", "secondary": true}, {"type":"geopackage", "required": false, "depends": "xyz", "secondary": true}, {"type":"mbtiles", "required": false, "depends": "xyz", "secondary": true}],
@@ -44,5 +49,4 @@
     "mrsid": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
     "mbtiles": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
     "arcgis": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}]
-  }
-}
+  };

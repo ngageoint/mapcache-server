@@ -9,7 +9,7 @@ var gdal = require("gdal")
   , async = require('async')
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
-  , config = require('../../config.json');
+  , config = require('../../config.js');
 
   exports.processSource = function(source, callback) {
     source.status.message="Processing source";
