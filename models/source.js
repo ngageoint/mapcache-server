@@ -26,7 +26,8 @@ var DatasourceSchema = new Schema({
     totalFeatures: {type: Number, required: true, default: 0}
   },
   properties: Schema.Types.Mixed,
-  style: Schema.Types.Mixed
+  style: Schema.Types.Mixed,
+  styleTime: { type: Number, required: false, default: 1 }
 });
 
 var SourceSchema = new Schema({
@@ -123,10 +124,8 @@ exports.updateDatasource = function(datasource, callback) {
       console.log('Could not update source', err);
       return callback(err);
     }
-    console.log('updating this source', source);
-    console.log('updating this datasource', datasource);
-
     var set = {};
+    set['dataSources.$.styleTime'] = Date.now();
     if (datasource.name) set['dataSources.$.name'] = datasource.name;
     if (datasource.url) set['dataSources.$.url'] = datasource.url;
     if (datasource.format) set['dataSources.$.format'] = datasource.format;
@@ -168,8 +167,6 @@ exports.updateDatasource = function(datasource, callback) {
       function(err, source) {
         console.log('err saving the datasource', err);
         exports.getDataSourceById(datasource._id, function(err, datasource) {
-          console.log('saved the ds with err', err);
-          console.log('ds', datasource);
           callback(err, datasource);
         });
       }
@@ -200,25 +197,6 @@ exports.getDataSourceById = function(id, callback) {
     }
     callback(err, null);
   });
-  //
-  //
-  //
-  // Source.findById(id).exec(function(err, source) {
-  //   if (err) {
-  //     console.log("Error finding source in mongo: " + id + ', error: ' + err);
-  //   }
-	// 	if (source) {
-  //     source.cacheTypes = config.sourceCacheTypes[source.format];
-	//     return callback(err, source);
-	// 	}
-	// 	// try to find by human readable
-	// 	Source.findOne({humanReadableId: id}, function(err, source) {
-  //     if (source) {
-  //       source.cacheTypes = config.sourceCacheTypes[source.format];
-  //     }
-	// 	  return callback(err, source);
-	// 	});
-  // });
 }
 
 exports.getSourceNoProperties = function(id, callback) {
@@ -232,6 +210,10 @@ exports.getSourceNoProperties = function(id, callback) {
 
 exports.updateSource = function(id, update, callback) {
   update.styleTime = Date.now();
+  // for now just update all of the datasource style times when the source is saved
+  for (var i = 0; i < update.dataSources.length; i++) {
+    update.dataSources[i].styleTime = update.styleTime;
+  }
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);
     callback(err, updatedSource)

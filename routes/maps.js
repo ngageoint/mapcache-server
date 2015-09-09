@@ -21,7 +21,11 @@ module.exports = function(app, auth) {
     var source = req.body;
 
     req.newSource = source;
-    req.newSource.dataSources = JSON.parse(source.dataSources);
+    if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
+      req.newSource.dataSources = JSON.parse(source.dataSources);
+    } else {
+      req.newSource.dataSources = source.dataSources;
+    }
     next();
   }
 
