@@ -9,75 +9,11 @@
     </div>
   </div>
 
-  <div ng-repeat="dataSource in source.dataSources">
-    <div class="row top-gap-l">
-      <div class="col-md-6">
-        <div class="form-group has-feedback" ng-class="{'has-success':locationStatus == 'success', 'has-warning': locationStatus == 'warning', 'has-error': locationStatus == 'error'}">
-          <span class="control-label page-sub-entity-title">Enter a URL or choose a local file with your data</span>
-          <div location-chooser location-status="locationStatus"></div>
-          <p ng-if="mapInformation" class="help-block">
-            <span ng-if="locationStatus == 'success'"><span ng-if="mapInformation.url">URL</span><span ng-if="mapInformation.file">File</span> appears to be a {{mapInformation.format | cacheFormat}} map.</span>
-            <span ng-if="locationStatus == 'warning'"><span ng-if="mapInformation.url">URL</span><span ng-if="mapInformation.file">File</span> is valid but the data format could not be determined.</span>
-            <span ng-if="locationStatus == 'error'">Could not validate URL.  Please ensure it is correct.</span>
-          </p>
-        </div>
-      </div>
-      <div class="col-md-6 nice-radio" ng-if="mapInformation.file">
-        <div class="form-group">
-          <span class="page-sub-entity-title one-line-ellipsis">Format of {{mapInformation.file.name}}</span>
-          <span ng-repeat="format in validFileFormats">
-            <input value="{{format.format}}" id="{{format.format}}" ng-model="map.format" type="radio" name="team" checked>
-            <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
-          </span>
-        </div>
-      </div>
-      <div class="col-md-6 nice-radio" ng-if="mapInformation.url">
-        <div class="form-group">
-          <span class="page-sub-entity-title one-line-ellipsis">Format of {{mapInformation.url}}</span>
-          <span ng-repeat="format in validUrlFormats">
-            <input value="{{format.format}}" id="{{format.format}}" ng-model="map.format" type="radio" name="team" checked>
-            <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="row" ng-show="urlDiscovery">
-      <div class="col-md-12">
-        <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Gathering information about this URL.</p>
-      </div>
-    </div>
-    <div class="row" ng-show="fetchingCapabilities">
-      <div class="col-md-12">
-        <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Fetching server capabilities</p>
-      </div>
-    </div>
-    <div class="row" ng-show="(!fetchingCapabilities && !urlDiscovery) && map.format == 'wms' && !mapInformation.wmsGetCapabilities.Capability">
-      <div class="col-md-12">
-        <p class="lead"><i class="fa fa-warning"></i> This does not appear to be a valid WMS server.</p>
-      </div>
-    </div>
-
-    <div ng-if="mapInformation.wmsGetCapabilities.Capability">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="form-group">
-            <label>Available layers on this WMS server.  Choose a layer to create your map with:</label>
-            <ui-select ng-model="map.wmsLayer" theme="bootstrap">
-              <ui-select-match placeholder="Select a layer">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
-              <ui-select-choices repeat="layer in wmsLayers | orderBy: 'Title' | filter: $select.search">
-                <div ng-bind-html="layer.Title | highlight: $select.search"></div>
-                <small class="muted">
-                  <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
-                </small>
-              </ui-select-choices>
-            </ui-select>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <div ng-repeat="dataSource in map.dataSources">
+    <div map-datasource="dataSource"></div>
   </div>
+
+  <button class="btn btn-primary" ng-click="addDataSource()">MORE DATA</button>
 
   <div class="row" ng-if="showMap">
     <div class="col-md-12">
@@ -98,7 +34,7 @@
         <div class="input-group file-input-group">
           <input type="text" class="form-control" ng-model="map.name" placeholder="e.g. Denver, CO">
           <span class="input-group-btn">
-            <button class="btn btn-primary" ng-class="{disabled: mapSubmitted || (!map.name || !map.format || (!map.url && !map.mapFile))}" ng-click="createMap()">
+            <button class="btn btn-primary" ng-class="{disabled: mapSubmitted || (!map.name || !dataSourcesValidated)}" ng-click="createMap()">
               Create Map
             </button>
           </span>

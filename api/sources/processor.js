@@ -23,13 +23,14 @@ process.on('message', function(m) {
 });
 
 function processSource(sourceId) {
-  SourceModel.getSourceById(sourceId, function(err, source) {
+  SourceModel.getDataSourceById(sourceId, function(err, source) {
     if (!source) {
       console.log('unable to find source with id ', sourceId);
       process.exit();
     }
+    console.log('source with id ' + sourceId + ' is', source);
     var processor = require('./' + source.format);
-
+    console.log('processing the ' + source.format + ' data source.');
     processor.processSource(source, function() {
       process.exit();
     });

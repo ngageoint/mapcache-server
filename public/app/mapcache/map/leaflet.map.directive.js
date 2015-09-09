@@ -10,7 +10,8 @@ function leafletMap() {
     scope: {
       map: '=',
       options: '=',
-      caches: '='
+      caches: '=',
+      dataSources: '='
     },
     controller: LeafletMapController
   };

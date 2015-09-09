@@ -9,6 +9,9 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
   var resolvedMaps = {};
   var resolveAllMaps = null;
 
+  var validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}, {format:'arcgis'}];
+  var validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}, {format: 'mrsid'}];
+
   var service = {
     getAllMaps: getAllMaps,
     refreshMap: refreshMap,
@@ -18,7 +21,9 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     getMapVectorTile: getMapVectorTile,
     getMapData: getMapData,
     getCachesForMap: getCachesForMap,
-    getFeatures: getFeatures
+    getFeatures: getFeatures,
+    validUrlFormats: validUrlFormats,
+    validFileFormats: validFileFormats
   };
 
   return service;
@@ -138,12 +143,22 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
 
   function createMap(map, success, error, progress) {
 
-    if (map.mapFile) {
+    // if (map.mapFile) {
         var formData = new FormData();
-        formData.append('mapFile', map.mapFile);
+        for (var i = 0; i < map.dataSources.length; i++) {
+          if (map.dataSources[i].file) {
+            console.log('file', map.dataSources[i].file);
+            formData.append('mapFile', map.dataSources[i].file);
+            map.dataSources[i].file = {name: map.dataSources[i].file.name};
+          }
+        }
         for (var key in map) {
           if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
-            formData.append(key, map[key]);
+            if (typeof map[key] === 'string' || map[key] instanceof String) {
+              formData.append(key, map[key]);
+            } else {
+              formData.append(key, angular.toJson(map[key]));
+            }
           }
         }
 
@@ -164,12 +179,6 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
             $rootScope.$apply(function() {
               success(response);
             });
-
-            // delete self.formArchiveFile;
-            // _.extend(self, response);
-            // $rootScope.$apply(function() {
-            //   success(self);
-            // });
           },
           error: error,
           data: formData,
@@ -177,17 +186,17 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
           contentType: false,
           processData: false
         });
-      } else {
-        $http.post(
-          '/api/maps',
-          map,
-          {headers: {"Content-Type": "application/json"}}
-        ).success(function(map) {
-          console.log("created a map", map);
-          if (success) {
-            success(map);
-          }
-        }).error(error);
-      }
+      // } else {
+      //   $http.post(
+      //     '/api/maps',
+      //     map,
+      //     {headers: {"Content-Type": "application/json"}}
+      //   ).success(function(map) {
+      //     console.log("created a map", map);
+      //     if (success) {
+      //       success(map);
+      //     }
+      //   }).error(error);
+      // }
   };
 }

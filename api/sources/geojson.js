@@ -22,38 +22,45 @@ exports.getData = function(source, west, south, east, north, callback) {
 }
 
 exports.processSource = function(source, callback) {
+  source.status = source.status || {};
   source.status.message = "Parsing GeoJSON";
   source.vector = true;
-  source.save(function(err) {
-    if (source.url) {
-      var dir = path.join(config.server.sourceDirectory.path, source.id);
+  console.log('saving the source');
+  SourceModel.updateDatasource(source, function(err, updatedSource) {
+    console.log('xxxxxxx herp');
+    console.log('saved the source', updatedSource);
+    if (updatedSource.url) {
+      var dir = path.join(config.server.sourceDirectory.path, updatedSource.id);
       fs.mkdirp(dir, function(err) {
         if (err) return callback(err);
-        var req = request.get({url: source.url})
+        var req = request.get({url: updatedSource.url})
         .on('error', function(err) {
-          console.log(err+ source.url);
+          console.log(err+ updatedSource.url);
 
           callback(err);
         })
         .on('response', function(response) {
           var size = response.headers['content-length'];
-          SourceModel.updateSourceAverageSize(source, size, function(err) {
+          SourceModel.updateSourceAverageSize(updatedSource, size, function(err) {
           });
         });
         if (req) {
-          var stream = fs.createWriteStream(dir + '/' + source.id + '.geojson');
-      		stream.on('close',function(status){
-            fs.stat(dir + '/' + source.id + '.geojson', function(err, stat) {
-              source.filePath = dir + '/' + source.id + '.geojson';
-              source.size = stat.size;
-              source.status = {
+          var stream = fs.createWriteStream(dir + '/' + updatedSource.id + '.geojson');
+      		stream.on('close',function(status) {
+            fs.stat(dir + '/' + updatedSource.id + '.geojson', function(err, stat) {
+              updatedSource.filePath = dir + '/' + updatedSource.id + '.geojson';
+              updatedSource.size = stat.size;
+              updatedSource.status = {
                 message: "Creating",
                 complete: false,
                 zoomLevelStatus: {}
               };
-              SourceModel.updateSource(source.id, source, function(err, updatedSource) {
+              SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
                 console.log('saved the source', updatedSource);
-                parseGeoJSONFile(updatedSource, callback);
+                parseGeoJSONFile(updatedSource, function(err, updatedSource) {
+
+                  callback();
+                });
               });
             });
       		});
@@ -62,41 +69,52 @@ exports.processSource = function(source, callback) {
         }
       });
 
-    } else if (fs.existsSync(source.filePath)) {
-
-      var dir = path.join(config.server.sourceDirectory.path, source.id);
-      var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
-      var file = path.join(dir, fileName);
-
-      fs.move(source.filePath, file, function(err){
-        source.filePath = file;
-        source.save(function(err){
-          parseGeoJSONFile(source, callback);
+    } else if (fs.existsSync(updatedSource.file.path)) {
+      parseGeoJSONFile(updatedSource, function(err, updatedSource) {
+        updatedSource.status.complete = true;
+        updatedSource.status.message="Complete";
+        console.log('source saved for file', updatedSource);
+        SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
+          console.log('source err', err);
+          console.log('updated source', updatedSource);
+          callback();
         });
       });
+
+      // var dir = path.join(config.server.sourceDirectory.path, source.id);
+      // var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+      // var file = path.join(dir, fileName);
+      //
+      // fs.move(source.filePath, file, function(err){
+      //   source.filePath = file;
+      //   source.save(function(err){
+      //   });
+      // });
     }
   });
 }
 
 function parseGeoJSONFile(source, callback) {
-  var stream = fs.createReadStream(source.filePath);
-  console.log('reading in the file', source.filePath);
-  fs.readFile(source.filePath, function(err, fileData) {
-    console.log('parsing file data', source.filePath);
+  var stream = fs.createReadStream(source.file.path);
+  console.log('reading in the file', source.file.path);
+  fs.readFile(source.file.path, function(err, fileData) {
+    console.log('parsing file data', source.file.path);
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
     // save the geojson to the db
+    console.log('gjdata.features', gjData.features.length);
     var count = 0;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
-      // console.log('saving feature %d', count++);
+      console.log('saving feature %d', count);
       FeatureModel.createFeatureForSource(feature, source.id, function(err) {
         count++;
         // console.log('err', err);
         async.setImmediate(function() {
           if (count % 1000 == 0) {
             source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
-    				source.save(function() {
+            SourceModel.updateDatasource(source, function(err, updatedSource) {
+              source = updatedSource;
               callback(null, feature);
     				});
           } else {
@@ -105,6 +123,7 @@ function parseGeoJSONFile(source, callback) {
         });
       });
     }, function done() {
+      console.log('done processing features');
       source.status.totalFeatures = gjData.features.length;
       var geometry = turf.envelope(gjData);
     	source.geometry = geometry;
@@ -136,7 +155,11 @@ function parseGeoJSONFile(source, callback) {
 			for (var property in allProperties) {
 				source.properties.push(allProperties[property]);
 			}
-      source.save(callback);
+      console.log('saving source');
+      SourceModel.updateDatasource(source, function(err, updatedSource) {
+        source = updatedSource;
+        callback(null, updatedSource);
+      });
     });
 
   });

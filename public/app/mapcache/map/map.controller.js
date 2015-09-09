@@ -99,14 +99,18 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
     });
   }
 
+  $scope.mapComplete = false;
+
   function getMap() {
     MapService.refreshMap($scope.map, function(map) {
       // success
       $scope.map = map;
       $rootScope.title = map.name;
-      if (!map.status.complete && $location.path().indexOf('/map') == 0) {
+      if (_.some(map.dataSources, function(value) { return !value.status.complete; }) && $location.path().indexOf('/map') == 0) {
+        $scope.mapComplete = false;
         $timeout(getMap, 5000);
       } else {
+        $scope.mapComplete = true;
         if (map.vector) {
           $scope.mapOptions.opacity = 1;
           $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};

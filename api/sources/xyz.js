@@ -65,9 +65,10 @@ exports.getData = function(source, callback) {
 
 exports.processSource = function(source, callback) {
   console.log("xyz");
+  source.status = source.status || {};
   source.status.message = "Complete";
   source.status.complete = true;
-  source.save(function(err) {
+  SourceModel.updateDatasource(source, function(err, updatedSource) {
     callback(err);
   });
 }

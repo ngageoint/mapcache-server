@@ -3,9 +3,20 @@ var async = require('async')
   , Image = Canvas.Image;
 
 exports.process = function(source, callback) {
-  var processor = require('./' + source.format);
+  async.each(source.dataSources, function(dataSource, callback) {
+    console.log('about to process the datasource', dataSource);
+    var processor = require('./' + dataSource.format);
 
-  processor.process(source, callback);
+    processor.process(dataSource, callback);
+
+  }, function() {
+    // source.status.message = "Complete";
+    // source.status.complete = true;
+    callback(null, source);
+    // source.save(function() {
+    //   callback(null, source);
+    // });
+  });
 }
 
 function pullTileFromSource(source, format, z, x, y, params, callback) {
@@ -46,11 +57,9 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     });
   }, function done() {
     var cp = require('child_process');
-    console.log('stream the zip back');
     var pngquant = cp.spawn('./utilities/pngquant/pngquant', ['-']);
-    callback(null, pngquant.stdout);
-
     canvas.pngStream().pipe(pngquant.stdin);
+    callback(null, pngquant.stdout);
   });
 
 }

@@ -21,6 +21,7 @@ module.exports = function(app, auth) {
     var source = req.body;
 
     req.newSource = source;
+    req.newSource.dataSources = JSON.parse(source.dataSources);
     next();
   }
 
@@ -60,10 +61,11 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
-      if (!req.is('multipart/form-data')) return next();
       console.log('req.files', req.files);
-      if (!req.files.mapFile) {
-        console.log('no files');
+      console.log('req.newSource', req.newSource);
+      if (!req.is('multipart/form-data')) return next();
+      if (!req.newSource.dataSources) {
+        console.log('no data sources');
         return res.sendStatus(400);
       }
       new api.Source().import(req.newSource, req.files.mapFile, function(err, newSource) {

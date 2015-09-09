@@ -13,14 +13,8 @@
         <span class="page-entity-label">Map: <span class="page-entity-title">{{map.name}}</span>
       </div>
     </div>
-    <div class="row" ng-show="!map.status.complete">
-      <div class="col-md-12">
-        <p class="lead">The map is being processed.  The status of the map processing will be updated here.  If you leave this page the map will continue to be processed on the server.</p>
-        <p class="map-status">{{map.status.message}}</p>
-      </div>
-    </div>
 
-    <div class="row" ng-if="map.status.complete">
+    <div class="row">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Map is shown below. (light grey map is only for geographic reference)</span>
       </div>
@@ -28,7 +22,7 @@
   </div>
   <div cache-listing map="map" options="mapOptions"></div>
 </div>
-<div class="container" ng-if="map.status.complete">
+<div class="container">
   <div class="row top-gap bottom-gap">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Map Settings</span>
@@ -37,8 +31,9 @@
 
   <ul class="nav nav-tabs">
     <li role="presentation" ng-class="{active: tab=='general'}"><a ng-click="tab='general'">General</a></li>
-    <li ng-show="map.vector && map.status.complete" role="presentation" ng-class="{active: tab=='vector'}"><a ng-click="tab='vector'">Vector Options</a></li>
-    <li ng-show="map.vector && map.status.complete" role="presentation" ng-class="{active: tab=='style'}"><a ng-click="tab='style'">Vector Styles</a></li>
+    <li ng-repeat="dataSource in map.dataSources | | filter: {vector:true}" ng-class="{active: tab==dataSource._id}"><a ng-click="tab=dataSource._id">{{dataSource._id}}</a></li>
+    <!-- <li ng-show="map.vector" role="presentation" ng-class="{active: tab=='vector'}"><a ng-click="tab='vector'">Vector Options</a></li>
+    <li ng-show="map.vector" role="presentation" ng-class="{active: tab=='style'}"><a ng-click="tab='style'">Vector Styles</a></li> -->
     <li role="presentation" class="pull-right"><button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button></li>
   </ul>
   <div ng-show="tab == 'general'">
@@ -47,22 +42,6 @@
         <div class="form-group">
           <span class="control-label page-sub-entity-title">Map Name</span>
           <input type="text" class="form-control" ng-model="map.name" placeholder="e.g. Denver, CO">
-        </div>
-      </div>
-    </div>
-    <div class="row" ng-show="map.format == 'wms' && map.status.complete">
-      <div class="col-md-12">
-        <div class="form-group">
-          <label>Available layers on this WMS server.  Choose a layer to create your map with:</label>
-          <ui-select ng-model="map.wmsLayer" theme="bootstrap">
-            <ui-select-match placeholder="Select a layer">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
-            <ui-select-choices repeat="layer in map.wmsGetCapabilities.Capability.Layer.Layer | orderBy: 'Title' | filter: $select.search">
-              <div ng-bind-html="layer.Title | highlight: $select.search"></div>
-              <small class="muted">
-                <span ng-bind-html="layer.Abstract | highlight: $select.search"></span>
-              </small>
-            </ui-select-choices>
-          </ui-select>
         </div>
       </div>
     </div>
