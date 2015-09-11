@@ -27,6 +27,7 @@ function LocationChooserController($scope, $element) {
       $scope.location = $scope.file.name;
     }
     $scope.$emit('location-file', $scope.file);
+    // $scope.$emit('location-file', {name: 'pee'});
     $scope.$apply();
   });
 

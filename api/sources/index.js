@@ -43,6 +43,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   async.eachSeries(sorted, function iterator(s, callback) {
 
     pullTileFromSource(s, format, z, x, y, params, function(err, tileStream) {
+      if (!tileStream) return callback();
       var buffer = new Buffer(0);
       var chunk;
       tileStream.on('data', function(chunk) {
@@ -50,9 +51,11 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
       });
       tileStream.on('end', function() {
         var img = new Image;
+        img.onload = function() {
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          callback();
+        };
         img.src = buffer;
-        ctx.drawImage(img, 0, 0, img.width, img.height);
-        callback();
       });
     });
   }, function done() {

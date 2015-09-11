@@ -17,6 +17,10 @@ var DatasourceSchema = new Schema({
     name: { type: String, required: false},
     path: { type: String, required: false}
   },
+  scaledFiles: [{
+    resolution: { type: Number, required: true},
+    path: { type: String, required: true}
+  }],
   size: { type: Number, required: false},
   tilesLackExtensions: {type: Boolean, default: false},
   zOrder: { type: Number, required: false, default: -1},
@@ -125,6 +129,7 @@ exports.updateDatasource = function(datasource, callback) {
       return callback(err);
     }
     var set = {};
+    var addToSet = {};
     set['dataSources.$.styleTime'] = Date.now();
     if (datasource.name) set['dataSources.$.name'] = datasource.name;
     if (datasource.url) set['dataSources.$.url'] = datasource.url;
@@ -158,11 +163,15 @@ exports.updateDatasource = function(datasource, callback) {
         }
       }
     }
+    if (datasource.scaledFiles) {
+      addToSet['dataSources.$.scaledFiles'] = { $each: datasource.scaledFiles };
+    }
 
     Source.update(
       {_id: source._id, 'dataSources._id': datasource._id},
       {
-        '$set': set
+        '$set': set,
+        '$addToSet': addToSet
       },
       function(err, source) {
         console.log('err saving the datasource', err);

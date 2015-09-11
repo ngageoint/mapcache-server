@@ -35,6 +35,7 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
   };
 
   $scope.$on('location-url', function(e, location) {
+    console.log('location-url caught', location);
     if (!location) {
       $scope.mapDatasource = {};
       return;
@@ -69,24 +70,41 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
       if ($scope.mapDiscovery.valid && !$scope.mapDiscovery.format) {
         $scope.mapDatasource.valid = true;
         $scope.locationStatus = 'warning';
+        if (!$scope.mapDatasource.name || $scope.mapDatasource.name == "") {
+          $scope.mapDatasource.name = $scope.mapDatasource.url;
+        }
       } else if (!$scope.mapDiscovery.valid) {
         $scope.locationStatus = 'error';
+        $scope.mapDatasource.valid = false;
       } else {
         $scope.mapDatasource.valid = true;
         $scope.locationStatus = 'success';
+        if (!$scope.mapDatasource.name || $scope.mapDatasource.name == "") {
+          $scope.mapDatasource.name = $scope.mapDatasource.url;
+        }
       }
     }).error(function(err) {
       $scope.urlDiscovery = false;
       $scope.mapDatasource = {};
+      $scope.mapDatasource.valid = false;
       $scope.locationStatus = undefined;
     });
   }, 500);
 
+  // $scope.$watch('mapDatasource.file', function(uploadFile) {
+  //   if (!uploadFile) return;
+  //   console.log('the file', file);
+  // });
+  //
   $scope.$on('location-file', function(e, uploadFile) {
-    console.log('upload file is', uploadFile);
+  //   uploadFile = $scope.mapDatasource.file;
+    console.log('location-file caught', uploadFile);
     $scope.locationStatus = 'success';
     $scope.mapDatasource.file = uploadFile;
-    
+    if (!$scope.mapDatasource.name || $scope.mapDatasource.name == "") {
+      $scope.mapDatasource.name = uploadFile.name;
+    }
+
     delete $scope.mapDatasource.url;
     delete $scope.mapDatasource.format;
     $scope.mapDatasource.valid = true;

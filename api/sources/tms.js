@@ -3,7 +3,7 @@ var request = require('request');
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
@@ -27,7 +27,7 @@ exports.processSource = function(source, callback) {
   console.log("tms");
   source.status = "Complete";
   source.complete = true;
-  source.save(function(err) {
+  SourceModel.updateDatasource(source, function(err, updatedSource) {
     callback(err);
   });
 }

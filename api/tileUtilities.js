@@ -32,6 +32,12 @@ function tile2lat(y,z) {
   return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
 }
 
+var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0596,0.298];
+
+exports.getZoomLevelResolution = function(z) {
+	return zoomLevelResolutions[z];
+}
+
 exports.tileBboxCalculator = function(x, y, z) {
   console.log('tile box calculator for ' + x + ' ' + y + ' ' + z);
   x = Number(x);
@@ -166,10 +172,10 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	if (source.source) {
 		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
 	}
-	if (params && !params.noCache && fs.existsSync(imageTile)) {
-		console.log('pulling tile from prebuilt', imageTile);
-		return callback(null, fs.createReadStream(imageTile));
-	} else {
+	// if (params && !params.noCache && fs.existsSync(imageTile)) {
+	// 	console.log('pulling tile from prebuilt', imageTile);
+	// 	return callback(null, fs.createReadStream(imageTile));
+	// } else {
 		console.log('getting tile from db', imageTile);
 		if (source.source) {
 			FeatureModel.fetchTileForCacheId(source.id, bbox, z, function(err, tile) {
@@ -177,10 +183,12 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 			});
 		} else {
 			FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
+				console.log('err fetching tile? ', err);
+				console.log('tile is', tile);
 				handleTileData(tile, format, source, imageTile, callback);
 			});
 		}
-	}
+	// }
 }
 
 function handleTileData(tile, format, source, imageTile, callback) {
@@ -221,7 +229,7 @@ exports.createImage = function(tile, style, callback) {
 	var canvases = {};
 
 	console.log('creating image');
-	console.time('creating image for tile');
+	console.time('creating image for tile', tile);
 	var ratio = 256 / 4096;
 	var features = tile;
 

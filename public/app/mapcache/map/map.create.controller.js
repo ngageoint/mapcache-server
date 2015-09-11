@@ -32,10 +32,15 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
     opacity: .5
   };
 
-  $scope.$watch('map.dataSources', function(dataSources) {
-    if (!dataSources) return;
-    $scope.dataSourcesValidated = _.every(dataSources, function(value) { return value.valid; });
-  }, true);
+  $scope.$watch('map.dataSources.length', function() {
+    $scope.$watch('map.dataSources['+($scope.map.dataSources.length-1)+'].valid', validateSources);
+  });
+
+  function validateSources() {
+    console.log('validate sources');
+    if (!$scope.map.dataSources) $scope.dataSourcesValidated = false;
+    else $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) { return value.valid; });
+  }
 
   var uploadProgress = function(e) {
     if(e.lengthComputable){

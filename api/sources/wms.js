@@ -7,7 +7,7 @@ var CacheModel = require('../../models/cache')
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
@@ -48,15 +48,15 @@ exports.getData = function(source, callback) {
 exports.processSource = function(source, callback) {
   source.status.message = "Parsing GetCapabilities";
   source.status.complete = false;
-  source.save(function(err) {
+  SourceModel.updateDatasource(source, function(err, updatedSource) {
     var DOMParser = global.DOMParser = require('xmldom').DOMParser;
     var WMSCapabilities = require('wms-capabilities');
-    var req = request.get({url: source.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
+    var req = request.get({url: updatedSource.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
       var json = new WMSCapabilities(body).toJSON();
-      source.wmsGetCapabilities = json;
-      source.status.message = "Complete";
-      source.status.complete = true;
-      source.save(function(err) {
+      updatedSource.wmsGetCapabilities = json;
+      updatedSource.status.message = "Complete";
+      updatedSource.status.complete = true;
+      SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
         callback(err);
       });
     });

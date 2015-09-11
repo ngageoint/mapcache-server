@@ -11,7 +11,7 @@ var SourceModel = require('../../models/source')
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 
 exports.getTile = tileUtilities.getVectorTile;
@@ -25,10 +25,7 @@ exports.processSource = function(source, callback) {
   source.status = source.status || {};
   source.status.message = "Parsing GeoJSON";
   source.vector = true;
-  console.log('saving the source');
   SourceModel.updateDatasource(source, function(err, updatedSource) {
-    console.log('xxxxxxx herp');
-    console.log('saved the source', updatedSource);
     if (updatedSource.url) {
       var dir = path.join(config.server.sourceDirectory.path, updatedSource.id);
       fs.mkdirp(dir, function(err) {
@@ -56,9 +53,7 @@ exports.processSource = function(source, callback) {
                 zoomLevelStatus: {}
               };
               SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
-                console.log('saved the source', updatedSource);
                 parseGeoJSONFile(updatedSource, function(err, updatedSource) {
-
                   callback();
                 });
               });
@@ -73,23 +68,10 @@ exports.processSource = function(source, callback) {
       parseGeoJSONFile(updatedSource, function(err, updatedSource) {
         updatedSource.status.complete = true;
         updatedSource.status.message="Complete";
-        console.log('source saved for file', updatedSource);
         SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
-          console.log('source err', err);
-          console.log('updated source', updatedSource);
           callback();
         });
       });
-
-      // var dir = path.join(config.server.sourceDirectory.path, source.id);
-      // var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
-      // var file = path.join(dir, fileName);
-      //
-      // fs.move(source.filePath, file, function(err){
-      //   source.filePath = file;
-      //   source.save(function(err){
-      //   });
-      // });
     }
   });
 }
@@ -106,7 +88,6 @@ function parseGeoJSONFile(source, callback) {
     console.log('gjdata.features', gjData.features.length);
     var count = 0;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
-      console.log('saving feature %d', count);
       FeatureModel.createFeatureForSource(feature, source.id, function(err) {
         count++;
         // console.log('err', err);

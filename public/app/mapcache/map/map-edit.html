@@ -31,9 +31,7 @@
 
   <ul class="nav nav-tabs">
     <li role="presentation" ng-class="{active: tab=='general'}"><a ng-click="tab='general'">General</a></li>
-    <li ng-repeat="dataSource in map.dataSources | filter: {vector:true}" ng-class="{active: tab==dataSource._id}"><a ng-click="setStyleTab(dataSource._id)">{{dataSource._id}}</a></li>
-    <!-- <li ng-show="map.vector" role="presentation" ng-class="{active: tab=='vector'}"><a ng-click="tab='vector'">Vector Options</a></li>
-    <li ng-show="map.vector" role="presentation" ng-class="{active: tab=='style'}"><a ng-click="tab='style'">Vector Styles</a></li> -->
+    <li ng-repeat="dataSource in map.dataSources | filter: {vector:true}" ng-class="{active: tab==dataSource._id}"><a ng-click="setStyleTab(dataSource._id)">{{dataSource.name}}</a></li>
     <li role="presentation" class="pull-right"><button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button></li>
   </ul>
   <div ng-show="tab == 'general'">
@@ -111,7 +109,7 @@
           <div class="col-md-2">
             <div class="form-group">
               <label>Fill Opacity</label>
-              <input class="form-control" type="number" ng-model="newRule.style['fill-opacity']">
+              <input class="form-control" step="any" min="0" max="1" type="number" ng-model="newRule.style['fill-opacity']">
               <p class="help-block">0.0 - 1.0</p>
             </div>
           </div>
@@ -127,7 +125,7 @@
           <div class="col-md-2">
             <div class="form-group">
               <label>Line Opacity</label>
-              <input class="form-control" type="number" ng-model="newRule.style['stroke-opacity']">
+              <input class="form-control" step="any" min="0" max="1" type="number" ng-model="newRule.style['stroke-opacity']">
               <p class="help-block">0.0 - 1.0</p>
             </div>
           </div>
