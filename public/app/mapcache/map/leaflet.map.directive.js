@@ -315,13 +315,23 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
 
   var debounceUrl = _.debounce(function(url) {
     $scope.$apply(function() {
-      addMapLayer();
+
     });
   }, 500);
 
   $scope.$watch('map.mapcacheUrl', function(url, oldUrl) {
     if (url != null && url != oldUrl) {
-      debounceUrl(url);
+      if ($scope.map.dataSources) {
+        var merged = _.reduce($scope.map.dataSources, function(merge, dataSource) {
+          if (dataSource.geometry) {
+            return turf.union(merge, dataSource.geometry);
+          }
+          return merge;
+        }, $scope.map.dataSources[0].geometry);
+        console.log('merged is', merged);
+        updateMapExtent(turf.extent(merged));
+      }
+      addMapLayer();
     }
   });
 
