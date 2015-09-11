@@ -75,7 +75,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
     var tmp = angular.copy($scope.newRule);
     $scope.newRule.key = $scope.newRule.property.key;
     $scope.newRule.value = $scope.newRule.property.value;
-    $scope.newRule.priority = $scope.map.style.length;
+    $scope.newRule.priority = $scope.styleTab.style.styles.length;
     delete $scope.newRule.property;
     $scope.styleTab.style.styles.push($scope.newRule);
     $scope.newRule = tmp;
