@@ -84,8 +84,8 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   $scope.saveMap = function() {
     MapService.saveMap($scope.map, function(map) {
-      console.log('saved successfully', map);
       $scope.map = map;
+      $scope.setStyleTab($scope.tab);
       $scope.mapOptions.refreshMap = Date.now();
       $scope.unsavedChanges = false;
     }, function(error) {
