@@ -320,19 +320,17 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   }, 500);
 
   $scope.$watch('map.mapcacheUrl', function(url, oldUrl) {
-    if (url != null && url != oldUrl) {
-      if ($scope.map.dataSources) {
-        var merged = _.reduce($scope.map.dataSources, function(merge, dataSource) {
-          if (dataSource.geometry) {
-            return turf.union(merge, dataSource.geometry);
-          }
-          return merge;
-        }, $scope.map.dataSources[0].geometry);
-        console.log('merged is', merged);
-        updateMapExtent(turf.extent(merged));
-      }
-      addMapLayer();
+    if ($scope.map.dataSources) {
+      var merged = _.reduce($scope.map.dataSources, function(merge, dataSource) {
+        if (dataSource.geometry) {
+          return turf.union(merge, dataSource.geometry);
+        }
+        return merge;
+      }, $scope.map.dataSources[0].geometry);
+      console.log('merged is', merged);
+      updateMapExtent(turf.extent(merged));
     }
+    addMapLayer();
   });
 
   var legend = undefined;

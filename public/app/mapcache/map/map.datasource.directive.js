@@ -144,32 +144,6 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
     console.log('map information')
   });
 
-  var uploadProgress = function(e) {
-    if(e.lengthComputable){
-      $scope.$apply(function() {
-        $scope.progress = (e.loaded/e.total) * 100;
-        console.log('uploadprogress ' + $scope.progress);
-      });
-    }
-  }
-  //
-  // function pruneMap(s) {
-  //   delete s.wmsGetCapabilities;
-  // }
-  //
-  // $scope.createMap = function() {
-  //   console.log($scope.cache);
-  //   $scope.mapSubmitted = true;
-  //   pruneMap($scope.map);
-  //   MapService.createMap($scope.map, function(map) {
-  //     console.log('map created', map);
-  //     // now start a timer to watch the map be created
-  //     $location.path('/map/'+map.id);
-  //   }, function() {
-  //     console.log("error");
-  //   }, uploadProgress);
-  // }
-
   $scope.$watch('mapDatasource.wmsGetCapabilities', function(capabilities, oldCapabilities) {
     if (capabilities && capabilities.Capability) {
       $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];

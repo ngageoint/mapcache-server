@@ -13,7 +13,7 @@
     <div map-datasource="dataSource"></div>
   </div>
 
-  <button class="btn btn-primary" ng-click="addDataSource()">MORE DATA</button>
+  <button class="btn btn-primary" ng-click="addDataSource()">Add Another Data Source</button>
 
   <div class="row" ng-if="showMap">
     <div class="col-md-12">
@@ -27,6 +27,7 @@
     </div>
   </div>
 
+  <hr>
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
@@ -49,11 +50,12 @@
     </div>
   </div>
 
-  <div class="row top-gap">
+  <div class="row top-gap" ng-if="progress">
     <div class="col-md-6">
-      <div class="progress" ng-if="progress">
+      <p class="lead">Upload Progress</p>
+      <div class="progress">
         <div class="progress-bar" role="progressbar" style="width: {{progress}}%">
-          <span>{{progress | number: 2}}% Complete</span>
+          <span>{{(dataSourceTotalFileSize * (progress/100.0)) | fileSize}} of {{dataSourceTotalFileSize | fileSize}} uploaded</span>
         </div>
       </div>
     </div>

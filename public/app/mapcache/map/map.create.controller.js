@@ -20,6 +20,7 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
 
   $scope.dataSources = [{}];
   $scope.dataSourcesValidated = false;
+  $scope.dataSourceTotalFileSize = 0;
 
   $scope.map = {
     dataSources: [{
@@ -38,8 +39,13 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
 
   function validateSources() {
     console.log('validate sources');
+    $scope.dataSourceTotalFileSize = 0;
     if (!$scope.map.dataSources) $scope.dataSourcesValidated = false;
-    else $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) { return value.valid; });
+
+    else $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) {
+      $scope.dataSourceTotalFileSize += value.file ? value.file.size : 0;
+      return value.valid;
+    });
   }
 
   var uploadProgress = function(e) {
