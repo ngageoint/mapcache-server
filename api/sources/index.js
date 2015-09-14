@@ -29,7 +29,9 @@ function pullTileFromSource(source, format, z, x, y, params, callback) {
 exports.getTile = function(source, format, z, x, y, params, callback) {
 
   var sorted = source.dataSources.sort(zOrderDatasources);
-
+  if (!params.dataSources || params.dataSources.length == 0) {
+    params.dataSources = sorted;
+  }
   var canvas = new Canvas(256,256);
   var ctx = canvas.getContext('2d');
   var padding = 0;
@@ -41,7 +43,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   ctx.clearRect(0, 0, height, height);
 
   async.eachSeries(sorted, function iterator(s, callback) {
-
+    if (params.dataSources.indexOf(s.id) == -1) return callback();
     pullTileFromSource(s, format, z, x, y, params, function(err, tileStream) {
       if (!tileStream) return callback();
       var buffer = new Buffer(0);

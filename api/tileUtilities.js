@@ -184,7 +184,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 		} else {
 			FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
 				console.log('err fetching tile? ', err);
-				console.log('tile is', tile);
+				// console.log('tile is', tile);
 				handleTileData(tile, format, source, imageTile, callback);
 			});
 		}
@@ -228,8 +228,8 @@ function handleTileData(tile, format, source, imageTile, callback) {
 exports.createImage = function(tile, style, callback) {
 	var canvases = {};
 
-	console.log('creating image');
-	console.time('creating image for tile', tile);
+	console.time('creating image');
+	// console.time('creating image for tile', tile);
 	var ratio = 256 / 4096;
 	var features = tile;
 
@@ -291,7 +291,7 @@ exports.createImage = function(tile, style, callback) {
 		finalCtx.drawImage(canvases[key].canvas, 0, 0);
 	}
 
-	console.timeEnd('creating image for tile');
+	console.timeEnd('creating image');
   callback(null, finalCanvas.pngStream());
 }
 
