@@ -172,10 +172,10 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	if (source.source) {
 		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
 	}
-	// if (params && !params.noCache && fs.existsSync(imageTile)) {
-	// 	console.log('pulling tile from prebuilt', imageTile);
-	// 	return callback(null, fs.createReadStream(imageTile));
-	// } else {
+	if (params && !params.noCache && fs.existsSync(imageTile)) {
+		console.log('pulling tile from prebuilt', imageTile);
+		return callback(null, fs.createReadStream(imageTile));
+	} else {
 		console.log('getting tile from db', imageTile);
 		if (source.source) {
 			FeatureModel.fetchTileForCacheId(source.id, bbox, z, function(err, tile) {
@@ -188,7 +188,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				handleTileData(tile, format, source, imageTile, callback);
 			});
 		}
-	// }
+	}
 }
 
 function handleTileData(tile, format, source, imageTile, callback) {

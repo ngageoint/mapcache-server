@@ -30,8 +30,12 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   var sorted = source.dataSources.sort(zOrderDatasources);
   if (!params.dataSources || params.dataSources.length == 0) {
-    params.dataSources = sorted;
+    params.dataSources = [];
+    for (var i = 0; i < sorted.length; i++) {
+      params.dataSources.push(sorted[i].id);
+    }
   }
+  console.log('datasources', params.dataSources);
   var canvas = new Canvas(256,256);
   var ctx = canvas.getContext('2d');
   var padding = 0;

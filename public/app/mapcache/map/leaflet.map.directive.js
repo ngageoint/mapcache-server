@@ -381,10 +381,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   });
 
   var currentDatasources = [];
-  var layerControl = L.control.layers([], [],
-  {
-    collapsed: false
-  });
+  var layerControl = L.control.groupedLayers([], []);
   map.on('overlayremove', function(event) {
     if (event.layer.dataSource) {
       currentDatasources = _.without(currentDatasources, event.layer.dataSource);
@@ -425,7 +422,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
         console.log('add marker to map');
         marker.addTo(map);
         layerControlLayers.push(marker);
-        layerControl.addOverlay(marker, ds.name);
+        layerControl.addOverlay(marker, ds.name, "Data Sources");
       });
       if (!layerControlAdded) {
         console.log('add the layer control');

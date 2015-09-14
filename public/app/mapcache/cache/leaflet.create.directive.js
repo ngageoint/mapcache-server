@@ -169,6 +169,16 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
+    if ($scope.options.source.dataSources) {
+      var merged = _.reduce($scope.options.source.dataSources, function(merge, dataSource) {
+        if (dataSource.geometry) {
+          return turf.union(merge, dataSource.geometry);
+        }
+        return merge;
+      }, $scope.options.source.dataSources[0].geometry);
+      console.log('merged is', merged);
+      updateMapExtent(turf.extent(merged));
+    }
     sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
     if (!sourceLayer) return;
     sourceLayer.addTo(map);
