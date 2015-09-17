@@ -39,14 +39,6 @@ exports.server = {
     "maximumCacheSize":2048
   };
 exports.sourceCacheTypes = {
-    "shapefile": [{"type":"geojson", "required": true, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"xyz", "required": false, "secondary": true}, {"type":"tms", "required": false, "depends": "xyz", "secondary": true}, {"type":"geopackage", "required": false, "depends": "xyz", "secondary": true}, {"type":"mbtiles", "required": false, "depends": "xyz", "secondary": true}],
-    "kmz": [{"type":"geojson", "required": true, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"xyz", "required": false, "secondary": true}, {"type":"tms", "required": false, "depends": "xyz", "secondary": true}, {"type":"geopackage", "required": false, "depends": "xyz", "secondary": true}, {"type":"mbtiles", "required": false, "depends": "xyz", "secondary": true}],
-    "geojson": [{"type":"geojson", "required": true, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"xyz", "required": false, "secondary": true}, {"type":"tms", "required": false, "depends": "xyz", "secondary": true}, {"type":"geopackage", "required": false, "depends": "xyz", "secondary": true}, {"type":"mbtiles", "required": false, "depends": "xyz", "secondary": true}],
-    "xyz": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "tms": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "wms": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "geotiff": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "mrsid": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "mbtiles": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}],
-    "arcgis": [{"type":"xyz", "required": true}, {"type":"tms", "required": false}, {"type":"geopackage", "required": false}, {"type":"mbtiles", "required": false}]
+    "vector": [{"type":"geojson", "required": false, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}],
+    "raster": [{"type":"xyz", "required": false}, {"type":"tms", "required": false, "depends": "xyz"}, {"type":"geopackage", "required": false, "depends": "xyz"}, {"type":"mbtiles", "required": false, "depends": "xyz"}]
   };

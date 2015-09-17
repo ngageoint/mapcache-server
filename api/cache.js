@@ -63,16 +63,26 @@ Cache.prototype.create = function(cache, formats, callback) {
     }
   }
 
-  if (cache.id) {
-    // if the request did not specify the required caches
-    // add them here
-    var cacheTypes = config.sourceCacheTypes[cache.source.format];
-    for (var i = 0; i < cacheTypes.length; i++) {
-      var item = cacheTypes[i];
-      if (item.required && !item.virtual && newFormats.indexOf(item.type) == -1 && !cache.formats[item.type]) {
-        newFormats.push(item.type);
+  // if the request speficied a format that has a dependency and that
+  // dependency is not in the format list, add it here
+  var formatMap = {};
+  config.sourceCacheTypes.raster.forEach(function(t) {
+    formatMap[t.type] = t;
+  });
+  config.sourceCacheTypes.vector.forEach(function(t) {
+    formatMap[t.type] = t;
+  });
+
+  newFormats.forEach(function(format) {
+    if (formatMap[format].depends) {
+      if (newFormats.indexOf(formatMap[format].depends) == -1) {
+        newFormats.push(formatMap[format].depends);
       }
     }
+  });
+
+  if (cache.id) {
+
     for (var i = 0; i < newFormats.length; i++) {
       console.log("creating format " + newFormats[i] + " for cache " + cache.name);
       cacheProcessor.createCacheFormat(cache, newFormats[i], function(err, cache) {
@@ -95,15 +105,7 @@ Cache.prototype.create = function(cache, formats, callback) {
       if (err) return callback(err);
       console.log('created cache', newCache);
       callback(err, newCache);
-      // if the request did not specify the required caches
-      // add them here
-      var cacheTypes = config.sourceCacheTypes[newCache.source.format];
-      for (var i = 0; i < cacheTypes.length; i++) {
-        var item = cacheTypes[i];
-        if (item.required && !item.virtual && newFormats.indexOf(item.type) == -1) {
-          newFormats.push(item.type);
-        }
-      }
+      
       for (var i = 0; i < newFormats.length; i++) {
         console.log("creating format " + newFormats[i] + " for cache " + newCache.name);
         cacheProcessor.createCacheFormat(newCache, newFormats[i], function(err, cache) {

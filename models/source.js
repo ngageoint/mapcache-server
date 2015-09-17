@@ -69,9 +69,32 @@ function transform(source, ret, options) {
 	ret.id = ret._id;
 	delete ret._id;
 	delete ret.__v;
-	delete ret.filePath;
   ret.mapcacheUrl = ['/api/sources', source.id].join("/");
-  ret.cacheTypes = config.sourceCacheTypes[ret.format];
+  ret.cacheTypes = [];
+  if (ret.dataSources) {
+    var addVectorSources = false;
+    var addRasterSources = false;
+    ret.dataSources.forEach(function(ds) {
+      if (ds.vector) {
+        addVectorSources = true;
+        addRasterSources = true;
+      } else {
+        addRasterSources = true;
+      }
+    });
+    if (addVectorSources) {
+      var ct = config.sourceCacheTypes["vector"];
+      ct.forEach(function(type) {
+        ret.cacheTypes.push(type);
+      });
+    }
+    if (addRasterSources) {
+      var ct = config.sourceCacheTypes["raster"];
+      ct.forEach(function(type) {
+        ret.cacheTypes.push(type);
+      })
+    }
+  }
 }
 
 SourceSchema.set("toJSON", {

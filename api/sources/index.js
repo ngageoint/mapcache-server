@@ -29,6 +29,7 @@ function pullTileFromSource(source, format, z, x, y, params, callback) {
 exports.getTile = function(source, format, z, x, y, params, callback) {
 
   var sorted = source.dataSources.sort(zOrderDatasources);
+  params = params || {};
   if (!params.dataSources || params.dataSources.length == 0) {
     params.dataSources = [];
     for (var i = 0; i < sorted.length; i++) {

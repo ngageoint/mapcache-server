@@ -187,7 +187,7 @@
       </div>
     </div>
 
-    <div class="row bottom-gap" ng-if="cache.source.vector">
+    <div class="row bottom-gap" ng-if="hasVectorSources">
       <div class="col-md-12">
           <fieldset><legend class="control-label">Choose the vector format(s) to create</legend>
           <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: true}">

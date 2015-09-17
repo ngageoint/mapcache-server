@@ -34,7 +34,6 @@ exports.getTile = function(cache, format, z, x, y, callback) {
     var stream = fs.createReadStream(cacheDirectory + '/xyztiles/'+z+'/'+x+'/'+y+'.'+format);
     return callback(null, stream);
   }
-
   return callback(null, null);
 }
 

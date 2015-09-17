@@ -147,6 +147,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   });
 
   $scope.$watch('cache.source', function(map) {
+    if (!map) return;
+    console.log('cache.source changed', map);
     $scope.cache.create = {};
     if ($scope.cache.source) {
       $scope.cache.style = $scope.cache.source.style;
@@ -163,15 +165,11 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.bb.west = null;
       $scope.bb.east = null;
       $scope.cache.geometry = null;
-      return;
     }
-    if (map && map.format == 'geotiff') {
-      var geometry = map.geometry;
-      while(geometry.type != "Polygon" && geometry != null){
-        geometry = geometry.geometry;
-      }
-      $scope.cache.geometry = geometry;
-    }
+
+    $scope.hasVectorSources = _.some(map.dataSources, function(ds) {
+      return ds.vector;
+    });
   });
 
   $scope.$watch('cache.source.previewLayer', function(layer, oldLayer) {

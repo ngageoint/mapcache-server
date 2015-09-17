@@ -103,7 +103,11 @@ function LeafletUtilities(LocalStorageService, MapService) {
       if (dataSources && dataSources.length) {
         _.each(dataSources, function(ds) {
           console.log('ds', ds);
-          url += '&dataSources[]=' + ds._id;
+          if (ds._id) {
+            url += '&dataSources[]=' + ds._id;
+          } else if (ds.id) {
+            url += '&dataSources[]=' + ds.id;
+          }
         });
       }
       if (layerSource.wmsLayer) {

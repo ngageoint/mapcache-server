@@ -1,4 +1,6 @@
-var CacheModel = require('../../models/cache.js');
+var CacheModel = require('../../models/cache.js')
+  , turf = require('turf')
+  , tu = require('../tileUtilities.js');
 
 exports.getCacheData = function(cache, format, minZoom, maxZoom, callback) {
   var processor = require('./' + format);
@@ -89,17 +91,15 @@ exports.deleteCacheFormat = function(cache, format, callback) {
 }
 
 exports.getTile = function(cache, format, z, x, y, callback) {
-  console.log('cache.formats', cache.formats);
-  var processor = undefined;
-  if (cache.vector) {
-    processor = require('./geojson');
-  } else {
-    processor = require('./xyz');
+
+  var tileEnvelope = tu.tileBboxCalculator(x, y, z);
+  var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
+  var intersection = turf.intersect(tilePoly, cache.geometry);
+  if (!intersection) {
+    return callback(null, null);
   }
 
-  if (processor.getTile) {
-    processor.getTile(cache, format, z, x, y, callback);
-  } else {
-    callback(null, null);
-  }
+  // determine if they want a vector format or raster, for now assume raster and just pull from xyztiles
+  var processor = require('./xyz');
+  return processor.getTile(cache, format, z, x, y, callback);
 }
