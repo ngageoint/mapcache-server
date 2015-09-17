@@ -28,13 +28,18 @@ function createDir(cacheName, filepath){
 }
 
 exports.getTile = function(cache, format, z, x, y, callback) {
-
-  var cacheDirectory = path.join(config.server.cacheDirectory.path, cache._id.toString());
-  if (fs.existsSync(cacheDirectory + '/xyztiles/'+z+'/'+x+'/'+y+'.'+format)) {
-    var stream = fs.createReadStream(cacheDirectory + '/xyztiles/'+z+'/'+x+'/'+y+'.'+format);
-    return callback(null, stream);
-  }
-  return callback(null, null);
+  console.log('download the tile');
+  downloadTile({
+    xyzSource: cache,
+    z: z,
+    x: x,
+    y: y
+  }, function(err, file) {
+    if (file) {
+      return callback(null, fs.createReadStream(file));
+    }
+    return callback(null, null);
+  });
 }
 
 function downloadTile(tileInfo, tileDone) {
@@ -43,12 +48,12 @@ function downloadTile(tileInfo, tileDone) {
 
   if (fs.existsSync(dir + filename)) {
     console.log('file already exists, skipping: %s', dir+filename);
-    return tileDone();
+    return tileDone(null, dir+filename);
   }
 
   CacheModel.shouldContinueCaching(tileInfo.xyzSource, function(err, continueCaching) {
     if (!continueCaching) {
-      return tileDone();
+      return tileDone(null);
     }
 
     console.log('source is a vector? ', tileInfo.xyzSource.source.vector);
@@ -58,13 +63,13 @@ function downloadTile(tileInfo, tileDone) {
           var stream = fs.createWriteStream(dir + filename);
       		stream.on('close',function(status){
             CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-              tileDone();
+              tileDone(null, dir+filename);
             });
       		});
 
     			request.pipe(stream);
         } else {
-          tileDone();
+          tileDone(null, dir+filename);
         }
   		});
     } else {
@@ -73,13 +78,13 @@ function downloadTile(tileInfo, tileDone) {
           var stream = fs.createWriteStream(dir + filename);
       		stream.on('close',function(status){
             CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-              tileDone();
+              tileDone(null, dir+filename);
             });
       		});
 
     			request.pipe(stream);
         } else {
-          tileDone();
+          tileDone(null, dir+filename);
         }
   		});
     }
