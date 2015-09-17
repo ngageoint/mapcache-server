@@ -120,11 +120,13 @@ exports.yCalculator = function(bbox,z) {
 }
 
 exports.getX = function(lon, zoom) {
+	if (zoom == 0) return 0;
 	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
 	return xtile;
 }
 
 exports.getY = function(lat, zoom) {
+	if (zoom == 0) return 0;
 	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
 	return ytile;
 }
