@@ -2,7 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , xyzTileWorker = require('../xyzTileWorker')
   , fs = require('fs-extra')
   , path = require('path')
-  , source = require('../sources')
+  , SourceApi = require('../sources')
   , config = require('../../config.js')
   , tileUtilities = require('../tileUtilities.js')
   , Readable = require('stream').Readable;
@@ -29,12 +29,7 @@ function createDir(cacheName, filepath){
 
 exports.getTile = function(cache, format, z, x, y, callback) {
   console.log('download the tile');
-  downloadTile({
-    xyzSource: cache,
-    z: z,
-    x: x,
-    y: y
-  }, function(err, file) {
+  pullTile(cache, z, x, y, function(err, file) {
     if (file) {
       return callback(null, fs.createReadStream(file));
     }
@@ -42,52 +37,58 @@ exports.getTile = function(cache, format, z, x, y, callback) {
   });
 }
 
-function downloadTile(tileInfo, tileDone) {
-  var dir = createDir(tileInfo.xyzSource._id, 'xyztiles/' + tileInfo.z + '/' + tileInfo.x + '/');
-  var filename = tileInfo.y + '.png';
+function pullTile(source, z, x, y, done) {
+  var dir = createDir(source._id, 'xyztiles/' + z + '/' + x + '/');
+  var filename = y + '.png';
 
   if (fs.existsSync(dir + filename)) {
     console.log('file already exists, skipping: %s', dir+filename);
-    return tileDone(null, dir+filename);
+    return done(null, dir+filename);
   }
 
+  console.log('source is a vector? ', source.source.vector);
+  if (source.source.vector) {
+    tileUtilities.getVectorTile(source, 'png', z, x, y, source.cacheCreationParams, function(err, request) {
+      if (request) {
+        var stream = fs.createWriteStream(dir + filename);
+        stream.on('close',function(status){
+          done(null, dir+filename);
+        });
+
+        request.pipe(stream);
+      } else {
+        done(null, dir+filename);
+      }
+    });
+  } else {
+    SourceApi.getTile(source.source, 'png', z, x, y, source.cacheCreationParams, function(err, request) {
+      if (request) {
+        var stream = fs.createWriteStream(dir + filename);
+        stream.on('close',function(status){
+          done(null, dir+filename);
+        });
+
+        request.pipe(stream);
+      } else {
+        done(null, dir+filename);
+      }
+    });
+  }
+
+}
+
+function downloadTile(tileInfo, tileDone) {
+  if (!tileInfo.xyzSource.source) return callback(null, null);
   CacheModel.shouldContinueCaching(tileInfo.xyzSource, function(err, continueCaching) {
     if (!continueCaching) {
       return tileDone(null);
     }
 
-    console.log('source is a vector? ', tileInfo.xyzSource.source.vector);
-    if (tileInfo.xyzSource.source.vector) {
-      tileUtilities.getVectorTile(tileInfo.xyzSource, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
-        if (request) {
-          var stream = fs.createWriteStream(dir + filename);
-      		stream.on('close',function(status){
-            CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-              tileDone(null, dir+filename);
-            });
-      		});
-
-    			request.pipe(stream);
-        } else {
-          tileDone(null, dir+filename);
-        }
-  		});
-    } else {
-      source.getTile(tileInfo.xyzSource.source, 'png', tileInfo.z, tileInfo.x, tileInfo.y, tileInfo.xyzSource.cacheCreationParams, function(err, request) {
-        if (request) {
-          var stream = fs.createWriteStream(dir + filename);
-      		stream.on('close',function(status){
-            CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
-              tileDone(null, dir+filename);
-            });
-      		});
-
-    			request.pipe(stream);
-        } else {
-          tileDone(null, dir+filename);
-        }
-  		});
-    }
+    pullTile(tileInfo.xyzSource, z, x, y, function(err, filePath) {
+      CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
+        tileDone(null, filePath);
+      });
+    });
   });
 }
 

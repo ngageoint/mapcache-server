@@ -20,7 +20,7 @@ exports.process = function(source, callback) {
 }
 
 function pullTileFromSource(source, format, z, x, y, params, callback) {
-  console.log('pull tile from source', source);
+  // console.log('pull tile from source', source);
   var processor = require('./' + source.format);
 
   processor.getTile(source, format, z, x, y, params, callback);

@@ -21,6 +21,7 @@ exports.transform = function(caches, options) {
 }
 
 function updateCacheSource(cache) {
+  if (!cache.source) return;
   var addVectorSources = false;
   var addRasterSources = false;
   cache.source.cacheTypes = [];

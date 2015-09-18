@@ -7,6 +7,8 @@ var CacheModel = require('../models/cache')
   , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
   , config = require('../config.js')
+  , FeatureModel = require('../models/feature')
+  , async = require('async')
   , exec = require('child_process').exec;
 
 function Cache() {
@@ -75,7 +77,7 @@ Cache.prototype.create = function(cache, formats, callback) {
 
   newFormats.forEach(function(format) {
     if (formatMap[format].depends) {
-      if (newFormats.indexOf(formatMap[format].depends) == -1) {
+      if (newFormats.indexOf(formatMap[format].depends) == -1 && !cache.formats[formatMap[format].depends]) {
         newFormats.push(formatMap[format].depends);
       }
     }
@@ -105,13 +107,30 @@ Cache.prototype.create = function(cache, formats, callback) {
       if (err) return callback(err);
       console.log('created cache', newCache);
       callback(err, newCache);
-      
-      for (var i = 0; i < newFormats.length; i++) {
-        console.log("creating format " + newFormats[i] + " for cache " + newCache.name);
-        cacheProcessor.createCacheFormat(newCache, newFormats[i], function(err, cache) {
-          console.log('format ' + newFormats[i] + ' submitted for cache ' + newCache.name);
-        });
+
+      // if the cache has vector datasources we need to populate postgis
+      var vectorSources = [];
+      for (var i = 0; i < newCache.source.dataSources.length; i++) {
+        if (newCache.source.dataSources[i].vector) {
+          vectorSources.push(newCache.source.dataSources[i]);
+        }
       }
+
+      var extent = turf.extent(cache.geometry);
+
+      async.eachSeries(vectorSources, function(dataSource, done) {
+        console.log('cache', newCache);
+        console.log('datasource', dataSource);
+        console.log('inserting features for cache %s from source %s', newCache._id, dataSource._id);
+        FeatureModel.createCacheFeaturesFromSource(dataSource._id, newCache._id, extent[0], extent[1], extent[2], extent[3], done);
+      }, function() {
+        for (var i = 0; i < newFormats.length; i++) {
+          console.log("creating format " + newFormats[i] + " for cache " + newCache.name);
+          cacheProcessor.createCacheFormat(newCache, newFormats[i], function(err, cache) {
+            console.log('format ' + newFormats[i] + ' submitted for cache ' + newCache.name);
+          });
+        }
+      })
     });
   }
 }

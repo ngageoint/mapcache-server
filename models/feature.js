@@ -55,7 +55,10 @@ exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south,
 }
 
 exports.getAllCacheFeatures = function(cacheId, callback) {
-	knex('features').select().where({cache_id: cacheId}).then(function(collection) {
+	knex('features').select(
+		knex.raw('ST_AsGeoJSON(ST_Transform(geometry, 4326)) as geometry'),
+		'properties'
+	).where({cache_id: cacheId}).then(function(collection) {
 		callback(null, collection);
 	});
 }
