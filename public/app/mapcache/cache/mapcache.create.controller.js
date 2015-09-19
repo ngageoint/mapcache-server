@@ -265,7 +265,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       dataSources: []
     };
     _.each($scope.cache.currentDatasources, function(ds) {
-      $scope.cache.cacheCreationParams.dataSources.push(ds._id);
+      $scope.cache.cacheCreationParams.dataSources.push(ds.id);
     });
     var create = [];
     for (var type in $scope.cache.create) {
