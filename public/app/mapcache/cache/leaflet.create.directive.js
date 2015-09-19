@@ -106,17 +106,17 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     });
   });
 
-  var currentDatasources = [];
+  $scope.options.currentDatasources = [];
   var layerControl = L.control.groupedLayers([], []);
   map.on('overlayremove', function(event) {
     if (event.layer.dataSource) {
-      currentDatasources = _.without(currentDatasources, event.layer.dataSource);
+      $scope.options.currentDatasources = _.without($scope.options.currentDatasources, event.layer.dataSource);
       debounceDataSources();
     }
   });
   map.on('overlayadd', function(event) {
     if (event.layer.dataSource) {
-      currentDatasources.push(event.layer.dataSource);
+      $scope.options.currentDatasources.push(event.layer.dataSource);
       debounceDataSources();
     }
   });
@@ -130,7 +130,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
   }, 500);
 
   $scope.$watch('options.source.dataSources.length', function() {
-    currentDatasources = $scope.options.source.dataSources;
+    $scope.options.currentDatasources = $scope.options.source.dataSources;
     if ($scope.options.source.dataSources.length > 1) {
       _.each(layerControlLayers, function(l) {
         map.removeLayer(l);
@@ -214,7 +214,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction, currentDatasources);
+    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction, $scope.options.currentDatasources);
     if (!sourceLayer) return;
     sourceLayer.addTo(map);
   }

@@ -261,10 +261,12 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;
-    $scope.cache.cacheCreationParams = {};
-    if ($scope.cache.source.previewLayer) {
-      $scope.cache.cacheCreationParams.layer = $scope.cache.source.previewLayer.Name;
+    $scope.cache.cacheCreationParams = {
+      dataSources: []
     };
+    _.each($scope.cache.currentDatasources, function(ds) {
+      $scope.cache.cacheCreationParams.dataSources.push(ds._id);
+    });
     var create = [];
     for (var type in $scope.cache.create) {
       if ($scope.cache.create[type]) {
