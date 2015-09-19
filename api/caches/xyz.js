@@ -9,7 +9,10 @@ var CacheModel = require('../../models/cache.js')
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
     var cp = require('child_process');
-    var args = ['-rq', '-', 'xyztiles'];
+    var args = ['-rq', '-'];
+    for (var i = minZoom; i <= maxZoom; i++) {
+      args.push('xyztiles/'+i);
+    }
     console.log('stream the zip back');
     var zip = cp.spawn('zip', args, {cwd: path.join(config.server.cacheDirectory.path, cache._id.toString())}).on('close', function(code) {
       console.log('close the zip');
@@ -74,7 +77,6 @@ function pullTile(source, z, x, y, done) {
       }
     });
   }
-
 }
 
 function downloadTile(tileInfo, tileDone) {
@@ -84,7 +86,7 @@ function downloadTile(tileInfo, tileDone) {
       return tileDone(null);
     }
 
-    pullTile(tileInfo.xyzSource, z, x, y, function(err, filePath) {
+    pullTile(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err, filePath) {
       CacheModel.updateTileDownloaded(tileInfo.xyzSource, tileInfo.z, tileInfo.x, tileInfo.y, function(err) {
         tileDone(null, filePath);
       });
