@@ -44,10 +44,10 @@ function pullTile(source, z, x, y, done) {
   var dir = createDir(source._id, 'xyztiles/' + z + '/' + x + '/');
   var filename = y + '.png';
 
-  if (fs.existsSync(dir + filename)) {
-    console.log('file already exists, skipping: %s', dir+filename);
-    return done(null, dir+filename);
-  }
+  // if (fs.existsSync(dir + filename)) {
+  //   console.log('file already exists, skipping: %s', dir+filename);
+  //   return done(null, dir+filename);
+  // }
 
   console.log('source is a vector? ', source.source.vector);
   if (source.source.vector) {

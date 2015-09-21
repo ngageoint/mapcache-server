@@ -119,6 +119,9 @@ Cache.prototype.create = function(cache, formats, callback) {
       var extent = turf.extent(cache.geometry);
 
       async.eachSeries(vectorSources, function(dataSource, done) {
+        if (newCache.cacheCreationParams.dataSources.indexOf(dataSource._id.toString()) == -1) {
+          return done();
+        }
         console.log('cache', newCache);
         console.log('datasource', dataSource);
         console.log('inserting features for cache %s from source %s', newCache._id, dataSource._id);
