@@ -11,7 +11,7 @@
       <a class="btn btn-primary left-margin" href="/#/map">Create A Map</a>
     </div>
     <div class="row">
-      <div ng-repeat="map in maps | filter: {status : {complete:true}}">
+      <div ng-repeat="map in maps | filter: {mapComplete:true}">
         <div class="col-md-12">
           <div class="map-card short-map" ng-click="current='sources'">
             <div class="row top-gap bottom-gap-s">
