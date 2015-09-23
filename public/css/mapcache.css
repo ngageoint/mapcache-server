@@ -174,6 +174,7 @@
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+  color: #AAA;
 }
 
 .nice-check input.checkbox:empty ~ label:before {
@@ -189,7 +190,7 @@
 }
 
 /* toggle hover */
-.nice-check input.checkbox:not(:checked) ~ label:before {
+.nice-check input.checkboxs:not(:checked) ~ label:before {
 	content:'\2714';
 	text-indent: .9em;
 	color: #C2C2C2;
@@ -237,6 +238,7 @@
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+  color: #AAA;
 }
 
 .nice-radio input.radio:empty ~ label:before {
