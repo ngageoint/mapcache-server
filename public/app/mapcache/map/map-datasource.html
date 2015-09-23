@@ -18,8 +18,8 @@
     <div class="col-md-6 nice-radio" ng-if="mapDatasource.file">
       <div class="form-group">
         <span class="page-sub-entity-title one-line-ellipsis">Format of {{mapDatasource.file.name}}</span>
-        <span ng-repeat="format in validFileFormats">
-          <input value="{{format.format}}" id="{{format.format}}" ng-model="mapDatasource.format" type="radio" name="{{'mapformat'+mapDatasource.zOrder}}" checked>
+        <span ng-repeat="format in validFileFormats" class="nice-radio">
+          <input value="{{format.format}}" id="{{format.format}}" ng-model="mapDatasource.format" type="radio" class="radio" name="{{'mapformat'+mapDatasource.zOrder}}" checked>
           <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
         </span>
       </div>
