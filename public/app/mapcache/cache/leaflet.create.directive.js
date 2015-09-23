@@ -106,22 +106,11 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     });
   });
 
-  $scope.options.currentDatasources = [];
-  var layerControl = L.control.groupedLayers([], []);
-  map.on('overlayremove', function(event) {
-    if (event.layer.dataSource) {
-      $scope.options.currentDatasources = _.without($scope.options.currentDatasources, event.layer.dataSource);
+  $scope.$watch('options.currentDatasources', function() {
+    if ($scope.options.currentDatasources) {
       debounceDataSources();
     }
   });
-  map.on('overlayadd', function(event) {
-    if (event.layer.dataSource) {
-      $scope.options.currentDatasources.push(event.layer.dataSource);
-      debounceDataSources();
-    }
-  });
-  var layerControlAdded = false;
-  var layerControlLayers = [];
 
   var debounceDataSources = _.debounce(function() {
     $scope.$apply(function() {
@@ -130,11 +119,9 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
   }, 500);
 
   $scope.$watch('options.source.dataSources.length', function() {
-    $scope.options.currentDatasources = $scope.options.source.dataSources;
     if ($scope.options.source.dataSources.length > 1) {
       _.each(layerControlLayers, function(l) {
         map.removeLayer(l);
-        layerControl.removeLayer(l);
       });
 
       _.each($scope.options.source.dataSources, function(ds) {
@@ -147,14 +134,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
         marker.dataSource = ds;
         console.log('add marker to map');
         marker.addTo(map);
-        layerControlLayers.push(marker);
-        layerControl.addOverlay(marker, ds.name, "Data Sources");
       });
-      if (!layerControlAdded) {
-        console.log('add the layer control');
-        layerControlAdded = true;
-        layerControl.addTo(map);
-      }
     }
   });
 

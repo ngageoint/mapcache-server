@@ -18,6 +18,7 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     deleteMap: deleteMap,
     createMap: createMap,
     saveMap: saveMap,
+    getMap: getMap,
     getMapVectorTile: getMapVectorTile,
     getMapData: getMapData,
     getCachesForMap: getCachesForMap,
@@ -27,6 +28,10 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
   };
 
   return service;
+
+  function getMap(mapId) {
+    return $http.get('/api/maps/'+mapId);
+  }
 
   function getAllMaps(forceRefresh) {
     if (forceRefresh) {

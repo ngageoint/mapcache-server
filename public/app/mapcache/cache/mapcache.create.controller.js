@@ -19,6 +19,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   $rootScope.title = 'Create A Cache';
   $scope.token = LocalStorageService.getToken();
 
+  $scope.mapId = $routeParams.mapId;
+
   var seenCorners;
   var boundsSet = false;
 
@@ -58,19 +60,20 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
 
   $scope.cache.selectedSizeMultiplier = $scope.sizes[0];
   $scope.loadingMaps = true;
-  MapService.getAllMaps(true).success(function(maps) {
-    $scope.loadingMaps = false;
-    $scope.maps = maps;
-    if ($routeParams.mapId) {
-      for (var i = 0; i < $scope.maps.length && $scope.cache.source == null; i++) {
-        if ($routeParams.mapId == $scope.maps[i].id) {
-          $scope.cache.source = $scope.maps[i];
-        }
-      }
-    }
-  }).error(function(error) {
-    $scope.loadingMaps = false;
-  });
+
+  if ($scope.mapId) {
+    MapService.getMap($scope.mapId).success(function(map) {
+      $scope.cache.source = map;
+      $scope.loadingMaps = false;
+    });
+  } else {
+    MapService.getAllMaps(true).success(function(maps) {
+      $scope.loadingMaps = false;
+      $scope.maps = maps;
+    }).error(function(error) {
+      $scope.loadingMaps = false;
+    });
+  }
 
   $scope.useCurrentView = function() {
     $scope.cache.useCurrentView = Date.now();
@@ -146,9 +149,21 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     calculateCacheSize();
   });
 
+  $scope.toggleDataSource = function(id, ds) {
+    if ($scope.selectedDatasources[id]) {
+      $scope.cache.currentDatasources.push(ds);
+    } else {
+      $scope.cache.currentDatasources = _.without($scope.cache.currentDatasources, ds);
+    }
+  }
+
   $scope.$watch('cache.source', function(map) {
     if (!map) return;
-    console.log('cache.source changed', map);
+    $scope.selectedDatasources = {};
+    $scope.cache.currentDatasources = map.dataSources;
+    _.each(map.dataSources, function(ds) {
+      $scope.selectedDatasources[ds._id] = true;
+    });
     $scope.cache.create = {};
     if ($scope.cache.source) {
       $scope.cache.style = $scope.cache.source.style;
@@ -187,7 +202,6 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       if ($scope.cache.create[key] == true) {
         console.log('create', key);
         for (var i = 0; i < $scope.cache.source.cacheTypes.length && !tileCacheRequested; i++) {
-          console.log('derp', $scope.cache.source.cacheTypes[i]);
           if ($scope.cache.source.cacheTypes[i].type == key && !$scope.cache.source.cacheTypes[i].vector) {
             tileCacheRequested = true;
           }
@@ -244,6 +258,12 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
     if (!boundsSet) {
       $scope.unsetFields.push('cache boundaries');
+    }
+
+    if (!_.some(_.values($scope.currentDatasources), function(value) {
+      return value;
+    })) {
+      $scope.unsetFields.push('at least one data source');
     }
 
     if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {

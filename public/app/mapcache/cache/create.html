@@ -1,26 +1,33 @@
 <div class="container top-gap-l">
+
+  <div class="row" ng-show="mapId && !loadingMaps">
+    <div class="col-md-12">
+      <p class="lead">Create a cache from the map <span class="page-entity-title">{{cache.source.name}}</span></p>
+    </div>
+  </div>
+
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <label>Name Your Cache</label>
+        <span class="page-sub-entity-title one-line-ellipsis">Cache Name</span>
         <input class="form-control" ng-model="cache.name" placeholder="e.g. Denver, CO">
       </div>
     </div>
   </div>
 
-  <div ng-show="loadingSources">
+  <div ng-show="loadingMaps">
     <div class="row">
       <div class="col-md-12">
-        <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Loading sources...</p>
+        <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Loading maps...</p>
       </div>
     </div>
   </div>
 
-  <div ng-hide="loadingSources">
+  <div ng-hide="loadingMaps || mapId">
     <div class="row">
       <div class="col-md-12">
         <div class="form-group">
-          <label>Choose the map to create a cache from.</label>
+          <span class="page-sub-entity-title one-line-ellipsis">Choose the map to create a cache from</span>
           <ui-select ng-model="cache.source" theme="bootstrap">
             <ui-select-match placeholder="Select a map">{{$select.selected.name}}</ui-select-match>
             <ui-select-choices repeat="source in maps | filter: {status : {complete:true}} | orderBy: 'name' | filter: $select.search">
@@ -44,7 +51,20 @@
 
   <div ng-if="cache.source" class="bottom-gap-l">
     <div class="hidden-xs">
-      <label>Define the cache boundaries</label>
+      <div class="row bottom-gap" ng-if="cache.source.dataSources.length != 1">
+        <div class="col-sm-12">
+          <span class="page-sub-entity-title one-line-ellipsis">Data Sources - choose at least one</span>
+          <div class="row">
+          <div ng-repeat="ds in cache.source.dataSources" class="col-sm-4 nice-check">
+              <input value="{{ds._id}}" id="{{ds._id}}" ng-model="selectedDatasources[ds._id]" ng-change="toggleDataSource(ds._id, ds);" type="checkbox" class="radio" name="{{ds._id}}" checked>
+              <label for="{{ds._id}}" class="one-line-ellipsis">{{ds.name}}</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <span class="page-sub-entity-title one-line-ellipsis">Cache Boundaries</span>
+
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group">
@@ -164,7 +184,7 @@
 
     <div class="row bottom-gap">
       <div class="col-md-12">
-          <fieldset><legend class="control-label">Choose the tile cache format(s) to create</legend>
+          <fieldset><legend><span class="page-sub-entity-title one-line-ellipsis">Choose the tile cache format(s) to create</span></legend>
           <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: '!true'}">
             <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
           </label>
@@ -189,7 +209,7 @@
 
     <div class="row bottom-gap" ng-if="hasVectorSources">
       <div class="col-md-12">
-          <fieldset><legend class="control-label">Choose the vector format(s) to create</legend>
+          <fieldset><legend><span class="page-sub-entity-title one-line-ellipsis">Choose the vector format(s) to create</span></legend>
           <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: true}">
             <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
           </label>
@@ -254,7 +274,7 @@
     <div class="row">
       <div class="col-md-12">
         <div class="form-group">
-          <label class="control-label">Name Your Cache</label>
+          <span class="page-sub-entity-title one-line-ellipsis">Cache Name</span>
           <div class="input-group file-input-group">
             <input type="text" class="form-control" ng-model="cache.name" placeholder="e.g. Denver, CO">
             <span class="input-group-btn">

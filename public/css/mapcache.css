@@ -152,6 +152,70 @@
   text-align: center;
 }
 
+.nice-check label {
+  border-radius: 3px;
+  border: 1px solid #D1D3D4;
+  padding-right: 10px;
+}
+
+/* hide input */
+.nice-check input.radio:empty {
+	margin-left: -9999px;
+}
+
+/* style label */
+.nice-check input.radio:empty ~ label {
+	position: relative;
+	float: left;
+	line-height: 2.5em;
+	text-indent: 3.25em;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.nice-check input.radio:empty ~ label:before {
+	position: absolute;
+	display: block;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	content: '';
+	width: 2.5em;
+	background: #D1D3D4;
+	border-radius: 3px 0 0 3px;
+}
+
+/* toggle hover */
+.nice-check input.radio:hover:not(:checked) ~ label:before {
+	content:'\2714';
+	text-indent: .9em;
+	color: #C2C2C2;
+}
+
+.nice-check input.radio:hover:not(:checked) ~ label {
+	color: #888;
+}
+
+/* toggle on */
+.nice-check input.radio:checked ~ label:before {
+	content:'\2714';
+	text-indent: .9em;
+	color: #9CE2AE;
+	background-color: #0057FF;
+}
+
+.nice-check input.radio:checked ~ label {
+	color: #777;
+}
+
+/* radio focus */
+.nice-check input.radio:focus ~ label:before {
+	box-shadow: 0 0 0 3px #999;
+}
+
 .nice-radio input {
   position: absolute;
   left: -9999px;
