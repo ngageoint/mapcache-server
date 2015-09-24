@@ -184,37 +184,45 @@
 
     <div class="row bottom-gap">
       <div class="col-md-12">
-          <fieldset><legend><span class="page-sub-entity-title one-line-ellipsis">Choose the tile cache format(s) to create</span></legend>
-          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: '!true'}">
-            <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
-          </label>
-          <p class="help-block">* indicates a format that will automatically be created</p>
-          <div class="row" ng-if="tileCacheRequested">
-            <div class="col-md-6">
-              <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
-                <label class="control-label">Minimum Zoom Level</label>
-                <input class="form-control" type="number" ng-model="cache.minZoom" placeholder="e.g. 0">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group" ng-class="{'has-error': cache.maxZoom < cache.minZoom}">
-                <label class="control-label">Maximum Zoom Level</label>
-                <input class="form-control" type="number" ng-model="cache.maxZoom" placeholder="e.g. 18">
-              </div>
+        <div class="row">
+          <div class="col-md-12">
+            <span class="page-sub-entity-title one-line-ellipsis">Choose the tile cache format(s) to create</span>
+
+            <div class="nice-check" ng-repeat="type in cache.source.cacheTypes | filter: {vector: '!true'}">
+              <input ng-disabled="type.required" value="{{type.type}}" id="{{type.type}}" ng-model="cache.create[type.type]" type="checkbox" class="checkbox" name="{{type.type}}">
+              <label for="{{type.type}}">{{type.type | cacheFormat}}<span ng-if="type.required">*</span></label>
             </div>
           </div>
-        </fieldset>
+        </div>
+        <div class="row" ng-if="tileCacheRequested">
+          <div class="col-md-6">
+            <div class="form-group" ng-class="{'has-error': cache.minZoom < 0 || cache.minZoom > cache.maxZoom}">
+              <label class="control-label">Minimum Zoom Level</label>
+              <input class="form-control" type="number" ng-model="cache.minZoom" placeholder="e.g. 0">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group" ng-class="{'has-error': cache.maxZoom < cache.minZoom}">
+              <label class="control-label">Maximum Zoom Level</label>
+              <input class="form-control" type="number" ng-model="cache.maxZoom" placeholder="e.g. 18">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="row bottom-gap" ng-if="hasVectorSources">
       <div class="col-md-12">
-          <fieldset><legend><span class="page-sub-entity-title one-line-ellipsis">Choose the vector format(s) to create</span></legend>
-          <label class="checkbox-inline" ng-repeat="type in cache.source.cacheTypes | filter: {vector: true}">
-            <span class="page-sub-entity-title"><input type="checkbox" ng-disabled="type.required" ng-model="cache.create[type.type]"> {{type.type | cacheFormat}}</span> <span ng-if="type.required">*</span>
-          </label>
-          <p class="help-block">* indicates a format that will automatically be created</p>
-        </fieldset>
+        <div class="row">
+          <div class="col-md-12">
+            <span class="page-sub-entity-title one-line-ellipsis">Choose the vector format(s) to create</span>
+
+            <div class="nice-check" ng-repeat="type in cache.source.cacheTypes | filter: {vector: true}">
+              <input ng-disabled="type.required" value="{{type.type}}" id="{{type.type}}" ng-model="cache.create[type.type]" type="checkbox" class="checkbox" name="{{type.type}}">
+              <label for="{{type.type}}">{{type.type | cacheFormat}}<span ng-if="type.required">*</span></label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="row" ng-show="totalCacheSize">

@@ -156,11 +156,13 @@
   border-radius: 3px;
   border: 1px solid #D1D3D4;
   padding-right: 10px;
+  margin-right: 10px;
 }
 
 /* hide input */
 .nice-check input.checkbox:empty {
 	margin-left: -9999px;
+  position: absolute;
 }
 
 /* style label */
