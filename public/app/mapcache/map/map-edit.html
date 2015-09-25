@@ -26,13 +26,13 @@
   <div class="row top-gap bottom-gap">
     <div class="col-md-12">
       <span class="page-sub-entity-label">Map Settings</span>
+      <button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button>
     </div>
   </div>
 
   <ul class="nav nav-tabs">
     <li role="presentation" ng-class="{active: tab=='general'}"><a ng-click="tab='general'">General</a></li>
-    <li ng-repeat="dataSource in map.dataSources | filter: {vector:true}" ng-class="{active: tab==dataSource._id}"><a ng-click="setStyleTab(dataSource._id)">{{dataSource.name}}</a></li>
-    <li role="presentation" class="pull-right"><button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button></li>
+    <li ng-repeat="dataSource in map.dataSources | filter: {vector:true} | orderBy : 'zOrder' : true" ng-class="{active: tab==dataSource._id}"><a ng-click="setStyleTab(dataSource._id)">{{dataSource.name}}</a></li>
   </ul>
   <div ng-show="tab == 'general'">
     <div class="row top-gap">
@@ -41,6 +41,16 @@
           <span class="control-label page-sub-entity-title">Map Name</span>
           <input type="text" class="form-control" ng-model="map.name" placeholder="e.g. Denver, CO">
         </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <span class="page-sub-entity-title">Data Source Order (top to bottom)</span>
+      </div>
+    </div>
+    <div class="row top-gap" ng-repeat="dataSource in map.dataSources | orderBy : 'zOrder' : true">
+      <div class="col-md-12">
+        {{dataSource.name}} <button class="btn btn-danger btn-xs" ng-click="deleteDataSource(dataSource._id)">Delete</button>
       </div>
     </div>
   </div>

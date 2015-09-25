@@ -64,6 +64,12 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
     }
   });
 
+  $scope.deleteDataSource = function(id) {
+    MapService.deleteDataSource($scope.map, id, function(newMap) {
+      $scope.map = newMap;
+    });
+  }
+
   $scope.setStyleTab = function(id) {
     $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
       return ds._id == id;

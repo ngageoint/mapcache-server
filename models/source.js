@@ -260,3 +260,12 @@ exports.createSource = function(source, callback) {
 exports.deleteSource = function(source, callback) {
 	Source.remove({_id: source.id}, callback);
 }
+
+exports.deleteDataSource = function(source, dataSourceId, callback) {
+  var dataSource = {
+    '_id': dataSourceId
+  };
+  source.update({'$pull': {dataSources: dataSource}}, function(err, number, raw) {
+    callback(err);
+  });
+}

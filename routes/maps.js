@@ -176,6 +176,18 @@ module.exports = function(app, auth) {
     }
   );
 
+  app.delete(
+    '/api/maps/:sourceId/dataSources/:dataSourceId',
+    access.authorize('CREATE_CACHE'),
+    parseQueryParams,
+    function(req, res, next) {
+      new api.Source().deleteDataSource(req.source, req.param('dataSourceId'), function(err, source) {
+        var sourceJson = sourceXform.transform(source);
+        res.json(sourceJson);
+      });
+    }
+  )
+
   // get source
   app.get(
     '/api/maps/:sourceId/caches',

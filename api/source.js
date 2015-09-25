@@ -30,36 +30,25 @@ Source.prototype.create = function(source, callback) {
 
 Source.prototype.import = function(source, sourceFiles, callback) {
   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
-  console.log('source FIles', sourceFiles);
-  console.log('import the source', source);
   SourceModel.createSource(source, function(err, newSource) {
-    console.log('created the source', newSource);
     if (err) return callback(err);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
-    console.log('create directory ', dir);
     fs.mkdirp(dir, function(err) {
       console.log('error creating directory? ', err);
       if (err) return callback(err);
 
       async.each(newSource.dataSources, function(dataSource, callback) {
-        console.log('dataSource', JSON.stringify(dataSource));
         if (dataSource.file && dataSource.file.name) {
           var originalFile = sourceFiles.filter(function(file) {
-            console.log('file.original name', file.originalname);
-            console.log('file.name ', dataSource.file.name);
-            console.log('match?', file.originalname === dataSource.file.name);
             return file.originalname === dataSource.file.name;
           })[0];
           var fileName = path.basename(originalFile.path);
           var file = path.join(dir, dataSource.id);
-          console.log('originalfile.path', originalFile.path);
-          console.log('file', file);
 
           fs.rename(originalFile.path, file, function(err) {
             console.log('err', err);
             if (err) return callback(err);
             fs.stat(file, function(err, stat) {
-              console.log('file', file);
               dataSource.file.path = file;
               dataSource.size = stat.size;
               newSource.markModified('datasources');
@@ -70,36 +59,15 @@ Source.prototype.import = function(source, sourceFiles, callback) {
           callback();
         }
       }, function() {
-        console.log('about to save the source', JSON.stringify(newSource));
         newSource.status = {
           message: "Creating",
           complete: false,
           zoomLevelStatus: {}
         };
         SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
-          console.log('saved the source', updatedSource);
           sourceProcessor.process(updatedSource, callback);
         });
       });
-      // var fileName = path.basename(sourceFile.path);
-      // var file = path.join(dir, fileName);
-      //
-      // fs.rename(sourceFile.path, file, function(err) {
-      //   if (err) return callback(err);
-      //   fs.stat(file, function(err, stat) {
-      //     newSource.filePath = file;
-      //     newSource.size = stat.size;
-      //     newSource.status = {
-      //       message: "Creating",
-      //       complete: false,
-      //       zoomLevelStatus: {}
-      //     };
-      //     SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
-      //       console.log('saved the source', updatedSource);
-      //       sourceProcessor.process(updatedSource, callback);
-      //     });
-      //   });
-      // });
     });
   });
 }
@@ -122,6 +90,28 @@ Source.prototype.delete = function(source, callback) {
         callback(err, source);
       }
     });
+  });
+}
+
+Source.prototype.deleteDataSource = function(source, dataSourceId, callback) {
+  SourceModel.deleteDataSource(source, dataSourceId, function(err) {
+    if (err) return callback(err);
+    var dataSource;
+    for (var i = 0; i < source.dataSources.length && !dataSource; i++) {
+      if (source.dataSources[i]._id.toString() == dataSourceId) {
+        dataSource = source.dataSources[i];
+      }
+    }
+    console.log('removing datasource', dataSource);
+    if (dataSource && dataSource.file && dataSource.file.path) {
+      fs.remove(dataSource.file.path, function(err) {
+        SourceModel.getSourceById(source.id, function(err, source) {
+          callback(err, source);
+        });
+      });
+    } else {
+      callback(err, source);
+    }
   });
 }
 

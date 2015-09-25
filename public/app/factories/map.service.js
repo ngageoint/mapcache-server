@@ -21,6 +21,7 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     getMap: getMap,
     getMapVectorTile: getMapVectorTile,
     getMapData: getMapData,
+    deleteDataSource: deleteDataSource,
     getCachesForMap: getCachesForMap,
     getFeatures: getFeatures,
     validUrlFormats: validUrlFormats,
@@ -111,6 +112,16 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
       }
     }).error(function(map, status, headers, config) {
       console.log('error deleting map', map);
+    });
+  }
+
+  function deleteDataSource(map, dataSourceId, success) {
+    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).success(function(map, status, headers, config) {
+      if (success) {
+        success(map);
+      }
+    }).error(function(map, status, headers, config) {
+      console.log('error deleting datasource', map);
     });
   }
 

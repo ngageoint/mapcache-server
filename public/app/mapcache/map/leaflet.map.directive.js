@@ -403,9 +403,9 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     });
   }, 500);
 
-  $scope.$watch('map.dataSources.length', function() {
+  $scope.$watch('map.dataSources.length', function(length) {
     currentDatasources = $scope.map.dataSources;
-    if ($scope.map.dataSources.length > 1) {
+    if (length && $scope.map.dataSources.length > 1) {
       _.each(layerControlLayers, function(l) {
         map.removeLayer(l);
         layerControl.removeLayer(l);
