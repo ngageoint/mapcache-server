@@ -1,7 +1,7 @@
 var CacheModel = require('../../models/cache.js')
   , path = require('path')
   , exec = require('child_process').exec
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , turf = require('turf')
   , fs = require('fs-extra');
 

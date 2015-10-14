@@ -1,7 +1,7 @@
 var CacheModel = require('../../models/cache.js')
   , path = require('path')
   , exec = require('child_process').exec
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , fs = require('fs-extra');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {

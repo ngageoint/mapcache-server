@@ -9,7 +9,8 @@ function LeafletUtilities(LocalStorageService, MapService) {
   return {
     styleFunction: styleFunction,
     popupFunction: popupFunction,
-    tileLayer: tileLayer
+    tileLayer: tileLayer,
+    addDatasourcesToLayerControl: addDatasourcesToLayerControl
   };
 
   function styleFunction(feature, style) {
@@ -74,7 +75,17 @@ function LeafletUtilities(LocalStorageService, MapService) {
     }
   }
 
-  function tileLayer(layerSource, defaultLayer, layerOptions, style, styleFunction) {
+  function addDatasourcesToLayerControl(dataSources, layerControl, map) {
+    _.each(dataSources, function(ds) {
+      var marker = L.marker([0,0]);
+      marker.dataSource = ds;
+      marker.addTo(map);
+      layerControl.addOverlay(marker, ds.name);
+    });
+  }
+
+
+  function tileLayer(layerSource, defaultLayer, layerOptions, style, styleFunction, dataSources) {
     console.log('layerSource', layerSource);
     if (layerSource == null) {
       return L.tileLayer(defaultLayer, layerOptions);
@@ -88,7 +99,17 @@ function LeafletUtilities(LocalStorageService, MapService) {
     } else if (typeof layerSource == "string") {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png"), layerOptions);
     } else if (layerSource.mapcacheUrl) {
-      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken();
+      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
+      if (dataSources && dataSources.length) {
+        _.each(dataSources, function(ds) {
+          console.log('ds', ds);
+          if (ds._id) {
+            url += '&dataSources[]=' + ds._id;
+          } else if (ds.id) {
+            url += '&dataSources[]=' + ds.id;
+          }
+        });
+      }
       if (layerSource.wmsLayer) {
         url += '&layer=' + layerSource.wmsLayer.Name;
       }

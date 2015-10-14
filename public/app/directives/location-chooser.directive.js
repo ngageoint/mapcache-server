@@ -22,13 +22,12 @@ LocationChooserController.$inject = ['$scope', '$element'];
 function LocationChooserController($scope, $element) {
 
   $element.find(':file').bind('change', function() {
-    console.log('in the file change');
-    console.log('this.files', this.files);
     $scope.file = this.files[0];
     if ($scope.file) {
       $scope.location = $scope.file.name;
     }
-    $scope.$emit('uploadFile', $scope.file);
+    $scope.$emit('location-file', $scope.file);
+    // $scope.$emit('location-file', {name: 'pee'});
     $scope.$apply();
   });
 

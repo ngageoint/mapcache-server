@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
   , CacheModel = require('../../models/cache')
-  , config = require('../../config.json');
+  , config = require('../../config.js');
 
 
 var mongodbConfig = config.server.mongodb;

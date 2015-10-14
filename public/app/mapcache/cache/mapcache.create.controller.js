@@ -19,6 +19,8 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   $rootScope.title = 'Create A Cache';
   $scope.token = LocalStorageService.getToken();
 
+  $scope.mapId = $routeParams.mapId;
+
   var seenCorners;
   var boundsSet = false;
 
@@ -58,19 +60,20 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
 
   $scope.cache.selectedSizeMultiplier = $scope.sizes[0];
   $scope.loadingMaps = true;
-  MapService.getAllMaps(true).success(function(maps) {
-    $scope.loadingMaps = false;
-    $scope.maps = maps;
-    if ($routeParams.mapId) {
-      for (var i = 0; i < $scope.maps.length && $scope.cache.source == null; i++) {
-        if ($routeParams.mapId == $scope.maps[i].id) {
-          $scope.cache.source = $scope.maps[i];
-        }
-      }
-    }
-  }).error(function(error) {
-    $scope.loadingMaps = false;
-  });
+
+  if ($scope.mapId) {
+    MapService.getMap($scope.mapId).success(function(map) {
+      $scope.cache.source = map;
+      $scope.loadingMaps = false;
+    });
+  } else {
+    MapService.getAllMaps(true).success(function(maps) {
+      $scope.loadingMaps = false;
+      $scope.maps = maps;
+    }).error(function(error) {
+      $scope.loadingMaps = false;
+    });
+  }
 
   $scope.useCurrentView = function() {
     $scope.cache.useCurrentView = Date.now();
@@ -146,7 +149,21 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     calculateCacheSize();
   });
 
+  $scope.toggleDataSource = function(id, ds) {
+    if ($scope.selectedDatasources[id]) {
+      $scope.cache.currentDatasources.push(ds);
+    } else {
+      $scope.cache.currentDatasources = _.without($scope.cache.currentDatasources, ds);
+    }
+  }
+
   $scope.$watch('cache.source', function(map) {
+    if (!map) return;
+    $scope.selectedDatasources = {};
+    $scope.cache.currentDatasources = map.dataSources;
+    _.each(map.dataSources, function(ds) {
+      $scope.selectedDatasources[ds._id] = true;
+    });
     $scope.cache.create = {};
     if ($scope.cache.source) {
       $scope.cache.style = $scope.cache.source.style;
@@ -163,15 +180,11 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.bb.west = null;
       $scope.bb.east = null;
       $scope.cache.geometry = null;
-      return;
     }
-    if (map && map.format == 'geotiff') {
-      var geometry = map.geometry;
-      while(geometry.type != "Polygon" && geometry != null){
-        geometry = geometry.geometry;
-      }
-      $scope.cache.geometry = geometry;
-    }
+
+    $scope.hasVectorSources = _.some(map.dataSources, function(ds) {
+      return ds.vector;
+    });
   });
 
   $scope.$watch('cache.source.previewLayer', function(layer, oldLayer) {
@@ -189,7 +202,6 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       if ($scope.cache.create[key] == true) {
         console.log('create', key);
         for (var i = 0; i < $scope.cache.source.cacheTypes.length && !tileCacheRequested; i++) {
-          console.log('derp', $scope.cache.source.cacheTypes[i]);
           if ($scope.cache.source.cacheTypes[i].type == key && !$scope.cache.source.cacheTypes[i].vector) {
             tileCacheRequested = true;
           }
@@ -248,6 +260,12 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.unsetFields.push('cache boundaries');
     }
 
+    if (!_.some(_.values($scope.currentDatasources), function(value) {
+      return value;
+    })) {
+      $scope.unsetFields.push('at least one data source');
+    }
+
     if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {
       $scope.unsetFields.push('WMS layer');
       return false;
@@ -263,10 +281,12 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     console.log($scope.cache);
     $scope.creatingCache = true;
     $scope.cacheCreationError = null;
-    $scope.cache.cacheCreationParams = {};
-    if ($scope.cache.source.previewLayer) {
-      $scope.cache.cacheCreationParams.layer = $scope.cache.source.previewLayer.Name;
+    $scope.cache.cacheCreationParams = {
+      dataSources: []
     };
+    _.each($scope.cache.currentDatasources, function(ds) {
+      $scope.cache.cacheCreationParams.dataSources.push(ds._id);
+    });
     var create = [];
     for (var type in $scope.cache.create) {
       if ($scope.cache.create[type]) {

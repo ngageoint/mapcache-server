@@ -67,16 +67,14 @@ exports.getData = function(source, callback) {
 exports.processSource = function(source, callback) {
   source.status.message = "Parsing ArcGIS json";
   source.status.complete = false;
-  source.save(function(err) {
+  SourceModel.updateDatasource(source, function(err, source) {
     request.get({url: source.url + '?f=pjson'}, function(err, response, body) {
       if (!err && response && response.statusCode == 200) {
         source.wmsGetCapabilities = JSON.parse(body);
         source.status.message = "Complete";
         source.status.complete = true;
       }
-      source.save(function(err) {
-        callback(err);
-      });
+      SourceModel.updateDatasource(source, callback);
     });
   });
 }

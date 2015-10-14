@@ -1,22 +1,42 @@
 var mongoose = require('mongoose')
-  , config = require('../config.json')
+  , config = require('../config.js')
   , shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
 
+var DatasourceSchema = new Schema({
+  name: { type: String, required: false },
+  url: { type: String, required: false },
+  format: { type: String, required: true},
+  projection: { type: String, required: false},
+  vector: { type: Boolean, required: false, default: false},
+  metadata: Schema.Types.Mixed,
+  geometry: Schema.Types.Mixed,
+  file: {
+    name: { type: String, required: false},
+    path: { type: String, required: false}
+  },
+  scaledFiles: [{
+    resolution: { type: Number, required: true},
+    path: { type: String, required: true}
+  }],
+  size: { type: Number, required: false},
+  tilesLackExtensions: {type: Boolean, default: false},
+  zOrder: { type: Number, required: false, default: -1},
+  status: {
+    message: { type: String, required: false},
+    complete: {type: Boolean, required: true, default: false},
+    totalFeatures: {type: Number, required: true, default: 0}
+  },
+  properties: Schema.Types.Mixed,
+  style: Schema.Types.Mixed,
+  styleTime: { type: Number, required: false, default: 1 }
+});
+
 var SourceSchema = new Schema({
 	name: { type: String, required: false },
-  dataSources: [{
-    url: { type: String, required: false },
-    format: { type: String, required: true},
-    projection: { type: String, required: false},
-    vector: { type: Boolean, required: true, default: false},
-    wmsGetCapabilities: Schema.Types.Mixed,
-    geometry: Schema.Types.Mixed,
-    filePath: { type: String, required: false},
-    zOrder: { type: Number, required: true, default: -1}
-  }],
+  dataSources: [DatasourceSchema],
 	projection: { type: String, required: false},
   size: { type: Number, required: false},
   tileSizeCount: { type: Number, required: false},
@@ -24,9 +44,9 @@ var SourceSchema = new Schema({
 	humanReadableId: { type: String, required: false},
 	geometry: Schema.Types.Mixed,
   style: Schema.Types.Mixed,
+  properties: Schema.Types.Mixed,
   styleTime: { type: Number, required: false, default: 1 },
 	projections: Schema.Types.Mixed,
-  properties: Schema.Types.Mixed,
   status: {
     message: { type: String, required: false},
 		complete: {type: Boolean, required: true, default: false},
@@ -49,9 +69,32 @@ function transform(source, ret, options) {
 	ret.id = ret._id;
 	delete ret._id;
 	delete ret.__v;
-	delete ret.filePath;
   ret.mapcacheUrl = ['/api/sources', source.id].join("/");
-  ret.cacheTypes = config.sourceCacheTypes[ret.format];
+  ret.cacheTypes = [];
+  if (ret.dataSources) {
+    var addVectorSources = false;
+    var addRasterSources = false;
+    ret.dataSources.forEach(function(ds) {
+      if (ds.vector) {
+        addVectorSources = true;
+        addRasterSources = true;
+      } else {
+        addRasterSources = true;
+      }
+    });
+    if (addVectorSources) {
+      var ct = config.sourceCacheTypes["vector"];
+      ct.forEach(function(type) {
+        ret.cacheTypes.push(type);
+      });
+    }
+    if (addRasterSources) {
+      var ct = config.sourceCacheTypes["raster"];
+      ct.forEach(function(type) {
+        ret.cacheTypes.push(type);
+      })
+    }
+  }
 }
 
 SourceSchema.set("toJSON", {
@@ -101,6 +144,93 @@ exports.getSourceById = function(id, callback) {
   });
 }
 
+exports.updateDatasource = function(datasource, callback) {
+
+  exports.getSourceByDatasourceId(datasource._id, function(err, source) {
+    if (err) {
+      console.log('Could not update source', err);
+      return callback(err);
+    }
+    var set = {};
+    var addToSet = {};
+    set['dataSources.$.styleTime'] = Date.now();
+    if (datasource.name) set['dataSources.$.name'] = datasource.name;
+    if (datasource.url) set['dataSources.$.url'] = datasource.url;
+    if (datasource.format) set['dataSources.$.format'] = datasource.format;
+    if (datasource.projection) set['dataSources.$.projection'] = datasource.projection;
+    if (datasource.vector) set['dataSources.$.vector'] = datasource.vector;
+    if (datasource.metadata) set['dataSources.$.metadata'] = datasource.metadata;
+    if (datasource.geometry) set['dataSources.$.geometry'] = datasource.geometry;
+    if (datasource.file) {
+      for (var key in datasource.file) {
+        if (datasource.file[key]) {
+          set['dataSources.$.file.'+key] = datasource.file[key];
+        }
+      }
+    }
+    if (datasource.size) set['dataSources.$.size'] = datasource.size;
+    if (datasource.tilesLackExtensions) set['dataSources.$.tilesLackExtensions'] = datasource.tilesLackExtensions;
+    if (datasource.zOrder) set['dataSources.$.zOrder'] = datasource.zOrder;
+    if (datasource.status) {
+      for (var key in datasource.status) {
+        if (datasource.status[key]) {
+          set['dataSources.$.status.'+key] = datasource.status[key];
+        }
+      }
+    }
+    if (datasource.properties) set['dataSources.$.properties'] = datasource.properties;
+    if (datasource.style) {
+      for (var key in datasource.style) {
+        if (datasource.style[key]) {
+          set['dataSources.$.style.'+key] = datasource.style[key];
+        }
+      }
+    }
+    if (datasource.scaledFiles) {
+      addToSet['dataSources.$.scaledFiles'] = { $each: datasource.scaledFiles };
+    }
+
+    Source.update(
+      {_id: source._id, 'dataSources._id': datasource._id},
+      {
+        '$set': set,
+        '$addToSet': addToSet
+      },
+      function(err, source) {
+        console.log('err saving the datasource', err);
+        exports.getDataSourceById(datasource._id, function(err, datasource) {
+          callback(err, datasource);
+        });
+      }
+    );
+  });
+}
+
+exports.getSourceByDatasourceId = function(id, callback) {
+  var dataSource = {"dataSources": {"$elemMatch": {_id: id}}};
+  Source.findOne(dataSource, function(err, source) {
+    if (err) return callback(err);
+    callback(err, source);
+  });
+}
+
+exports.getDataSourceById = function(id, callback) {
+
+  var dataSource = {"dataSources": {"$elemMatch": {_id: id}}};
+  var fields = {dataSources: true};
+  Source.findOne(dataSource, fields, function(err, source) {
+    if (err) return callback(err);
+    if (!source.dataSources || !source.dataSources.length) return callback(err, null);
+
+    for (var i = 0; i < source.dataSources.length; i++) {
+      if (source.dataSources[i]._id.toString() == id) {
+        return callback(null, source.dataSources[i]);
+      }
+    }
+    callback(err, null);
+  });
+}
+
 exports.getSourceNoProperties = function(id, callback) {
   Source.findById(id, {properties: 0}).exec(function(err, source) {
     if (err) {
@@ -112,6 +242,10 @@ exports.getSourceNoProperties = function(id, callback) {
 
 exports.updateSource = function(id, update, callback) {
   update.styleTime = Date.now();
+  // for now just update all of the datasource style times when the source is saved
+  for (var i = 0; i < update.dataSources.length; i++) {
+    update.dataSources[i].styleTime = update.styleTime;
+  }
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);
     callback(err, updatedSource)
@@ -125,4 +259,13 @@ exports.createSource = function(source, callback) {
 
 exports.deleteSource = function(source, callback) {
 	Source.remove({_id: source.id}, callback);
+}
+
+exports.deleteDataSource = function(source, dataSourceId, callback) {
+  var dataSource = {
+    '_id': dataSourceId
+  };
+  source.update({'$pull': {dataSources: dataSource}}, function(err, number, raw) {
+    callback(err);
+  });
 }

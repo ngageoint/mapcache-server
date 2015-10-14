@@ -7,7 +7,7 @@ var CacheModel = require('../../models/cache')
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
@@ -39,7 +39,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
       ctx.drawImage(img, 0, 0, img.width, img.height);
       callback(null, canvas.jpegStream());
 
-    })
+    });
   } else {
     req = request.get({url: url,
       headers: {'Content-Type': 'image/png'},
@@ -65,9 +65,10 @@ exports.getData = function(source, callback) {
 
 exports.processSource = function(source, callback) {
   console.log("xyz");
+  source.status = source.status || {};
   source.status.message = "Complete";
   source.status.complete = true;
-  source.save(function(err) {
+  SourceModel.updateDatasource(source, function(err, updatedSource) {
     callback(err);
   });
 }

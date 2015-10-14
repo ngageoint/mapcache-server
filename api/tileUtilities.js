@@ -1,7 +1,6 @@
 var request = require('request')
 	, fs = require('fs-extra')
 	, path = require('path')
-	, async = require('async')
 	, turf = require('turf')
 	, xyzTileWorker = require('./xyzTileWorker')
 	, path = require('path')
@@ -13,7 +12,7 @@ var request = require('request')
 	, Maps = require('./sources')
 	, Readable = require('stream').Readable
 	, Caches = require('./caches')
- 	, config = require('../config.json');
+ 	, config = require('../config.js');
 
 Math.radians = function(degrees) {
   return degrees * Math.PI / 180;
@@ -31,6 +30,12 @@ function tile2lon(x,z) {
 function tile2lat(y,z) {
   var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
   return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+}
+
+var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0596,0.298];
+
+exports.getZoomLevelResolution = function(z) {
+	return zoomLevelResolutions[z];
 }
 
 exports.tileBboxCalculator = function(x, y, z) {
@@ -115,11 +120,13 @@ exports.yCalculator = function(bbox,z) {
 }
 
 exports.getX = function(lon, zoom) {
+	if (zoom == 0) return 0;
 	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
 	return xtile;
 }
 
 exports.getY = function(lat, zoom) {
+	if (zoom == 0) return 0;
 	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
 	return ytile;
 }
@@ -178,6 +185,8 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 			});
 		} else {
 			FeatureModel.fetchTileForSourceId(source.id, bbox, z, function(err, tile) {
+				console.log('err fetching tile? ', err);
+				// console.log('tile is', tile);
 				handleTileData(tile, format, source, imageTile, callback);
 			});
 		}
@@ -221,8 +230,8 @@ function handleTileData(tile, format, source, imageTile, callback) {
 exports.createImage = function(tile, style, callback) {
 	var canvases = {};
 
-	console.log('creating image');
-	console.time('creating image for tile');
+	console.time('creating image');
+	// console.time('creating image for tile', tile);
 	var ratio = 256 / 4096;
 	var features = tile;
 
@@ -284,7 +293,7 @@ exports.createImage = function(tile, style, callback) {
 		finalCtx.drawImage(canvases[key].canvas, 0, 0);
 	}
 
-	console.timeEnd('creating image for tile');
+	console.timeEnd('creating image');
   callback(null, finalCanvas.pngStream());
 }
 

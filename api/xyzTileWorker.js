@@ -1,7 +1,7 @@
 var turf = require('turf')
   , async = require('async')
   , tileUtilities = require('./tileUtilities')
-  , config = require('../config.json');
+  , config = require('../config.js');
 
 function pushNextTileTasks(q, xyzSource, zoom, x, yRange, numberOfTasks) {
   if (yRange.current > yRange.max) return false;

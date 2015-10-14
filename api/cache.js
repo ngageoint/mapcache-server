@@ -2,11 +2,13 @@ var CacheModel = require('../models/cache')
   , turf = require('turf')
   , fs = require('fs-extra')
   , archiver = require('archiver')
-  , config = require('../config.json')
+  , config = require('../config.js')
   , tileUtilities = require('./tileUtilities')
   , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
-  , config = require('../config.json')
+  , config = require('../config.js')
+  , FeatureModel = require('../models/feature')
+  , async = require('async')
   , exec = require('child_process').exec;
 
 function Cache() {
@@ -63,16 +65,26 @@ Cache.prototype.create = function(cache, formats, callback) {
     }
   }
 
-  if (cache.id) {
-    // if the request did not specify the required caches
-    // add them here
-    var cacheTypes = config.sourceCacheTypes[cache.source.format];
-    for (var i = 0; i < cacheTypes.length; i++) {
-      var item = cacheTypes[i];
-      if (item.required && !item.virtual && newFormats.indexOf(item.type) == -1 && !cache.formats[item.type]) {
-        newFormats.push(item.type);
+  // if the request speficied a format that has a dependency and that
+  // dependency is not in the format list, add it here
+  var formatMap = {};
+  config.sourceCacheTypes.raster.forEach(function(t) {
+    formatMap[t.type] = t;
+  });
+  config.sourceCacheTypes.vector.forEach(function(t) {
+    formatMap[t.type] = t;
+  });
+
+  newFormats.forEach(function(format) {
+    if (formatMap[format].depends) {
+      if (newFormats.indexOf(formatMap[format].depends) == -1 && !cache.formats[formatMap[format].depends]) {
+        newFormats.push(formatMap[format].depends);
       }
     }
+  });
+
+  if (cache.id) {
+
     for (var i = 0; i < newFormats.length; i++) {
       console.log("creating format " + newFormats[i] + " for cache " + cache.name);
       cacheProcessor.createCacheFormat(cache, newFormats[i], function(err, cache) {
@@ -95,21 +107,33 @@ Cache.prototype.create = function(cache, formats, callback) {
       if (err) return callback(err);
       console.log('created cache', newCache);
       callback(err, newCache);
-      // if the request did not specify the required caches
-      // add them here
-      var cacheTypes = config.sourceCacheTypes[newCache.source.format];
-      for (var i = 0; i < cacheTypes.length; i++) {
-        var item = cacheTypes[i];
-        if (item.required && !item.virtual && newFormats.indexOf(item.type) == -1) {
-          newFormats.push(item.type);
+
+      // if the cache has vector datasources we need to populate postgis
+      var vectorSources = [];
+      for (var i = 0; i < newCache.source.dataSources.length; i++) {
+        if (newCache.source.dataSources[i].vector) {
+          vectorSources.push(newCache.source.dataSources[i]);
         }
       }
-      for (var i = 0; i < newFormats.length; i++) {
-        console.log("creating format " + newFormats[i] + " for cache " + newCache.name);
-        cacheProcessor.createCacheFormat(newCache, newFormats[i], function(err, cache) {
-          console.log('format ' + newFormats[i] + ' submitted for cache ' + newCache.name);
-        });
-      }
+
+      var extent = turf.extent(cache.geometry);
+
+      async.eachSeries(vectorSources, function(dataSource, done) {
+        if (newCache.cacheCreationParams.dataSources.indexOf(dataSource._id.toString()) == -1) {
+          return done();
+        }
+        console.log('cache', newCache);
+        console.log('datasource', dataSource);
+        console.log('inserting features for cache %s from source %s', newCache._id, dataSource._id);
+        FeatureModel.createCacheFeaturesFromSource(dataSource._id, newCache._id, extent[0], extent[1], extent[2], extent[3], done);
+      }, function() {
+        for (var i = 0; i < newFormats.length; i++) {
+          console.log("creating format " + newFormats[i] + " for cache " + newCache.name);
+          cacheProcessor.createCacheFormat(newCache, newFormats[i], function(err, cache) {
+            console.log('format ' + newFormats[i] + ' submitted for cache ' + newCache.name);
+          });
+        }
+      })
     });
   }
 }

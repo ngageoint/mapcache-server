@@ -76,6 +76,7 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, $roo
   }
 
   function getCache(id) {
+    $scope.hasVectorSources = false;
     console.log('location.path', $location.path());
     var cache = $scope.cache || {};
     if (id) {
@@ -84,6 +85,11 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, $roo
     CacheService.getCache(cache, function(cache) {
       // success
       $scope.cache = cache;
+      for (var i = 0; i < cache.source.cacheTypes.length; i++) {
+        if (cache.source.cacheTypes[i].vector) {
+          $scope.hasVectorSources = true;
+        }
+      }
       $rootScope.title = $scope.cache.name;
 
       $scope.zoomRows = $scope.sortedZooms(cache);

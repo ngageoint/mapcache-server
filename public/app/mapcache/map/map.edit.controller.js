@@ -64,21 +64,34 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
     }
   });
 
+  $scope.deleteDataSource = function(id) {
+    MapService.deleteDataSource($scope.map, id, function(newMap) {
+      $scope.map = newMap;
+    });
+  }
+
+  $scope.setStyleTab = function(id) {
+    $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
+      return ds._id == id;
+    });
+    $scope.tab = id;
+  }
+
   $scope.applyStyle = function() {
     var tmp = angular.copy($scope.newRule);
     $scope.newRule.key = $scope.newRule.property.key;
     $scope.newRule.value = $scope.newRule.property.value;
-    $scope.newRule.priority = $scope.map.style.length;
+    $scope.newRule.priority = $scope.styleTab.style.styles.length;
     delete $scope.newRule.property;
-    $scope.map.style.styles.push($scope.newRule);
+    $scope.styleTab.style.styles.push($scope.newRule);
     $scope.newRule = tmp;
     delete $scope.newRule.property;
   }
 
   $scope.saveMap = function() {
     MapService.saveMap($scope.map, function(map) {
-      console.log('saved successfully', map);
       $scope.map = map;
+      $scope.setStyleTab($scope.tab);
       $scope.mapOptions.refreshMap = Date.now();
       $scope.unsavedChanges = false;
     }, function(error) {

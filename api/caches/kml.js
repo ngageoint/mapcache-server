@@ -2,7 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , sourceTypes = require('../sources')
   , path = require('path')
   , ogrType = require('./ogrType.js')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , fs = require('fs-extra');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {

@@ -2,7 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , xyzTileWorker = require('../xyzTileWorker')
   , fs = require('fs-extra')
   , path = require('path')
-  , config = require('../../config.json');
+  , config = require('../../config.js');
 
 function xyzToTms(z, y, x) {
   return {
@@ -15,7 +15,10 @@ function xyzToTms(z, y, x) {
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
   if (cache.formats['tms'] && !cache.formats['tms'].generating) {
     var cp = require('child_process');
-    var args = ['-rq', '-', 'tmstiles'];
+    var args = ['-rq', '-'];
+    for (var i = minZoom; i <= maxZoom; i++) {
+      args.push('tmstiles/'+i);
+    }
     console.log('stream the zip back');
     var zip = cp.spawn('zip', args, {cwd: path.join(config.server.cacheDirectory.path, cache._id.toString())}).on('close', function(code) {
       console.log('close the zip');

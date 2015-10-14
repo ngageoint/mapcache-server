@@ -80,6 +80,10 @@ exports.getAllSources = function(yargs) {
     for (var i = 0; i < sources.length; i++) {
       var source = sources[i];
       console.log('Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
+      for (var j = 0; j < source.dataSources.length; j++) {
+        var dataSource = source.dataSources[j];
+        console.log('\tDataSources:\n\t\tName:%s\n\t\tFormat:%s', dataSource.name, dataSource.format);
+      }
     }
     process.exit();
   });
@@ -282,7 +286,7 @@ exports.ingestMissingVectors = function(yargs) {
     async.eachSeries(mongoSources, function iterator(source, callback) {
       console.log('looking for source in postgis', source);
       if (source.vector) {
-        knex.select().where('sourceId', source.id).from('features').then(function(postgisSources) {
+        knex.select().where('source_id', source.id).from('features').then(function(postgisSources) {
           console.log('found source', postgisSources);
           if (postgisSources.length == 0) {
             sources.process(source, function(err, source) {
@@ -312,7 +316,7 @@ exports.reingestVectors = function(yargs) {
   .argv;
 
   new api.Source().getById(argv.i, function(err, source) {
-    
+
   });
 }
 

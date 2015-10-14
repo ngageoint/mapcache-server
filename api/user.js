@@ -3,7 +3,7 @@ var UserModel = require('../models/user')
   , LoginModel = require('../models/login')
   , path = require('path')
   , async = require('async')
-  , config = require('../config.json');
+  , config = require('../config.js');
 
 var userBase = config.server.userBaseDirectory;
 

@@ -106,6 +106,38 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     });
   });
 
+  $scope.$watch('options.currentDatasources', function() {
+    if ($scope.options.currentDatasources) {
+      debounceDataSources();
+    }
+  });
+
+  var debounceDataSources = _.debounce(function() {
+    $scope.$apply(function() {
+      addMapLayer();
+    });
+  }, 500);
+
+  $scope.$watch('options.source.dataSources.length', function() {
+    if ($scope.options.source.dataSources.length > 1) {
+      _.each(layerControlLayers, function(l) {
+        map.removeLayer(l);
+      });
+
+      _.each($scope.options.source.dataSources, function(ds) {
+        var marker = L.marker([0,0],
+        {
+          opacity: 0.0,
+          clickable: false,
+          keyboard: false
+        });
+        marker.dataSource = ds;
+        console.log('add marker to map');
+        marker.addTo(map);
+      });
+    }
+  });
+
   $scope.$on('extentChanged', function(event, envelope) {
     console.log('extent', envelope);
     drawnItems.removeLayer(cacheFootprintLayer);
@@ -144,56 +176,28 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     drawnItems.addLayer(cacheFootprintLayer);
   });
 
-  $scope.$watch('options.source.geometry', function(geometry) {
-    if (sourceBoundsLayer) {
-      map.removeLayer(sourceBoundsLayer);
-    }
-    if (!geometry) return;
-    sourceBoundsLayer = L.geoJson({type: "FeatureCollection", features:[geometry]});
-    sourceBoundsLayer.setStyle({fill: false, color: "#308014", clickable: false});
-    sourceBoundsLayer.addTo(map);
-    sourceBoundsLayer.bringToFront();
-    map.fitBounds(sourceBoundsLayer.getBounds());
-  });
-
-  $scope.$watch('options.source.data', function(data, oldData) {
-    if (sourceLayer) {
-      map.removeLayer(sourceLayer);
-    }
-    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
-    if (!sourceLayer) return;
-    sourceLayer.addTo(map);
-  });
-
   $scope.$watch('options.source', function(source) {
+    if ($scope.options.source.dataSources) {
+      var merged = _.reduce($scope.options.source.dataSources, function(merge, dataSource) {
+        if (dataSource.geometry) {
+          return turf.union(merge, dataSource.geometry);
+        }
+        return merge;
+      }, $scope.options.source.dataSources[0].geometry);
+      console.log('merged is', merged);
+      updateMapExtent(turf.extent(merged));
+    }
+    addMapLayer();
+  });
+
+  function addMapLayer() {
     if (sourceLayer) {
       map.removeLayer(sourceLayer);
     }
-    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
+    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction, $scope.options.currentDatasources);
     if (!sourceLayer) return;
     sourceLayer.addTo(map);
-  });
-
-  $scope.$watch('options.source.previewLayer', function(previewLayer) {
-    if (sourceLayer) {
-      map.removeLayer(sourceLayer);
-    }
-    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
-    if (!sourceLayer) return;
-    sourceLayer.addTo(map);
-  });
-
-  $scope.$watch('options.source.format', function(format, oldFormat) {
-    if (format == oldFormat) return;
-
-    options.tms = 'tms' == format;
-    if (sourceLayer) {
-      map.removeLayer(sourceLayer);
-    }
-    sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction);
-    if (!sourceLayer) return;
-    sourceLayer.addTo(map);
-  });
+  }
 
   function styleFunction(feature) {
     return LeafletUtilities.styleFunction(feature, $scope.options.style);

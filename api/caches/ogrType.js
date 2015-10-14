@@ -1,7 +1,7 @@
 var FeatureModel = require('../../models/feature')
   , path = require('path')
   , ogr2ogr = require('ogr2ogr')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , fs = require('fs-extra');
 
 exports.generateCache = function(cache, filePath, format, callback) {

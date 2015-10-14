@@ -1,9 +1,10 @@
 var SourceModel = require('../models/source')
   , fs = require('fs-extra')
   , path = require('path')
+  , async = require('async')
   , Feature = require('../models/feature')
   , sourceProcessor = require('./sources')
-  , config = require('../config.json');
+  , config = require('../config.js');
 
 function Source() {
 }
@@ -27,32 +28,44 @@ Source.prototype.create = function(source, callback) {
   });
 }
 
-Source.prototype.import = function(source, sourceFile, callback) {
-  console.log('import the source', source);
+Source.prototype.import = function(source, sourceFiles, callback) {
+  sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
   SourceModel.createSource(source, function(err, newSource) {
-    console.log('created the source', newSource);
     if (err) return callback(err);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
     fs.mkdirp(dir, function(err) {
+      console.log('error creating directory? ', err);
       if (err) return callback(err);
 
-      var fileName = path.basename(sourceFile.path);
-      var file = path.join(dir, fileName);
+      async.each(newSource.dataSources, function(dataSource, callback) {
+        if (dataSource.file && dataSource.file.name) {
+          var originalFile = sourceFiles.filter(function(file) {
+            return file.originalname === dataSource.file.name;
+          })[0];
+          var fileName = path.basename(originalFile.path);
+          var file = path.join(dir, dataSource.id);
 
-      fs.rename(sourceFile.path, file, function(err) {
-        if (err) return callback(err);
-        fs.stat(file, function(err, stat) {
-          newSource.filePath = file;
-          newSource.size = stat.size;
-          newSource.status = {
-            message: "Creating",
-            complete: false,
-            zoomLevelStatus: {}
-          };
-          SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
-            console.log('saved the source', updatedSource);
-            sourceProcessor.process(updatedSource, callback);
+          fs.rename(originalFile.path, file, function(err) {
+            console.log('err', err);
+            if (err) return callback(err);
+            fs.stat(file, function(err, stat) {
+              dataSource.file.path = file;
+              dataSource.size = stat.size;
+              newSource.markModified('datasources');
+              callback();
+            });
           });
+        } else {
+          callback();
+        }
+      }, function() {
+        newSource.status = {
+          message: "Creating",
+          complete: false,
+          zoomLevelStatus: {}
+        };
+        SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
+          sourceProcessor.process(updatedSource, callback);
         });
       });
     });
@@ -77,6 +90,28 @@ Source.prototype.delete = function(source, callback) {
         callback(err, source);
       }
     });
+  });
+}
+
+Source.prototype.deleteDataSource = function(source, dataSourceId, callback) {
+  SourceModel.deleteDataSource(source, dataSourceId, function(err) {
+    if (err) return callback(err);
+    var dataSource;
+    for (var i = 0; i < source.dataSources.length && !dataSource; i++) {
+      if (source.dataSources[i]._id.toString() == dataSourceId) {
+        dataSource = source.dataSources[i];
+      }
+    }
+    console.log('removing datasource', dataSource);
+    if (dataSource && dataSource.file && dataSource.file.path) {
+      fs.remove(dataSource.file.path, function(err) {
+        SourceModel.getSourceById(source.id, function(err, source) {
+          callback(err, source);
+        });
+      });
+    } else {
+      callback(err, source);
+    }
   });
 }
 

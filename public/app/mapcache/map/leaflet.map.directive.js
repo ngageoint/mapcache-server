@@ -10,7 +10,8 @@ function leafletMap() {
     scope: {
       map: '=',
       options: '=',
-      caches: '='
+      caches: '=',
+      dataSources: '='
     },
     controller: LeafletMapController
   };
@@ -314,14 +315,22 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
 
   var debounceUrl = _.debounce(function(url) {
     $scope.$apply(function() {
-      addMapLayer();
+
     });
   }, 500);
 
   $scope.$watch('map.mapcacheUrl', function(url, oldUrl) {
-    if (url != null && url != oldUrl) {
-      debounceUrl(url);
+    if ($scope.map.dataSources) {
+      var merged = _.reduce($scope.map.dataSources, function(merge, dataSource) {
+        if (dataSource.geometry) {
+          return turf.union(merge, dataSource.geometry);
+        }
+        return merge;
+      }, $scope.map.dataSources[0].geometry);
+      console.log('merged is', merged);
+      updateMapExtent(turf.extent(merged));
     }
+    addMapLayer();
   });
 
   var legend = undefined;
@@ -371,12 +380,65 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     }
   });
 
+  var currentDatasources = [];
+  var layerControl = L.control.groupedLayers([], []);
+  map.on('overlayremove', function(event) {
+    if (event.layer.dataSource) {
+      currentDatasources = _.without(currentDatasources, event.layer.dataSource);
+      debounceDataSources();
+    }
+  });
+  map.on('overlayadd', function(event) {
+    if (event.layer.dataSource) {
+      currentDatasources.push(event.layer.dataSource);
+      debounceDataSources();
+    }
+  });
+  var layerControlAdded = false;
+  var layerControlLayers = [];
+
+  var debounceDataSources = _.debounce(function() {
+    $scope.$apply(function() {
+      addMapLayer();
+    });
+  }, 500);
+
+  $scope.$watch('map.dataSources.length', function(length) {
+    currentDatasources = $scope.map.dataSources;
+    if (length && $scope.map.dataSources.length > 1) {
+      _.each(layerControlLayers, function(l) {
+        map.removeLayer(l);
+        layerControl.removeLayer(l);
+      });
+
+      _.each($scope.map.dataSources, function(ds) {
+        var marker = L.marker([0,0],
+        {
+          opacity: 0.0,
+          clickable: false,
+          keyboard: false
+        });
+        marker.dataSource = ds;
+        console.log('add marker to map');
+        marker.addTo(map);
+        layerControlLayers.push(marker);
+        layerControl.addOverlay(marker, ds.name, "Data Sources");
+      });
+      if (!layerControlAdded) {
+        console.log('add the layer control');
+        layerControlAdded = true;
+        layerControl.addTo(map);
+      }
+    }
+  });
+
   function addMapLayer() {
     if (!$scope.map) return;
     if (mapLayer) {
       map.removeLayer(mapLayer);
     }
-    var tl = LeafletUtilities.tileLayer($scope.map, defaultLayer, mapLayerOptions, $scope.map.style, styleFunction);
+
+    var tl = LeafletUtilities.tileLayer($scope.map, defaultLayer, mapLayerOptions, $scope.map.style, styleFunction, currentDatasources);
     if (!tl) return;
     mapLayer = tl;
     tl.on('tileload', function(event) {

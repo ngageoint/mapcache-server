@@ -6,7 +6,7 @@ var express = require("express")
   , fs = require('fs-extra')
   , log = require('winston')
   , knex = require('./db/knex')
-  , config = require('./config.json');
+  , config = require('./config.js');
 
 log.remove(log.transports.Console);
 log.add(log.transports.Console, {

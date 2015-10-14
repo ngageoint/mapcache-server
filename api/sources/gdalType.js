@@ -9,43 +9,73 @@ var gdal = require("gdal")
   , async = require('async')
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
-  , config = require('../../config.json');
+  , config = require('../../config.js');
 
   exports.processSource = function(source, callback) {
     source.status.message="Processing source";
     source.status.complete = false;
-    source.save(function(err) {
-      var ds = gdal.open(source.filePath);
+    SourceModel.updateDatasource(source, function(err, source) {
+      var ds = gdal.open(source.file.path);
 
       source.projection = ds.srs.getAuthorityCode("PROJCS");
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
 
-      if (ds.bands.get(1).colorInterpretation == 'Palette') {
-        ds.close();
-        // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
-        var python = exec(
-          'gdal_translate -expand rgb ' + source.filePath + " " + source.filePath + "_expanded.tif",
-         function(error, stdout, stderr) {
-           source.filePath = source.filePath + '_expanded.tif';
-           source.status.message = "Complete";
-           source.status.complete = true;
-           source.save(function() {
-             console.log('done running ' +   'gdal_translate -expand rgb ' + source.filePath + " " + source.filePath + "_expanded.tif");
-             callback();
-           });
-         });
-      } else {
-        source.status.message = "Complete";
-        source.status.complete = true;
-        source.save(function(err) {
-          ds.close();
-
-          callback(err);
+      expandColorsIfNecessary(ds, source, function(err, source) {
+        createLowerResolution(ds, source, function(err, source) {
+          source.status.message = "Complete";
+          source.status.complete = true;
+          SourceModel.updateDatasource(source, function(err, source) {
+            callback();
+          });
         });
-      }
+      });
     });
   }
+
+function expandColorsIfNecessary(ds, source, callback) {
+  if (ds.bands.get(1).colorInterpretation == 'Palette') {
+    // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
+    var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
+    var file = path.join(path.dirname(source.file.path), fileName);
+    var python = exec(
+      'gdal_translate -expand rgb ' + source.file.path + " " + file,
+    function(error, stdout, stderr) {
+      source.file.path = file;
+      SourceModel.updateDatasource(source, callback);
+    });
+  } else {
+    callback(null, source);
+  }
+}
+
+function createLowerResolution(ds, source, callback) {
+
+  if (ds.rasterSize.x < ds.rasterSize.y) {
+    width = 1024;
+    height = 0;
+  } else {
+    width = 0;
+    height = 1024;
+  }
+
+  var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_1024.tif';
+  var file = path.join(path.dirname(source.file.path), fileName);
+  var python = exec(
+    'gdalwarp -ts '+ width+' ' + height +' -co COMPRESS=LZW -co TILED=YES ' + source.file.path + " " + file,
+  function(error, stdout, stderr) {
+    var in_ds = gdal.open(file);
+
+    source.scaledFiles = source.scaledFiles || [];
+    source.scaledFiles.push({
+      path: file,
+      resolution: in_ds.geoTransform[1]
+    });
+    SourceModel.updateDatasource(source, function(err, source) {
+      callback(err, source);
+    });
+  });
+}
 
 // direct port from gdal2tiles.py
 function tileRasterBounds(ds, ulx, uly, lrx, lry) {
@@ -132,11 +162,6 @@ function createPixelCoordinateCutline(envelope, ds) {
   var lr = sourcePixels.transformPoint(lr.x, lr.y);
   var ll = sourcePixels.transformPoint(ll.x, ll.y);
 
-  console.log('ul', ul);
-  console.log('ur', ur);
-  console.log('lr', lr);
-  console.log('ll', ll);
-
 	var cutline = new gdal.Polygon();
 	var ring = new gdal.LinearRing();
 	ring.points.add([ul,ur,lr,ll,ul]);
@@ -146,6 +171,18 @@ function createPixelCoordinateCutline(envelope, ds) {
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
+
+  var filePath = source.file.path;
+  var zoomRes = tu.getZoomLevelResolution(z);
+  var currentRes = 0;
+  for (var i = 0; source.scaledFiles && i < source.scaledFiles.length; i++) {
+    if (zoomRes > source.scaledFiles[i].resolution && currentRes < source.scaledFiles[i].resolution) {
+      filePath = source.scaledFiles[i].path;
+    }
+  }
+
+  console.log('using the source file', filePath);
+
   var tileEnvelope = tu.tileBboxCalculator(x, y, z);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
   var intersection = turf.intersect(tilePoly, source.geometry);
@@ -154,7 +191,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     return callback();
   }
 
-  var in_ds = gdal.open(source.filePath);
+  var in_ds = gdal.open(filePath);
   exports.gdalInfo(in_ds);
 
   var in_srs = in_ds.srs;

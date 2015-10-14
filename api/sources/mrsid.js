@@ -3,7 +3,7 @@ var gdalType = require('./gdalType');
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 
 exports.getData = function(source, callback) {

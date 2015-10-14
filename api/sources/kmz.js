@@ -1,7 +1,7 @@
 var SourceModel = require('../../models/source')
   , path = require('path')
   , fs = require('fs-extra')
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , Canvas = require('canvas')
   , Image = Canvas.Image
   , turf = require('turf')
@@ -12,16 +12,16 @@ var SourceModel = require('../../models/source')
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 exports.getFeatures = tileUtilities.getFeatures;
 exports.getTile = tileUtilities.getVectorTile;
 
 exports.getData = function(source, format, callback) {
 
-  var dir = path.join(config.server.sourceDirectory.path, source.id);
+  var dir = path.join(config.server.sourceDirectory.path, source._id);
   if (format == 'geojson') {
-    var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+    var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '.geojson';
     var file = path.join(dir, fileName);
     console.log('pull from path', file);
 
@@ -37,12 +37,11 @@ exports.getData = function(source, format, callback) {
 exports.processSource = function(source, callback) {
   source.status.message = "Parsing kmz";
   source.vector = true;
-  source.save(function(err) {
+  SourceModel.updateDatasource(source, function(err, source) {
+    var stream = fs.createReadStream(source.file.path);
 
-    var stream = fs.createReadStream(source.filePath);
-
-    var dir = path.join(config.server.sourceDirectory.path, source.id);
-    var fileName = path.basename(path.basename(source.filePath), path.extname(source.filePath)) + '.geojson';
+    var dir = path.join(config.server.sourceDirectory.path, source._id);
+    var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '.geojson';
     var file = path.join(dir, fileName);
 
   	if (!fs.existsSync(file)) {
@@ -76,7 +75,7 @@ exports.processSource = function(source, callback) {
             async.setImmediate(function() {
               if (count % 1000 == 0) {
                 source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
-        				source.save(function() {
+                SourceModel.updateDatasource(source, function(err, source) {
                   callback(null, feature);
         				});
               } else {
@@ -116,7 +115,7 @@ exports.processSource = function(source, callback) {
     			for (var property in allProperties) {
     				source.properties.push(allProperties[property]);
     			}
-          source.save(callback);
+          SourceModel.updateDatasource(source, callback);
         });
       });
       console.log('parse shapefile to json');

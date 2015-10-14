@@ -1,12 +1,12 @@
 var SourceModel = require('../../models/source')
   , exec = require('child_process').exec
-  , config = require('../../config.json')
+  , config = require('../../config.js')
   , fs = require('fs-extra');
 
 exports.process = function(source, callback) {
   callback(null, source);
   var child = require('child_process').fork('api/sources/processor.js');
-  child.send({operation:'process', sourceId: source.id});
+  child.send({operation:'process', sourceId: source._id});
 }
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
@@ -35,17 +35,17 @@ exports.getData = function(source, callback) {
 }
 
 exports.processSource = function(source, callback) {
-  console.log('running ' + 'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
+  console.log('running ' + 'mb-util ' + source.file.path + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
   source.status.message = "Extracting MBTiles";
-  source.save(function() {
+  SourceModel.updateDatasource(source, function(err, source) {
     var python = exec(
-      'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles",
+      'mb-util ' + source.file.path + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles",
      function(error, stdout, stderr) {
        source.status.message = "Complete";
        source.status.complete = true;
-       source.save(function() {
-         console.log('done running ' +   'mb-util ' + source.filePath + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
-         callback();
+       SourceModel.updateDatasource(source, function(err, updatedSource) {
+         console.log('done running ' +   'mb-util ' + source.file.path + " " + config.server.sourceDirectory.path + "/" + source._id + "/tiles");
+         callback(err);
        });
      });
    });
