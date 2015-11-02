@@ -32,7 +32,7 @@ function tile2lat(y,z) {
   return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
 }
 
-var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0596,0.298];
+var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0.596,0.298];
 
 exports.getZoomLevelResolution = function(z) {
 	return zoomLevelResolutions[z];
