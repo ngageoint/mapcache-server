@@ -19,7 +19,7 @@ exports.process = function(source, callback) {
   });
 }
 
-function pullTileFromSource(source, format, z, x, y, params, callback) {
+exports.getTileFromDataSource = function(source, format, z, x, y, params, callback) {
   // console.log('pull tile from source', source);
   var processor = require('./' + source.format);
 
@@ -49,7 +49,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   async.eachSeries(sorted, function iterator(s, callback) {
     if (params.dataSources.indexOf(s.id) == -1) return callback();
-    pullTileFromSource(s, format, z, x, y, params, function(err, tileStream) {
+    exports.getTileFromDataSource(s, format, z, x, y, params, function(err, tileStream) {
       if (!tileStream) return callback();
       var buffer = new Buffer(0);
       var chunk;

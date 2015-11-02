@@ -32,7 +32,7 @@ function tile2lat(y,z) {
   return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
 }
 
-var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0596,0.298];
+var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0.596,0.298];
 
 exports.getZoomLevelResolution = function(z) {
 	return zoomLevelResolutions[z];
@@ -132,24 +132,7 @@ exports.getY = function(lat, zoom) {
 }
 
 exports.getFeatures = function(source, west, south, east, north, zoom, callback) {
-	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, function(err, featureList) {
-		featureList = featureList.sort(function (a, b) {
-			if (a.geoType === 1 && b.geoType === 1) {
-				var aDistance = turf.distance(turf.point(a.geometry[0]), queryPoint);
-				var bDistance = turf.distance(turf.point(b.geometry[0]), queryPoint);
-				if (aDistance < bDistance) return -1;
-				if (bDistance > aDistance) return 1;
-				return 0;
-			} else if (a.geoType === 1) {
-				return -1;
-			} else if (b.geoType === 1) {
-				return 1;
-			}
-
-			return 0;
-		});
-		callback(null, featureList);
-	});
+	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, callback);
 }
 
 function tileContainsData(source, bbox) {

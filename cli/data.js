@@ -3,6 +3,28 @@ var api = require('../api')
   , cacheModel = require('../models/cache')
   , caches = require('../api/caches');
 
+exports.testGeoPackage = function(yargs) {
+  var java = require('java');
+  var mvn = require('node-java-maven');
+
+  mvn(function(err, mvnResults) {
+    if (err) {
+      return console.error('could not resolve maven dependencies', err);
+    }
+    mvnResults.classpath.forEach(function(c) {
+      console.log('adding ' + c + ' to classpath');
+      java.classpath.push(c);
+    });
+
+    var File = java.import('java.io.File');
+    var GeoPackageManager = java.import('mil.nga.geopackage.manager.GeoPackageManager');
+
+    var gpkgFile = new File('/tmp/gpkg.gpkg');
+    java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'create', gpkgFile);
+    process.exit();
+  });
+}
+
 exports.ensureDataIntegrity = function(yargs) {
   var argv =
     yargs.usage('Ensures that the data in the database is correct as far as we can tell.')
@@ -13,7 +35,7 @@ exports.ensureDataIntegrity = function(yargs) {
     createDataSources,
   ], function(err, results) {
     process.exit();
-  })
+  });
 }
 
 function createDataSources(finished) {
