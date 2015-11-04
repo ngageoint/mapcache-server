@@ -39,7 +39,6 @@ exports.getZoomLevelResolution = function(z) {
 }
 
 exports.tileBboxCalculator = function(x, y, z) {
-  console.log('tile box calculator for ' + x + ' ' + y + ' ' + z);
   x = Number(x);
   y = Number(y);
   var tileBounds = {

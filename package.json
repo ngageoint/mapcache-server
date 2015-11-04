@@ -49,6 +49,7 @@
     "request": "2.51.x",
     "shortid": "^2.2.2",
     "shp2json": "https://github.com/danielbarela/shp2json.git",
+    "stream-to-array": "^2.1.0",
     "turf": "^2.0.2",
     "winston": "^1.0.0",
     "wms-capabilities": "^0.2.2",

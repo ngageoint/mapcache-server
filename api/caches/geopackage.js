@@ -4,6 +4,11 @@ var CacheModel = require('../../models/cache.js')
   , exec = require('child_process').exec
   , config = require('../../config.js')
   , tileUtilities = require('../tileUtilities')
+  , turf = require('turf')
+  , proj4 = require('proj4')
+  , async = require('async')
+  , toArray = require('stream-to-array')
+  , xyzTileWorker = require('../xyzTileWorker')
   , fs = require('fs-extra');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
@@ -19,8 +24,6 @@ exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
 }
 
 exports.generateCache = function(cache, minZoom, maxZoom, callback) {
-
-
   var java = require('java');
   var mvn = require('node-java-maven');
 
@@ -42,59 +45,159 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
     var File = java.import('java.io.File');
 
     // var geoPackageFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".gpkg");
-    var geoPackageFile = '/tmp/'+cache._id + ".gpkg");
+    var geoPackageFile = config.server.cacheDirectory.path + "/" + cache._id + "/" + cache._id + ".gpkg";
 
     var gpkgFile = new File(geoPackageFile);
     java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'create', gpkgFile);
 
-    /*
-    put the bounds of the entire cache in the TileMatrixSet
-
-
-    contents bounds can be in 4326
-
-    tile matrix bounds (bounds of the entire cache) have to be in web mercator
-
-    table name in contents dao is custom table name to contain the tileStream
-
-    update the last change date in the contents dao when done
-
-    Tile table is the user tile table
-
-    each zoom level has a tile matrix
-
-
-
-    // to validate https://git.geointapps.org/geopackage/geopackage-validate/tree/master
-
-    // readFormatTiles()
-    // https://github.com/ngageoint/geopackage-java/blob/master/src/main/java/mil/nga/geopackage/io/TileReader.java
-
-    */
-
+    var geoPackage = java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'open', gpkgFile);
+    geoPackage.createTileMatrixSetTableSync();
+    geoPackage.createTileMatrixTable();
 
     async.eachSeries(cache.source.dataSources, function iterator(s, callback) {
-      if (cache.cacheCreationParams.dataSources.indexOf(s.id) == -1) return callback();
+      if (cache.cacheCreationParams && cache.cacheCreationParams.dataSources && cache.cacheCreationParams.dataSources.indexOf(s.id) == -1) return callback();
       if (s.vector) {
         SourceApi.getFeatures(s, extent[0], extent[1], extent[2], extent[3], 0, function(err, features) {
           // now add the features to the geopackage
         });
       } else {
+        var TileTable = java.import('mil.nga.geopackage.tiles.user.TileTable');
+        var columns = java.callStaticMethodSync('mil.nga.geopackage.tiles.user.TileTable', 'createRequiredColumns');
+        var tileTableName = 'TILES_' + s._id.toString();
+        var tileTable = new TileTable(tileTableName, columns);
+
+        geoPackage.createTileTableSync(tileTable);
+
+        var srsDao = geoPackage.getSpatialReferenceSystemDaoSync();
+
+        var srsWgs84 = srsDao.getOrCreateSync(4326);
+        var srsEpsg3857 = srsDao.getOrCreateSync(3857);
+
+        var xRangeMinZoom = tileUtilities.xCalculator(extent, minZoom);
+        var yRangeMinZoom = tileUtilities.yCalculator(extent, minZoom);
+
+        var llCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
+        var urCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
+        var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
+        console.log('ur ', urCorner);
+        console.log('yrange', yRangeMinZoom);
+        console.log('xrange', xRangeMinZoom);
+
+        var epsg3857ll = proj4('EPSG:3857', [llCorner.west, llCorner.south]);
+        var epsg3857ur = proj4('EPSG:3857', [urCorner.east, urCorner.north]);
+        console.log('epsgur', epsg3857ur);
+
+
+        // Create new Contents
+    		var contentsDao = geoPackage.getContentsDaoSync();
+        var Contents = java.import('mil.nga.geopackage.core.contents.Contents');
+    		var contents = new Contents();
+    		contents.setTableNameSync(tileTableName);
+    		contents.setDataTypeSync(java.callStaticMethodSync('mil.nga.geopackage.core.contents.ContentsDataType', 'fromName', 'tiles'));
+    		contents.setIdentifierSync(tileTableName);
+    		// contents.setDescription("");
+
+        var Date = java.import('java.util.Date');
+    		contents.setLastChange(new Date());
+    		contents.setMinXSync(llCorner.west);
+    		contents.setMinYSync(llCorner.south);
+    		contents.setMaxXSync(urCorner.east);
+    		contents.setMaxYSync(urCorner.north);
+    		contents.setSrsSync(srsWgs84);
+
+    		// Create the contents
+    		contentsDao.createSync(contents);
+
+    		// Create new Tile Matrix Set
+    		var tileMatrixSetDao = geoPackage.getTileMatrixSetDaoSync();
+
+        var TileMatrixSet = java.import('mil.nga.geopackage.tiles.matrixset.TileMatrixSet');
+    		var tileMatrixSet = new TileMatrixSet();
+    		tileMatrixSet.setContentsSync(contents);
+    		tileMatrixSet.setSrsSync(srsEpsg3857);
+    		tileMatrixSet.setMinXSync(epsg3857ll[0]);
+    		tileMatrixSet.setMinYSync(epsg3857ll[1]);
+    		tileMatrixSet.setMaxXSync(epsg3857ur[0]);
+    		tileMatrixSet.setMaxYSync(epsg3857ur[1]);
+    		tileMatrixSetDao.createSync(tileMatrixSet);
+
+    		// Create new Tile Matrix and tile table rows by going through each zoom
+    		// level
+    		var tileMatrixDao = geoPackage.getTileMatrixDaoSync();
+    		var tileDao = geoPackage.getTileDaoSync(tileMatrixSet);
+
+        var BoundingBox = java.import('mil.nga.geopackage.BoundingBox');
+        var webMercatorBoundingBox = new BoundingBox(epsg3857ll[0], epsg3857ur[0], epsg3857ll[1], epsg3857ur[1]);
+
+        var matrixWidth = 0;
+        var matrixHeight = 0;
+
+        console.log('web mercator bounding box: %d, %d, %d, %d', epsg3857ll[0], epsg3857ur[0], epsg3857ll[1], epsg3857ur[1]);
+
         xyzTileWorker.createXYZTiles(cache, minZoom, maxZoom, function(tileInfo, tileDone) {
-          SourceApi.getTileFromDataSource(s, format, z, x, y, cache.cacheCreationParams, function(err, tileStream) {
+          SourceApi.getTileFromDataSource(s, 'png', tileInfo.z, tileInfo.x, tileInfo.y, cache.cacheCreationParams, function(err, tileStream) {
             if (!tileStream) return callback();
+            // optimize this to not do this on every tile
+            console.log('totalTileExtent', totalTileExtent);
+            var xRange = tileUtilities.xCalculator(totalTileExtent, tileInfo.z);
+            var yRange = tileUtilities.yCalculator(totalTileExtent, tileInfo.z);
 
-            // write the tileStream which is a png to the geopackage
-            // then call
+            var tileRow = tileInfo.y - yRange.min;
+            var tileColumn = tileInfo.x - xRange.min;
 
-            var tileBbox = tileUtilities.tileBboxCalculator(x, y, z);
+            var newRow = tileDao.newRowSync();
+            newRow.setZoomLevelSync(tileInfo.z);
+            newRow.setTileColumnSync(java.newLong(tileColumn));
+            newRow.setTileRowSync(java.newLong(tileRow));
 
+            console.log('Setting the row and column for x %d, y %d, z %d, to row %d, column %d', tileInfo.x, tileInfo.y, tileInfo.z, tileRow, tileColumn);
 
-            tileDone();
+            toArray(tileStream, function (err, parts) {
+              var byteArray = [];
+              for (var k = 0; k < parts.length; k++) {
+                var part = parts[k];
+                for (var i = 0; i < part.length; i++) {
+                  var bufferPiece = part[i];
+                  var byte = java.newByte(bufferPiece);
+                  byteArray.push(byte);
+                }
+              }
+              var bytes = java.newArray('byte', byteArray);
+              newRow.setTileDataSync(bytes);
+              console.log('adding data to zoom %d, row %d, column %d', tileInfo.z, tileRow, tileColumn);
+              console.log('new row row number', newRow.getTileRowSync());
+              tileDao.createSync(newRow);
+              tileDone();
+            });
           });
         }, function(cache, continueCallback) {
           CacheModel.shouldContinueCaching(cache, continueCallback);
         }, function(cache, zoom, zoomDoneCallback) {
+
+          var xRange = tileUtilities.xCalculator(totalTileExtent, zoom);
+          var yRange = tileUtilities.yCalculator(totalTileExtent, zoom);
+
+          var matrixWidth = ((xRangeMinZoom.max - xRangeMinZoom.min) + 1) * (zoom - minZoom + 1);
+          var matrixHeight = ((yRangeMinZoom.max - yRangeMinZoom.min) + 1) * (zoom - minZoom + 1);
+
+          console.log('zoom: %d, matrixheight: %d, matrixwidth: %d', zoom, matrixHeight, matrixWidth);
+
+          var pixelXSize = ((webMercatorBoundingBox.getMaxLongitudeSync() - webMercatorBoundingBox
+          .getMinLongitudeSync()) / matrixWidth) / 256;
+          var pixelYSize = ((webMercatorBoundingBox.getMaxLatitudeSync() - webMercatorBoundingBox
+          .getMinLatitudeSync()) / matrixHeight) / 256;
+
+          var TileMatrix = java.import('mil.nga.geopackage.tiles.matrix.TileMatrix');
+  				var tileMatrix = new TileMatrix();
+  				tileMatrix.setContentsSync(contents);
+  				tileMatrix.setZoomLevelSync(zoom);
+  				tileMatrix.setMatrixWidthSync(matrixWidth);
+  				tileMatrix.setMatrixHeightSync(matrixHeight);
+  				tileMatrix.setTileWidthSync(256);
+  				tileMatrix.setTileHeightSync(256);
+  				tileMatrix.setPixelXSizeSync(pixelXSize);
+  				tileMatrix.setPixelYSizeSync(pixelYSize);
+  				tileMatrixDao.createSync(tileMatrix);
           zoomDoneCallback();
           // CacheModel.updateZoomLevelStatus(cache, zoom, function(err) {
           //   zoomDoneCallback();
@@ -112,91 +215,9 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
         });
       }
     }, function done() {
-      // var cp = require('child_process');
-      // var pngquant = cp.spawn('./utilities/pngquant/pngquant', ['-']);
-      // canvas.pngStream().pipe(pngquant.stdin);
-      // callback(null, pngquant.stdout);
-
       callback(null, {cache: cache, file: geoPackageFile});
-
     });
   });
-
-
-
-  //
-  //
-  // SourceApi.getTile(source.source, 'png', z, x, y, source.cacheCreationParams, function(err, request) {
-  //   if (request) {
-  //     var stream = fs.createWriteStream(dir + filename);
-  //     stream.on('close',function(status){
-  //       done(null, dir+filename);
-  //     });
-  //
-  //     request.pipe(stream);
-  //   } else {
-  //     done(null, dir+filename);
-  //   }
-  // });
-  //
-  // async.eachSeries(cache.source.dataSources, function iterator(s, callback) {
-  //   if (cache.cacheCreationParams.dataSources.indexOf(s.id) == -1) return callback();
-  //   if (s.vector) {
-  //     SourceApi.getFeatures(s, extent[0], extent[1], extent[2], extent[3], 0, function(err, features) {
-  //       // now add the features to the geopackage
-  //     });
-  //   } else {
-  //     xyzTileWorker.createXYZTiles(cache, minZoom, maxZoom, function(tileInfo, tileDone) {
-  //       SourceApi.getTileFromDataSource(s, format, z, x, y, cache.cacheCreationParams, function(err, tileStream) {
-  //         if (!tileStream) return callback();
-  //
-  //         // write the tileStream which is a png to the geopackage
-  //         // then call
-  //         tileDone();
-  //       });
-  //     }, function(cache, continueCallback) {
-  //       CacheModel.shouldContinueCaching(cache, continueCallback);
-  //     }, function(cache, zoom, zoomDoneCallback) {
-  //       zoomDoneCallback();
-  //       // CacheModel.updateZoomLevelStatus(cache, zoom, function(err) {
-  //       //   zoomDoneCallback();
-  //       // });
-  //     }, function(err, cache) {
-  //       callback();
-  //       // CacheModel.getCacheById(cache.id, function(err, foundCache) {
-  //       //   CacheModel.updateFormatCreated(foundCache, 'xyz', foundCache.totalTileSize, function(err, cache) {
-  //       //     cache.status.complete = true;
-  //       //     cache.save(function() {
-  //       //       callback(null, cache);
-  //       //     });
-  //       //   });
-  //       // });
-  //     });
-  //   }
-  // }, function done() {
-  //   var cp = require('child_process');
-  //   var pngquant = cp.spawn('./utilities/pngquant/pngquant', ['-']);
-  //   canvas.pngStream().pipe(pngquant.stdin);
-  //   callback(null, pngquant.stdout);
-  // });
-
-
-  // CacheModel.getCacheById(cache.id, function(err, cache) {
-  //   // ensure there is already an xyz cache generated
-  //   if (cache.formats && cache.formats.xyz && !cache.formats.xyz.generating) {
-  //     var geoPackageFile = path.join(config.server.cacheDirectory.path, cache._id.toString(), cache._id + ".gpkg");
-  //     console.log('running ' + './utilities/geopackage-python-4.0/Packaging/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + path.join(config.server.cacheDirectory.path, cache._id.toString(), 'xyztiles') + " " + geoPackageFile);
-  //     var python = exec(
-  //       './utilities/geopackage-python-4.0/Packaging/tiles2gpkg_parallel.py -tileorigin ul -srs 3857 ' + path.join(config.server.cacheDirectory.path, cache._id.toString(), 'xyztiles') + " " + geoPackageFile,
-  //       function(error, stdout, stderr) {
-  //         callback(error, {cache: cache, file: geoPackageFile});
-  //       }
-  //     );
-  //   } else {
-  //     console.log('XYZ cache is not done generating, waiting 30 seconds to generate a geopackage...');
-  //     setTimeout(exports.generateCache, 30000, cache, minZoom, maxZoom, callback);
-  //   }
-  // });
 }
 
 exports.deleteCache = function(cache, callback) {
