@@ -42,7 +42,7 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 }
 
 exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, north, callback) {
-  knex.select('properties', 'geometry').where({source_id: sourceId}).where(knex.raw('ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))')).from('features').then(function(collection){
+  knex.select('properties', knex.raw('ST_AsGeoJSON(geometry) as geometry')).where({source_id: sourceId}).where(knex.raw('ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))')).from('features').then(function(collection){
     callback(null, collection);
   });
 }

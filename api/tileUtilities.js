@@ -131,6 +131,7 @@ exports.getY = function(lat, zoom) {
 }
 
 exports.getFeatures = function(source, west, south, east, north, zoom, callback) {
+	// fetchTileForSourceId = function(sourceId, bbox, z, callback)
 	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, callback);
 }
 
