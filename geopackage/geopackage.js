@@ -9,6 +9,7 @@ var java = require('java')
 var GeoPackage = function() {
   this.featureDaos = {};
   this.tileDaos = {};
+  this.tableProperties = {};
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
   this.initialize();
@@ -91,7 +92,7 @@ GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, cal
 
         var featureRow = featureDao.newRowSync();
         for (var propertyKey in feature.properties) {
-          featureRow.setValue(propertyKey, ''+feature.properties[propertyKey]);
+          featureRow.setValue(self.tableProperties[tableName][propertyKey], ''+feature.properties[propertyKey]);
         }
 
         var featureGeometry = JSON.parse(feature.geometry);
@@ -363,16 +364,20 @@ GeoPackage.prototype.createFeatureTable = function(extent, tableName, propertyCo
     var GeometryColumns = java.import('mil.nga.geopackage.features.columns.GeometryColumns');
     var BoundingBox = java.import('mil.nga.geopackage.BoundingBox');
     var Contents = java.import('mil.nga.geopackage.core.contents.Contents');
+    var DataColumns = java.import('mil.nga.geopackage.schema.columns.DataColumns');
 
     var srsDao = self.geoPackage.getSpatialReferenceSystemDaoSync();
     var srsEpsg3857 = srsDao.getOrCreateSync(3857);
 
     self.geoPackage.createGeometryColumnsTableSync();
+
     var columns = new ArrayList();
     columns.addSync(java.callStaticMethodSync('mil.nga.geopackage.features.user.FeatureColumn', 'createPrimaryKeyColumn', 0, 'id'));
     columns.addSync(java.callStaticMethodSync('mil.nga.geopackage.features.user.FeatureColumn', 'createGeometryColumn', 1, 'geom', java.callStaticMethodSync('mil.nga.wkb.geom.GeometryType', 'fromName', 'GEOMETRY'), false, null));
+    self.tableProperties[tableName] = {};
     for (var i = 0; i < propertyColumnNames.length; i++) {
-      columns.addSync(java.callStaticMethodSync('mil.nga.geopackage.features.user.FeatureColumn', 'createColumn', i+2, propertyColumnNames[i], java.callStaticMethodSync('mil.nga.geopackage.db.GeoPackageDataType', 'fromName', 'TEXT'), false, null));
+      self.tableProperties[tableName][propertyColumnNames[i]] = 'property_'+i;
+      columns.addSync(java.callStaticMethodSync('mil.nga.geopackage.features.user.FeatureColumn', 'createColumn', i+2, 'property_'+i, java.callStaticMethodSync('mil.nga.geopackage.db.GeoPackageDataType', 'fromName', 'TEXT'), false, null));
     }
 
     var featureTable = new FeatureTable(tableName, columns);
@@ -402,56 +407,22 @@ GeoPackage.prototype.createFeatureTable = function(extent, tableName, propertyCo
     self.geoPackage.getGeometryColumnsDaoSync().create(geometryColumns);
 
     self.featureDaos[tableName] = self.geoPackage.getFeatureDaoSync(geometryColumns);
+
+    var dataColumnsDao = self.geoPackage.getDataColumnsDaoSync();
+
+    for (var i = 0; i < propertyColumnNames.length; i++) {
+      var dataColumns = new DataColumns();
+    	dataColumns.setContentsSync(contents);
+    	dataColumns.setColumnNameSync('property_'+i);
+    	dataColumns.setNameSync(propertyColumnNames[i]);
+    	dataColumns.setTitleSync(propertyColumnNames[i]);
+    	dataColumns.setDescriptionSync(propertyColumnNames[i]);
+
+    	dataColumnsDao.create(dataColumns);
+    }
+
     callback();
 
-
-    // FeatureTable table = buildFeatureTable(contents.getTableName(),
-  	// 			geometryColumn, geometryType);
-    //
-    //
-    //   List<FeatureColumn> columns = new ArrayList<FeatureColumn>();
-    //
-  	// 	columns.add(FeatureColumn.createPrimaryKeyColumn(0, "id"));
-  	// 	columns.add(FeatureColumn.createColumn(7, "test_text_limited",
-  	// 			GeoPackageDataType.TEXT, 5L, false, null));
-  	// 	columns.add(FeatureColumn.createColumn(8, "test_blob_limited",
-  	// 			GeoPackageDataType.BLOB, 7L, false, null));
-  	// 	columns.add(FeatureColumn.createGeometryColumn(1, geometryColumn,
-  	// 			geometryType, false, null));
-  	// 	columns.add(FeatureColumn.createColumn(2, "test_text",
-  	// 			GeoPackageDataType.TEXT, false, ""));
-  	// 	columns.add(FeatureColumn.createColumn(3, "test_real",
-  	// 			GeoPackageDataType.REAL, false, null));
-  	// 	columns.add(FeatureColumn.createColumn(4, "test_boolean",
-  	// 			GeoPackageDataType.BOOLEAN, false, null));
-  	// 	columns.add(FeatureColumn.createColumn(5, "test_blob",
-  	// 			GeoPackageDataType.BLOB, false, null));
-  	// 	columns.add(FeatureColumn.createColumn(6, TEST_INTEGER_COLUMN,
-  	// 			GeoPackageDataType.INTEGER, false, null));
-    //
-  	// 	FeatureTable table = new FeatureTable(tableName, columns);
-  	// 	geoPackage.createFeatureTable(table);
-    //
-  	// 	double random = Math.random();
-    //
-  	// 	DataColumnsDao dataColumnsDao = geoPackage.getDataColumnsDao();
-  	// 	DataColumns dataColumns = new DataColumns();
-  	// 	dataColumns.setContents(contents);
-  	// 	dataColumns.setColumnName(TEST_INTEGER_COLUMN);
-  	// 	dataColumns.setName("TEST_NAME");
-  	// 	dataColumns.setTitle("TEST_TITLE");
-  	// 	dataColumns.setDescription("TEST_DESCRIPTION");
-  	// 	dataColumns.setMimeType("TEST_MIME_TYPE");
-    //
-  	// 	if (random < (1.0 / 3.0)) {
-  	// 		dataColumns.setConstraintName(SAMPLE_RANGE_CONSTRAINT);
-  	// 	} else if (random < (2.0 / 3.0)) {
-  	// 		dataColumns.setConstraintName(SAMPLE_ENUM_CONSTRAINT);
-  	// 	} else {
-  	// 		dataColumns.setConstraintName(SAMPLE_GLOB_CONSTRAINT);
-  	// 	}
-    //
-  	// 	dataColumnsDao.create(dataColumns);
   }).done();
 }
 
