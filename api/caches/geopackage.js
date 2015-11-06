@@ -69,39 +69,10 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
         var geometryColumns = createFeatureTable(java, geoPackage, extent, s._id.toString(), propertyColumnNames);
 
         SourceApi.getFeatures(s, extent[0], extent[1], extent[2], extent[3], 0, function(err, features) {
-          // now add the features to the geopackage
-          console.log('adding features', features.length);
           var featureDao = geoPackage.getFeatureDaoSync(geometryColumns);
-
-
-          for (var i = 0; i < features.length; i++) {
-            var feature = features[i];
-
-            var featureRow = featureDao.newRowSync();
-            for (var propertyKey in feature.properties) {
-              featureRow.setValue(propertyKey, ''+feature.properties[propertyKey]);
-            }
-
-            var featureGeometry = JSON.parse(feature.geometry);
-            var geom = featureGeometry.coordinates;
-            var type = featureGeometry.type;
-            if (type === 'Point') {
-              addPoint(geom, featureRow, java);
-            } else if (type === 'MultiPoint') {
-              addMultiPoint(geom, featureRow, java);
-        		} else if (type === 'LineString') {
-        			addLine(geom, featureRow, java);
-        		} else if (type === 'MultiLineString') {
-              addMultiLine(geom, featureRow, java);
-        		} else if (type === 'Polygon') {
-        			addPolygon(geom, featureRow, java);
-        		} else if (type === 'MultiPolygon') {
-        			addMultiPolygon(geom, featureRow, java);
-        		}
-
-            featureDao.createSync(featureRow);
-          }
-          callback();
+          addFeaturesToGeoPackage(java, features, geoPackage, featureDao, function(err) {
+            indexGeoPackage(java, geoPackage, featureDao, features.length, callback);
+          });
         });
       } else {
         var TileTable = java.import('mil.nga.geopackage.tiles.user.TileTable');
@@ -138,10 +109,10 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
 
         var Date = java.import('java.util.Date');
     		contents.setLastChange(new Date());
-    		contents.setMinXSync(llCorner.west);
-    		contents.setMinYSync(llCorner.south);
-    		contents.setMaxXSync(urCorner.east);
-    		contents.setMaxYSync(urCorner.north);
+    		contents.setMinXSync(java.newDouble(llCorner.west));
+    		contents.setMinYSync(java.newDouble(llCorner.south));
+    		contents.setMaxXSync(java.newDouble(urCorner.east));
+    		contents.setMaxYSync(java.newDouble(urCorner.north));
     		contents.setSrsSync(srsWgs84);
 
     		// Create the contents
@@ -154,10 +125,10 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
     		var tileMatrixSet = new TileMatrixSet();
     		tileMatrixSet.setContentsSync(contents);
     		tileMatrixSet.setSrsSync(srsEpsg3857);
-    		tileMatrixSet.setMinXSync(epsg3857ll[0]);
-    		tileMatrixSet.setMinYSync(epsg3857ll[1]);
-    		tileMatrixSet.setMaxXSync(epsg3857ur[0]);
-    		tileMatrixSet.setMaxYSync(epsg3857ur[1]);
+    		tileMatrixSet.setMinXSync(java.newDouble(epsg3857ll[0]));
+    		tileMatrixSet.setMinYSync(java.newDouble(epsg3857ll[1]));
+    		tileMatrixSet.setMaxXSync(java.newDouble(epsg3857ur[0]));
+    		tileMatrixSet.setMaxYSync(java.newDouble(epsg3857ur[1]));
     		tileMatrixSetDao.createSync(tileMatrixSet);
 
     		// Create new Tile Matrix and tile table rows by going through each zoom
@@ -259,6 +230,65 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
   });
 }
 
+function addFeaturesToGeoPackage(java, features, geoPackage, featureDao, callback) {
+  // now add the features to the geopackage
+  console.log('adding features', features.length);
+  for (var i = 0; i < features.length; i++) {
+    var feature = features[i];
+
+    var featureRow = featureDao.newRowSync();
+    for (var propertyKey in feature.properties) {
+      featureRow.setValue(propertyKey, ''+feature.properties[propertyKey]);
+    }
+
+    var featureGeometry = JSON.parse(feature.geometry);
+    var geom = featureGeometry.coordinates;
+    var type = featureGeometry.type;
+    if (type === 'Point') {
+      addPoint(geom, featureRow, java);
+    } else if (type === 'MultiPoint') {
+      addMultiPoint(geom, featureRow, java);
+    } else if (type === 'LineString') {
+      addLine(geom, featureRow, java);
+    } else if (type === 'MultiLineString') {
+      addMultiLine(geom, featureRow, java);
+    } else if (type === 'Polygon') {
+      addPolygon(geom, featureRow, java);
+    } else if (type === 'MultiPolygon') {
+      addMultiPolygon(geom, featureRow, java);
+    }
+
+    featureDao.createSync(featureRow);
+  }
+  callback();
+}
+
+function indexGeoPackage(java, geoPackage, featureDao, featureCount, callback) {
+  var FeatureTableIndex = java.import('mil.nga.geopackage.extension.index.FeatureTableIndex');
+  var featureTableIndex = new FeatureTableIndex(geoPackage, featureDao);
+
+  var indexedFeatures = 0;
+  var max = featureCount;
+  var progress = java.newProxy('mil.nga.geopackage.io.GeoPackageProgress', {
+    setMax: function(max) { },
+    addProgress: function(progress) {
+      console.log('features indexed:', indexedFeatures++);
+    },
+    isActive: function() {
+      return indexedFeatures < featureCount;
+    },
+    cleanupOnCancel: function() {
+      return false;
+    }
+  });
+
+  featureTableIndex.setProgress(progress);
+	featureTableIndex.index(function(err, indexCount) {
+    console.log('finished indexing %d features', indexCount);
+    callback();
+  });
+}
+
 function createPoint(point, java) {
   var Point = java.import('mil.nga.wkb.geom.Point');
   return new Point(java.newDouble(point[0]), java.newDouble(point[1]));
@@ -312,7 +342,7 @@ function createMultiPolygon(multiPolygon, java) {
 
   var multiPolygonGeom = new MultiPolygon(false, false);
   for (var polygon = 0; polygon < multiPolygon.length; polygon++) {
-    multiPolygonGeom.addLineSync(createPolygon(multiPolygon[polygon], java));
+    multiPolygonGeom.addPolygonSync(createPolygon(multiPolygon[polygon], java));
   }
   return multiPolygonGeom;
 }
