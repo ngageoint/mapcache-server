@@ -408,6 +408,8 @@ GeoPackage.prototype.createFeatureTable = function(extent, tableName, propertyCo
 
     self.featureDaos[tableName] = self.geoPackage.getFeatureDaoSync(geometryColumns);
 
+    self.geoPackage.createDataColumnsTableSync();
+
     var dataColumnsDao = self.geoPackage.getDataColumnsDaoSync();
 
     for (var i = 0; i < propertyColumnNames.length; i++) {
@@ -418,7 +420,7 @@ GeoPackage.prototype.createFeatureTable = function(extent, tableName, propertyCo
     	dataColumns.setTitleSync(propertyColumnNames[i]);
     	dataColumns.setDescriptionSync(propertyColumnNames[i]);
 
-    	dataColumnsDao.create(dataColumns);
+    	dataColumnsDao.createSync(dataColumns);
     }
 
     callback();
