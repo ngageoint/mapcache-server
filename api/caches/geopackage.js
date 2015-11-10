@@ -9,7 +9,7 @@ var CacheModel = require('../../models/cache.js')
   , async = require('async')
   , toArray = require('stream-to-array')
   , xyzTileWorker = require('../xyzTileWorker')
-  , GeoPackage = require('../../geopackage/geopackage')
+  , GeoPackage = require('geopackage')
   , fs = require('fs-extra');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {

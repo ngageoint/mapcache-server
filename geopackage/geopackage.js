@@ -3,8 +3,74 @@ var java = require('java')
   , proj4 = require('proj4')
   , async = require('async')
   , toArray = require('stream-to-array')
-  , tileUtilities = require('../api/tileUtilities')
   , q = require('q');
+
+  Math.radians = function(degrees) {
+    return degrees * Math.PI / 180;
+  };
+
+  // Converts from radians to degrees.
+  Math.degrees = function(radians) {
+    return radians * 180 / Math.PI;
+  };
+
+  function tile2lon(x,z) {
+    return (x/Math.pow(2,z)*360-180);
+  }
+
+  function tile2lat(y,z) {
+    var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
+    return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+  }
+
+  var getX = function(lon, zoom) {
+    if (zoom == 0) return 0;
+    var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
+    return xtile;
+  }
+
+  var getY = function(lat, zoom) {
+    if (zoom == 0) return 0;
+    var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
+    return ytile;
+  }
+
+  var xCalculator = function(bbox,z) {
+  	var x = [];
+  	var x1 = getX(Number(bbox[0]), z);
+  	var x2 = getX(Number(bbox[2]), z);
+  	x.max = Math.max(x1, x2);
+  	x.min = Math.max(0,Math.min(x1, x2));
+  	if (z == 0){
+  		x.current = Math.min(x1, x2);
+  	}
+  	return x;
+  }
+
+  var yCalculator = function(bbox,z) {
+  	var y = [];
+  	var y1 = getY(Number(bbox[1]), z);
+  	var y2 = getY(Number(bbox[3]), z);
+  	y.max = Math.max(y1, y2);
+  	y.min = Math.max(0,Math.min(y1, y2));
+  	y.current = Math.min(y1, y2);
+  	return y;
+  }
+
+
+
+  var tileBboxCalculator = function(x, y, z) {
+    x = Number(x);
+    y = Number(y);
+    var tileBounds = {
+      north: tile2lat(y, z),
+      east: tile2lon(x+1, z),
+      south: tile2lat(y+1, z),
+      west: tile2lon(x, z)
+    };
+
+    return tileBounds;
+  }
 
 var GeoPackage = function() {
   this.featureDaos = {};
@@ -34,7 +100,6 @@ GeoPackage.prototype.initialize = function() {
 GeoPackage.prototype.createAndOpenGeoPackageFile = function(filePath, callback) {
   console.log('opening geopackage ' + filePath);
   this.initPromise.then(function(self) {
-    console.log('promise returned', self);
     var File = java.import('java.io.File');
     var gpkgFile = new File(filePath);
     java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'create', gpkgFile);
@@ -226,11 +291,11 @@ GeoPackage.prototype.createTileTable = function(extent, tableName, minZoom, maxZ
 
     self.geoPackage.createTileTableSync(tileTable);
 
-    var xRangeMinZoom = tileUtilities.xCalculator(extent, minZoom);
-    var yRangeMinZoom = tileUtilities.yCalculator(extent, minZoom);
+    var xRangeMinZoom = xCalculator(extent, minZoom);
+    var yRangeMinZoom = yCalculator(extent, minZoom);
 
-    var llCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
-    var urCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
+    var llCorner = tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
+    var urCorner = tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
     var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
     console.log('ur ', urCorner);
     console.log('yrange', yRangeMinZoom);
@@ -286,8 +351,8 @@ GeoPackage.prototype.createTileTable = function(extent, tableName, minZoom, maxZ
 
 
     for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
-      var xRange = tileUtilities.xCalculator(totalTileExtent, zoom);
-      var yRange = tileUtilities.yCalculator(totalTileExtent, zoom);
+      var xRange = xCalculator(totalTileExtent, zoom);
+      var yRange = yCalculator(totalTileExtent, zoom);
 
       var matrixWidth = ((xRangeMinZoom.max - xRangeMinZoom.min) + 1) * Math.pow(2,(zoom - minZoom));
       var matrixHeight = ((yRangeMinZoom.max - yRangeMinZoom.min) + 1) * Math.pow(2,(zoom - minZoom));
@@ -318,17 +383,17 @@ GeoPackage.prototype.createTileTable = function(extent, tableName, minZoom, maxZ
 
 GeoPackage.prototype.addTileMatrices = function(extent, tableName, minZoom, maxZoom, callback) {
   this.initPromise.then(function(self) {
-    var xRangeMinZoom = tileUtilities.xCalculator(extent, minZoom);
-    var yRangeMinZoom = tileUtilities.yCalculator(extent, minZoom);
+    var xRangeMinZoom = xCalculator(extent, minZoom);
+    var yRangeMinZoom = yCalculator(extent, minZoom);
 
-    var llCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
-    var urCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
+    var llCorner = tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
+    var urCorner = tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
     var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
     var tileMatrixDao = self.geoPackage.getTileMatrixDaoSync();
 
     for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
-      var xRange = tileUtilities.xCalculator(totalTileExtent, zoom);
-      var yRange = tileUtilities.yCalculator(totalTileExtent, zoom);
+      var xRange = xCalculator(totalTileExtent, zoom);
+      var yRange = yCalculator(totalTileExtent, zoom);
 
       var matrixWidth = ((xRangeMinZoom.max - xRangeMinZoom.min) + 1) * Math.pow(2,(zoom - minZoom));
       var matrixHeight = ((yRangeMinZoom.max - yRangeMinZoom.min) + 1) * Math.pow(2,(zoom - minZoom));
@@ -357,7 +422,6 @@ GeoPackage.prototype.addTileMatrices = function(extent, tableName, minZoom, maxZ
 GeoPackage.prototype.createFeatureTable = function(extent, tableName, propertyColumnNames, callback) {
   console.log('creating feature table', tableName);
   this.initPromise.then(function(self) {
-    console.log('feature table promise returned', self);
     var ArrayList = java.import('java.util.ArrayList');
     var FeatureTable = java.import('mil.nga.geopackage.features.user.FeatureTable');
     var Date = java.import('java.util.Date');

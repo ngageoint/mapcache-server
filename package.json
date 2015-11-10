@@ -19,6 +19,7 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
+    "geopackage": "file:geopackage",
     "adm-zip": "^0.4.7",
     "archiver": "^0.14.4",
     "async": "1.2.1",

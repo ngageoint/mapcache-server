@@ -51,6 +51,41 @@ exports.tileBboxCalculator = function(x, y, z) {
   return tileBounds;
 }
 
+exports.xCalculator = function(bbox,z) {
+	var x = [];
+	var x1 = exports.getX(Number(bbox[0]), z);
+	var x2 = exports.getX(Number(bbox[2]), z);
+	x.max = Math.max(x1, x2);
+	x.min = Math.max(0,Math.min(x1, x2));
+	if (z == 0){
+		x.current = Math.min(x1, x2);
+	}
+	return x;
+}
+
+exports.yCalculator = function(bbox,z) {
+	var y = [];
+	var y1 = exports.getY(Number(bbox[1]), z);
+	var y2 = exports.getY(Number(bbox[3]), z);
+	y.max = Math.max(y1, y2);
+	y.min = Math.max(0,Math.min(y1, y2));
+	y.current = Math.min(y1, y2);
+	return y;
+}
+
+exports.getX = function(lon, zoom) {
+	if (zoom == 0) return 0;
+	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
+	return xtile;
+}
+
+exports.getY = function(lat, zoom) {
+	if (zoom == 0) return 0;
+	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
+	return ytile;
+}
+
+
 exports.getOverviewTile = function(cache, callback) {
 	var extent = turf.extent(cache.geometry);
 	var zoom = cache.maxZoom || 18;
@@ -96,39 +131,6 @@ exports.getOverviewMapTile = function(map, callback) {
 	Maps.getTile(map, 'png', zoom, x.min, y.min, params, callback);
 }
 
-exports.xCalculator = function(bbox,z) {
-	var x = [];
-	var x1 = exports.getX(Number(bbox[0]), z);
-	var x2 = exports.getX(Number(bbox[2]), z);
-	x.max = Math.max(x1, x2);
-	x.min = Math.max(0,Math.min(x1, x2));
-	if (z == 0){
-		x.current = Math.min(x1, x2);
-	}
-	return x;
-}
-
-exports.yCalculator = function(bbox,z) {
-	var y = [];
-	var y1 = exports.getY(Number(bbox[1]), z);
-	var y2 = exports.getY(Number(bbox[3]), z);
-	y.max = Math.max(y1, y2);
-	y.min = Math.max(0,Math.min(y1, y2));
-	y.current = Math.min(y1, y2);
-	return y;
-}
-
-exports.getX = function(lon, zoom) {
-	if (zoom == 0) return 0;
-	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
-	return xtile;
-}
-
-exports.getY = function(lat, zoom) {
-	if (zoom == 0) return 0;
-	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
-	return ytile;
-}
 
 exports.getFeatures = function(source, west, south, east, north, zoom, callback) {
 	// fetchTileForSourceId = function(sourceId, bbox, z, callback)
