@@ -1,6 +1,6 @@
-var config = require('./config.js')
+var config = require('mapcache-config')
   , mongoose = require('mongoose');
-  
+
 var migrateConfig = {
   host: config.server.mongodb.host,
   port: config.server.mongodb.port,

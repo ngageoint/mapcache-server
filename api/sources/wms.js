@@ -1,6 +1,6 @@
 var CacheModel = require('../../models/cache')
   , SourceModel = require('../../models/source')
-  , tu = require('../tileUtilities')
+  , xyzTileUtils = require('xyz-tile-utils')
   , proj4 = require('proj4')
   , request = require('request');
 
@@ -20,7 +20,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   }
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
-  var bbox = tu.tileBboxCalculator(x, y, z);
+  var bbox = xyzTileUtils.tileBboxCalculator(x, y, z);
   var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
   var epsg3857ur = proj4('EPSG:3857', [bbox.east, bbox.north]);
 

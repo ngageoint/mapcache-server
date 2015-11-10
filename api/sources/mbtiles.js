@@ -1,6 +1,6 @@
 var SourceModel = require('../../models/source')
   , exec = require('child_process').exec
-  , config = require('../../config.js')
+  , config = require('mapcache-config')
   , fs = require('fs-extra');
 
 exports.process = function(source, callback) {

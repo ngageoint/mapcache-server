@@ -2,8 +2,8 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
     , fs = require('fs-extra')
-    , tileUtilities = require('../api/tileUtilities')
-    , config = require('../config.js')
+    , xyzTileUtils = require('xyz-tile-utils')
+    , config = require('mapcache-config')
     , cacheXform = require('../transformers/cache');
 
   var passport = auth.authentication.passport
@@ -121,7 +121,8 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      tileUtilities.getOverviewTile(req.cache, function(err, tileStream) {
+      var xyz = getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry), cache.minZoom, cache.maxZoom);
+      Caches.getTile(cache, 'png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 

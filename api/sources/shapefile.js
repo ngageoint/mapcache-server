@@ -4,8 +4,8 @@ var SourceModel = require('../../models/source')
   , turf = require('turf')
   , async = require('async')
   , FeatureModel = require('../../models/feature')
-  , tileUtilities = require('../tileUtilities.js')
-  , config = require('../../config.js')
+  , tile = require('mapcache-tile')
+  , config = require('mapcache-config')
   , shp2json = require('shp2json');
 
 exports.process = function(source, callback) {
@@ -14,8 +14,8 @@ exports.process = function(source, callback) {
   child.send({operation:'process', sourceId: source._id});
 }
 
-exports.getFeatures = tileUtilities.getFeatures;
-exports.getTile = tileUtilities.getVectorTile;
+exports.getFeatures = tile.getFeatures;
+exports.getTile = tile.getVectorTile;
 
 exports.getData = function(source, format, callback) {
 

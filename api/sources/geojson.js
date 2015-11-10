@@ -5,8 +5,8 @@ var SourceModel = require('../../models/source')
   , request = require('request')
   , fs = require('fs-extra')
   , turf = require('turf')
-  , tileUtilities = require('../tileUtilities.js')
-  , config = require('../../config.js');
+  , tile = require('mapcache-tile')
+  , config = require('mapcache-config');
 
 exports.process = function(source, callback) {
   callback(null, source);
@@ -14,8 +14,8 @@ exports.process = function(source, callback) {
   child.send({operation:'process', sourceId: source._id});
 }
 
-exports.getTile = tileUtilities.getVectorTile;
-exports.getFeatures = tileUtilities.getFeatures;
+exports.getTile = tile.getVectorTile;
+exports.getFeatures = tile.getFeatures;
 
 exports.getData = function(source, west, south, east, north, callback) {
   FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, callback);

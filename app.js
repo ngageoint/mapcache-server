@@ -5,8 +5,7 @@ var express = require("express")
   , mongoose = require('mongoose')
   , fs = require('fs-extra')
   , log = require('winston')
-  , knex = require('./db/knex')
-  , config = require('./config.js');
+  , config = require('mapcache-config');
 
 log.remove(log.transports.Console);
 log.add(log.transports.Console, {

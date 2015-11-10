@@ -5,11 +5,11 @@ var gdal = require("gdal")
   , path = require('path')
   , fs = require('fs-extra')
   , png = require('pngjs')
-  , tu = require('../tileUtilities')
+  , xyzTileUtils = require('xyz-tile-utils')
   , async = require('async')
   , SourceModel = require('../../models/source')
   , CacheModel = require('../../models/cache')
-  , config = require('../../config.js');
+  , config = require('mapcache-config');
 
   exports.processSource = function(source, callback) {
     source.status.message="Processing source";
@@ -173,7 +173,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
   var filePath = source.file.path;
-  var zoomRes = tu.getZoomLevelResolution(z);
+  var zoomRes = xyzTileUtils.getZoomLevelResolution(z);
   var currentRes = 0;
   for (var i = 0; source.scaledFiles && i < source.scaledFiles.length; i++) {
     if (zoomRes > source.scaledFiles[i].resolution && currentRes < source.scaledFiles[i].resolution) {
@@ -183,7 +183,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   console.log('using the source file', filePath);
 
-  var tileEnvelope = tu.tileBboxCalculator(x, y, z);
+  var tileEnvelope = xyzTileUtils.tileBboxCalculator(x, y, z);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
   var intersection = turf.intersect(tilePoly, source.geometry);
   if (!intersection){

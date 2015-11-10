@@ -3,8 +3,8 @@ var CacheModel = require('../../models/cache.js')
   , fs = require('fs-extra')
   , path = require('path')
   , SourceApi = require('../sources')
-  , config = require('../../config.js')
-  , tileUtilities = require('../tileUtilities.js')
+  , config = require('mapcache-config')
+  , tile = require('mapcache-tile')
   , Readable = require('stream').Readable;
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
@@ -51,7 +51,7 @@ function pullTile(source, z, x, y, done) {
 
   console.log('source is a vector? ', source.source.vector);
   if (source.source.vector) {
-    tileUtilities.getVectorTile(source, 'png', z, x, y, source.cacheCreationParams, function(err, request) {
+    tile.getVectorTile(source, 'png', z, x, y, source.cacheCreationParams, function(err, request) {
       if (request) {
         var stream = fs.createWriteStream(dir + filename);
         stream.on('close',function(status){

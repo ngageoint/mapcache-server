@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-  , config = require('../config.js')
+  , config = require('mapcache-config')
   , shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
@@ -100,8 +100,12 @@ function transform(source, ret, options) {
 SourceSchema.set("toJSON", {
   transform: transform
 });
-
-var Source = mongoose.model('Source', SourceSchema);
+var Source;
+if (mongoose.models.Source) {
+  Source = mongoose.model('Source');
+} else {
+  Source = mongoose.model('Source', SourceSchema);
+}
 exports.sourceModel = Source;
 
 exports.getSources = function(options, callback) {

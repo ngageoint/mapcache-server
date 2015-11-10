@@ -2,7 +2,8 @@ var CacheModel = require('../../models/cache.js')
   , sourceTypes = require('../sources')
   , path = require('path')
   , ogrType = require('./ogrType.js')
-  , config = require('../../config.js')
+  , config = require('mapcache-config')
+  , tile = require('mapcache-tile')
   , fs = require('fs-extra');
 
 exports.getCacheData = function(cache, minZoom, maxZoom, callback) {
@@ -24,7 +25,7 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
 }
 
 exports.getTile = function(cache, format, z, x, y, callback) {
-  return tileUtilities.getVectorTile(cache.source, format, z, x, y, null, callback);
+  return tile.getVectorTile(cache.source, format, z, x, y, null, callback);
 }
 
 exports.deleteCache = function(cache, callback) {

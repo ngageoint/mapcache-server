@@ -2,7 +2,7 @@ var CacheModel = require('../../models/cache.js')
   , xyzTileWorker = require('../xyzTileWorker')
   , fs = require('fs-extra')
   , path = require('path')
-  , config = require('../../config.js');
+  , config = require('mapcache-config');
 
 function xyzToTms(z, y, x) {
   return {

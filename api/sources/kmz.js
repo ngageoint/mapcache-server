@@ -1,12 +1,12 @@
 var SourceModel = require('../../models/source')
   , path = require('path')
   , fs = require('fs-extra')
-  , config = require('../../config.js')
+  , config = require('mapcache-config')
   , Canvas = require('canvas')
   , Image = Canvas.Image
   , turf = require('turf')
   , xyzTileWorker = require('../xyzTileWorker')
-  , tileUtilities = require('../tileUtilities')
+  , tile = require('mapcache-tile')
   , shp2json = require('shp2json');
 
 exports.process = function(source, callback) {
@@ -14,8 +14,8 @@ exports.process = function(source, callback) {
   var child = require('child_process').fork('api/sources/processor.js');
   child.send({operation:'process', sourceId: source._id});
 }
-exports.getFeatures = tileUtilities.getFeatures;
-exports.getTile = tileUtilities.getVectorTile;
+exports.getFeatures = tile.getFeatures;
+exports.getTile = tile.getVectorTile;
 
 exports.getData = function(source, format, callback) {
 

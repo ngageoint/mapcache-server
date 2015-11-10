@@ -1,6 +1,6 @@
 var CacheModel = require('../../models/cache.js')
   , turf = require('turf')
-  , tu = require('../tileUtilities.js');
+  , xyzTileUtils = require('xyz-tile-utils');
 
 exports.getCacheData = function(cache, format, minZoom, maxZoom, callback) {
   var processor = require('./' + format);
@@ -92,7 +92,7 @@ exports.deleteCacheFormat = function(cache, format, callback) {
 
 exports.getTile = function(cache, format, z, x, y, callback) {
 
-  var tileEnvelope = tu.tileBboxCalculator(x, y, z);
+  var tileEnvelope = xyzTileUtils.tileBboxCalculator(x, y, z);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
   var intersection = turf.intersect(tilePoly, cache.geometry);
   if (!intersection) {

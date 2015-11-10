@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
   , CacheModel = require('../../models/cache')
-  , config = require('../../config.js');
+  , config = require('mapcache-config');
 
 
 var mongodbConfig = config.server.mongodb;

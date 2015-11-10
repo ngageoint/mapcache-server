@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
 	, diskspace = require('diskspace')
   , du = require('du')
-	, config = require('../config.js');
+	, config = require('mapcache-config');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -26,7 +26,12 @@ ServerSchema.set("toJSON", {
   transform: transform
 });
 
-var Server = mongoose.model('Server', ServerSchema);
+var Server;
+if (mongoose.models.Server) {
+	Server = mongoose.model('Server');
+} else {
+	Server = mongoose.model('Server', ServerSchema);
+}
 exports.serverModel = Server;
 
 exports.getInfo = function(callback) {

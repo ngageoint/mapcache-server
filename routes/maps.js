@@ -3,9 +3,9 @@ module.exports = function(app, auth) {
     , api = require('../api')
     , fs = require('fs-extra')
     , path = require('path')
-    , tileUtilities = require('../api/tileUtilities')
+    , xyzTileUtils = require('xyz-tile-utils')
     , request = require('request')
-    , config = require('../config.js')
+    , config = require('mapcache-config')
     , DOMParser = global.DOMParser = require('xmldom').DOMParser
     , WMSCapabilities = require('wms-capabilities')
     , sourceXform = require('../transformers/source')
@@ -121,7 +121,12 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      tileUtilities.getOverviewMapTile(req.source, function(err, tileStream) {
+      var extent = [-180, -85, 180, 85];
+    	if (map.geometry) {
+    		extent = turf.extent(map.geometry);
+    	}
+      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(extent);
+      Maps.getTile(map, 'png', xyz.z, xyz.x, xyz.y, {}, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 

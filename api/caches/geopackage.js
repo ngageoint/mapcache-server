@@ -2,8 +2,8 @@ var CacheModel = require('../../models/cache.js')
   , path = require('path')
   , SourceApi = require('../sources')
   , exec = require('child_process').exec
-  , config = require('../../config.js')
-  , tileUtilities = require('../tileUtilities')
+  , config = require('mapcache-config')
+  , xyzTileUtils = require('xyz-tile-utils')
   , turf = require('turf')
   , proj4 = require('proj4')
   , async = require('async')
@@ -55,11 +55,11 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
     } else {
 
       var tableName = 'TILES_' + s._id.toString();
-      var xRangeMinZoom = tileUtilities.xCalculator(extent, minZoom);
-      var yRangeMinZoom = tileUtilities.yCalculator(extent, minZoom);
+      var xRangeMinZoom = xyzTileUtils.xCalculator(extent, minZoom);
+      var yRangeMinZoom = xyzTileUtils.yCalculator(extent, minZoom);
 
-      var llCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
-      var urCorner = tileUtilities.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
+      var llCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, minZoom);
+      var urCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, minZoom);
       var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
 
       geoPackage.createTileTable(extent, tableName, minZoom, maxZoom, function() {
@@ -70,8 +70,8 @@ exports.generateCache = function(cache, minZoom, maxZoom, callback) {
             if (!tileStream) return callback();
             // optimize this to not do this on every tile
             console.log('totalTileExtent', totalTileExtent);
-            var xRange = tileUtilities.xCalculator(totalTileExtent, tileInfo.z);
-            var yRange = tileUtilities.yCalculator(totalTileExtent, tileInfo.z);
+            var xRange = xyzTileUtils.xCalculator(totalTileExtent, tileInfo.z);
+            var yRange = xyzTileUtils.yCalculator(totalTileExtent, tileInfo.z);
 
             var tileRow = tileInfo.y - yRange.min;
             var tileColumn = tileInfo.x - xRange.min;

@@ -1,8 +1,8 @@
 var mongoose = require('mongoose')
   , async = require("async")
-  , hasher = require('../utilities/pbkdf2')()
-  , Token = require('../models/token')
-  , Login = require('../models/login');
+  , hasher = require('pbkdf2')()
+  , Token = require('./token')
+  , Login = require('./login');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -124,7 +124,12 @@ UserSchema.set("toJSON", {
 exports.transform = transform;
 
 // Creates the Model for the User Schema
-var User = mongoose.model('User', UserSchema);
+var User;
+if (mongoose.models.User) {
+  User = mongoose.model('User');
+} else {
+  User = mongoose.model('User', UserSchema);
+}
 exports.Model = User;
 
 var encryptPassword = function(password, done) {

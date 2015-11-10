@@ -2,9 +2,9 @@ var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, FeatureModel = require('./feature')
 	, turf = require('turf')
-	, config = require('../config.js')
+	, config = require('mapcache-config')
 	, shortid = require('shortid')
-	, Source = require('./source');
+	, SourceModel = require('./source');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -74,8 +74,12 @@ function transform(cache, ret, options) {
 CacheSchema.set("toJSON", {
   transform: transform
 });
-
-var Cache = mongoose.model('Cache', CacheSchema);
+var Cache;
+if (mongoose.models.Cache) {
+	Cache = mongoose.model('Cache');
+} else {
+	Cache = mongoose.model('Cache', CacheSchema);
+}
 exports.cacheModel = Cache;
 
 function getSourceByUrlAndFormat(url, format, callback) {
@@ -83,7 +87,7 @@ function getSourceByUrlAndFormat(url, format, callback) {
 	  'format': format,
 		'url': url
   };
-  Source.findOne(query).exec(function(err, source) {
+  SourceModel.findOne(query).exec(function(err, source) {
     if (err) {
       console.log("Error finding cache in mongo: " + id + ', error: ' + err);
     }

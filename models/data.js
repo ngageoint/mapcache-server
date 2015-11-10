@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-  , config = require('../config.js');
+  , config = require('mapcache-config');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -15,5 +15,10 @@ var MapDataSchema = new Schema({
   zOrder: { type: Number, required: true, default: -1}
 });
 
-var MapData = mongoose.model('MapData', MapDataSchema);
+var MapData;
+if (mongoose.models.MapData) {
+  MapData = mongoose.model('MapData');
+} else {
+  MapData = mongoose.model('MapData', MapDataSchema);
+}
 exports.mapDataModel = MapData;

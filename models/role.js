@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
-  , User = require('../models/user')
-  , Permission = require('../models/permission');
+  , User = require('./user')
+  , Permission = require('./permission');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -53,7 +53,12 @@ RoleSchema.set("toJSON", {
 });
 
 // Creates the Model for the Role Schema
-var Role = mongoose.model('Role', RoleSchema);
+var Role;
+if (mongoose.models.Role) {
+  Role = mongoose.model('Role');
+} else {
+  Role = mongoose.model('Role', RoleSchema);
+}
 
 exports.getRoleById = function(id, callback) {
   Role.findById(id, function(err, role) {

@@ -4,7 +4,7 @@ var SourceModel = require('../models/source')
   , async = require('async')
   , Feature = require('../models/feature')
   , sourceProcessor = require('./sources')
-  , config = require('../config.js');
+  , config = require('mapcache-config');
 
 function Source() {
 }

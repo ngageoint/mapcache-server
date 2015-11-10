@@ -1,6 +1,6 @@
 var crypto = require('crypto')
   , mongoose = require('mongoose')
-  , config = require('../config.js');
+  , config = require('mapcache-config');
 
 // Token expiration in msecs
 var tokenExpiration = config.server.token.expiration * 1000;
@@ -21,7 +21,12 @@ var TokenSchema = new Schema({
 TokenSchema.index({'expirationDate': 1}, {expireAfterSeconds: 0});
 
 // Creates the Model for the User Schema
-var Token = mongoose.model('Token', TokenSchema);
+var Token;
+if (mongoose.models.Token) {
+  Token = mongoose.model('Token');
+} else {
+  Token = mongoose.model('Token', TokenSchema);
+}
 
 exports.getToken = function(token, callback) {
   Token.findOne({token: token}).populate({path: 'userId', options: {lean: true}}).exec(function(err, token) {
@@ -67,4 +72,3 @@ exports.removeTokensForUser = function(user, callback) {
     callback(err, numberRemoved);
   });
 }
-

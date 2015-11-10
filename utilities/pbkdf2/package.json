@@ -1,7 +1,7 @@
 {
-  "name": "xyz-tile-utils",
+  "name": "pbkdf2",
   "version": "0.0.2",
-  "description": "xyz-tile-utils",
+  "description": "pbkdf2",
   "keywords": [
     "NGA",
     "mapcache"
@@ -19,5 +19,5 @@
     "npm": ">= 1.2.0"
   },
   "private": true,
-  "main": "xyz-tile-utils.js"
+  "main": "pbkdf2.js"
 }

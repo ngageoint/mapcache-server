@@ -23,7 +23,12 @@ LoginSchema.set("toJSON", {
 exports.transform = transform;
 
 // Creates the Model for the User Schema
-var Login = mongoose.model('Login', LoginSchema);
+var Login;
+if (mongoose.models.Login) {
+  Login = mongoose.model('Login');
+} else {
+  Login = mongoose.model('Login', LoginSchema);
+}
 
 exports.getLoginsForUser = function(user, options, callback) {
   var conditions = {

@@ -1,7 +1,7 @@
 {
-  "name": "xyz-tile-utils",
-  "version": "0.0.2",
-  "description": "xyz-tile-utils",
+  "name": "mapcache-config",
+  "version": "0.0.1",
+  "description": "mapcache-config",
   "keywords": [
     "NGA",
     "mapcache"
@@ -19,5 +19,5 @@
     "npm": ">= 1.2.0"
   },
   "private": true,
-  "main": "xyz-tile-utils.js"
+  "main": "config.js"
 }
