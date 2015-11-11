@@ -52,7 +52,7 @@ module.exports = function(app, auth) {
         options.format = req.param('format');
       }
 
-      new api.Source().getAll(options, function(err, sources) {
+      api.Source.getAll(options, function(err, sources) {
         if (err) return next(err);
         //var sources = sourceXform.transform({}, sources);
         res.json(sources);
@@ -72,7 +72,7 @@ module.exports = function(app, auth) {
         console.log('no data sources');
         return res.sendStatus(400);
       }
-      new api.Source().import(req.newSource, req.files.mapFile, function(err, newSource) {
+      new api.Source(req.newSource).import(req.files.mapFile, function(err, newSource) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
@@ -92,7 +92,7 @@ module.exports = function(app, auth) {
     validateSource,
     function(req, res, next) {
 
-      new api.Source().create(req.newSource, function(err, newSource) {
+      api.Source.create(req.newSource, function(err, newSource) {
         if (err) return next(err);
 
         if (!newSource) return res.status(400).send();
@@ -109,7 +109,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
-      new api.Source().update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
+      api.Source.update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
         var response = sourceXform.transform(updatedSource);
         res.json(response);
       });
@@ -186,7 +186,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     parseQueryParams,
     function(req, res, next) {
-      new api.Source().deleteDataSource(req.source, req.param('dataSourceId'), function(err, source) {
+      new api.Source(req.source).deleteDataSource(req.param('dataSourceId'), function(err, source) {
         var sourceJson = sourceXform.transform(source);
         res.json(sourceJson);
       });
@@ -352,7 +352,7 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.Source().delete(req.source, function(err) {
+      new api.Source(req.source).delete(function(err) {
         if (err) return next(err);
         res.status(200);
         res.json(req.source);

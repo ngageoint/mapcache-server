@@ -7,14 +7,25 @@ var models = require('mapcache-models')
   , sourceProcessor = require('./sources')
   , config = require('mapcache-config');
 
-function Source() {
+function Source(sourceModel) {
+  this.sourceModel = source;
 }
 
-Source.prototype.getAll = function(options, callback) {
+Source.getAll = function(options, callback) {
   SourceModel.getSources(options, callback);
 }
 
-Source.prototype.create = function(source, callback) {
+Source.getById = function(id, callback) {
+  SourceModel.getSourceById(id, function(err, source) {
+    callback(err, source);
+  });
+}
+
+Source.update = function(id, update, callback) {
+  SourceModel.updateSource(id, update, callback);
+}
+
+Source.create = function(source, callback) {
   SourceModel.createSource(source, function(err, newSource) {
     if (err) return callback(err);
     newSource.complete = false;
@@ -29,7 +40,8 @@ Source.prototype.create = function(source, callback) {
   });
 }
 
-Source.prototype.import = function(source, sourceFiles, callback) {
+Source.prototype.import = function(sourceFiles, callback) {
+  var source = this.sourceModel;
   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
   SourceModel.createSource(source, function(err, newSource) {
     if (err) return callback(err);
@@ -73,13 +85,8 @@ Source.prototype.import = function(source, sourceFiles, callback) {
   });
 }
 
-Source.prototype.getById = function(id, callback) {
-  SourceModel.getSourceById(id, function(err, source) {
-    callback(err, source);
-  });
-}
-
-Source.prototype.delete = function(source, callback) {
+Source.prototype.delete = function(callback) {
+  var source = this.sourceModel;
   SourceModel.deleteSource(source, function(err) {
     if (err) return callback(err);
     fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
@@ -94,7 +101,8 @@ Source.prototype.delete = function(source, callback) {
   });
 }
 
-Source.prototype.deleteDataSource = function(source, dataSourceId, callback) {
+Source.prototype.deleteDataSource = function(dataSourceId, callback) {
+  var source = this.sourceModel;
   SourceModel.deleteDataSource(source, dataSourceId, function(err) {
     if (err) return callback(err);
     var dataSource;
@@ -116,8 +124,6 @@ Source.prototype.deleteDataSource = function(source, dataSourceId, callback) {
   });
 }
 
-Source.prototype.update = function(id, update, callback) {
-  SourceModel.updateSource(id, update, callback);
-}
+
 
 module.exports = Source;

@@ -85,7 +85,7 @@ function formatTest(format) {
           console.log('Output from createSource', stdout.toString());
           console.log('Error output from createSource', stderr.toString());
 
-          new api.Source().getAll({name: sourceName}, function(err, sources) {
+          api.Source.getAll({name: sourceName}, function(err, sources) {
             if (sources && sources[0] && sources[0].name == sourceName) {
               sourceId = sources[0].id;
               if (sources[0].status.complete) {
@@ -126,30 +126,6 @@ function formatTest(format) {
       var item = cacheTypes[i];
       tests.push(generateCacheFormat(item, format));
     }
-
-    // tests.push(
-    //   function(callback) {
-    //     console.log('Testing deleting an '+format+' source.');
-    //     var args = ['--id', sourceId];
-    //     launchCommand('deleteSource', args, function() {
-    //
-    //       new api.Source().getAll({name: sourceName}, function(err, sources) {
-    //         if (sources && sources.length == 0) {
-    //           // ensure the directory is gone too
-    //           var exists = fs.existsSync(path.join(config.server.sourceDirectory.path, sourceId));
-    //           if (!exists) {
-    //             callback(null, 'Delete '+format+' Source: '+format+' source was deleted');
-    //           } else {
-    //             callback(new Error(format+' Source was not deleted'), 'FAILURE: '+format+' Source directory was not deleted');
-    //           }
-    //         } else {
-    //           callback(new Error(format+' Source was not deleted'), 'FAILURE: '+format+' Source was not deleted');
-    //         }
-    //       });
-    //     });
-    //   }
-    // );
-
     async.series(tests, callback);
   }
 }
@@ -192,7 +168,7 @@ function launchCommand(command, args, callback) {
 }
 
 function sourceTimerFunction(source, callback) {
-  new api.Source().getById(source._id, function(err, source) {
+  api.Source.getById(source._id, function(err, source) {
     if (!source.status.complete) {
       console.log('Source is being created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
       setTimeout(sourceTimerFunction, 5000, source, callback);
