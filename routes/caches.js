@@ -38,7 +38,7 @@ module.exports = function(app, auth) {
       var cache = req.cache;
       req.cache.minZoom = req.param('minZoom') || req.cache.minZoom;
       req.cache.maxZoom = req.param('maxZoom') || req.cache.maxZoom;
-      new api.Cache().create(req.cache, format, function(err, newCache) {
+      new api.Cache(req.cache).createFormat(format, function(err, newCache) {
         if (!err) {
           return res.sendStatus(202);
         }
@@ -74,7 +74,8 @@ module.exports = function(app, auth) {
     validateCache,
     function(req, res, next) {
 
-      new api.Cache().create(req.newCache, function(err, newCache) {
+      api.Cache.create(req.newCache, function(err, newCache) {
+        console.log('cache was posted', newCache);
         if (err) return res.status(400).send(err.message);
 
         if (!newCache) return res.status(400).send();

@@ -129,7 +129,7 @@ exports.createCache = function(yargs) {
     };
   }
 
-  new api.Cache().create(cache, argv.f, function(err, cache) {
+  api.Cache.create(cache, argv.f, function(err, cache) {
     if (err) {
       console.log('Error creating the cache ', err);
       process.exit();
@@ -164,7 +164,7 @@ exports.generateFormat = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().create(cache, argv.f, function(err, cache) {
+    new api.Cache(cache).createFormat(argv.f, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
