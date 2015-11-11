@@ -25,20 +25,22 @@ Cache.prototype.getCachesFromMapId = function(id, callback) {
   CacheModel.getCaches(query, callback);
 }
 
-Cache.prototype.delete = function(cache, callback) {
-  CacheModel.deleteCache(cache, function(err) {
+Cache.prototype.delete = function(callback) {
+  var cacheModel = this.cacheModel;
+  CacheModel.deleteCache(cacheModel, function(err) {
     if (err) return callback(err);
-    fs.remove(config.server.cacheDirectory.path + "/" + cache.id, function(err) {
-      callback(err, cache);
+    fs.remove(config.server.cacheDirectory.path + "/" + cacheModel.id, function(err) {
+      callback(err, cacheModel);
     });
   });
 }
 
-Cache.prototype.deleteFormat = function(cache, format, callback) {
-  CacheModel.deleteFormat(cache, format, function(err) {
+Cache.prototype.deleteFormat = function(format, callback) {
+  var cacheModel = this.cacheModel;
+  CacheModel.deleteFormat(cacheModel, format, function(err) {
     if (err) return callback(err);
-    cacheProcessor.deleteCacheFormat(cache, format, function(err) {
-      callback(err, cache);
+    cacheProcessor.deleteCacheFormat(cacheModel, format, function(err) {
+      callback(err, cacheModel);
     });
   });
 }
@@ -138,24 +140,26 @@ Cache.prototype.create = function(cache, formats, callback) {
   }
 }
 
-Cache.prototype.restart = function(cache, format, callback) {
-  cacheProcessor.restartCacheFormat(cache, format, function(err, cache) {
+Cache.prototype.restart = function(format, callback) {
+  cacheProcessor.restartCacheFormat(this.cacheModel, format, function(err, cache) {
     console.log('format ' + format + ' restarted for cache ' + cache.name);
+    callback(err, cache);
   });
 }
 
-Cache.prototype.generateMoreZooms = function(cache, format, newMinZoom, newMaxZoom, callback) {
-  cacheProcessor.generateMoreZooms(cache, format, newMinZoom, newMaxZoom, function(err, cache) {
+Cache.prototype.generateMoreZooms = function(format, newMinZoom, newMaxZoom, callback) {
+  cacheProcessor.generateMoreZooms(this.cacheModel, format, newMinZoom, newMaxZoom, function(err, cache) {
     console.log('more zooms for ' + format + ' for cache ' + cache.name);
+    callback(err, cache);
   });
 }
 
-Cache.prototype.getData = function(cache, format, minZoom, maxZoom, callback) {
-  cacheProcessor.getCacheData(cache, format, minZoom, maxZoom, callback);
+Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
+  cacheProcessor.getCacheData(this.cacheModel, format, minZoom, maxZoom, callback);
 }
 
-Cache.prototype.getTile = function(cache, format, z, x, y, callback) {
-  cacheProcessor.getTile(cache, format, z, x, y, callback);
+Cache.prototype.getTile = function(format, z, x, y, callback) {
+  cacheProcessor.getTile(this.cacheModel, format, z, x, y, callback);
 }
 
 module.exports = Cache;

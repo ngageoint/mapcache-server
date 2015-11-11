@@ -74,6 +74,11 @@ app.use('/api/swagger', express.static('./public/vendor/swagger-ui/'));
 app.use('/private',
   authentication.passport.authenticate(authentication.authenticationStrategy),
   express.static(path.join(__dirname, 'private')));
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 app.use(function(err, req, res, next) {
   console.error(err.message);
   console.error(err.stack);

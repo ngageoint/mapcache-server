@@ -91,7 +91,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     function(req, res, next) {
 
-      new api.Cache().restart(req.cache, req.param('format'), function(err, newCache) {
+      new api.Cache(req.cache).restart(req.param('format'), function(err, newCache) {
         if (err) return res.status(400).send(err.message);
 
         if (!newCache) return res.status(400).send();
@@ -107,7 +107,7 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      new api.Cache().getTile(req.cache, req.param('format'), req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+      new api.Cache(req.cache).getTile(req.param('format'), req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 
@@ -140,7 +140,7 @@ module.exports = function(app, auth) {
     	var maxZoom = parseInt(req.param('maxZoom'));
     	var format = req.param('format');
     	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-      new api.Cache().getData(req.cache, format, minZoom, maxZoom, function(err, status) {
+      new api.Cache(req.cache).getData(format, minZoom, maxZoom, function(err, status) {
         if (err) {
           return res.send(400, err);
         }
@@ -172,7 +172,7 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.Cache().deleteFormat(req.cache, req.param('format'), function(err) {
+      new api.Cache(req.cache).deleteFormat(req.param('format'), function(err) {
         if (err) return next(err);
         res.status(200);
         res.json(req.cache);
@@ -186,7 +186,7 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.Cache().delete(req.cache, function(err) {
+      new api.Cache(req.cache).delete(function(err) {
         if (err) return next(err);
         res.status(200);
         res.json(req.cache);
