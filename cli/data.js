@@ -1,6 +1,7 @@
 var api = require('../api')
   , async = require('async')
-  , cacheModel = require('../models/cache')
+  , models = require('mapcache-models')
+  , cacheModel = models.Cache
   , caches = require('../api/caches');
 
 exports.testGeoPackage = function(yargs) {

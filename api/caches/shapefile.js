@@ -1,4 +1,5 @@
-var CacheModel = require('../../models/cache.js')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
   , sourceTypes = require('../sources')
   , path = require('path')
   , ogrType = require('./ogrType.js')

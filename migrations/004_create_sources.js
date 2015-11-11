@@ -1,4 +1,4 @@
-var Source = require('../models/source');
+var Source = require('mapcache-models').Source;
 
 exports.id = 'create-initial-sources';
 

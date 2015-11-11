@@ -1,4 +1,4 @@
-var ServerModel = require('../models/server');
+var ServerModel = require('mapcache-models').Server;
 
 function Server() {
 }

@@ -2,8 +2,9 @@ module.exports = function(passport) {
 
   var LocalStrategy = require('passport-local').Strategy
     , BearerStrategy = require('passport-http-bearer').Strategy
-    , Token = require('../models/token')
-    , User = require('../models/user');
+    , models = require('mapcache-models')
+    , Token = models.Token
+    , User = models.User;
 
   passport.use(new BearerStrategy(
     {passReqToCallback: true},

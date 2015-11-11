@@ -1,4 +1,5 @@
-var CacheModel = require('../../models/cache.js')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
   , xyzTileWorker = require('../xyzTileWorker')
   , fs = require('fs-extra')
   , path = require('path')

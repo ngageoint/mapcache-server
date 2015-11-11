@@ -1,5 +1,6 @@
-var CacheModel = require('../../models/cache')
-  , SourceModel = require('../../models/source')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
+  , SourceModel = models.Source
   , xyzTileUtils = require('xyz-tile-utils')
   , proj4 = require('proj4')
   , request = require('request');

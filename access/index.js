@@ -1,7 +1,7 @@
 /**
  * Module dependencies.
  */
-var Role = require('../models/role');
+var Role = require('mapcache-models').Role;
 
 /**
  * `Access` constructor.

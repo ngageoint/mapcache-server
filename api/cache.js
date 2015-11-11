@@ -1,18 +1,20 @@
-var CacheModel = require('../models/cache')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
   , turf = require('turf')
   , fs = require('fs-extra')
   , archiver = require('archiver')
   , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
   , config = require('mapcache-config')
-  , FeatureModel = require('../models/feature')
+  , FeatureModel = models.Feature
   , async = require('async')
   , exec = require('child_process').exec;
 
-function Cache() {
+function Cache(cacheModel) {
+  this.cacheModel = cacheModel;
 }
 
-Cache.prototype.getAll = function(options, callback) {
+Cache.getAll = function(options, callback) {
   CacheModel.getCaches(options, callback);
 }
 

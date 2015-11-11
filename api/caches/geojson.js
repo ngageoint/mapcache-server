@@ -1,5 +1,6 @@
-var CacheModel = require('../../models/cache.js')
-  , FeatureModel = require('../../models/feature.js')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
+  , FeatureModel = models.Feature
   , async = require('async')
   , sourceTypes = require('../sources')
   , path = require('path')

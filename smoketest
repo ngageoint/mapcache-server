@@ -109,7 +109,7 @@ function formatTest(format) {
         var args = ['--source', sourceId, '--name', "'"+cacheName+"'", '-w', -124, '-e', -68, '-s', 26, '-n', 50, '--maxZoom', 5, '--minZoom', 0, '--layer', 0];
         launchCommand('createCache', args, function() {
 
-          new api.Cache().getAll({name: cacheName}, function(err, caches) {
+          api.Cache.getAll({name: cacheName}, function(err, caches) {
             if (caches && caches[0] && caches[0].name == cacheName) {
               cache = caches[0];
               callback(null, 'Create '+format+' cache: '+format+' cache was created');
@@ -163,7 +163,7 @@ function generateCacheFormat(item, format) {
       var args = ['--cache', cache.id, '--format', item.type];
       launchCommand('generateFormat', args, function() {
 
-        new api.Cache().getAll({name: cache.name}, function(err, caches) {
+        api.Cache.getAll({name: cache.name}, function(err, caches) {
           if (caches && caches[0] && caches[0].name == cache.name) {
             cache = caches[0];
             if (cache.formats[item.type] && cache.formats[item.type].size) {

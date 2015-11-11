@@ -1,5 +1,6 @@
-var CacheModel = require('../../models/cache')
-  , SourceModel = require('../../models/source')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
+  , SourceModel = models.Source
   , Canvas = require('canvas')
 	, Image = Canvas.Image
   , request = require('request');

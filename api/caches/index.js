@@ -1,4 +1,5 @@
-var CacheModel = require('../../models/cache.js')
+var models = require('mapcache-models')
+  , CacheModel = require('mapcache-models').Cache
   , turf = require('turf')
   , xyzTileUtils = require('xyz-tile-utils');
 

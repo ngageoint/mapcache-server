@@ -57,7 +57,7 @@ module.exports = function(app, auth) {
 
       };
 
-      new api.Cache().getAll(options, function(err, caches) {
+      api.Cache.getAll(options, function(err, caches) {
         if (err) return next(err);
 
         var caches = cacheXform.transform(caches);

@@ -1,8 +1,9 @@
-var SourceModel = require('../models/source')
+var models = require('mapcache-models')
+  , SourceModel = models.Source
   , fs = require('fs-extra')
   , path = require('path')
   , async = require('async')
-  , Feature = require('../models/feature')
+  , Feature = models.Feature
   , sourceProcessor = require('./sources')
   , config = require('mapcache-config');
 

@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-  , CacheModel = require('../../models/cache')
+  , CacheModel = require('mapcache-models').Cache
   , config = require('mapcache-config');
 
 

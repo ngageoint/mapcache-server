@@ -1,5 +1,5 @@
 var util = require('util')
-  , User = require('../models/user');
+  , User = require('mapcache-models').User;
 
 var transformUser = function(user, options) {
   if (!user) return null;

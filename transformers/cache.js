@@ -1,5 +1,5 @@
 var util = require('util')
-  , config = require('../config');
+  , config = require('mapcache-config');
 
 var transformCaches = function(caches, options) {
   return caches.map(function(cache) {

@@ -1,4 +1,5 @@
-var SourceModel = require('../../models/source')
+var models = require('mapcache-models')
+  , SourceModel = models.Source
   , exec = require('child_process').exec
   , config = require('mapcache-config')
   , fs = require('fs-extra');

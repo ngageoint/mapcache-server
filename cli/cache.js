@@ -2,7 +2,8 @@ var fs = require('fs-extra')
   , path = require('path')
   , api = require('../api')
   , turf = require('turf')
-  , cacheModel = require('../models/cache')
+  , models = require('mapcache-models')
+  , cacheModel = models.Cache
   , caches = require('../api/caches');
 
 exports.getAllCaches = function(yargs) {
@@ -10,7 +11,8 @@ exports.getAllCaches = function(yargs) {
   .help('help')
   .argv;
 
-  new api.Cache().getAll({}, function(err, caches) {
+console.log('api.Cache', api.Cache);
+  api.Cache.getAll({}, function(err, caches) {
     if (err) {
       console.log('There was an error retrieving caches.');
       process.exit();

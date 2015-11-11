@@ -1,7 +1,6 @@
 var knex = require('./db/knex')
 	, turf = require('turf')
 	, proj4 = require('proj4')
-	, async = require('async')
 	, config = require('mapcache-config');
 
 exports.createFeatureForSource = function(feature, sourceId, callback) {

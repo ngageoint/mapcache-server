@@ -1,5 +1,6 @@
-var SourceModel = require('../../models/source')
-  , FeatureModel = require('../../models/feature')
+var models = require('mapcache-models')
+  , SourceModel = models.Source
+  , FeatureModel = models.Feature
   , async = require('async')
   , path = require('path')
   , request = require('request')

@@ -1,8 +1,9 @@
 module.exports = function(strategy) {
 
   var passport = require('passport')
-    , User = require('../models/user')
-    , Token = require('../models/token');
+    , models = require('mapcache-models')
+    , User = models.User
+    , Token = models.Token;
 
   passport.serializeUser(function(user, done) {
     done(null, user._id);

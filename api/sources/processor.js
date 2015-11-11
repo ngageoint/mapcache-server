@@ -1,5 +1,6 @@
 var mongoose = require('mongoose')
-  , SourceModel = require('../../models/source')
+  , models = require('mapcache-models')
+  , SourceModel = models.Source
   , config = require('mapcache-config');
 
 var mongodbConfig = config.server.mongodb;

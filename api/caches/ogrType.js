@@ -1,4 +1,5 @@
-var FeatureModel = require('../../models/feature')
+var models = require('mapcache-models')
+  , FeatureModel = require('mapcache-models').Feature
   , path = require('path')
   , ogr2ogr = require('ogr2ogr')
   , config = require('mapcache-config')

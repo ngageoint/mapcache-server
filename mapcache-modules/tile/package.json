@@ -18,6 +18,15 @@
     "node": ">= 0.8.0",
     "npm": ">= 1.2.0"
   },
+  "dependencies": {
+    "mapcache-config": "file:../config",
+    "mapcache-models": "file:../models",
+    "xyz-tile-utils": "file:../../modules/xyz-tile-utils",
+    "async": "1.2.1",
+    "canvas": "^1.2.3",
+    "fs-extra": "0.11.x",
+    "turf": "^2.0.2"
+  },
   "private": true,
   "main": "mapcache-tile.js"
 }

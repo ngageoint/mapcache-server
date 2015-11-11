@@ -19,12 +19,12 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
-    "geopackage": "file:geopackage",
-    "mapcache-config": "file:config",
-    "mapcache-models": "file:models",
-    "mapcache-tile": "file:tile",
-    "pbkdf2": "file:utilities/pbkdf2",
-    "xyz-tile-utils": "file:xyz-tile-utils",
+    "geopackage": "file:modules/geopackage",
+    "mapcache-config": "file:mapcache-modules/config",
+    "mapcache-models": "file:mapcache-modules/models",
+    "mapcache-tile": "file:mapcache-modules/tile",
+    "pbkdf2": "file:modules/pbkdf2",
+    "xyz-tile-utils": "file:modules/xyz-tile-utils",
     "adm-zip": "^0.4.7",
     "archiver": "^0.14.4",
     "async": "1.2.1",
@@ -35,14 +35,12 @@
     "express": "4.10.6",
     "fs-extra": "0.11.x",
     "gdal": "^0.4.4",
-    "java": "^0.6.0",
     "knex": "^0.8.6",
     "method-override": "1.0.x",
     "moment": "2.1.0",
     "mongodb-migrations": "0.2.1",
     "mongoose": "3.8.24",
     "multer": "0.1.x",
-    "node-java-maven": "0.0.9",
     "ogr2ogr": "^0.5.1",
     "optimist": "0.3.x",
     "passport": "0.1.x",
@@ -73,15 +71,6 @@
     "grunt-contrib-cssmin": "^0.12.2",
     "grunt-contrib-uglify": "^0.8.0",
     "grunt-usemin": "^3.0.0"
-  },
-  "java": {
-    "dependencies": [
-      {
-        "groupId": "mil.nga.geopackage",
-        "artifactId": "geopackage",
-        "version": "1.1.0"
-      }
-    ]
   },
   "scripts": {
     "postinstall": "node_modules/.bin/bower install --config.cwd=public --config.interactive=false && node_modules/.bin/grunt build"

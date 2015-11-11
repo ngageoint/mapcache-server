@@ -1,4 +1,5 @@
-var CacheModel = require('../../models/cache.js')
+var models = require('mapcache-models')
+  , CacheModel = models.Cache
   , path = require('path')
   , SourceApi = require('../sources')
   , exec = require('child_process').exec

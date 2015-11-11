@@ -1,7 +1,7 @@
 var fs = require('fs-extra')
   , path = require('path')
   , api = require('../api')
-  , knex = require('../db/knex')
+  , knex = require('../mapcache-modules/models/db/knex')
   , async = require('async')
   , sources = require('../api/sources');
 

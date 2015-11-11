@@ -1,6 +1,6 @@
 module.exports = function(app, security) {
   var api = require('../api')
-    , Role = require('../models/role')
+    , Role = require('mapcache-models').Role
     , access = require('../access')
     , config = require('mapcache-config')
     , fs = require('fs-extra')

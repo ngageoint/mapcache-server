@@ -1,9 +1,10 @@
-var SourceModel = require('../../models/source')
+var models = require('mapcache-models')
+  , SourceModel = models.Source
   , path = require('path')
   , fs = require('fs-extra')
   , turf = require('turf')
   , async = require('async')
-  , FeatureModel = require('../../models/feature')
+  , FeatureModel = models.Feature
   , tile = require('mapcache-tile')
   , config = require('mapcache-config')
   , shp2json = require('shp2json');

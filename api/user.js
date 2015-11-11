@@ -1,6 +1,7 @@
-var UserModel = require('../models/user')
-  , TokenModel = require('../models/token')
-  , LoginModel = require('../models/login')
+var models = require('mapcache-models')
+  , UserModel = models.User
+  , TokenModel = models.Token
+  , LoginModel = models.Login
   , path = require('path')
   , async = require('async')
   , config = require('mapcache-config');

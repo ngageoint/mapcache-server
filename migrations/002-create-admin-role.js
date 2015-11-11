@@ -1,4 +1,4 @@
-var  Role = require('../models/role');
+var  Role = require('mapcache-models').Role;
 
 exports.id = 'create-initial-admin-role';
 
