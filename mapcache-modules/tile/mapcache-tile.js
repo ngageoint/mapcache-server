@@ -2,6 +2,7 @@ var fs = require('fs-extra')
 	, path = require('path')
 	, turf = require('turf')
 	, Canvas = require('canvas')
+	, Readable = require('stream').Readable
 	, xyzTileUtils = require('xyz-tile-utils')
 	, Image = Canvas.Image
 	, config = require('mapcache-config')
@@ -14,7 +15,16 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 }
 
 function tileContainsData(source, bbox) {
-	if (source.geometry && !turf.intersect(turf.bboxPolygon([bbox.west - Math.abs(bbox.west*.05), bbox.south - Math.abs(bbox.south*.05), bbox.east + Math.abs(bbox.east*.05), bbox.north + Math.abs(bbox.north*.05)]), source.geometry)) {
+	console.log('source', JSON.stringify(source.geometry));
+	console.log('bbox', bbox);
+	var bufferedBox = {
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
+	};
+	console.log('buffered box', bufferedBox);
+	if (source.geometry && !turf.intersect(turf.bboxPolygon([bufferedBox.west, bufferedBox.south, bufferedBox.east, bufferedBox.north]), source.geometry.geometry)) {
 		console.log("No data, returning early");
 		return false;
 	}
@@ -31,9 +41,9 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 	}
 
 	// use the style time to determine if there has already been an image created for this source and style
-	var imageTile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
+	var imageTile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.'+format);
 	if (source.source) {
-		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.png');
+		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.'+format);
 	}
 	if (params && !params.noCache && fs.existsSync(imageTile)) {
 		console.log('pulling tile from prebuilt', imageTile);
@@ -77,6 +87,20 @@ function handleTileData(tile, format, source, imageTile, callback) {
 				pngStream.pipe(tileWriter);
 				return callback(err, pngStream);
 			});
+		} else if (format == 'geojson') {
+			var s = new Readable();
+			var features = tile;
+			console.log('there are %d features', features.length);
+			for (var i = 0; i < features.length; i++) {
+				var feature = features[i];
+				console.log('feature', feature);
+				feature.geometry = JSON.parse(feature.geometry);
+				if (i) s.push(',');
+				s.push(JSON.stringify(feature));
+			}
+			s.push(null);
+			console.log('done');
+			return callback(null, s);
 		} else {
 			return callback(null);
 		}

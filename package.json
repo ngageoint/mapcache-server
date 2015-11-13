@@ -19,12 +19,6 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
-    "geopackage": "file:modules/geopackage",
-    "mapcache-config": "file:mapcache-modules/config",
-    "mapcache-models": "file:mapcache-modules/models",
-    "mapcache-tile": "file:mapcache-modules/tile",
-    "pbkdf2": "file:modules/pbkdf2",
-    "xyz-tile-utils": "file:modules/xyz-tile-utils",
     "adm-zip": "^0.4.7",
     "archiver": "^0.14.4",
     "async": "1.2.1",
@@ -35,7 +29,12 @@
     "express": "4.10.6",
     "fs-extra": "0.11.x",
     "gdal": "^0.4.4",
+    "geopackage": "file:modules/geopackage",
     "knex": "^0.8.6",
+    "length-stream": "^0.1.1",
+    "mapcache-config": "file:mapcache-modules/config",
+    "mapcache-models": "file:mapcache-modules/models",
+    "mapcache-tile": "file:mapcache-modules/tile",
     "method-override": "1.0.x",
     "moment": "2.1.0",
     "mongodb-migrations": "0.2.1",
@@ -47,6 +46,7 @@
     "passport-anonymous": "1.0.1",
     "passport-http-bearer": "0.2.x",
     "passport-local": "1.0.0",
+    "pbkdf2": "file:modules/pbkdf2",
     "pg": "^4.4.1",
     "pngjs": "^0.4.0",
     "proj4": "^2.3.6",
@@ -55,14 +55,18 @@
     "shortid": "^2.2.2",
     "shp2json": "https://github.com/danielbarela/shp2json.git",
     "stream-to-array": "^2.1.0",
+    "streamqueue": "^1.1.1",
+    "tile-image": "file:modules/tile-image",
     "turf": "^2.0.2",
     "winston": "^1.0.0",
     "wms-capabilities": "^0.2.2",
     "xmldom": "^0.1.19",
+    "xyz-tile-utils": "file:modules/xyz-tile-utils",
     "yargs": "^3.11.0"
   },
   "devDependencies": {
     "bower": "^1.3.12",
+    "dev-null": "^0.1.1",
     "grunt": "^0.4.5",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-clean": "^0.6.0",
@@ -70,7 +74,8 @@
     "grunt-contrib-copy": "^0.8.0",
     "grunt-contrib-cssmin": "^0.12.2",
     "grunt-contrib-uglify": "^0.8.0",
-    "grunt-usemin": "^3.0.0"
+    "grunt-usemin": "^3.0.0",
+    "should": "^7.1.1"
   },
   "scripts": {
     "postinstall": "node_modules/.bin/bower install --config.cwd=public --config.interactive=false && node_modules/.bin/grunt build"

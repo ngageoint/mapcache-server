@@ -65,7 +65,7 @@ Cache.create = function(cache, formats, callback) {
   });
 }
 
-Cache.prototype.getCachesFromMapId = function(id, callback) {
+Cache.getCachesFromMapId = function(id, callback) {
   var query = {
 	  'sourceId': id
   };
