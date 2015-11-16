@@ -71,7 +71,11 @@ exports.getAllCacheFeatures = function(cacheId, callback) {
 	});
 }
 
-exports.fetchTileForCacheId = function(cacheId, bbox, z, callback) {
+exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {
+	if (!callback && typeof projection === 'function') {
+		callback = projection;
+		projection = null;
+	}
 	console.time('fetching data');
 
 	var bufferedBox = {
@@ -85,12 +89,9 @@ exports.fetchTileForCacheId = function(cacheId, bbox, z, callback) {
 	var epsg3857ur = proj4('EPSG:3857', [bbox.east, bbox.north]);
 	console.log('epsg3857ll', epsg3857ll);
 
+	var geometrySelect = createGeometrySelect(projection, bufferedBox, {west: epsg3857ll[0], south: epsg3857ll[1], east: epsg3857ur[0], north: epsg3857ur[1]});
 
-	knex.select(knex.raw(
-		'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+ bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326),3857)), '+ (-epsg3857ll[0])+', '+ (-epsg3857ll[1])+', '+ (4096/(epsg3857ur[0]-epsg3857ll[0]))+', '+ (4096/(epsg3857ur[1]-epsg3857ll[1])) + '), 16), 1) as geometry'
-		),
-		'properties'
-	)
+	knex.select(geometrySelect, 'properties')
 	.from('features')
 	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
 	.andWhere({cache_id: cacheId})
@@ -102,24 +103,11 @@ exports.fetchTileForCacheId = function(cacheId, bbox, z, callback) {
   });
 }
 
-exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback) {
-	console.time('fetching data');
-
-	var bufferedBox = {
-		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
-		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
-		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
-		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
-	};
-
-	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
-	var epsg3857ur = proj4('EPSG:3857', [bbox.east, bbox.north]);
-	console.log('epsg3857ll', epsg3857ll);
-
+function createGeometrySelect(projection, queryBox, transformationBox) {
 	var geometrySelect;
 	if (!projection || projection == 'vector') {
 		geometrySelect = knex.raw(
-			'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+ bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326),3857)), '+ (-epsg3857ll[0])+', '+ (-epsg3857ll[1])+', '+ (4096/(epsg3857ur[0]-epsg3857ll[0]))+', '+ (4096/(epsg3857ur[1]-epsg3857ll[1])) + '), 16), 1) as geometry'
+			'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+ queryBox.west+","+queryBox.south+","+queryBox.east+","+queryBox.north+', 4326),3857)), '+ (-transformationBox.west)+', '+ (-transformationBox.south)+', '+ (4096/(transformationBox.east-transformationBox.west))+', '+ (4096/(transformationBox.north-transformationBox.south)) + '), 16), 1) as geometry'
 		);
 	} else if (projection == '3857') {
 		geometrySelect = knex.raw(
@@ -128,7 +116,7 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 					'geometry, '+
 					'ST_Transform('+
 						'ST_MakeEnvelope('+
-							bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+
+							queryBox.west+","+queryBox.south+","+queryBox.east+","+queryBox.north+
 							', 4326'+
 						'),'+
 					'3857)'+
@@ -143,7 +131,7 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 						'geometry, '+
 						'ST_Transform('+
 							'ST_MakeEnvelope('+
-								bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+
+								queryBox.west+","+queryBox.south+","+queryBox.east+","+queryBox.north+
 								', 4326'+
 							'),'+
 						'3857)'+
@@ -152,6 +140,28 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 			') as geometry'
 		);
 	}
+	return geometrySelect;
+}
+
+exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback) {
+	if (!callback && typeof projection === 'function') {
+		callback = projection;
+		projection = null;
+	}
+	console.time('fetching data');
+
+	var bufferedBox = {
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
+	};
+
+	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
+	var epsg3857ur = proj4('EPSG:3857', [bbox.east, bbox.north]);
+	console.log('epsg3857ll', epsg3857ll);
+
+	var geometrySelect = createGeometrySelect(projection, bufferedBox, {west: epsg3857ll[0], south: epsg3857ll[1], east: epsg3857ur[0], north: epsg3857ur[1]});
 
 	knex.select(geometrySelect,'properties')
 	.from('features')
