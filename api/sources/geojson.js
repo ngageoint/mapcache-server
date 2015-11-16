@@ -19,7 +19,7 @@ exports.getTile = tile.getVectorTile;
 exports.getFeatures = tile.getFeatures;
 
 exports.getData = function(source, west, south, east, north, callback) {
-  FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, callback);
+  FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, 4326, callback);
 }
 
 exports.processSource = function(source, callback) {

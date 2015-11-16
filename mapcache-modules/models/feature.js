@@ -33,17 +33,30 @@ exports.deleteFeaturesBySourceId = function(id, callback) {
   knex.where('source_id', id).from('features').del().then(callback);
 }
 
-exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north, callback) {
-	knex.select('properties', 'geometry').where({cache_id: cacheId}).where(knex.raw('ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))')).from('features').then(function(collection){
-		console.log('collection', collection);
+exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north, projection, callback) {
+	var geometrySelect = createGeometrySelect(projection, {west: west, south: south, east: east, north: north});
+	knex.select(geometrySelect, 'properties')
+	.from('features')
+	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
+	.andWhere({cache_id: cacheId})
+	.then(function(collection){
+		console.log('returned ' + collection.length + ' features');
     callback(null, collection);
   });
 }
 
-exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, north, callback) {
-  knex.select('properties', knex.raw('ST_AsGeoJSON(geometry) as geometry')).where({source_id: sourceId}).where(knex.raw('ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))')).from('features').then(function(collection){
-    callback(null, collection);
-  });
+exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, north, projection, callback) {
+	var geometrySelect = createGeometrySelect(projection, {west: west, south: south, east: east, north: north});
+
+	knex.select(geometrySelect,'properties')
+	.from('features')
+	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
+	.andWhere({source_id: sourceId})
+	.then(function(collection){
+		console.timeEnd('fetching data');
+		console.log('returned ' + collection.length + ' features');
+		callback(null, collection);
+	});
 }
 
 exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south, east, north, callback) {

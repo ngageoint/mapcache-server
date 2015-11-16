@@ -11,7 +11,7 @@ var fs = require('fs-extra')
 	, FeatureModel = mapcacheModels.Feature;
 
 exports.getFeatures = function(source, west, south, east, north, zoom, callback) {
-	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, callback);
+	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, 4326, callback);
 }
 
 function tileContainsData(source, bbox) {
