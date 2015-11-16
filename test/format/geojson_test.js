@@ -161,7 +161,7 @@ describe('geojson', function() {
         callback(null, source);
       });
     });
-    xit('should pull the 0/0/0 tile for the data source', function(done) {
+    it('should pull the 0/0/0 tile for the data source', function(done) {
       this.timeout(0);
       geojson.getTile('png', 0, 0, 0, {noCache: true}, function(err, stream) {
         if (err) {
@@ -177,7 +177,7 @@ describe('geojson', function() {
         stream.pipe(lstream).pipe(devnull());
       });
     });
-    xit('should pull the 0/0/0 geojson tile for the data source', function(done) {
+    it('should pull the 0/0/0 geojson tile for the data source', function(done) {
       this.timeout(0);
       geojson.getTile('geojson', 0, 0, 0, {noCache: true}, function(err, stream) {
         if (err) {
@@ -217,7 +217,7 @@ describe('geojson', function() {
       });
       it('should pull the 0/0/0 geojson tile for the cache', function(done) {
         this.timeout(0);
-        geoJson.getTile('geojson', 0, 0, 0, {noCache: true}, function(err, stream) {
+        geoJson.getTile('geojson', 0, 0, 0, {noCache: true, projection: 4326}, function(err, stream) {
           //console.log('stream came back', stream);
           if (err) {
             done(err);
