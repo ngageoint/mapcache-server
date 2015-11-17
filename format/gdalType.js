@@ -19,10 +19,22 @@ var gdal = require("gdal")
     source.status.complete = false;
     progressCallback(source, function(err, source) {
       var ds = gdal.open(source.file.path);
+      console.log(exports.gdalInfo(ds));
+
+      if (!ds.srs) {
+        source.status.message="There is no Spatial Reference System in the file";
+        source.status.complete = true;
+        source.status.failure = true;
+        return callback(null, source);
+      }
 
       source.projection = ds.srs.getAuthorityCode("PROJCS");
+      if (!source.projection) {
+        source.projection = ds.srs.getAuthorityCode("GEOGCS");
+      }
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
+      console.log('extent', xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(polygon)));
       expandColorsIfNecessary(ds, source, function(err, source) {
         progressCallback(source, function(err, source) {
           createLowerResolution(ds, source, function(err, source) {
@@ -195,7 +207,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   }
 
   var in_ds = gdal.open(filePath);
-  exports.gdalInfo(in_ds);
+  // exports.gdalInfo(in_ds);
 
   var in_srs = in_ds.srs;
 
@@ -327,14 +339,14 @@ exports.gdalInfo = function(ds) {
   console.log("width: " + ds.rasterSize.x);
   console.log("height: " + ds.rasterSize.y);
   var geotransform = ds.geoTransform;
-  console.log('Origin = (' + geotransform[0] + ', ' + geotransform[3] + ')');
-  console.log('Pixel Size = (' + geotransform[1] + ', ' + geotransform[5] + ')');
-  console.log('GeoTransform =');
-  console.log(geotransform);
+  if (geotransform) {
+    console.log('Origin = (' + geotransform[0] + ', ' + geotransform[3] + ')');
+    console.log('Pixel Size = (' + geotransform[1] + ', ' + geotransform[5] + ')');
+    console.log('GeoTransform =');
+    console.log(geotransform);
+  }
   console.log("srs: " + (ds.srs ? ds.srs.toPrettyWKT() : 'null'));
-
-  console.log("Authority EPSG:" + ds.srs.getAuthorityCode("PROJCS"));
-
+  if (!ds.srs) return;
   // corners
   var corners = {
   	'Upper Left  ' : {x: 0, y: 0},

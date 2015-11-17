@@ -6,13 +6,24 @@ var assert = require('assert')
   , fs = require('fs')
   , should = require('should');
 
-var geotiffDataSource = {
+var failDataSource = {
   id: 'test-ds',
-  name: 'geotiff',
-  format: 'geotiff',
+  name: 'mrsid',
+  format: 'mrsid',
   file: {
-    path: __dirname + '/denver.tif',
-    name: 'geotiff'
+    path: __dirname + '/oregon_nogeoinfo.sid',
+    name: 'oregon.sid'
+  },
+  zOrder: 0
+};
+
+var successDataSource = {
+  id: 'test-ds',
+  name: 'mrsid',
+  format: 'mrsid',
+  file: {
+    path: __dirname + '/toronto.sid',
+    name: 'toronto.sid'
   },
   zOrder: 0
 };
@@ -46,30 +57,30 @@ var cache = {
   formats: ['xyz']
 };
 
-var GeoTIFF = require('../../format/geotiff');
+var MrSID = require('../../format/mrsid');
 
-var tmpImage = '/tmp/geotiff_test.png';
+var tmpImage = '/tmp/mrsid_test.png';
 
-describe('geotiff', function() {
+describe('MrSID', function() {
   describe('#constructor', function () {
-    it('should construct an geotiff with a source', function () {
-      var geotiff = new GeoTIFF({source: {id: '5'}});
-      geotiff.source.id.should.equal('5');
+    it('should construct an MrSID with a source', function () {
+      var mrsid = new MrSID({source: {id: '5'}});
+      mrsid.source.id.should.equal('5');
     });
-    it('should throw an error since geotiff caches are not supported', function() {
+    it('should throw an error since MrSID caches are not supported', function() {
       try {
-        new GeoTIFF({cache: {id: '6'}}).should.throw(Error);
+        new MrSID({cache: {id: '6'}}).should.throw(Error);
       } catch (e) {
         console.log('threw error', e);
       }
     });
   });
 
-  describe('geotiff source tests', function() {
-    var generic;
+  describe('MrSID source tests', function() {
+    var mrisd;
     before(function() {
-      geotiff = new GeoTIFF({
-        source: geotiffDataSource
+      mrsid = new MrSID({
+        source: successDataSource
       });
       // var stat = fs.statSync(__dirname + '/test_geotiff_out.png');
       // console.log('stat', stat);
@@ -80,7 +91,7 @@ describe('geotiff', function() {
     after(function() {
     });
     it('should process the source', function(done) {
-      geotiff.processSource(function(err, newSource) {
+      mrsid.processSource(function(err, newSource) {
         if(err) {
           return done(err);
         }
@@ -89,18 +100,19 @@ describe('geotiff', function() {
           geometry: {
             type:"Polygon",
             coordinates:[[
-              [-104.85249416245563,39.67088552045151],
-              [-104.82331093941556,39.67084478892132],
-              [-104.82337800954186,39.64449869141027],
-              [-104.85255015490993,39.64453938508538],
-              [-104.85249416245563,39.67088552045151]
+              [ -79.38254249991722, 43.67320449320221 ],
+              [ -79.30881449983531, 43.67320449320221 ],
+              [ -79.30881449983531, 43.599476493218596 ],
+              [ -79.38254249991722, 43.599476493218596 ],
+              [ -79.38254249991722, 43.67320449320221 ]
             ]]
           },
           "properties":{
           }
         };
+        console.log('newSource', newSource);
         newSource.geometry.geometry.coordinates.should.containDeep(geom.geometry.coordinates);
-        newSource.projection.should.be.equal('26913');
+        newSource.projection.should.be.equal('4326');
         should.exist(newSource.scaledFiles);
         map.dataSources.push(newSource);
         done();
@@ -109,9 +121,20 @@ describe('geotiff', function() {
         callback(null, source);
       });
     });
-    it('should pull the 13/1710/3111 tile for the data source', function(done) {
+    it('should not pull the 13/1710/3111 tile for the data source because no data exists there', function(done) {
       this.timeout(0);
-      geotiff.getTile('png', 13, 1710, 3111, {noCache: true}, function(err, stream) {
+      mrsid.getTile('png', 13, 1710, 3111, {noCache: true}, function(err, stream) {
+        if (err) {
+          done(err);
+          return;
+        }
+        should.not.exist(stream);
+        done();
+      });
+    });
+    it('should pull the 11/572/747 tile for the data source', function(done) {
+      this.timeout(0);
+      mrsid.getTile('png', 11, 572, 747, {noCache: true}, function(err, stream) {
         if (err) {
           done(err);
           return;
@@ -124,7 +147,7 @@ describe('geotiff', function() {
           var imageDiff = require('image-diff');
           imageDiff({
             actualImage: tmpImage,
-            expectedImage: __dirname + '/geotifftile.png',
+            expectedImage: __dirname + '/mrsidtile.png',
             diffImage: '/tmp/difference.png',
           }, function (err, imagesAreSame) {
             should.not.exist(err);
@@ -135,8 +158,7 @@ describe('geotiff', function() {
       });
     });
     it('should get all features of the source', function(done) {
-      this.timeout(0);
-      geotiff.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
+      mrsid.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
         console.log('err', err);
         if (err) {
           done(err);
@@ -146,5 +168,17 @@ describe('geotiff', function() {
         done();
       });
     });
+    it ('should fail to process this source', function(done) {
+      var fail = new MrSID({
+        source: failDataSource
+      });
+      fail.processSource(function(err, newSource) {
+        if(err) {
+          return done(err);
+        }
+        newSource.status.failure.should.be.true();
+        done();
+      });
+    })
   });
 });
