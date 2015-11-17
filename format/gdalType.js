@@ -7,27 +7,28 @@ var gdal = require("gdal")
   , png = require('pngjs')
   , xyzTileUtils = require('xyz-tile-utils')
   , async = require('async')
-  , models = require('mapcache-models')
-  , CacheModel = models.Cache
-  , SourceModel = models.Source
+  // , models = require('mapcache-models')
+  // , CacheModel = models.Cache
+  // , SourceModel = models.Source
   , config = require('mapcache-config');
 
-  exports.processSource = function(source, callback) {
+  exports.processSource = function(source, callback, progressCallback) {
+    callback = callback || function() {};
+    progressCallback = progressCallback || function(source, callback) { callback(null, source);};
     source.status.message="Processing source";
     source.status.complete = false;
-    SourceModel.updateDatasource(source, function(err, source) {
+    progressCallback(source, function(err, source) {
       var ds = gdal.open(source.file.path);
 
       source.projection = ds.srs.getAuthorityCode("PROJCS");
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
-
       expandColorsIfNecessary(ds, source, function(err, source) {
-        createLowerResolution(ds, source, function(err, source) {
-          source.status.message = "Complete";
-          source.status.complete = true;
-          SourceModel.updateDatasource(source, function(err, source) {
-            callback();
+        progressCallback(source, function(err, source) {
+          createLowerResolution(ds, source, function(err, source) {
+            source.status.message = "Complete";
+            source.status.complete = true;
+            callback(null, source);
           });
         });
       });
@@ -43,7 +44,7 @@ function expandColorsIfNecessary(ds, source, callback) {
       'gdal_translate -expand rgb ' + source.file.path + " " + file,
     function(error, stdout, stderr) {
       source.file.path = file;
-      SourceModel.updateDatasource(source, callback);
+      callback(null, source);
     });
   } else {
     callback(null, source);
@@ -72,9 +73,10 @@ function createLowerResolution(ds, source, callback) {
       path: file,
       resolution: in_ds.geoTransform[1]
     });
-    SourceModel.updateDatasource(source, function(err, source) {
-      callback(err, source);
-    });
+    callback(null, source);
+    // SourceModel.updateDatasource(source, function(err, source) {
+    //   callback(err, source);
+    // });
   });
 }
 
@@ -247,8 +249,8 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     tileSize += chunk.length;
   });
   stream.on('end', function() {
-    SourceModel.updateSourceAverageSize(source, tileSize, function(err) {
-    });
+    // SourceModel.updateSourceAverageSize(source, tileSize, function(err) {
+    // });
   });
   callback(null, stream);
 

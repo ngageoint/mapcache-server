@@ -3,6 +3,7 @@ var assert = require('assert')
   , turf = require('turf')
   , lengthStream = require('length-stream')
   , devnull = require('dev-null')
+  , fs = require('fs')
   , should = require('should');
 
 var geotiffDataSource = {
@@ -53,9 +54,12 @@ describe('geotiff', function() {
       var geotiff = new GeoTIFF({source: {id: '5'}});
       geotiff.source.id.should.equal('5');
     });
-    it('should construct an geotiff with a cache', function() {
-      var geotiff = new GeoTIFF({cache: {id: '6'}});
-      geotiff.cache.id.should.equal('6');
+    it('should throw an error since geotiff caches are not supported', function() {
+      try {
+        new GeoTIFF({cache: {id: '6'}}).should.throw(Error);
+      } catch (e) {
+        console.log('threw error', e);
+      }
     });
   });
 
@@ -65,16 +69,37 @@ describe('geotiff', function() {
       geotiff = new GeoTIFF({
         source: geotiffDataSource
       });
+      // var stat = fs.statSync(__dirname + '/test_geotiff_out.png');
+      // console.log('stat', stat);
+      // if (stat.isFile()) {
+      //   fs.unlinkSync(__dirname + '/test_geotiff_out.png');
+      // }
     });
     after(function() {
     });
     it('should process the source', function(done) {
-      this.timeout(0);
       geotiff.processSource(function(err, newSource) {
         if(err) {
           return done(err);
         }
-        console.log('after the source has been processed', newSource);
+        var geom = {
+          type:"Feature",
+          geometry: {
+            type:"Polygon",
+            coordinates:[[
+              [-104.85249416245563,39.67088552045151],
+              [-104.82331093941556,39.67084478892132],
+              [-104.82337800954186,39.64449869141027],
+              [-104.85255015490993,39.64453938508538],
+              [-104.85249416245563,39.67088552045151]
+            ]]
+          },
+          "properties":{
+          }
+        };
+        newSource.geometry.geometry.coordinates.should.containDeep(geom.geometry.coordinates);
+        newSource.projection.should.be.equal('26913');
+        should.exist(newSource.scaledFiles);
         map.dataSources.push(newSource);
         done();
       }, function(source, callback) {
@@ -82,14 +107,31 @@ describe('geotiff', function() {
         callback(null, source);
       });
     });
-    it('should pull the 0/0/0 tile for the data source', function(done) {
+    it('should pull the 13/1710/3111 tile for the data source', function(done) {
       this.timeout(0);
-      geotiff.getTile('png', 0, 0, 0, {noCache: true}, function(err, stream) {
+      geotiff.getTile('png', 13, 1710, 3111, {noCache: true}, function(err, stream) {
         if (err) {
           done(err);
           return;
         }
-        done();
+        console.log('stream', stream);
+        should.exist(stream);
+        var ws = fs.createWriteStream(__dirname + '/test_geotiff_out.png');
+        stream.pipe(ws);
+        stream.on('end', function() {
+
+          var imageDiff = require('image-diff');
+          imageDiff({
+            actualImage: __dirname + '/test_geotiff_out.png',
+            expectedImage: __dirname + '/geotifftile.png',
+            diffImage: '/tmp/difference.png',
+          }, function (err, imagesAreSame) {
+            console.log('err', err);
+            console.log('imagesAreSame', imagesAreSame);
+            imagesAreSame.should.be.true();
+            done();
+          });
+        });
       });
     });
     it('should pull the 0/0/0 geojson tile for the data source', function(done) {

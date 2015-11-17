@@ -1,24 +1,25 @@
-var tileImage = require('tile-image')
-  , Canvas = require('canvas')
-  , Image = Canvas.Image
-  , request = require('request')
-  , async = require('async');
+var gdalType = require('./gdalType');
 
 var GeoTIFF = function(config) {
   config = config || {};
   this.source = config.source;
-  this.cache = config.cache;
+  if (config.cache) {
+    throw new Error('cannot create a geotiff cache at this time');
+  }
 }
 
 GeoTIFF.prototype.initialize = function() {
 }
 
 GeoTIFF.prototype.processSource = function(doneCallback, progressCallback) {
-  doneCallback(null, this.source);
+  doneCallback = doneCallback || function() {};
+  progressCallback = progressCallback || function(source, callback) { callback(null, source);};
+  this.source.status = {};
+  gdalType.processSource(this.source, doneCallback, progressCallback);
 }
 
 GeoTIFF.prototype.getTile = function(format, z, x, y, params, callback) {
-  callback(null, null);
+  gdalType.getTile(this.source, format, z, x, y, params, callback);
 }
 
 GeoTIFF.prototype.generateCache = function(doneCallback, progressCallback) {
