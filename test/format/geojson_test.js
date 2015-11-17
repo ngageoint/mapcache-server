@@ -29,7 +29,7 @@ var pointDataSource = {
 
 var map = {
   id: 'test-map',
-  dataSources: [pointDataSource]
+  dataSources: []
 };
 
 var cache = {
@@ -44,8 +44,7 @@ var cache = {
   ]]),
   minZoom: 0,
   maxZoom: 2,
-  formats: ['xyz'],
-  source: map
+  formats: ['xyz']
 };
 
 var GeoJSON = require('../../format/geojson');
@@ -59,71 +58,6 @@ describe('geojson', function() {
     it('should construct an geojson with a cache', function() {
       var geojson = new GeoJSON({cache: {id: '6'}});
       geojson.cache.id.should.equal('6');
-    });
-    it ('should test turf', function() {
-      var poly1 = {
-        "type": "Feature",
-        "properties": {
-          "fill": "#0f0"
-        },
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[
-            [-170,-80],[170,-80],[170,80],[-170,80],[-170,-80]
-            /*[-122.801742, 45.48565],
-            [-122.801742, 45.60491],
-            [-122.584762, 45.60491],
-            [-122.584762, 45.48565],
-            [-122.801742, 45.48565]*/
-          ]]
-        }
-      };
-      var poly2 = {
-        "type": "Feature",
-        "properties": {
-          "fill": "#00f"
-        },
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[
-// [-105.01621,39.57422],[-104.01621,39.57422],[-104.01621,39.57422],[-105.01621,39.57422],[-105.01621,39.57422]
-
-            [-105.01621,39.57422],
-            [-122.64038, 45.553967],
-            [-122.720031, 45.526554],
-            [-122.669906, 45.507309],
-            [-122.723464, 45.446643],
-            [-122.532577, 45.408574],
-            [-122.487258, 45.477466],
-            [-105.01621,39.57422]
-
-/*
-            [-122.520217, 45.535693],
-            [-122.64038, 45.553967],
-            [-122.720031, 45.526554],
-            [-122.669906, 45.507309],
-            [-122.723464, 45.446643],
-            [-122.532577, 45.408574],
-            [-122.487258, 45.477466],
-            [-122.520217, 45.535693]
-            */
-          ]]
-        }
-      };
-
-      var intersection = turf.intersect(poly1, poly2);
-      console.log('intersection', JSON.stringify(intersection));
-
-
-      var feature = {"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-105.01621,39.57422],[-104.01621,39.57422],[-104.01621,39.57422],[-105.01621,39.57422],[-105.01621,39.57422]]]},"properties":{}};
-      var bufferedBox = { west: -170, south: -80, east: 170, north: 80 };
-
-      var bboxPoly = turf.bboxPolygon([bufferedBox.west, bufferedBox.south, bufferedBox.east, bufferedBox.north]);
-
-      console.log('bboxPoly', JSON.stringify(bboxPoly));
-      var intersect = turf.intersect(bboxPoly, feature);
-
-      console.log('intersect', intersect);
     });
   });
 
@@ -150,7 +84,8 @@ describe('geojson', function() {
         if(err) {
           return done(err);
         }
-        console.log('source', newSource);
+        console.log('after the source has been processed', newSource);
+        map.dataSources.push(newSource);
         newSource.status.message.should.equal("Complete");
         FeatureModel.getAllSourceFeatures(geojson.source.id, function(err, features) {
           console.log('features', features);
@@ -193,11 +128,36 @@ describe('geojson', function() {
         stream.pipe(lstream).pipe(devnull());
       });
     });
+    it('should get all features of the source', function(done) {
+      this.timeout(0);
+      geojson.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
+        console.log('err', err);
+        if (err) {
+          done(err);
+          return;
+        }
+
+        console.log("feature count", features);
+        features.length.should.be.equal(1);
+        done();
+      });
+    });
     describe('geojson cache tests', function() {
       var geoJson;
-      before(function() {
+      before(function(done) {
+        cache.source = map;
         geoJson = new GeoJSON({
           cache: cache
+        });
+        FeatureModel.deleteFeaturesByCacheId(geoJson.cache.id, function(count) {
+          console.log('deleted %d features before test', count);
+          done();
+        });
+      });
+      after(function(done) {
+        FeatureModel.deleteFeaturesByCacheId(geoJson.cache.id, function(count) {
+          console.log('deleted %d features', count);
+          done();
         });
       });
       it('should pull the 0/0/0 tile for the cache', function(done) {
@@ -231,8 +191,8 @@ describe('geojson', function() {
           stream.on('end', function(){
             console.log('stream end event', geojsonString);
             var parsed = JSON.parse(geojsonString);
-            // parsed.should.exist();
-            // console.log('string is', geojsonString);
+            geojsonString.should.be.equal('{"type":"FeatureCollection","features":[{"geometry":{"type":"Point","coordinates":[-105.01621,39.57422]},"properties":{}}]}');
+            should.exist(parsed);
             done();
           });
           stream.on('error', function(err){
@@ -242,8 +202,21 @@ describe('geojson', function() {
             console.log('stream close');
           });
           stream.pipe(devnull());
-          // stream.pipe(lstream).pipe(devnull());
-
+        });
+      });
+      it('should generate the cache', function(done) {
+        geoJson.generateCache(function(err, cache, features) {
+          done();
+        });
+      });
+      it('should pull features for the cache', function(done) {
+        geoJson.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
+          if (err) {
+            done(err);
+            return;
+          }
+          features.length.should.equal(1);
+          done();
         });
       });
     });

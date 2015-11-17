@@ -25,6 +25,38 @@ var GeoJSON = function(config) {
 GeoJSON.prototype.initialize = function() {
 }
 
+GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
+  doneCallback = doneCallback || function() {};
+  progressCallback = progressCallback || function(cache, callback) {callback(null, cache);};
+  var cache = this.cache;
+
+  var extent = turf.extent(cache.geometry);
+  console.log('extent', extent);
+  console.log('cache source id', cache.source.id);
+
+  var map = this.cache.source;
+  var sorted = map.dataSources.sort(zOrderDatasources);
+  var params = cache.cacheCreationParams || {};
+  if (!params.dataSources || params.dataSources.length == 0) {
+    params.dataSources = [];
+    for (var i = 0; i < sorted.length; i++) {
+      params.dataSources.push(sorted[i].id);
+    }
+  }
+
+  async.eachSeries(sorted, function iterator(s, callback) {
+    if (params.dataSources.indexOf(s.id.toString()) == -1) {
+      return callback();
+    }
+    console.log('constructing the data source format %s', s.format);
+    FeatureModel.createCacheFeaturesFromSource(s.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+      callback();
+    });
+  }, function done() {
+    return doneCallback(null, cache);
+  });
+}
+
 GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(source, callback) {callback(null, source);};
@@ -170,6 +202,14 @@ function parseGeoJSONFile(source, callback, progressCallback) {
     });
 
   });
+}
+
+GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
+  if (this.source) {
+    FeatureModel.findFeaturesBySourceIdWithin(this.source.id, west, south, east, north, projection, callback);
+  } else {
+    FeatureModel.findFeaturesByCacheIdWithin(this.cache.id, west, south, east, north, projection, callback);
+  }
 }
 
 GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
