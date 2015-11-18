@@ -82,11 +82,6 @@ describe('MrSID', function() {
       mrsid = new MrSID({
         source: successDataSource
       });
-      // var stat = fs.statSync(__dirname + '/test_geotiff_out.png');
-      // console.log('stat', stat);
-      // if (stat.isFile()) {
-      //   fs.unlinkSync(__dirname + '/test_geotiff_out.png');
-      // }
     });
     after(function() {
     });

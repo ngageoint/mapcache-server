@@ -34,7 +34,6 @@ var gdal = require("gdal")
       }
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
-      console.log('extent', xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(polygon)));
       expandColorsIfNecessary(ds, source, function(err, source) {
         progressCallback(source, function(err, source) {
           createLowerResolution(ds, source, function(err, source) {
