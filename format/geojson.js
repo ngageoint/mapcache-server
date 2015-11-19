@@ -108,7 +108,9 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
       parseGeoJSONFile(updatedSource, function(err, updatedSource) {
         updatedSource.status.complete = true;
         updatedSource.status.message="Complete";
-        doneCallback(err, updatedSource);
+        source = updatedSource;
+        console.log('updated source style blabhabl', source);
+        doneCallback(err, source);
       }, progressCallback);
     } else {
       doneCallback(new Error('file does not exist and URL is not specified'));
@@ -124,14 +126,13 @@ function parseGeoJSONFile(source, callback, progressCallback) {
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
-    console.log('gjdata', gjData.features[0].geometry);
     // save the geojson to the db
     console.log('gjdata.features', gjData.features.length);
     var count = 0;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
       async.setImmediate(function() {
         var fivePercent = Math.floor(gjData.features.length * .05);
-        console.log('create feature', feature);
+        // console.log('create feature', feature);
         FeatureModel.createFeatureForSource(feature, source.id, function(err) {
           count++;
           // console.log('err', err);
@@ -165,7 +166,7 @@ function parseGeoJSONFile(source, callback, progressCallback) {
         geometry = turf.envelope(twoPoints);
       }
     	source.geometry = geometry;
-      source.style = {
+      source.style = source.style || {
     		defaultStyle: {
     			style: {
     				'fill': "#000000",
@@ -174,9 +175,9 @@ function parseGeoJSONFile(source, callback, progressCallback) {
     				'stroke-opacity': 1.0,
     				'stroke-width': 1
     			}
-    		},
-    		styles: []
+    		}
     	};
+      source.style.styles = source.style.styles || [];
       source.status.complete = true;
 			source.status.message = "Complete";
 			source.properties = [];

@@ -4,8 +4,6 @@ var request = require('request')
   , proj4 = require('proj4');
 
 var WMS = function(config) {
-  console.log('__dirname', __dirname);
-  console.log('require main filename', require.main.filename);
   config = config || {};
   this.source = config.source;
   if (config.cache) {
@@ -42,14 +40,13 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
 
 WMS.prototype.setSourceLayer = function(layer, callback) {
   this.source.wmsLayer = layer;
-  console.log('wmslayer', this.source.wmsLayer);
   if (layer.EX_GeographicBoundingBox) {
     var box = layer.EX_GeographicBoundingBox;
     this.source.geometry = turf.polygon([[
       [box[0], box[1]],
       [box[0], box[3]],
       [box[2], box[3]],
-      [box[2], box[1]], 
+      [box[2], box[1]],
       [box[0], box[1]]
     ]]);
   }

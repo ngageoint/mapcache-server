@@ -85,6 +85,7 @@ describe('geojson', function() {
           return done(err);
         }
         console.log('after the source has been processed', newSource);
+        console.log('XXXXXXXXXXX ----------------------', geojson.source);
         map.dataSources.push(newSource);
         newSource.status.message.should.equal("Complete");
         FeatureModel.getAllSourceFeatures(geojson.source.id, function(err, features) {

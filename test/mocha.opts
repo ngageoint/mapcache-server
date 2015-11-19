@@ -1,3 +1,4 @@
 --recursive
 --require should
 --reporter mochawesome
+--reporter-options reportDir=/tmp/mapcache-test

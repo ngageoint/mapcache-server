@@ -39,8 +39,8 @@ exports.getXYZFullyEncompassingExtent = function(extent, minZoom, maxZoom) {
 	zoom = zoom+1;
 	return {
 		z: zoom,
-		x: x,
-		y: y
+		x: x.min,
+		y: y.min
 	};
 }
 

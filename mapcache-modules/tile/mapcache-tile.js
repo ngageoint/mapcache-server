@@ -137,6 +137,10 @@ exports.createImage = function(tile, style, callback) {
       ctx.lineWidth = styles.weight;
       var rgbStroke = hexToRgb(styles.color);
       ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+			console.log('styles fill color', styles.fillColor);
+			console.log('rgbfill', rgbFill);
+			console.log('styles color', styles.color);
+			console.log('rgbstroke', rgbStroke);
     } else {
 			ctx = canvases[styles.styleId].ctx;
 		}
