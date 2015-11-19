@@ -166,8 +166,9 @@ exports.createImage = function(tile, style, callback) {
 			}
 		}
 
-		ctx.closePath();
-		ctx.fill('evenodd');
+		if (type == 'Polygon' || type == 'MultiPolygon' || type == 'Point') {
+			ctx.fill('evenodd');
+		}
     ctx.stroke();
   }
 
@@ -187,11 +188,17 @@ function drawPoint(point, ctx, ratio) {
 }
 
 function drawLine(line, ctx, ratio) {
+	var move = true;
 	for (var k = 0; k < line.length; k++) {
 		var coord = line[k];
 		if (coord[0] == null || coord[1] == null) continue;
-		if (k) ctx.lineTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
-		else ctx.moveTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
+
+		if (!move) {
+			ctx.lineTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
+		}	else {
+			ctx.moveTo(~~(coord[0] * ratio), ~~(256-(coord[1] * ratio)));
+			move = false;
+		}
 	}
 }
 
