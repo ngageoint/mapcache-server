@@ -63,6 +63,16 @@ Map.prototype.addDataSource = function(ds, callback) {
   }
 }
 
+// Map.prototype.getDataWithin = function(west, south, east, north, projection, sourceDataCallback, doneCallback) {
+//   this.initPromise.then(function(self) {
+//     async.eachSeries(self.map.dataSources, function iterator(s, callback) {
+//       sourceDataCallback()
+//     }, function done() {
+//
+//     });
+//   });
+// }
+
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
   this.initPromise.then(function(self) {
     var dir = createDir(self.map.outputDirectory + '/' + self.map.id, '/tiles/' + z + '/' + x + '/');
@@ -92,12 +102,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     ctx.clearRect(0, 0, height, height);
 
     async.eachSeries(sorted, function iterator(s, callback) {
-      console.log('s.id', s.source.id);
-      console.log('params.datasources', params.dataSources);
       if (params.dataSources.indexOf(s.source.id) == -1) return callback();
-      console.log('constructing the data source %s', s.source.name);
-      // var DataSource = require('../format/' + s.format);
-      // var dataSource = new DataSource({source: s});
       s.getTile(format, z, x, y, params, function(err, tileStream) {
         var buffer = new Buffer(0);
         var chunk;
@@ -114,7 +119,6 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         });
       });
     }, function done() {
-      console.log('done getting tile for cache');
       var stream = fs.createWriteStream(dir + filename);
       stream.on('close',function(status){
       });

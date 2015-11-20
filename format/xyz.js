@@ -3,9 +3,11 @@ var tileImage = require('tile-image')
   , Image = Canvas.Image
   , fs = require('fs-extra')
   , request = require('request')
+  , turf = require('turf')
+  , xyzTileUtils = require('xyz-tile-utils')
   , async = require('async');
 
-var Xyz = function(config) {
+var XYZ = function(config) {
   this.config = config || {};
   this.source = config.source;
   this.cache = config.cache;
@@ -14,26 +16,64 @@ var Xyz = function(config) {
   }
 }
 
-Xyz.prototype.initialize = function() {
+XYZ.prototype.initialize = function() {
 }
 
-Xyz.prototype.processSource = function(doneCallback, progressCallback) {
+XYZ.prototype.processSource = function(doneCallback, progressCallback) {
   this.source.status = this.source.status || {};
   this.source.status.message = "Complete";
   this.source.status.complete = true;
   doneCallback(null, this.source);
 }
 
-Xyz.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
+XYZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   callback(null, null);
 }
 
-Xyz.prototype.getTile = function(format, z, x, y, params, callback) {
+XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
   if (this.source) {
     getTileFromSource(this.source, z, x, y, format, callback);
   } else if (this.cache) {
-    getTileForCache(this.cache, z, x, y, format, params, this.config.outputDirectory, callback);
+    getTileForCache(this.cache.cache, z, x, y, format, params, this.config.outputDirectory, callback);
   }
+}
+
+XYZ.prototype.generateCache = function(callback, progressCallback) {
+  var self = this;
+  callback = callback || function() {};
+  progressCallback = progressCallback || function(cache, callback) {
+    callback(null, cache);
+  }
+  var cache = this.cache.cache;
+  xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, callback) {
+    console.log('process the tile', tile);
+    var dir = createDir(cache.outputDirectory + '/' + cache.id, 'xyztiles/' + tile.z + '/' + tile.x + '/');
+    var filename = tile.y + '.png';
+
+    if (fs.existsSync(dir + filename) && !cache.cacheCreationParams.noCache) {
+      console.log('file already exists, skipping: %s', dir+filename);
+      return callback(null, tile);
+    } else {
+      cache.source.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
+        console.log('got the tile stream for tile', tile);
+        var ws = fs.createWriteStream(dir+filename);
+        stream.pipe(ws);
+        stream.on('end', function(){
+          callback(null, tile);
+        });
+      });
+    }
+  },
+  function(zoom, callback) {
+    console.log('zoom level %d is done', zoom);
+    callback();
+  },
+  function(err, data) {
+    console.log('all tiles are done');
+    console.log('data', data);
+    self.cache.cache = data;
+    callback(null, self.cache);
+  });
 }
 
 function zOrderDatasources(a, b) {
@@ -56,7 +96,7 @@ function getTileForCache(cache, z, x, y, format, params, outputDirectory, callba
     return callback(null, fs.createReadStream(dir+filename));
   }
 
-  var map = cache.source;
+  var map = cache.source.map;
   var sorted = map.dataSources.sort(zOrderDatasources);
   params = params || {};
   if (!params.dataSources || params.dataSources.length == 0) {
@@ -73,7 +113,9 @@ function getTileForCache(cache, z, x, y, format, params, outputDirectory, callba
   ctx.clearRect(0, 0, height, height);
 
   async.eachSeries(sorted, function iterator(s, callback) {
+    s = s.source;
     if (params.dataSources.indexOf(s.id) == -1) return callback();
+    console.log('s', s);
     console.log('constructing the data source format %s', s.format);
     var DataSource = require('./' + s.format);
     var dataSource = new DataSource({source: s});
@@ -128,4 +170,4 @@ function createDir(cacheName, filepath){
   return cacheName +'/'+ filepath;
 }
 
-module.exports = Xyz;
+module.exports = XYZ;

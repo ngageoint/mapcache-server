@@ -1,3 +1,5 @@
+var async = require('async');
+
 Math.radians = function(degrees) {
   return degrees * Math.PI / 180;
 };
@@ -14,6 +16,14 @@ function tile2lon(x,z) {
 function tile2lat(y,z) {
   var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
   return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+}
+
+function long2tile(lon,zoom) {
+  return (Math.floor((lon+180)/360*Math.pow(2,zoom)));
+}
+
+function lat2tile(lat,zoom) {
+  return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom)));
 }
 
 var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984,305.492,152.746,76.373,38.187,19.093,9.547,4.773,2.387,1.193,0.596,0.298];
@@ -57,36 +67,89 @@ exports.tileBboxCalculator = function(x, y, z) {
   return tileBounds;
 }
 
-exports.xCalculator = function(bbox,z) {
-	var x = [];
-	var x1 = exports.getX(Number(bbox[0]), z);
-	var x2 = exports.getX(Number(bbox[2]), z);
-	x.max = Math.max(x1, x2);
-	x.min = Math.max(0,Math.min(x1, x2));
-	if (z == 0){
-		x.current = Math.min(x1, x2);
-	}
-	return x;
+exports.calculateXTileRange = function(bbox, z) {
+  var west = long2tile(bbox[0], z);
+  var east = long2tile(bbox[2], z);
+  return {
+    min: Math.max(0, Math.min(west, east)),
+    max: Math.max(west, east)
+  };
 }
 
-exports.yCalculator = function(bbox,z) {
-	var y = [];
-	var y1 = exports.getY(Number(bbox[1]), z);
-	var y2 = exports.getY(Number(bbox[3]), z);
-	y.max = Math.max(y1, y2);
-	y.min = Math.max(0,Math.min(y1, y2));
-	y.current = Math.min(y1, y2);
-	return y;
+exports.calculateYTileRange = function(bbox, z) {
+  var south = lat2tile(bbox[1], z);
+  var north = lat2tile(bbox[3], z);
+  return {
+    min: Math.max(0, Math.min(south, north)),
+    max: Math.max(south, north),
+    current: Math.max(0,Math.min(south, north))
+  };
 }
 
-exports.getX = function(lon, zoom) {
-	if (zoom == 0) return 0;
-	var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
-	return xtile;
+exports.iterateAllTilesInExtent = function(extent, minZoom, maxZoom, data, processTileCallback, zoomCompleteCallback, completeCallback) {
+  var zoom = minZoom;
+  async.whilst(
+    function (stopIterating) {
+      return zoom <= maxZoom && !stopIterating;
+    },
+    function (zoomLevelDone) {
+      var yRange = exports.calculateYTileRange(extent, zoom);
+      var xRange = exports.calculateXTileRange(extent, zoom);
+      console.log('the x range for zoom %d is', zoom, xRange);
+      console.log('the y range for zoom %d is', zoom, yRange);
+      var currentx = xRange.min;
+
+      async.doWhilst(
+        function(xRowDone) {
+          getXRow(data, currentx, yRange, zoom, xRowDone, processTileCallback);
+        },
+        function (stopIterating) {
+          currentx++;
+          return currentx <= xRange.max && !stopIterating;
+        },
+        function (stop) {
+          zoomCompleteCallback(zoom, function() {
+            zoom++;
+            zoomLevelDone(stop);
+          });
+        }
+      );
+    },
+    function (err) {
+      completeCallback(err, data);
+    }
+  );
 }
 
-exports.getY = function(lat, zoom) {
-	if (zoom == 0) return 0;
-	var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
-	return ytile;
+function pushNextTileTasks(q, data, zoom, x, yRange, numberOfTasks, stopCallback) {
+  if (yRange.current > yRange.max) return false;
+  for (var i = yRange.current; i <= yRange.current + numberOfTasks && i <= yRange.max; i++) {
+    var tile = {z:zoom, x: x, y: i, data: data};
+    q.push({z:zoom, x: x, y: i, data: data}, stopCallback);
+  }
+  yRange.current = yRange.current + numberOfTasks;
+  return true;
+}
+
+function getXRow(data, xRow, yRange, zoom, xRowDone, processTileCallback) {
+  var q = async.queue(processTileCallback, 100);
+
+  q.drain = function(err) {
+    var tasksPushed = pushNextTileTasks(q, data, zoom, xRow, yRange, 10, function(stop) {
+      if (stop) {
+        q.kill();
+        xRowDone(true);
+      }
+    });
+    if (!tasksPushed) {
+      yRange.current = yRange.min;
+      xRowDone();
+    }
+  };
+  pushNextTileTasks(q, data, zoom, xRow, yRange, 10, function(stop) {
+    if (stop) {
+      q.kill();
+      xRowDone(true);
+    }
+  });
 }

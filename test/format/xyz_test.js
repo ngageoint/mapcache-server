@@ -2,6 +2,7 @@ var assert = require('assert')
   , turf = require('turf')
   , lengthStream = require('length-stream')
   , devnull = require('dev-null')
+  , Cache = require('../../cache/cache')
   , should = require('should');
 
 var osmDataSource = {
@@ -29,16 +30,20 @@ var cache = {
   id: 'test-cache',
   name: 'osm test cache',
   geometry: turf.polygon([[
-    [-180, -85],
-    [-180, 85],
-    [180, 85],
-    [180, -85],
-    [-180, -85]
+    [-179, -85],
+    [-179, 85],
+    [179, 85],
+    [179, -85],
+    [-179, -85]
   ]]),
   minZoom: 0,
   maxZoom: 2,
   formats: ['xyz'],
-  source: map
+  source: map,
+  cacheCreationParams: {
+    dataSources: ['test-ds']
+  },
+  outputDirectory: '/tmp'
 };
 
 var XYZ = require('../../format/xyz');
@@ -100,10 +105,14 @@ describe('xyz', function() {
 
   describe('cache tests', function() {
     var xyz;
-    before(function() {
-      xyz = new XYZ({
-        cache: cache,
-        outputDirectory:'/tmp'
+    before(function(done) {
+      var cacheObj = new Cache(cache);
+      cacheObj.callbackWhenInitialized(function(err, cacheObj) {
+        xyz = new XYZ({
+          cache: cacheObj,
+          outputDirectory:'/tmp/1'
+        });
+        done();
       });
     });
     it('should pull the 0/0/0 tile for the cache', function(done) {
@@ -120,6 +129,15 @@ describe('xyz', function() {
         stream.pipe(lstream).pipe(devnull());
 
       });
+    });
+    it('should generate the cache', function(done) {
+      this.timeout(0);
+      xyz.generateCache(function(err, cache) {
+        console.log('done', cache);
+        done();
+      }, function(cache, callback) {
+        console.log('progress', cache);
+      })
     });
   });
 });

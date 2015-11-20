@@ -90,7 +90,7 @@ describe('vectortests', function() {
           }
         }
       }
-    };
+    }; 
     map = new Map({
      outputDirectory: '/tmp',
      id: 'test-map',

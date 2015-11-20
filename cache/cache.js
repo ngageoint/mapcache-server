@@ -21,6 +21,7 @@ Cache.prototype.initialize = function() {
     console.log('make a map');
     var map = new Map(this.cache.source);
     map.callbackWhenInitialized(function(err, map) {
+      console.log('map was initialized');
       self.cache.source = map;
       self.initDefer.resolve(self);
     });
@@ -30,11 +31,17 @@ Cache.prototype.initialize = function() {
   }
 }
 
+Cache.prototype.callbackWhenInitialized = function(callback) {
+  this.initPromise.then(function(self) {
+    callback(null, self);
+  });
+}
+
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   this.initPromise.then(function(self) {
     params = util._extend(params, self.cache.cacheCreationParams);
     var dir = createDir(self.cache.outputDirectory + '/' + self.cache.id, '/tiles/' + z + '/' + x + '/');
-    var filename = y + '.png';
+    var filename = y + '.' + format;
     console.log('params are now', JSON.stringify(params, null, 2));
 
     if (fs.existsSync(dir + filename) && !params.noCache) {
@@ -52,6 +59,31 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
     });
   });
 }
+
+// Cache.prototype.getDataWithin = function(west, south, east, north, projection, sourceDataCallback, doneCallback) {
+//   this.initPromise.then(function(self) {
+//
+//     self.cache.source.getDataWithin(west, south, east, north, projection, sourceDataCallback, doneCallback);
+//     // params = util._extend(params, self.cache.cacheCreationParams);
+//     // var dir = createDir(self.cache.outputDirectory + '/' + self.cache.id, '/tiles/' + z + '/' + x + '/');
+//     // var filename = y + '.' + format;
+//     // console.log('params are now', JSON.stringify(params, null, 2));
+//     //
+//     // if (fs.existsSync(dir + filename) && !params.noCache) {
+//     //   console.log('file already exists, skipping: %s', dir+filename);
+//     //   return callback(null, fs.createReadStream(dir+filename));
+//     // }
+//     // self.cache.source.getTile(format, z, x, y, params, function(err, tileStream) {
+//     //   var stream = fs.createWriteStream(dir + filename);
+//     //     stream.on('close',function(status){
+//     //   });
+//     //
+//     //   tileStream.pipe(stream);
+//     //
+//     //   callback(null, tileStream);
+//     // });
+//   });
+// }
 
 function createDir(cacheName, filepath){
 	if (!fs.existsSync(cacheName +'/'+ filepath)) {
