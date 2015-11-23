@@ -5,6 +5,7 @@ var fs = require('fs-extra')
 	, Readable = require('stream').Readable
 	, xyzTileUtils = require('xyz-tile-utils')
 	, Image = Canvas.Image
+	, async = require('async')
 	, config = require('mapcache-config')
 	, mapcacheModels = require('mapcache-models')
 	, SourceModel = mapcacheModels.Source
@@ -70,21 +71,23 @@ function handleTileData(tile, format, source, imageTile, callback) {
 			return exports.createImage(tile, source.style, function(err, pngStream) {
 				var size = 0;
 				var done = true;
-				pngStream.on('data', function(chunk) {
-					size += chunk.length;
-				});
-				pngStream.on('end', function() {
-					if (!done && source){
-						SourceModel.updateSourceAverageSize(source, size, function(err) {
-						});
-						done = true;
-					}
-				});
-				fs.mkdirsSync(path.dirname(imageTile), function(err){
-					 if (err) console.log(err);
-				 });
-				var tileWriter = fs.createWriteStream(imageTile);
-				pngStream.pipe(tileWriter);
+				// pngStream.on('data', function(chunk) {
+				// 	size += chunk.length;
+				// });
+				// pngStream.on('end', function() {
+				// 	if (!done && source){
+				// 		// SourceModel.updateSourceAverageSize(source, size, function(err) {
+				// 		// });
+				// 		done = true;
+				// 	}
+				// });
+
+
+				// fs.mkdirsSync(path.dirname(imageTile), function(err){
+				// 	 if (err) console.log(err);
+				//  });
+				// var tileWriter = fs.createWriteStream(imageTile);
+				// pngStream.pipe(tileWriter);
 				return callback(err, pngStream);
 			});
 		} else if (format == 'geojson') {
@@ -119,72 +122,92 @@ exports.createImage = function(tile, style, callback) {
 	// console.time('creating image for tile', tile);
 	var ratio = 256 / 4096;
 	var features = tile;
+	console.log('creating image with %d features', features.length);
 
 	var points = 0;
+	var drawnFeatures = 0;
 
-  for (var i = 0; i < features.length; i++) {
-		var feature = JSON.parse(features[i].geometry);
-		var type = feature.type;
-		var ctx;
-		var styles = styleFunction(features[i], style);
-		// console.log('styles.styleId', styles.styleId);
-    if (styles && !canvases[styles.styleId]) {
-			var canvas = new Canvas(256,256);
-		  var ctx = canvas.getContext('2d');
-			canvases[styles.styleId] = {canvas: canvas, ctx: ctx};
-      var rgbFill = hexToRgb(styles.fillColor);
-      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
-      ctx.lineWidth = styles.weight;
-      var rgbStroke = hexToRgb(styles.color);
-      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-			console.log('styles fill color', styles.fillColor);
-			console.log('rgbfill', rgbFill);
-			console.log('styles color', styles.color);
-			console.log('rgbstroke', rgbStroke);
-    } else {
-			ctx = canvases[styles.styleId].ctx;
-		}
-
-    ctx.beginPath();
-
-    var geom = feature.coordinates;
-
-    if (type === 'Point' && points < 10000) {
-			points++;
-      drawPoint(geom, ctx, ratio);
-    } else if (type === 'MultiPoint') {
-			for (var point = 0; point < geom.length; point++) {
-				drawPoint(geom[point], ctx, ratio);
+	async.eachSeries(features, function(geoJsonFeature, callback) {
+		async.setImmediate(function () {
+			var feature = JSON.parse(geoJsonFeature.geometry);
+			var type = feature.type;
+			var ctx;
+			var styles = styleFunction(geoJsonFeature, style);
+			// console.log('styles.styleId', styles.styleId);
+	    if (styles && !canvases[styles.styleId]) {
+				var canvas = new Canvas(256,256);
+			  var ctx = canvas.getContext('2d');
+				canvases[styles.styleId] = {canvas: canvas, ctx: ctx};
+	      var rgbFill = hexToRgb(styles.fillColor);
+	      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+	      ctx.lineWidth = styles.weight;
+	      var rgbStroke = hexToRgb(styles.color);
+	      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+				console.log('styles fill color', styles.fillColor);
+				console.log('rgbfill', rgbFill);
+				console.log('styles color', styles.color);
+				console.log('rgbstroke', rgbStroke);
+	    } else {
+				ctx = canvases[styles.styleId].ctx;
 			}
-		} else if (type === 'LineString') {
-			drawLine(geom, ctx, ratio);
-		} else if (type === 'MultiLineString') {
-			for (var line = 0; line < geom.length; line++) {
-				drawLine(geom[line], ctx, ratio);
+
+	    ctx.beginPath();
+
+	    var geom = feature.coordinates;
+
+	    if (type === 'Point' && points < 10000) {
+				points++;
+				drawnFeatures++;
+	      drawPoint(geom, ctx, ratio);
+	    } else if (type === 'MultiPoint') {
+				drawnFeatures++;
+				for (var point = 0; point < geom.length; point++) {
+					drawPoint(geom[point], ctx, ratio);
+				}
+			} else if (type === 'LineString') {
+				drawnFeatures++;
+				drawLine(geom, ctx, ratio);
+			} else if (type === 'MultiLineString') {
+				drawnFeatures++;
+				for (var line = 0; line < geom.length; line++) {
+					drawLine(geom[line], ctx, ratio);
+				}
+			} else if (type === 'Polygon') {
+				drawnFeatures++;
+				drawPolygon(geom, ctx, ratio);
+			} else if (type === 'MultiPolygon') {
+				drawnFeatures++;
+				for (var poly = 0; poly < geom.length; poly++) {
+					drawPolygon(geom[poly], ctx, ratio);
+				}
 			}
-		} else if (type === 'Polygon') {
-			drawPolygon(geom, ctx, ratio);
-		} else if (type === 'MultiPolygon') {
-			for (var poly = 0; poly < geom.length; poly++) {
-				drawPolygon(geom[poly], ctx, ratio);
+
+			if (type == 'Polygon' || type == 'MultiPolygon' || type == 'Point') {
+				ctx.fill('evenodd');
 			}
-		}
+	    ctx.stroke();
+			callback();
+		});
+	}, function() {
+		var finalCanvas = new Canvas(256,256);
+		var finalCtx = finalCanvas.getContext('2d');
+		async.forEachOfSeries(canvases, function(canvas, key, callback) {
+			var img = new Image;
 
-		if (type == 'Polygon' || type == 'MultiPolygon' || type == 'Point') {
-			ctx.fill('evenodd');
-		}
-    ctx.stroke();
-  }
+			img.onload = function() {
+				console.log('img height %d img width %d', img.height, img.width);
+				finalCtx.drawImage(img, 0, 0, 256, 256);
+				callback();
+			};
+			img.src = canvases[key].canvas.toBuffer();
+		}, function() {
+			console.timeEnd('creating image');
+			console.log('finished creating image with %d features', drawnFeatures);
 
-	var finalCanvas = new Canvas(256,256);
-	var finalCtx = finalCanvas.getContext('2d');
+		  callback(null, finalCanvas.pngStream());
+		});
+	});
 
-	for (var key in canvases) {
-		finalCtx.drawImage(canvases[key].canvas, 0, 0);
-	}
-
-	console.timeEnd('creating image');
-  callback(null, finalCanvas.pngStream());
 }
 
 function drawPoint(point, ctx, ratio) {

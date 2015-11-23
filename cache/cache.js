@@ -50,12 +50,13 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
     }
     self.cache.source.getTile(format, z, x, y, params, function(err, tileStream) {
       var stream = fs.createWriteStream(dir + filename);
-        stream.on('close',function(status){
+
+      stream.on('close',function(status){
       });
 
       tileStream.pipe(stream);
 
-      callback(null, tileStream);
+      callback(null, stream);
     });
   });
 }

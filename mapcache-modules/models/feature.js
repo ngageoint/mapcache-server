@@ -180,7 +180,7 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 	.from('features')
 	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
 	.andWhere({source_id: sourceId})
-	.limit(100000)
+	// .limit(100000)
 	.then(function(collection){
 		console.timeEnd('fetching data');
 		console.log('returned ' + collection.length + ' features');

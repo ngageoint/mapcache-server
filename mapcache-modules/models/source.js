@@ -28,7 +28,7 @@ var DatasourceSchema = new Schema({
     message: { type: String, required: false},
     complete: {type: Boolean, required: true, default: false},
     totalFeatures: {type: Number, required: true, default: 0},
-    failure: { type: Boolean, required, true, default: false}
+    failure: { type: Boolean, required: true, default: false}
   },
   properties: Schema.Types.Mixed,
   style: Schema.Types.Mixed,

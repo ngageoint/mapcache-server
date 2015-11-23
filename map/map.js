@@ -3,6 +3,7 @@ var models = require('mapcache-models')
   , Image = Canvas.Image
   , fs = require('fs-extra')
   , async = require('async')
+  , path = require('path')
   , q = require('q');
 
 var Map = function(map) {
@@ -48,6 +49,7 @@ Map.prototype.addDataSource = function(ds, callback) {
       });
     }
   } else {
+    console.log('ds', ds);
     var DataSource = require('../format/'+ds.format);
     var dsObj = new DataSource({source: ds});
     console.log('dsObj', dsObj);
@@ -74,14 +76,19 @@ Map.prototype.addDataSource = function(ds, callback) {
 // }
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
+  console.log('getting the tile from the map in map');
   this.initPromise.then(function(self) {
+    console.log('promise resolved');
+    console.log('create the dir', self.map.outputDirectory + '/' + self.map.id, '/tiles/' + z + '/' + x + '/');
     var dir = createDir(self.map.outputDirectory + '/' + self.map.id, '/tiles/' + z + '/' + x + '/');
     var filename = y + '.png';
+    console.log('created the map directory', dir);
 
-    if (fs.existsSync(dir + filename) && !params.noCache) {
-      console.log('file already exists, skipping: %s', dir+filename);
-      return callback(null, fs.createReadStream(dir+filename));
+    if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {
+      console.log('file already exists, skipping: %s', path.join(dir, filename));
+      return callback(null, fs.createReadStream(path.join(dir, filename)));
     }
+    console.log('%s does not exist so we will create it', path.join(dir, filename));
 
     var sorted = self.map.dataSources.sort(zOrderDatasources);
     console.log('params in the map', params);
@@ -112,14 +119,17 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         tileStream.on('end', function() {
           var img = new Image;
           img.onload = function() {
+            console.log('img.width', img.width);
+            console.log('img.height', img.height);
             ctx.drawImage(img, 0, 0, img.width, img.height);
+            console.log('done drawing source', s.source.id);
             callback();
           };
           img.src = buffer;
         });
       });
     }, function done() {
-      var stream = fs.createWriteStream(dir + filename);
+      var stream = fs.createWriteStream(path.join(dir, filename));
       stream.on('close',function(status){
       });
 
@@ -142,12 +152,12 @@ function zOrderDatasources(a, b) {
 }
 
 function createDir(cacheName, filepath){
-	if (!fs.existsSync(cacheName +'/'+ filepath)) {
-    fs.mkdirsSync(cacheName +'/'+ filepath, function(err){
+	if (!fs.existsSync(path.join(cacheName,filepath))) {
+    fs.mkdirsSync(path.join(cacheName,filepath), function(err){
        if (err) console.log(err);
      });
 	}
-  return cacheName +'/'+ filepath;
+  return path.join(cacheName,filepath);
 }
 
 module.exports = Map;

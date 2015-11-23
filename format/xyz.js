@@ -4,16 +4,19 @@ var tileImage = require('tile-image')
   , fs = require('fs-extra')
   , request = require('request')
   , turf = require('turf')
+  , path = require('path')
   , xyzTileUtils = require('xyz-tile-utils')
   , async = require('async');
 
 var XYZ = function(config) {
+  console.log('config', config);
   this.config = config || {};
   this.source = config.source;
   this.cache = config.cache;
   if (config.cache && !config.outputDirectory) {
     throw new Error('An output directory must be specified in config.outputDirectory');
   }
+  console.log('turd');
 }
 
 XYZ.prototype.initialize = function() {
@@ -39,6 +42,7 @@ XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
 }
 
 XYZ.prototype.generateCache = function(callback, progressCallback) {
+  console.log('generate cache');
   var self = this;
   callback = callback || function() {};
   progressCallback = progressCallback || function(cache, callback) {
@@ -50,15 +54,17 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     var dir = createDir(cache.outputDirectory + '/' + cache.id, 'xyztiles/' + tile.z + '/' + tile.x + '/');
     var filename = tile.y + '.png';
 
-    if (fs.existsSync(dir + filename) && !cache.cacheCreationParams.noCache) {
-      console.log('file already exists, skipping: %s', dir+filename);
+    if (fs.existsSync(path.join(dir, filename)) && (!cache.cacheCreationParams || (cache.cacheCreationParams && !cache.cacheCreationParams.noCache))) {
+      console.log('file already exists, skipping: %s', path.join(dir, filename));
       return callback(null, tile);
     } else {
+      console.log('the file %s does not exist for the xyz cache, creating', path.join(dir, filename));
+      console.log('getting the tile from the map');
       cache.source.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
         console.log('got the tile stream for tile', tile);
-        var ws = fs.createWriteStream(dir+filename);
+        var ws = fs.createWriteStream(path.join(dir, filename));
         stream.pipe(ws);
-        stream.on('end', function(){
+        ws.on('finish', function(){
           callback(null, tile);
         });
       });
@@ -162,12 +168,12 @@ function getTileFromSource(source, z, x, y, format, callback) {
 }
 
 function createDir(cacheName, filepath){
-	if (!fs.existsSync(cacheName +'/'+ filepath)) {
-    fs.mkdirsSync(cacheName +'/'+ filepath, function(err){
+	if (!fs.existsSync(path.join(cacheName, filepath))) {
+    fs.mkdirsSync(path.join(cacheName, filepath), function(err){
        if (err) console.log(err);
      });
 	}
-  return cacheName +'/'+ filepath;
+  return path.join(cacheName, filepath);
 }
 
 module.exports = XYZ;
