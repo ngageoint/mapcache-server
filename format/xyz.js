@@ -16,7 +16,6 @@ var XYZ = function(config) {
   if (config.cache && !config.outputDirectory) {
     throw new Error('An output directory must be specified in config.outputDirectory');
   }
-  console.log('turd');
 }
 
 XYZ.prototype.initialize = function() {
