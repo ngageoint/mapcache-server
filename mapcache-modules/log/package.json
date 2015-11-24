@@ -1,0 +1,26 @@
+{
+  "name": "mapcache-log",
+  "version": "0.0.1",
+  "description": "mapcache-log",
+  "keywords": [
+    "NGA",
+    "mapcache"
+  ],
+  "author": {
+    "name": "NGA"
+  },
+  "contributors": {
+    "name": "Daniel Barela",
+    "email": "barelad@bit-sys.com"
+  },
+  "homepage": "https://www1.nga.mil",
+  "engines": {
+    "node": ">= 0.8.0",
+    "npm": ">= 1.2.0"
+  },
+  "private": true,
+  "main": "logger.js",
+  "dependencies": {
+    "winston": "^2.1.1"
+  }
+}
