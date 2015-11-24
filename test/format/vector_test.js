@@ -1,5 +1,7 @@
 var turf = require('turf')
-  , fs = require('fs')
+  , log = require('mapcache-log')
+  , fs = require('fs-extra')
+  , path = require('path')
   , async = require('async')
   , FeatureModel = require('mapcache-models').Feature
   , GeoJSON = require('../../format/geojson')
@@ -18,7 +20,7 @@ var cacheModel = {
     [-180, -85]
   ]]),
   minZoom: 0,
-  maxZoom: 4,
+  maxZoom: 1,
   formats: ['xyz']
 };
 
@@ -210,7 +212,7 @@ describe('vectortests', function() {
     //
     // s.pipe(ws);
 
-    hexMap.getTile('png', 6, 13, 24, {noCache: true}, function(err, stream) {
+    hexMap.getTile('png', 7, 22, 51, {noCache: true}, function(err, stream) {
       if (err) {
         done(err);
         return;
@@ -219,12 +221,6 @@ describe('vectortests', function() {
       var ws = fs.createWriteStream('/tmp/hex_test.png');
 
       stream.pipe(ws);
-      // stream.on('data', function(chunk) {
-      //   ws.write(chunk);
-      // });
-      // stream.on('end', function() {
-      //   ws.end();
-      // });
       ws.on('finish', function() {
         done();
       });
@@ -232,40 +228,46 @@ describe('vectortests', function() {
     });
   });
 
-  it('should construct a hex cache and pull the tile', function (done) {
-    this.timeout(0);
+  describe('caching hexes', function() {
 
-    cacheModel.source = hexMap;
-    cacheModel.outputDirectory = '/tmp/hexcache';
+    var cacheDir = '/tmp/testcaches';
+    var cacheName = 'hex-cache';
 
-    var cache = new Cache(cacheModel);
-    cache.callbackWhenInitialized(function(err, cache) {
-      console.log('cache initialized');
-      var xyzCache = new XYZ({cache: cache, outputDirectory: cacheModel.outputDirectory});
-      console.log('xyzcache', xyzCache);
-      xyzCache.generateCache(function(err, cache) {
-        console.log('cache is done generating', cache);
-        done();
-      },
-      function(cache, callback) {
-        console.log('progress on the cache', cache);
-        callback(null, cache);
-      });
+    before(function(done) {
+      fs.remove(path.join(cacheDir, cacheName), done);
     });
 
-    // cache.getTile('png', 0, 0, 0, {noCache: true}, function(err, stream) {
-    //   if (err) {
-    //     done(err);
-    //     return;
-    //   }
-    //
-    //   var ws = fs.createWriteStream('/tmp/vector_cache_test.png');
-    //   stream.pipe(ws);
-    //   stream.on('end', function() {
-    //     done();
-    //   });
-    //
-    // });
+    after(function(done) {
+      log.info('copy over the leaflet page', path.join(__dirname, '../leaflet/index.html'));
+      fs.copy(path.join(__dirname, '../leaflet/index.html'), path.join(cacheDir, cacheName, 'index.html'), done);
+    });
+
+    it('should construct a hex cache', function (done) {
+      this.timeout(0);
+
+      cacheModel.source = hexMap;
+      cacheModel.outputDirectory = '/tmp/testcaches';
+
+      cacheModel.id = cacheName;
+      cacheModel.cacheCreationParams = {
+        noCache: false
+      };
+
+      var cache = new Cache(cacheModel);
+      cache.callbackWhenInitialized(function(err, cache) {
+        log.info('cache initialized');
+        var xyzCache = new XYZ({cache: cache, outputDirectory: cacheModel.outputDirectory});
+        log.info('xyzcache %s', xyzCache.cache.cache.name);
+        xyzCache.generateCache(function(err, cache) {
+          log.info('cache is done generating %s', cache.cache.name);
+          done();
+        },
+        function(cache, callback) {
+          log.info('progress on the cache %s', cache.name);
+          callback(null, cache);
+        });
+      });
+    });
   });
 
   xit('should pull a tile from the map', function (done) {

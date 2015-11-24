@@ -8,33 +8,25 @@ winston.add(winston.transports.Console, {
   colorize: true
 });
 
-var mongooseLogger = winston.loggers.add('mongoose', {
+var logger = winston.loggers.add('console', {
   transports: [
     new (winston.transports.Console)({
-      level: 'mongoose',
+      level: 'console',
       timestamp: true,
       colorize: true
     })
   ]
 });
 
-winston.addColors({mongoose: 'cyan'});
-mongooseLogger.setLevels({ mongoose: 0});
-
-var logger = new winston.Logger();
-
-logger.add(winston.transports.Console, {
-  colorize: true,
-  timestamp: true,
-  level: 'debug'
-});
+logger.setLevels({console: 4, debug: 3, info: 2, warn: 1, error: 0});
+winston.addColors({console: 'america'});
 
 function formatArgs(args){
   return [util.format.apply(util.format, Array.prototype.slice.call(args))];
 }
 
 console.log = function(){
-  logger.debug.apply(logger, formatArgs(arguments));
+  logger.console.apply(logger, formatArgs(arguments));
 };
 console.info = function(){
   logger.info.apply(logger, formatArgs(arguments));

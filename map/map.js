@@ -1,4 +1,5 @@
 var models = require('mapcache-models')
+  , log = require('mapcache-log')
   , Canvas = require('canvas')
   , Image = Canvas.Image
   , fs = require('fs-extra')
@@ -20,13 +21,14 @@ Map.prototype.callbackWhenInitialized = function(callback) {
 }
 
 Map.prototype.initialize = function(callback) {
+  log.info('Initializing the map with id %s', this.map.id);
   var tempDataSources = this.map.dataSources || [];
   this.map.dataSources = [];
   var self = this;
   async.eachSeries(tempDataSources, function(ds, done) {
     self.addDataSource(ds, done);
   }, function done() {
-    console.log('the map is now', self.map.dataSources);
+    log.debug('the map is now', self.map.dataSources);
     if (callback) {
       callback(null, self);
     }
@@ -35,30 +37,32 @@ Map.prototype.initialize = function(callback) {
 }
 
 Map.prototype.addDataSource = function(ds, callback) {
-  console.log('ds', ds);
   var self = this;
   if (ds.getTile) {
     if (ds.source.status && ds.source.status.complete) {
+      log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
       self.map.dataSources.push(ds);
       callback(null, ds);
     } else {
+      log.debug('Processing the datasource %s to add to the map %s', ds.source.id, this.map.id);
       ds.processSource(function(err, source) {
         self.map.dataSources.push(ds);
-        console.log('source', source);
+        log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
         callback(null, ds);
       });
     }
   } else {
-    console.log('ds', ds);
     var DataSource = require('../format/'+ds.format);
     var dsObj = new DataSource({source: ds});
-    console.log('dsObj', dsObj);
     if (dsObj.source.status && dsObj.source.status.complete) {
       self.map.dataSources.push(dsObj);
+      log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, this.map.id);
       callback(null, dsObj);
     } else {
+      log.debug('Processing the datasource %s to add to the map %s', ds.id, this.map.id);
       dsObj.processSource(function(err, source) {
         self.map.dataSources.push(dsObj);
+        log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, this.map.id);
         callback(null, dsObj);
       });
     }
@@ -76,22 +80,20 @@ Map.prototype.addDataSource = function(ds, callback) {
 // }
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
-  console.log('getting the tile from the map in map');
+  log.info('get tile %d/%d/%d.%s for map %s', z, x, y, format, this.map.id);
   this.initPromise.then(function(self) {
-    console.log('promise resolved');
-    console.log('create the dir', self.map.outputDirectory + '/' + self.map.id, '/tiles/' + z + '/' + x + '/');
-    var dir = createDir(self.map.outputDirectory + '/' + self.map.id, '/tiles/' + z + '/' + x + '/');
+    var dir = path.join(self.map.outputDirectory, self.map.id, 'tiles', z.toString(), x.toString());
     var filename = y + '.png';
-    console.log('created the map directory', dir);
+
+    log.debug('tile %d %d %d will be written to %s', z, y, x, path.join(dir, filename));
 
     if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {
-      console.log('file already exists, skipping: %s', path.join(dir, filename));
+      log.debug('file already exists, returning: %s', path.join(dir, filename));
       return callback(null, fs.createReadStream(path.join(dir, filename)));
     }
-    console.log('%s does not exist so we will create it', path.join(dir, filename));
+    log.info('the file %s does not exist for the map %s, creating', path.join(dir, filename), self.map.id);
 
     var sorted = self.map.dataSources.sort(zOrderDatasources);
-    console.log('params in the map', params);
     params = params || {};
     if (!params.dataSources || params.dataSources.length == 0) {
       params.dataSources = [];
@@ -99,9 +101,6 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         params.dataSources.push(sorted[i].source.id);
       }
     }
-
-    console.log('params in the map now', params);
-
     var canvas = new Canvas(256,256);
     var ctx = canvas.getContext('2d');
     var height = canvas.height;
@@ -119,10 +118,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         tileStream.on('end', function() {
           var img = new Image;
           img.onload = function() {
-            console.log('img.width', img.width);
-            console.log('img.height', img.height);
             ctx.drawImage(img, 0, 0, img.width, img.height);
-            console.log('done drawing source', s.source.id);
             callback();
           };
           img.src = buffer;
@@ -135,6 +131,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
 
       canvas.pngStream().pipe(stream);
 
+      log.info('Tile %d %d %d was created for map %s, returning', z, x, y, self.map.id)
       callback(null, canvas.pngStream());
     });
   });
@@ -149,15 +146,6 @@ function zOrderDatasources(a, b) {
   }
   // a must be equal to b
   return 0;
-}
-
-function createDir(cacheName, filepath){
-	if (!fs.existsSync(path.join(cacheName,filepath))) {
-    fs.mkdirsSync(path.join(cacheName,filepath), function(err){
-       if (err) console.log(err);
-     });
-	}
-  return path.join(cacheName,filepath);
 }
 
 module.exports = Map;
