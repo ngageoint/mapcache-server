@@ -1,4 +1,5 @@
 var tileImage = require('tile-image')
+  , log = require('mapcache-log')
   , Canvas = require('canvas')
   , Image = Canvas.Image
   , tile = require('mapcache-tile')
@@ -8,52 +9,137 @@ var tileImage = require('tile-image')
   , Readable = require('stream').Readable
   , StreamQueue = require('streamqueue')
   , request = require('request')
-  , fs = require('fs')
+  , fs = require('fs-extra')
+  , path = require('path')
   , async = require('async');
 
 var GeoJSON = function(config) {
-  config = config || {};
-  this.source = config.source;
-  this.cache = config.cache;
-
-
-  // this.initDefer = q.defer();
-  // this.initPromise = this.initDefer.promise;
-  // this.initialize();
-}
-
-GeoJSON.prototype.initialize = function() {
+  this.config = config || {};
+  this.source = this.config.source;
+  this.cache = this.config.cache;
+  if (this.config.cache && !this.config.outputDirectory) {
+    throw new Error('An output directory must be specified in config.outputDirectory');
+  }
 }
 
 GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
+  log.info('Generating cache with id %s', this.cache.cache.id);
+  var config = this.config;
+
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(cache, callback) {callback(null, cache);};
-  var cache = this.cache;
+  var cacheObj = this.cache;
+  var cache = this.cache.cache;
 
   var extent = turf.extent(cache.geometry);
-  console.log('extent', extent);
-  console.log('cache source id', cache.source.id);
 
-  var map = this.cache.source;
+  var map = cache.source.map;
   var sorted = map.dataSources.sort(zOrderDatasources);
   var params = cache.cacheCreationParams || {};
   if (!params.dataSources || params.dataSources.length == 0) {
     params.dataSources = [];
     for (var i = 0; i < sorted.length; i++) {
-      params.dataSources.push(sorted[i].id);
+      log.debug('adding the datasource', sorted[i].source.id);
+      params.dataSources.push(sorted[i].source.id);
     }
   }
 
   async.eachSeries(sorted, function iterator(s, callback) {
-    if (params.dataSources.indexOf(s.id.toString()) == -1) {
+    if (params.dataSources.indexOf(s.source.id.toString()) == -1 || s.source.format == 'xyz') {
       return callback();
     }
-    console.log('constructing the data source format %s', s.format);
-    FeatureModel.createCacheFeaturesFromSource(s.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+    log.info('Creating the cache features for cache %s from the source %s', cache.id, s.source.id);
+    FeatureModel.createCacheFeaturesFromSource(s.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+      log.info('Created %d features for the cache %s from the source %s', features.rowCount, cache.id, s.source.id);
+        //
+        //
+        //
+        // var DataSource = require('./' + s.format);
+        // var dataSource = new DataSource({source: s});
+        // dataSource.getTile(format, z, x, y, params, function(err, dataStream) {
+        //   if (!dataStream) {
+        //     return callback(null);
+        //   }
+        //   if (!first) {
+        //     var stream = new Readable();
+        //     stream.push(',');
+        //     stream.push(null);
+        //     queue.queue(stream);
+        //   } else {
+        //     first = false;
+        //   }
+        //
+        //   queue.queue(dataStream);
+        //   callback(null, dataStream);
+        //
+        // });
+
       callback();
     });
   }, function done() {
-    return doneCallback(null, cache);
+    FeatureModel.getAllCacheFeatures(cache.id, function(err, features) {
+
+      log.info('features is', features.rows[0]);
+      var stream = new Readable();
+      stream.push(JSON.stringify(features.rows[0].geojson));
+      stream.push(null);
+
+      var dir = path.join(config.outputDirectory, cache.id, 'geojson');
+      var filename = cache.id + '.geojson';
+
+      var ws = fs.createOutputStream(path.join(dir, filename));
+      ws.on('finish', function() {
+        log.info('Wrote the GeoJSON for cache %s to %s', cache.id, path.join(dir, filename));
+        return doneCallback(null, cacheObj);
+      });
+      stream.pipe(ws);
+
+      // log.info('Retrieved %d features for the cache %s', features.length, cache.id);
+      //
+      // var dir = path.join(config.outputDirectory, cache.id, 'geojson');
+      // var filename = cache.id + '.geojson';
+      //
+      // var ws = fs.createOutputStream(path.join(dir, filename));
+      //
+      // var queue = new StreamQueue();
+      //
+      // var stream = new Readable();
+      // stream.push('{"type":"FeatureCollection","features":[');
+      // stream.push(null);
+      // queue.queue(stream);
+      // var first = true;
+      // async.eachSeries(features, function(feature, callback) {
+      //   log.info('push the feature', feature);
+      //   async.setImmediate(function() {
+      //     var stream = new Readable();
+      //     if (!first) {
+      //       stream.push(',');
+      //     } else {
+      //       first = false;
+      //     }
+      //
+      //     stream.push(JSON.stringify(feature));
+      //     stream.push(null);
+      //     queue.queue(stream);
+      //     callback();
+      //   });
+      // }, function done() {
+      //   var stream = new Readable();
+      //   stream.push(']}');
+      //   stream.push(null);
+      //   queue.queue(stream);
+      //   queue.done();
+      //
+      //   ws.on('finish', function() {
+      //     log.info('Wrote the GeoJSON for cache %s to %s', cache.id, path.join(dir, filename));
+      //     return doneCallback(null, cacheObj);
+      //   });
+      //
+      //   queue.pipe(ws);
+      // });
+    });
+    // return doneCallback(null, cacheObj);
+
   });
 }
 

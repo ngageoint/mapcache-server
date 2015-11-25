@@ -21,7 +21,7 @@ var cacheModel = {
   ]]),
   minZoom: 0,
   maxZoom: 1,
-  formats: ['xyz']
+  formats: ['xyz', 'geojson']
 };
 
 function getRandomInt(min, max) {
@@ -130,7 +130,7 @@ describe('vectortests', function() {
 
     async.eachSeries([rivers, land]/*, seaHexes, landHexes]*/, function(source, callback) {
       FeatureModel.deleteFeaturesBySourceId(source.id, function(count) {
-        console.log('deleted %d %s features', count, source.id);
+        log.info('deleted %d %s features', count, source.id);
         callback();
       });
     }, function() {
@@ -157,12 +157,9 @@ describe('vectortests', function() {
 
 
       var stream = fs.createReadStream('/tmp/hexmap.json');
-      console.log('reading in the file', '/tmp/hexmap.json');
+      log.info('reading in the file', '/tmp/hexmap.json');
       fs.readFile('/tmp/hexmap.json', function(err, fileData) {
-        console.log('parsing file data', '/tmp/hexmap.json');
-        console.time('parsing geojson');
         var gjData = JSON.parse(fileData);
-        console.log('datasources', JSON.stringify(gjData.map.dataSources, null, 2));
         var datasources = [];
         for (var i = 0; i < gjData.map.dataSources.length; i++) {
           var s = gjData.map.dataSources[i].source;
@@ -179,8 +176,7 @@ describe('vectortests', function() {
           dataSources: datasources
          });
          hexMap.callbackWhenInitialized(function() {
-           console.log('hex map initialized');
-           console.log('hexmap', hexMap.dataSources);
+           log.info('hex map initialized');
            done();
          });
       });
@@ -190,7 +186,7 @@ describe('vectortests', function() {
     this.timeout(0);
     async.eachSeries([rivers, land]/*, seaHexes, landHexes]*/, function(source, callback) {
       FeatureModel.deleteFeaturesBySourceId(source.id, function(count) {
-        console.log('deleted %d %s features', count, source.id);
+        log.info('deleted %d %s features', count, source.id);
         callback();
       });
     }, function() {
@@ -228,13 +224,13 @@ describe('vectortests', function() {
     });
   });
 
-  describe('caching hexes', function() {
+  var cacheDir = '/tmp/testcaches';
 
-    var cacheDir = '/tmp/testcaches';
+  xdescribe('XYZ caching hexes', function() {
     var cacheName = 'hex-cache';
 
     before(function(done) {
-      fs.remove(path.join(cacheDir, cacheName), done);
+      fs.remove(path.join(cacheDir, cacheName), callback);
     });
 
     after(function(done) {
@@ -242,13 +238,14 @@ describe('vectortests', function() {
       fs.copy(path.join(__dirname, '../leaflet/index.html'), path.join(cacheDir, cacheName, 'index.html'), done);
     });
 
-    it('should construct a hex cache', function (done) {
+    it('should construct a hex tile XYZ cache', function (done) {
       this.timeout(0);
 
       cacheModel.source = hexMap;
-      cacheModel.outputDirectory = '/tmp/testcaches';
+      cacheModel.outputDirectory = cacheDir;
 
       cacheModel.id = cacheName;
+      cacheModel.name = cacheName;
       cacheModel.cacheCreationParams = {
         noCache: false
       };
@@ -266,6 +263,62 @@ describe('vectortests', function() {
           log.info('progress on the cache %s', cache.name);
           callback(null, cache);
         });
+      });
+    });
+  });
+
+  describe('GeoJSON caching hexes', function() {
+    var cacheName = 'hex-geojson-cache';
+
+    before(function(done) {
+      fs.remove(path.join(cacheDir, cacheName), done);
+    });
+
+    after(function(done) {
+      FeatureModel.deleteFeaturesByCacheId(cacheName, function(count) {
+        log.info('deleted %d %s features', count, cacheName);
+        done();
+      });
+    });
+
+    it('should construct a geojson cache', function (done) {
+      this.timeout(0);
+
+      cacheModel.source = hexMap;
+      cacheModel.outputDirectory = cacheDir;
+      cacheModel.id = cacheName;
+      cacheModel.name = cacheName;
+      cacheModel.cacheCreationParams = {
+        noCache: false
+      };
+      cacheModel.geometry = turf.polygon([[
+        [-120, 25],
+        [-120, 30],
+        [-109, 30],
+        [-109, 25],
+        [-120, 25]
+      ]]);
+
+      var cache = new Cache(cacheModel);
+      cache.callbackWhenInitialized(function(err, cache) {
+        try {
+        log.info('cache initialized');
+
+        var gjCache = new GeoJSON({cache: cache, outputDirectory: cacheModel.outputDirectory});
+
+        log.info('geojson cache %s', gjCache.cache.cache.name);
+
+        gjCache.generateCache(function(err, cache) {
+          log.info('cache is done generating %s', cache.cache.name);
+          done();
+        },
+        function(cache, callback) {
+          log.info('progress on the cache %s', cache.name);
+          callback(null, cache);
+        });
+      } catch(e) {
+        console.error('error', e);
+      }
       });
     });
   });

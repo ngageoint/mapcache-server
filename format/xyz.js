@@ -10,7 +10,6 @@ var tileImage = require('tile-image')
   , async = require('async');
 
 var XYZ = function(config) {
-  console.log('config', config);
   this.config = config || {};
   this.source = config.source;
   this.cache = config.cache;

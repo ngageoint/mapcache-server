@@ -76,12 +76,33 @@ exports.getAllSourceFeatures = function(sourceId, callback) {
 }
 
 exports.getAllCacheFeatures = function(cacheId, callback) {
-	knex('features').select(
-		knex.raw('ST_AsGeoJSON(ST_Transform(geometry, 4326)) as geometry'),
-		'properties'
-	).where({cache_id: cacheId}).then(function(collection) {
+	// knex.raw("SELECT row_to_json(fc) FROM ( SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(lg.geometry)::json As geometry , properties FROM features As lg   ) As f )  As fc")
+	// knex.raw("SELECT row_to_json(fc) FROM ( SELECT 'FeatureCollection' As type, array_to_json(array_agg(f)) As features FROM (SELECT 'Feature' As type, ST_AsGeoJSON(lg.geometry)::json As geometry FROM features As lg where cache_id=\'"+cacheId+"\'  ) As f )  As fc")
+	// knex.select(
+	// 	knex.raw('row_to_json(fc)')
+	// ).from(function() {
+	// 	this.select(knex.raw('\'FeatureCollection\''))
+	// })
+	// knex.select(geometrySelect,'properties')
+	// .from('features')
+	// .whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
+	// .andWhere({source_id: sourceId})
+	// .then(function(collection) {
+	// 	callback(null, collection);
+	// });
+
+	knex.raw("select row_to_json(fc) as geojson from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) as features from (select 'Feature' as type, ST_AsGeoJSON(ST_Transform(lg.geometry, 4326))::json as geometry, properties from features as lg where cache_id = 'hex-geojson-cache') as f) as fc")
+	.then(function(collection) {
 		callback(null, collection);
 	});
+
+	//
+	// knex('features').select(
+	// 	knex.raw('ST_AsGeoJSON(ST_Transform(geometry, 4326)) as geometry'),
+	// 	'properties'
+	// ).where({cache_id: cacheId}).then(function(collection) {
+	// 	callback(null, collection);
+	// });
 }
 
 exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {

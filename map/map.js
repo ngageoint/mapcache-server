@@ -28,7 +28,6 @@ Map.prototype.initialize = function(callback) {
   async.eachSeries(tempDataSources, function(ds, done) {
     self.addDataSource(ds, done);
   }, function done() {
-    log.debug('the map is now', self.map.dataSources);
     if (callback) {
       callback(null, self);
     }
