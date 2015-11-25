@@ -51,95 +51,18 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     log.info('Creating the cache features for cache %s from the source %s', cache.id, s.source.id);
     FeatureModel.createCacheFeaturesFromSource(s.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
       log.info('Created %d features for the cache %s from the source %s', features.rowCount, cache.id, s.source.id);
-        //
-        //
-        //
-        // var DataSource = require('./' + s.format);
-        // var dataSource = new DataSource({source: s});
-        // dataSource.getTile(format, z, x, y, params, function(err, dataStream) {
-        //   if (!dataStream) {
-        //     return callback(null);
-        //   }
-        //   if (!first) {
-        //     var stream = new Readable();
-        //     stream.push(',');
-        //     stream.push(null);
-        //     queue.queue(stream);
-        //   } else {
-        //     first = false;
-        //   }
-        //
-        //   queue.queue(dataStream);
-        //   callback(null, dataStream);
-        //
-        // });
-
       callback();
     });
   }, function done() {
-    FeatureModel.getAllCacheFeatures(cache.id, function(err, features) {
 
-      log.info('features is', features.rows[0]);
-      var stream = new Readable();
-      stream.push(JSON.stringify(features.rows[0].geojson));
-      stream.push(null);
+    var dir = path.join(config.outputDirectory, cache.id, 'geojson');
+    var filename = cache.id + '.geojson';
+    fs.emptyDirSync(dir);
 
-      var dir = path.join(config.outputDirectory, cache.id, 'geojson');
-      var filename = cache.id + '.geojson';
-
-      var ws = fs.createOutputStream(path.join(dir, filename));
-      ws.on('finish', function() {
-        log.info('Wrote the GeoJSON for cache %s to %s', cache.id, path.join(dir, filename));
-        return doneCallback(null, cacheObj);
-      });
-      stream.pipe(ws);
-
-      // log.info('Retrieved %d features for the cache %s', features.length, cache.id);
-      //
-      // var dir = path.join(config.outputDirectory, cache.id, 'geojson');
-      // var filename = cache.id + '.geojson';
-      //
-      // var ws = fs.createOutputStream(path.join(dir, filename));
-      //
-      // var queue = new StreamQueue();
-      //
-      // var stream = new Readable();
-      // stream.push('{"type":"FeatureCollection","features":[');
-      // stream.push(null);
-      // queue.queue(stream);
-      // var first = true;
-      // async.eachSeries(features, function(feature, callback) {
-      //   log.info('push the feature', feature);
-      //   async.setImmediate(function() {
-      //     var stream = new Readable();
-      //     if (!first) {
-      //       stream.push(',');
-      //     } else {
-      //       first = false;
-      //     }
-      //
-      //     stream.push(JSON.stringify(feature));
-      //     stream.push(null);
-      //     queue.queue(stream);
-      //     callback();
-      //   });
-      // }, function done() {
-      //   var stream = new Readable();
-      //   stream.push(']}');
-      //   stream.push(null);
-      //   queue.queue(stream);
-      //   queue.done();
-      //
-      //   ws.on('finish', function() {
-      //     log.info('Wrote the GeoJSON for cache %s to %s', cache.id, path.join(dir, filename));
-      //     return doneCallback(null, cacheObj);
-      //   });
-      //
-      //   queue.pipe(ws);
-      // });
+    FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), function(err, result) {
+      log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
+      return doneCallback(null, cacheObj);
     });
-    // return doneCallback(null, cacheObj);
-
   });
 }
 
