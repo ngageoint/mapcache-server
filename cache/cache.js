@@ -9,6 +9,9 @@ var models = require('mapcache-models')
 
 var Cache = function(cache) {
   this.cache = cache || {};
+  if (this.cache && !this.cache.status) {
+    this.cache.status = {};
+  }
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
   this.initialize();

@@ -51,7 +51,10 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     log.info('Creating the cache features for cache %s from the source %s', cache.id, s.source.id);
     FeatureModel.createCacheFeaturesFromSource(s.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
       log.info('Created %d features for the cache %s from the source %s', features.rowCount, cache.id, s.source.id);
-      callback();
+      cache.status.generatedFeatures = cache.status.generatedFeatures ? cache.status.generatedFeatures + features.rowCount : features.rowCount;
+      progressCallback(cache, function(err, cache) {
+        callback();
+      });
     });
   }, function done() {
 
@@ -59,7 +62,7 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     var filename = cache.id + '.geojson';
     fs.emptyDirSync(dir);
 
-    FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), function(err, result) {
+    FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
       log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
       return doneCallback(null, cacheObj);
     });

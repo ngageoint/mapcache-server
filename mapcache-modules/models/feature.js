@@ -80,11 +80,17 @@ exports.getAllCacheFeatures = function(cacheId, callback) {
 	});
 }
 
-exports.writeAllCacheFeatures = function(cacheId, filename, callback) {
-	knex.raw("copy(select row_to_json(fc) as geojson from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) as features from (select 'Feature' as type, ST_AsGeoJSON(ST_Transform(lg.geometry, 4326))::json as geometry, properties from features as lg where cache_id = '"+cacheId+"') as f) as fc) to '"+filename+"'")
-	.then(function(collection) {
-		callback(null, collection);
-	});
+exports.writeAllCacheFeatures = function(cacheId, filename, format, callback) {
+	if (!callback && typeof format === 'function') {
+		callback = format;
+		format = null;
+	}
+	if (!format || format == 'geojson') {
+		knex.raw("copy(select row_to_json(fc) as geojson from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) as features from (select 'Feature' as type, ST_AsGeoJSON(ST_Transform(lg.geometry, 4326))::json as geometry, properties from features as lg where cache_id = '"+cacheId+"') as f) as fc) to '"+filename+"'")
+		.then(function(collection) {
+			callback(null, collection);
+		});
+	}
 }
 
 exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {

@@ -313,7 +313,7 @@ describe('vectortests', function() {
           done();
         },
         function(cache, callback) {
-          log.info('progress on the cache %s', cache.name);
+          log.info('progress on the cache %s', cache.status);
           callback(null, cache);
         });
       } catch(e) {
