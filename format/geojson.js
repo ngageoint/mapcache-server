@@ -23,13 +23,22 @@ var GeoJSON = function(config) {
 }
 
 GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
-  log.info('Generating cache with id %s', this.cache.cache.id);
-  var config = this.config;
-
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(cache, callback) {callback(null, cache);};
   var cacheObj = this.cache;
   var cache = this.cache.cache;
+
+  var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
+  var filename = cache.id + '.geojson';
+  fs.emptyDirSync(dir);
+
+  if (fs.existsSync(path.join(dir, filename))) {
+    log.info('Cache already exists, returning');
+    return doneCallback(null, cacheObj);
+  }
+
+  log.info('Generating cache with id %s', this.cache.cache.id);
+  var config = this.config;
 
   var extent = turf.extent(cache.geometry);
 
@@ -52,16 +61,11 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     FeatureModel.createCacheFeaturesFromSource(s.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
       log.info('Created %d features for the cache %s from the source %s', features.rowCount, cache.id, s.source.id);
       cache.status.generatedFeatures = cache.status.generatedFeatures ? cache.status.generatedFeatures + features.rowCount : features.rowCount;
-      progressCallback(cache, function(err, cache) {
+      progressCallback(cacheObj, function(err, cache) {
         callback();
       });
     });
   }, function done() {
-
-    var dir = path.join(config.outputDirectory, cache.id, 'geojson');
-    var filename = cache.id + '.geojson';
-    fs.emptyDirSync(dir);
-
     FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
       log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
       return doneCallback(null, cacheObj);

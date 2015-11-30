@@ -24,6 +24,21 @@ var cacheModel = {
   formats: ['xyz', 'geojson']
 };
 
+var moriartyModel = {
+  id: 'moriarty-cache',
+  name: 'moriarty cache',
+  geometry: turf.polygon([[
+    [-180, -85],
+    [-180, 85],
+    [180, 85],
+    [180, -85],
+    [-180, -85]
+  ]]),
+  minZoom: 0,
+  maxZoom: 1,
+  formats: ['xyz']
+};
+
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
@@ -128,6 +143,38 @@ describe('vectortests', function() {
       }
     };
 
+    seaMoriarty = {
+      id: 'seaMoriarty-ds',
+      name: 'seaMoriarty',
+      file: {
+        path: '/data/maps/waterMoriarty.json',
+        name: 'waterMoriarty'
+      },
+      format: 'geojson',
+      zOrder: 1,
+      style: {
+        defaultStyle: {
+          style: getRandomStyle()
+        }
+      }
+    };
+
+    landMoriarty = {
+      id: 'landMoriarty-ds',
+      name: 'landMoriarty',
+      file: {
+        path: '/data/maps/landMoriarty.json',
+        name: 'landMoriarty'
+      },
+      format: 'geojson',
+      zOrder: 1,
+      style: {
+        defaultStyle: {
+          style: getRandomStyle()
+        }
+      }
+    };
+
     async.eachSeries([rivers, land]/*, seaHexes, landHexes]*/, function(source, callback) {
       FeatureModel.deleteFeaturesBySourceId(source.id, function(count) {
         log.info('deleted %d %s features', count, source.id);
@@ -175,7 +222,7 @@ describe('vectortests', function() {
           name: 'hex-map',
           dataSources: datasources
          });
-         hexMap.callbackWhenInitialized(function() {
+        hexMap.callbackWhenInitialized(function() {
            log.info('hex map initialized');
            done();
          });
@@ -226,11 +273,11 @@ describe('vectortests', function() {
 
   var cacheDir = '/tmp/testcaches';
 
-  xdescribe('XYZ caching hexes', function() {
+  describe('XYZ caching hexes', function() {
     var cacheName = 'hex-cache';
 
     before(function(done) {
-      fs.remove(path.join(cacheDir, cacheName), callback);
+      fs.remove(path.join(cacheDir, cacheName), done);
     });
 
     after(function(done) {
@@ -238,7 +285,7 @@ describe('vectortests', function() {
       fs.copy(path.join(__dirname, '../leaflet/index.html'), path.join(cacheDir, cacheName, 'index.html'), done);
     });
 
-    it('should construct a hex tile XYZ cache', function (done) {
+    xit('should construct a hex tile XYZ cache', function (done) {
       this.timeout(0);
 
       cacheModel.source = hexMap;
@@ -313,7 +360,7 @@ describe('vectortests', function() {
           done();
         },
         function(cache, callback) {
-          log.info('progress on the cache %s', cache.status);
+          log.info('progress on the cache %s', cache.cache.status);
           callback(null, cache);
         });
       } catch(e) {
@@ -387,6 +434,128 @@ describe('vectortests', function() {
         done();
       });
 
+    });
+  });
+
+  describe('XYZ caching moriarty', function() {
+    this.timeout(0);
+    var cacheName = 'moriarty-cache';
+
+    var moriartyMap;
+
+    before(function(done) {
+      fs.remove(path.join(cacheDir, cacheName), function() {
+        if (fs.existsSync('/tmp/moriartymap.json')) {
+          log.info('/tmp/moriartymap.json exists');
+          var stream = fs.createReadStream('/tmp/moriartymap.json');
+          log.info('reading in the file', '/tmp/moriartymap.json');
+          fs.readFile('/tmp/moriartymap.json', function(err, fileData) {
+            var gjData = JSON.parse(fileData);
+            var datasources = [];
+            for (var i = 0; i < gjData.map.dataSources.length; i++) {
+              var s = gjData.map.dataSources[i].source;
+              if (s.style) {
+                s.style.defaultStyle.style = getRandomStyle();
+              }
+              datasources.push(s);
+            }
+
+            moriartyMap = new Map({
+              outputDirectory: '/tmp/moriartymap',
+              id: 'moriarty-map',
+              name: 'moriarty-map',
+              dataSources: datasources
+             });
+             moriartyMap.callbackWhenInitialized(function() {
+                log.info('moriarty map initialized');
+                done();
+              });
+           });
+
+        } else {
+          moriartyMap = new Map({
+            outputDirectory: '/tmp/moriartymap',
+            id: 'moriarty-map',
+            name: 'moriarty-map',
+            dataSources: [seaMoriarty, landMoriarty]
+          });
+          moriartyMap.callbackWhenInitialized(function() {
+            log.info('moriarty map initialized');
+            done();
+          });
+        }
+      });
+
+    });
+
+    after(function(done) {
+      var mapString = JSON.stringify(moriartyMap, null, 2);
+      var ws = fs.createWriteStream('/tmp/moriartymap.json');
+      var Readable = require('stream').Readable;
+      s = new Readable();
+      s.push(mapString);
+      s.push(null);
+
+      s.pipe(ws);
+
+      ws.on('finish', function() {
+        log.info('copy over the leaflet page', path.join(__dirname, '../leaflet/index.html'));
+        fs.copy(path.join(__dirname, '../leaflet/index.html'), path.join(cacheDir, cacheName, 'index.html'), done);
+      });
+    });
+
+    it('should pull a tile from the hex map', function (done) {
+      moriartyMap.getTile('png', 2, 0, 3, {noCache: true}, function(err, stream) {
+        if (err) {
+          done(err);
+          return;
+        }
+
+        var ws = fs.createWriteStream('/tmp/moriarty_test.png');
+
+        stream.pipe(ws);
+        ws.on('finish', function() {
+          done();
+        });
+
+      });
+    });
+
+    it('should construct a mor tile XYZ cache', function (done) {
+      this.timeout(0);
+
+      moriartyModel.source = moriartyMap;
+      moriartyModel.outputDirectory = cacheDir;
+      moriartyModel.id = cacheName;
+      moriartyModel.name = cacheName;
+      moriartyModel.cacheCreationParams = {
+        noCache: true
+      };
+      moriartyModel.geometry = turf.polygon([[
+        [-180, -85],
+        [-180, 85],
+        [180, 85],
+        [180, -85],
+        [-180, -85]
+      ]]);
+
+      moriartyModel.maxZoom = 2;
+      moriartyModel.minZoom = 0;
+
+      var cache = new Cache(moriartyModel);
+      cache.callbackWhenInitialized(function(err, cache) {
+        log.info('cache initialized');
+        var xyzCache = new XYZ({cache: cache, outputDirectory: moriartyModel.outputDirectory});
+        log.info('xyzcache %s', xyzCache.cache.cache.name);
+        xyzCache.generateCache(function(err, cache) {
+          log.info('cache is done generating %s', cache.cache.name);
+          done();
+        },
+        function(cache, callback) {
+          log.info('progress on the cache %s', cache.name);
+          callback(null, cache);
+        });
+      });
     });
   });
 

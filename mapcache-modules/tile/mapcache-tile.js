@@ -38,7 +38,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 
 	if (!tileContainsData(source.source ? source.source : source, bbox)) {
 		console.log("No data, returning early");
-		return callback(null);
+		return callback(null, null);
 	}
 
 	// use the style time to determine if there has already been an image created for this source and style

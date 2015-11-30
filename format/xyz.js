@@ -45,22 +45,24 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     callback(null, cache);
   }
   var cache = this.cache.cache;
-    xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, callback) {
+    xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
       var dir = path.join(cache.outputDirectory, cache.id, 'xyztiles', tile.z.toString(), tile.x.toString());
       var filename = tile.y + '.png';
 
-      log.debug('tile %d %d %d will be written to %s', tile.z, tile.y, tile.x, path.join(dir, filename));
+      log.debug('tile %d %d %d will be written to %s', tile.z, tile.x, tile.y, path.join(dir, filename));
 
       if (fs.existsSync(path.join(dir, filename)) && (!cache.cacheCreationParams || (cache.cacheCreationParams && !cache.cacheCreationParams.noCache))) {
         log.debug('file already exists, skipping: %s', path.join(dir, filename));
-        return callback(null, tile);
+        return tileDone(null, tile);
       } else {
         log.info('the file %s does not exist for the xyz cache %s, creating', path.join(dir, filename), cache.id);
         cache.source.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
+          log.debug('the stream', stream);
           var ws = fs.createOutputStream(path.join(dir, filename));
           stream.pipe(ws);
           ws.on('finish', function(){
-            callback(null, tile);
+            log.info('the file %s was written for the xyz cache %s', path.join(dir, filename), cache.id);
+            return tileDone(null, tile);
           });
         });
       }

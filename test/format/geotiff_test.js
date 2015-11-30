@@ -66,7 +66,7 @@ describe('geotiff', function() {
   });
 
   describe('geotiff source tests', function() {
-    var generic;
+    var geotiff;
     before(function() {
       geotiff = new GeoTIFF({
         source: geotiffDataSource

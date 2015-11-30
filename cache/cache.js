@@ -1,5 +1,6 @@
 var models = require('mapcache-models')
   , Canvas = require('canvas')
+  , log = require('mapcache-log')
   , Image = Canvas.Image
   , fs = require('fs-extra')
   , async = require('async')
@@ -52,6 +53,7 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
       return callback(null, fs.createReadStream(dir+filename));
     }
     self.cache.source.getTile(format, z, x, y, params, function(err, tileStream) {
+      log.debug('stream from the cache get tile is', tileStream);
       var stream = fs.createWriteStream(dir + filename);
 
       stream.on('close',function(status){

@@ -55,13 +55,14 @@ Map.prototype.addDataSource = function(ds, callback) {
     var dsObj = new DataSource({source: ds});
     if (dsObj.source.status && dsObj.source.status.complete) {
       self.map.dataSources.push(dsObj);
-      log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, this.map.id);
+      log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
       callback(null, dsObj);
     } else {
-      log.debug('Processing the datasource %s to add to the map %s', ds.id, this.map.id);
+      log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
       dsObj.processSource(function(err, source) {
         self.map.dataSources.push(dsObj);
-        log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, this.map.id);
+        console.log(dsObj);
+        log.debug('Adding the datasource %s to add to the map %s', dsObj.id, self.map.id);
         callback(null, dsObj);
       });
     }
@@ -109,6 +110,8 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     async.eachSeries(sorted, function iterator(s, callback) {
       if (params.dataSources.indexOf(s.source.id) == -1) return callback();
       s.getTile(format, z, x, y, params, function(err, tileStream) {
+        if (!tileStream) callback();
+
         var buffer = new Buffer(0);
         var chunk;
         tileStream.on('data', function(chunk) {
@@ -124,13 +127,13 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         });
       });
     }, function done() {
-      var stream = fs.createWriteStream(path.join(dir, filename));
+      var stream = fs.createOutputStream(path.join(dir, filename));
       stream.on('close',function(status){
       });
 
       canvas.pngStream().pipe(stream);
 
-      log.info('Tile %d %d %d was created for map %s, returning', z, x, y, self.map.id)
+      log.info('Tile %d %d %d was created for map %s, returning', z, x, y, self.map.id);
       callback(null, canvas.pngStream());
     });
   });
