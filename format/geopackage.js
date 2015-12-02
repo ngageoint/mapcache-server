@@ -67,6 +67,9 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
   extent[2] = Math.min(180, extent[2]);
   extent[3] = Math.min(85, extent[3]);
 
+  cache.status.totalFeatures = 0;
+  cache.status.generatedFeatures = 0;
+
   var filePath = path.join(dir, filename);
   var geoPackage = new GeoPackageApi();
   geoPackage.createAndOpenGeoPackageFile(filePath, function() {
@@ -86,7 +89,8 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
         console.log('property column names', propertyColumnNames);
         FeatureModel.createCacheFeaturesFromSource(s.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
           log.info('Created %d features for the cache %s from the source %s', features.rowCount, cache.id, s.source.id);
-          cache.status.generatedFeatures = cache.status.generatedFeatures ? cache.status.generatedFeatures + features.rowCount : features.rowCount;
+          cache.status.totalFeatures = cache.status.totalFeatures + features.rowCount;
+          var sourceFeaturesCreated = 0;
           progressCallback(cacheObj, function(err, cache) {
             cache = cache.cache;
             // write these to the geoPackage
@@ -97,6 +101,11 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
                 geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
                   console.log('features.length', features.length);
                   geoPackage.indexGeoPackage(tableName, features.length, sourceFinishedCallback);
+                }, function(progress, callback) {
+                  cache.status.generatedFeatures = cache.status.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
+                  sourceFeaturesCreated = progress.featuresAdded;
+
+                  progressCallback(cache, callback);
                 });
               });
             });

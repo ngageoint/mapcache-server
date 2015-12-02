@@ -143,18 +143,22 @@ GeoPackage.prototype.addTileToGeoPackage = function(tileStream, tableName, zoom,
   }).done();
 }
 
-GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, callback) {
+GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, callback, progressCallback) {
+  progressCallback = progressCallback || function(progress, callback) {
+    callback(null);
+  };
   console.log('adding %d features to geopackage table %s', features.length, tableName);
   this.initPromise.then(function(self) {
     console.log('self', self);
     var featureDao = self.featureDaos[tableName];
     var index = 0;
-    async.eachSeries(features, function iterator(feature, callback) {
+    var progress = {
+      featuresAdded: 0,
+      totalFeatures: features.length
+    };
+    async.eachSeries(features, function iterator(feature, featureComplete) {
 
       async.setImmediate(function() {
-
-        console.log('adding feature', index++);
-
         var featureRow = featureDao.newRowSync();
         for (var propertyKey in feature.properties) {
           featureRow.setValue(self.tableProperties[tableName][propertyKey], ''+feature.properties[propertyKey]);
@@ -166,7 +170,10 @@ GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, cal
 
         var geometryAddComplete = function() {
           featureDao.createSync(featureRow);
-          callback(null, featureRow);
+          progress.featuresAdded++;
+          progressCallback(progress, function(err) {
+            featureComplete(err, featureRow);
+          });
         }
 
         if (type === 'Point') {
@@ -182,6 +189,7 @@ GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, cal
         } else if (type === 'MultiPolygon') {
           self.addMultiPolygon(geom, featureRow, geometryAddComplete);
         }
+
       });
     }, function done() {
       callback();

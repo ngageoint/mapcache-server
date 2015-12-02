@@ -158,7 +158,7 @@ describe('Geo Package', function() {
         done();
       },
       function(cache, callback) {
-        log.info('progress on the cache %s', cache.name);
+        log.info('progress on the cache %s', cache.name, cache.status);
         callback(null, cache);
       });
     });

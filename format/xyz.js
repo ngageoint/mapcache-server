@@ -62,7 +62,10 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
           stream.pipe(ws);
           ws.on('finish', function(){
             log.info('the file %s was written for the xyz cache %s', path.join(dir, filename), cache.id);
-            return tileDone(null, tile);
+            progressCallback(cache, function(err, updatedCache) {
+              cache = updatedCache;
+              return tileDone(null, tile);
+            });
           });
         });
       }
