@@ -7,8 +7,9 @@ var models = require('mapcache-models')
   , path = require('path')
   , q = require('q');
 
-var Map = function(map) {
+var Map = function(map, config) {
   this.map = map || {};
+  this.config = config || {};
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
   this.initialize();
@@ -28,6 +29,8 @@ Map.prototype.initialize = function(callback) {
   async.eachSeries(tempDataSources, function(ds, done) {
     self.addDataSource(ds, done);
   }, function done() {
+    log.info('Map %s was initialized', self.map.id);
+    self.initialized = true;
     if (callback) {
       callback(null, self);
     }
@@ -81,17 +84,21 @@ Map.prototype.addDataSource = function(ds, callback) {
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
   log.info('get tile %d/%d/%d.%s for map %s', z, x, y, format, this.map.id);
+  log.info('the map is initialized?', this.initialized);
   this.initPromise.then(function(self) {
-    var dir = path.join(self.map.outputDirectory, self.map.id, 'tiles', z.toString(), x.toString());
-    var filename = y + '.png';
 
-    log.debug('tile %d %d %d will be written to %s', z, y, x, path.join(dir, filename));
+    if (self.config && self.config.outputDirectory) {
+      var dir = path.join(self.config.outputDirectory, self.map.id, 'tiles', z.toString(), x.toString());
+      var filename = y + '.png';
 
-    if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {
-      log.debug('file already exists, returning: %s', path.join(dir, filename));
-      return callback(null, fs.createReadStream(path.join(dir, filename)));
+      log.debug('tile %d %d %d will be written to %s', z, y, x, path.join(dir, filename));
+
+      if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {
+        log.debug('file already exists, returning: %s', path.join(dir, filename));
+        return callback(null, fs.createReadStream(path.join(dir, filename)));
+      }
+      log.info('the file %s does not exist for the map %s, creating', path.join(dir, filename), self.map.id);
     }
-    log.info('the file %s does not exist for the map %s, creating', path.join(dir, filename), self.map.id);
 
     var sorted = self.map.dataSources.sort(zOrderDatasources);
     params = params || {};
@@ -127,11 +134,13 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         });
       });
     }, function done() {
-      var stream = fs.createOutputStream(path.join(dir, filename));
-      stream.on('close',function(status){
-      });
+      if (dir) {
+        var stream = fs.createOutputStream(path.join(dir, filename));
+        stream.on('close',function(status){
+        });
 
-      canvas.pngStream().pipe(stream);
+        canvas.pngStream().pipe(stream);
+      }
 
       log.info('Tile %d %d %d was created for map %s, returning', z, x, y, self.map.id);
       callback(null, canvas.pngStream());

@@ -230,6 +230,7 @@ GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection,
 }
 
 GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
+  log.info('get the tile %d %d %d from GeoJSON', z, x, y);
   if (this.source) {
     getTileFromSource(this.source, z, x, y, format, params, callback);
   } else if (this.cache) {

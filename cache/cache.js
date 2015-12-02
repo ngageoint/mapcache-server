@@ -23,7 +23,7 @@ Cache.prototype.initialize = function() {
   var self = this;
   if (this.cache.source && !this.cache.source.getTile) {
     console.log('make a map');
-    var map = new Map(this.cache.source);
+    var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
       console.log('map was initialized');
       self.cache.source = map;
@@ -62,7 +62,7 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
 
       tileStream.pipe(stream);
 
-      callback(null, stream);
+      callback(null, tileStream);
     });
   });
 }

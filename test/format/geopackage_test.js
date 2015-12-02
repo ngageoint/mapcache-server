@@ -2,6 +2,7 @@ var assert = require('assert')
   , turf = require('turf')
   , async = require('async')
   , log = require('mapcache-log')
+  , fs = require('fs-extra')
   , FeatureModel = require('mapcache-models').Feature
   , Cache = require('../../cache/cache')
   , should = require('should');
@@ -105,6 +106,7 @@ describe('Geo Package', function() {
     var cacheName = 'gp-cache';
 
     var geopackage;
+    var cache;
     before(function(done) {
       this.timeout(0);
       async.eachSeries([rivers, land], function(source, callback) {
@@ -121,7 +123,7 @@ describe('Geo Package', function() {
         cacheModel.cacheCreationParams = {
           noCache: false
         };
-        var cache = new Cache(cacheModel);
+        cache = new Cache(cacheModel);
         cache.callbackWhenInitialized(function(err, cache) {
           log.info('cache initialized in test');
           geopackage = new GeoPackage({
@@ -134,8 +136,10 @@ describe('Geo Package', function() {
     });
     after(function() {
     });
-    xit('should pull the 0/0/0 tile for the cache', function(done) {
-      geopackage.getTile('png', 0, 0, 0, {noCache: true}, function(err, stream) {
+    it('should pull the 0/0/0 tile for the cache', function(done) {
+      this.timeout(0);
+
+      cache.getTile('png', 0, 0, 0, {noCache: true}, function(err, stream) {
         if (err) {
           done(err);
           return;
@@ -150,7 +154,7 @@ describe('Geo Package', function() {
       });
     });
 
-    it('should generate the cache', function(done) {
+    xit('should generate the cache', function(done) {
       this.timeout(0);
       geopackage.generateCache(function(err, cache) {
         console.log('err', err);

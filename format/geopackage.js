@@ -27,7 +27,7 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
 }
 
 GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
-  callback(null, null);
+  this.cache.cache.source.getTile(format, z, x, y, params, callback);
 }
 
 GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
