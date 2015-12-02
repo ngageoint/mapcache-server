@@ -45,7 +45,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     callback(null, cache);
   }
   var cache = this.cache.cache;
-    xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
+  xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
       var dir = path.join(cache.outputDirectory, cache.id, 'xyztiles', tile.z.toString(), tile.x.toString());
       var filename = tile.y + '.png';
 

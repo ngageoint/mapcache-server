@@ -83,7 +83,9 @@ var GeoPackage = function() {
 
 GeoPackage.prototype.initialize = function() {
   var self = this;
-  mvn(function(err, mvnResults) {
+  mvn({
+    packageJsonPath: __dirname+'/package.json'
+  }, function(err, mvnResults) {
     if (err) {
       return console.error('could not resolve maven dependencies', err);
     }
@@ -146,14 +148,12 @@ GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, cal
   this.initPromise.then(function(self) {
     console.log('self', self);
     var featureDao = self.featureDaos[tableName];
-    console.log('feature dao is', featureDao);
-
-    // now add the features to the geopackage
-    console.log('adding features', features.length);
-
+    var index = 0;
     async.eachSeries(features, function iterator(feature, callback) {
 
       async.setImmediate(function() {
+
+        console.log('adding feature', index++);
 
         var featureRow = featureDao.newRowSync();
         for (var propertyKey in feature.properties) {
@@ -502,7 +502,7 @@ GeoPackage.prototype.createMultiPoint = function(multiPoint) {
 
   var multiPointGeom = new MultiPoint(false, false);
   for (var i = 0; i < multiPoint.length; i++) {
-    multiPointGeom.addPointSync(createPoint(multiPoint[i]));
+    multiPointGeom.addPointSync(this.createPoint(multiPoint[i]));
   }
   return multiPointGeom;
 }
@@ -514,7 +514,7 @@ GeoPackage.prototype.createLine = function(line) {
   for (var i = 0; i < line.length; i++) {
     var point = line[i];
     if (point[0] == null || point[1] == null) continue;
-    lineGeom.addPointSync(createPoint(point));
+    lineGeom.addPointSync(this.createPoint(point));
   }
   return lineGeom;
 }
@@ -525,7 +525,7 @@ GeoPackage.prototype.createMultiLine = function(multiLine) {
   var multiLineGeom = new MultiLineString(false, false);
   for (var i = 0; i < multiLine.length; i++) {
     var line = multiLine[i];
-    multiLineGeom.addLineSync(createLine(line));
+    multiLineGeom.addLineStringSync(this.createLine(line));
   }
   return multiLineGeom;
 }
@@ -535,7 +535,7 @@ GeoPackage.prototype.createPolygon = function(polygon) {
   var polygonGeom = new Polygon(false, false);
   for (var ring = 0; ring < polygon.length; ring++) {
     var linearRing = polygon[ring];
-    polygonGeom.addRingSync(createLine(linearRing));
+    polygonGeom.addRingSync(this.createLine(linearRing));
   }
   return polygonGeom;
 }
@@ -545,7 +545,7 @@ GeoPackage.prototype.createMultiPolygon = function(multiPolygon) {
 
   var multiPolygonGeom = new MultiPolygon(false, false);
   for (var polygon = 0; polygon < multiPolygon.length; polygon++) {
-    multiPolygonGeom.addPolygonSync(createPolygon(multiPolygon[polygon]));
+    multiPolygonGeom.addPolygonSync(this.createPolygon(multiPolygon[polygon]));
   }
   return multiPolygonGeom;
 }

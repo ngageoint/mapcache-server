@@ -45,6 +45,21 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
   });
 }
 
+exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, south, east, north, projection, callback) {
+	var geometrySelect = createGeometrySelect(projection, {west: west, south: south, east: east, north: north});
+	console.log('cache_id', cacheId);
+	console.log('source_id', sourceId);
+	knex.select(geometrySelect, 'properties')
+	.from('features')
+	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
+	.andWhere('cache_id', cacheId)
+	.andWhere('source_id', sourceId)
+	.then(function(collection){
+		console.log('returned ' + collection.length + ' features');
+		callback(null, collection);
+	});
+}
+
 exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, north, projection, callback) {
 	var geometrySelect = createGeometrySelect(projection, {west: west, south: south, east: east, north: north});
 

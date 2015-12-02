@@ -37,6 +37,7 @@ Cache.prototype.initialize = function() {
 
 Cache.prototype.callbackWhenInitialized = function(callback) {
   this.initPromise.then(function(self) {
+    console.log('cache initialized in cache.js');
     callback(null, self);
   });
 }
