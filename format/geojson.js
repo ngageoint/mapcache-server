@@ -39,38 +39,10 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   }
 
   log.info('Generating cache with id %s', this.cache.cache.id);
-  var config = this.config;
 
-  var extent = turf.extent(cache.geometry);
-
-  var map = cache.source.map;
-  var sorted = map.dataSources.sort(zOrderDatasources);
-  var params = cache.cacheCreationParams || {};
-  if (!params.dataSources || params.dataSources.length == 0) {
-    params.dataSources = [];
-    for (var i = 0; i < sorted.length; i++) {
-      log.debug('adding the datasource', sorted[i].source.id);
-      params.dataSources.push(sorted[i].source.id);
-    }
-  }
-
-  async.eachSeries(sorted, function iterator(s, callback) {
-    if (params.dataSources.indexOf(s.source.id.toString()) == -1 || s.source.format == 'xyz') {
-      return callback();
-    }
-    log.info('Creating the cache features for cache %s from the source %s', cache.id, s.source.id);
-    FeatureModel.createCacheFeaturesFromSource(s.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
-      log.info('Created %d features for the cache %s from the source %s', features.rowCount, cache.id, s.source.id);
-      cache.status.generatedFeatures = cache.status.generatedFeatures ? cache.status.generatedFeatures + features.rowCount : features.rowCount;
-      progressCallback(cacheObj, function(err, cache) {
-        callback();
-      });
-    });
-  }, function done() {
-    FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
-      log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
-      return doneCallback(null, cacheObj);
-    });
+  FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
+    log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
+    return doneCallback(null, cacheObj);
   });
 }
 
