@@ -1,4 +1,5 @@
-var models = require('mapcache-models')
+var FeatureModel = require('mapcache-models').Feature
+  , turf = require('turf')
   , Canvas = require('canvas')
   , log = require('mapcache-log')
   , Image = Canvas.Image
@@ -9,6 +10,7 @@ var models = require('mapcache-models')
   , q = require('q');
 
 var Cache = function(cache) {
+  console.log('cache', cache);
   this.cache = cache || {};
   if (this.cache && !this.cache.status) {
     this.cache.status = {};
@@ -21,11 +23,13 @@ var Cache = function(cache) {
 Cache.prototype.initialize = function() {
   console.log('init');
   var self = this;
+  console.log('this.cache.source', this.cache.source);
+  console.log('this.cache.source.getTile', this.cache.source.getTile);
   if (this.cache.source && !this.cache.source.getTile) {
     console.log('make a map');
     var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
-      console.log('map was initialized');
+      console.log('map was initialized', map);
       self.cache.source = map;
       self.initDefer.resolve(self);
     });
@@ -37,12 +41,63 @@ Cache.prototype.initialize = function() {
 
 Cache.prototype.callbackWhenInitialized = function(callback) {
   this.initPromise.then(function(self) {
-    console.log('cache initialized in cache.js');
     callback(null, self);
   });
 }
 
+Cache.prototype.generateFormat = function(format, doneCallback, progressCallback) {
+  log.info("Generate the format %s for cache %s", format, this.cache.id);
+  this.callbackWhenInitialized(function(err, self) {
+    var mapSources = self.cache.source.map.dataSources;
+    console.log('mapsources', mapSources);
+    log.info('cacheCreationParams', self.cache.cacheCreationParams);
+    var params = self.cache.cacheCreationParams || {};
+    if (!params.dataSources || params.dataSources.length == 0) {
+      params.dataSources = [];
+      for (var i = 0; i < mapSources.length; i++) {
+        log.debug('adding the datasource', mapSources[i].source.id);
+        params.dataSources.push(mapSources[i].source.id);
+      }
+    }
+
+    async.eachSeries(mapSources, function iterator(s, sourceFinishedCallback) {
+      log.info('Checking source %s', s.source.id.toString());
+      if (!s.source.vector) return sourceFinishedCallback();
+      FeatureModel.getFeatureCountBySourceAndCache(s.source.id, self.cache.id, function(countResults) {
+        if (countResults[0].count != '0') {
+          return sourceFinishedCallback();
+        }
+        var extent = turf.extent(self.cache.geometry);
+        extent[0] = Math.max(-180, extent[0]);
+        extent[1] = Math.max(-85, extent[1]);
+        extent[2] = Math.min(180, extent[2]);
+        extent[3] = Math.min(85, extent[3]);
+        FeatureModel.createCacheFeaturesFromSource(s.source.id, self.cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+          log.info('Created %d features for the cache %s from the source %s', features.rowCount, self.cache.id, s.source.id);
+          self.cache.status.totalFeatures = self.cache.status.totalFeatures + features.rowCount;
+          return sourceFinishedCallback();
+        });
+      });
+    }, function(err) {
+      // all sources have had their vector data generated
+      self._generateFormat(format, doneCallback, progressCallback);
+    });
+  });
+}
+
+Cache.prototype._generateFormat = function(format, doneCallback, progressCallback) {
+  var DataSource = require('../format/'+format);
+  var ds = new DataSource({cache: this, outputDirectory: this.cache.outputDirectory});
+  ds.generateCache(doneCallback, progressCallback);
+}
+
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {
+  if( typeof params === "function" && !callback) {
+    callback = params;
+		params = {};
+  }
+  callback = callback || function(){}
+
   this.initPromise.then(function(self) {
     params = util._extend(params, self.cache.cacheCreationParams);
     var dir = createDir(self.cache.outputDirectory + '/' + self.cache.id, '/tiles/' + z + '/' + x + '/');

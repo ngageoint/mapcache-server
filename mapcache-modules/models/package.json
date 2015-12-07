@@ -19,13 +19,13 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
-    "mapcache-config": "file:../config",
-    "pbkdf2":"file:../../modules/pbkdf2",
     "async": "1.2.1",
     "du": "^0.1.0",
     "fs-extra": "0.11.x",
-    "knex": "^0.8.6",
+    "knex": "^0.9.0",
+    "mapcache-config": "file:../config",
     "mongoose": "3.8.24",
+    "pbkdf2": "file:../../modules/pbkdf2",
     "proj4": "^2.3.6",
     "shortid": "^2.2.2",
     "turf": "^2.0.2"

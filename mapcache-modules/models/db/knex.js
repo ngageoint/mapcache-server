@@ -26,4 +26,24 @@ knex.schema.hasTable('features').then(function(exists) {
   }
 });
 
+knex.schema.hasTable('properties').then(function(exists) {
+  if (!exists) {
+    return knex.schema.createTable('properties', function(propertyTable) {
+      propertyTable.increments('id').primary();
+      propertyTable.string('source_id');
+      propertyTable.string('key');
+    });
+  }
+});
+
+knex.schema.hasTable('values').then(function(exists) {
+  if (!exists) {
+    return knex.schema.createTable('values', function(valuesTable) {
+      valuesTable.increments('id').primary();
+      valuesTable.string('property_id').references('id').inTable('properties').onDelete('CASCADE');
+      valuesTable.string('value').unique();
+    });
+  }
+});
+
 module.exports = knex;

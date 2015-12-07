@@ -16,8 +16,6 @@ exports.getFeatures = function(source, west, south, east, north, zoom, callback)
 }
 
 function tileContainsData(source, bbox) {
-	console.log('source', JSON.stringify(source.geometry));
-	console.log('bbox', bbox);
 	var bufferedBox = {
 		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
 		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
@@ -25,6 +23,7 @@ function tileContainsData(source, bbox) {
 		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
 	};
 	console.log('buffered box', bufferedBox);
+	console.log('source geom', source.geometry);
 	if (source.geometry && !turf.intersect(turf.bboxPolygon([bufferedBox.west, bufferedBox.south, bufferedBox.east, bufferedBox.north]), source.geometry.geometry)) {
 		console.log("No data, returning early");
 		return false;
@@ -56,7 +55,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				handleTileData(tile, format, source.source, imageTile, callback);
 			});
 		} else {
-			FeatureModel.fetchTileForSourceId(source.id, bbox, z, params.projection, function(err, tile) {
+			FeatureModel.fetchTileForSourceId(source.id, bbox, z, 'vector', function(err, tile) {
 				console.log('err fetching tile? ', err);
 				// console.log('tile is', tile);
 				handleTileData(tile, format, source, imageTile, callback);

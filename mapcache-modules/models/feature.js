@@ -14,10 +14,11 @@ exports.createFeatureForSource = function(feature, sourceId, callback) {
 	}).then(callback);
 }
 
-exports.createFeatureForCache = function(feature, cacheId, callback) {
+exports.createFeatureForCache = function(feature, cacheId, sourceId, callback) {
 	var gj = JSON.stringify(feature.geometry);
 	var envelope = turf.envelope(feature.geometry);
   knex('features').insert({
+		source_id: sourceId,
 		cache_id: cacheId,
 		properties: feature.properties,
 		geometry: knex.raw('ST_Transform(ST_Intersection(ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326), ST_MakeEnvelope(-180, -85, 180, 85, 4326)), 3857)'),
@@ -25,12 +26,34 @@ exports.createFeatureForCache = function(feature, cacheId, callback) {
 	}).then(callback);
 }
 
+exports.getExtentOfSource = function(sourceId, callback) {
+	knex('features').select(knex.raw('ST_AsGeoJSON(ST_Transform(ST_SetSRID(ST_Extent(geometry), 3857), 4326)) as extent')).where({source_id: sourceId, cache_id:null}).then(callback);
+}
+
+exports.getPropertyKeysFromSource = function(sourceId, callback) {
+	knex('features').distinct(knex.raw('json_object_keys(properties) as property')).select().where({source_id: sourceId, cache_id: null}).then(callback);
+}
+
+exports.getValuesForKeyFromSource = function(key, sourceId, callback) {
+	knex('features').distinct(knex.raw('properties::jsonb -> \''+key+'\' as value')).select().where({source_id: sourceId, cache_id: null}).andWhere(knex.raw("properties::jsonb\\?|array[\'"+key+"\']")).then(callback);
+}
+
 exports.deleteFeaturesByCacheId = function(id, callback) {
   knex.where('cache_id', id).from('features').del().then(callback);
 }
 
 exports.deleteFeaturesBySourceId = function(id, callback) {
-  knex.where('source_id', id).from('features').del().then(callback);
+  knex.where('source_id', id).from('features').del().then(function(deleteResults){
+		callback(deleteResults);
+	});
+}
+
+exports.getFeatureCountBySource = function(sourceId, callback) {
+	knex('features').count().where({source_id: sourceId, cache_id: null}).then(callback);
+}
+
+exports.getFeatureCountBySourceAndCache = function(sourceId, cacheId, callback) {
+	knex('features').count().where({source_id: sourceId, cache_id: cacheId}).then(callback);
 }
 
 exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north, projection, callback) {
@@ -66,7 +89,7 @@ exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, nor
 	knex.select(geometrySelect,'properties')
 	.from('features')
 	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
-	.andWhere({source_id: sourceId})
+	.andWhere({source_id: sourceId, cache_id: null})
 	.then(function(collection){
 		console.timeEnd('fetching data');
 		console.log('returned ' + collection.length + ' features');
@@ -75,14 +98,14 @@ exports.findFeaturesBySourceIdWithin = function(sourceId, west, south, east, nor
 }
 
 exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south, east, north, callback) {
-	knex.raw('WITH row AS (SELECT source_id, \''+cacheId + '\' as cache_id, box, geometry, properties FROM features WHERE source_id = \''+ sourceId + '\' and ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))) INSERT INTO features (source_id, cache_id, box, geometry, properties) (SELECT * from row)')
+	knex.raw('WITH row AS (SELECT source_id, \''+cacheId + '\' as cache_id, box, geometry, properties FROM features WHERE source_id = \''+ sourceId + '\' and cache_id is null and ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))) INSERT INTO features (source_id, cache_id, box, geometry, properties) (SELECT * from row)')
 	.then(function(collection) {
 		callback(null, collection);
 	});
 }
 
 exports.getAllSourceFeatures = function(sourceId, callback) {
-	knex.raw("select row_to_json(fc) as geojson from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) as features from (select 'Feature' as type, ST_AsGeoJSON(ST_Transform(lg.geometry, 4326))::json as geometry, properties from features as lg where source_id = '"+sourceId+"') as f) as fc")
+	knex.raw("select row_to_json(fc) as geojson from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) as features from (select 'Feature' as type, ST_AsGeoJSON(ST_Transform(lg.geometry, 4326))::json as geometry, properties from features as lg where source_id = '"+sourceId+" and cache_id is null') as f) as fc")
 	.then(function(collection) {
 		callback(null, collection);
 	});
@@ -203,7 +226,7 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 	knex.select(geometrySelect,'properties')
 	.from('features')
 	.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
-	.andWhere({source_id: sourceId})
+	.andWhere({source_id: sourceId, cache_id: null})
 	// .limit(100000)
 	.then(function(collection){
 		console.timeEnd('fetching data');

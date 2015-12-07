@@ -57,7 +57,6 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
       } else {
         log.info('the file %s does not exist for the xyz cache %s, creating', path.join(dir, filename), cache.id);
         cache.source.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
-          log.debug('the stream', stream);
           var ws = fs.createOutputStream(path.join(dir, filename));
           stream.pipe(ws);
           ws.on('finish', function(){

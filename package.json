@@ -30,7 +30,7 @@
     "fs-extra": "^0.26.2",
     "gdal": "^0.4.4",
     "geopackage": "file:modules/geopackage",
-    "knex": "^0.8.6",
+    "knex": "^0.9.0",
     "length-stream": "^0.1.1",
     "mapcache-config": "file:mapcache-modules/config",
     "mapcache-log": "file:mapcache-modules/log",

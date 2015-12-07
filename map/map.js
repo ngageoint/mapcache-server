@@ -23,10 +23,12 @@ Map.prototype.callbackWhenInitialized = function(callback) {
 
 Map.prototype.initialize = function(callback) {
   log.info('Initializing the map with id %s', this.map.id);
+  log.debug('There are %d data sources to process', this.map.dataSources.length);
   var tempDataSources = this.map.dataSources || [];
   this.map.dataSources = [];
   var self = this;
   async.eachSeries(tempDataSources, function(ds, done) {
+    log.info('Processing the data source %s', ds.name);
     self.addDataSource(ds, done);
   }, function done() {
     log.info('Map %s was initialized', self.map.id);
@@ -39,8 +41,11 @@ Map.prototype.initialize = function(callback) {
 }
 
 Map.prototype.addDataSource = function(ds, callback) {
+  log.debug('Adding a %s data source processor', ds.format);
+
   var self = this;
   if (ds.getTile) {
+    log.debug('data source is already made', ds);
     if (ds.source.status && ds.source.status.complete) {
       log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
       self.map.dataSources.push(ds);
@@ -54,20 +59,28 @@ Map.prototype.addDataSource = function(ds, callback) {
       });
     }
   } else {
+    log.debug('have to make the ds', ds);
     var DataSource = require('../format/'+ds.format);
+    log.debug('made it');
     var dsObj = new DataSource({source: ds});
+    log.debug('dsobj', dsObj);
     if (dsObj.source.status && dsObj.source.status.complete) {
       self.map.dataSources.push(dsObj);
       log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
       callback(null, dsObj);
     } else {
       log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
+      try {
       dsObj.processSource(function(err, source) {
+        if (err) { log.error('Error processing the datasource %s', ds.id, err); }
         self.map.dataSources.push(dsObj);
-        console.log(dsObj);
-        log.debug('Adding the datasource %s to add to the map %s', dsObj.id, self.map.id);
-        callback(null, dsObj);
+        log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
+        callback(err, dsObj);
       });
+    } catch (e) {
+      console.log('e is', e);
+      console.error(e.stack);
+    }
     }
   }
 }
@@ -117,7 +130,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     async.eachSeries(sorted, function iterator(s, callback) {
       if (params.dataSources.indexOf(s.source.id) == -1) return callback();
       s.getTile(format, z, x, y, params, function(err, tileStream) {
-        if (!tileStream) callback();
+        if (!tileStream) return callback();
 
         var buffer = new Buffer(0);
         var chunk;
