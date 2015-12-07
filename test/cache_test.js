@@ -78,7 +78,7 @@ describe('Cache Tests', function() {
     outputDirectory: cacheDir,
     id: 'test-map',
     name: 'test-map',
-    dataSources: [osm, rivers, landHexes]
+    dataSources: [osm, rivers]
   };
 
   var cacheModel = {
@@ -147,7 +147,7 @@ describe('Cache Tests', function() {
       fs.copy(path.join(__dirname, './leaflet/index.html'), path.join(cacheDir, cacheModel.id, 'index.html'), done);
     });
 
-    it('should generate the XYZ format for the cache', function (done) {
+    xit('should generate the XYZ format for the cache', function (done) {
       this.timeout(0);
       cache.generateFormat('xyz', function(err, cache) {
           console.log('cache finished with err?', err);
@@ -161,7 +161,7 @@ describe('Cache Tests', function() {
       );
     });
 
-    xit('should generate the GeoPackage format for the cache', function (done) {
+    it('should generate the GeoPackage format for the cache', function (done) {
       this.timeout(0);
       cache.generateFormat('geopackage', function(err, cache) {
           console.log('cache finished with err?', err);

@@ -21,22 +21,32 @@ var Cache = function(cache) {
 }
 
 Cache.prototype.initialize = function() {
-  console.log('init');
   var self = this;
-  console.log('this.cache.source', this.cache.source);
-  console.log('this.cache.source.getTile', this.cache.source.getTile);
   if (this.cache.source && !this.cache.source.getTile) {
-    console.log('make a map');
     var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
-      console.log('map was initialized', map);
       self.cache.source = map;
+      self._updateDataSourceParams();
       self.initDefer.resolve(self);
     });
   } else {
-    console.log('map already made');
+    self._updateDataSourceParams();
     self.initDefer.resolve(self);
   }
+}
+
+Cache.prototype._updateDataSourceParams = function() {
+  var mapSources = this.cache.source.map.dataSources;
+  var params = this.cache.cacheCreationParams || {};
+  if (!params.dataSources || params.dataSources.length == 0) {
+    params.dataSources = [];
+    for (var i = 0; i < mapSources.length; i++) {
+      params.dataSources.push(mapSources[i].source.id);
+    }
+  }
+
+  this.cache.cacheCreationParams = this.cache.cacheCreationParams || {};
+  this.cache.cacheCreationParams.dataSources = params.dataSources;
 }
 
 Cache.prototype.callbackWhenInitialized = function(callback) {

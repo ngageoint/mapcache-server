@@ -39,125 +39,146 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   var dir = path.join(this.config.outputDirectory, cache.id, 'gpkg');
   var filename = cache.id + '.gpkg';
-  fs.emptyDirSync(dir);
+  this.filePath = path.join(dir, filename);
 
-  if (fs.existsSync(path.join(dir, filename))) {
+  if (fs.existsSync(this.filePath)) {
     log.info('Cache already exists, returning');
     return doneCallback(null, cacheObj);
   }
+
+  fs.emptyDirSync(dir);
 
   log.info('Generating cache with id %s', this.cache.cache.id);
 
   var extent = turf.extent(cache.geometry);
 
   var map = cache.source.map;
-  var sorted = map.dataSources.sort(zOrderDatasources);
-  var params = cache.cacheCreationParams || {};
-  if (!params.dataSources || params.dataSources.length == 0) {
-    params.dataSources = [];
-    for (var i = 0; i < sorted.length; i++) {
-      log.debug('adding the datasource', sorted[i].source.id);
-      params.dataSources.push(sorted[i].source.id);
-    }
+  var mapSources = map.dataSources;
+  // var params = cache.cacheCreationParams || {};
+  // if (!params.dataSources || params.dataSources.length == 0) {
+  //   params.dataSources = [];
+  //   for (var i = 0; i < mapSources.length; i++) {
+  //     log.debug('adding the datasource', mapSources[i].source.id);
+  //     params.dataSources.push(mapSources[i].source.id);
+  //   }
+  // }
+  cache.status.generatedFeatures = 0;
+
+  var tasks = [];
+
+  tasks.push(this._openGeoPackage.bind(this));
+
+  for (var i = 0; i < mapSources.length; i++) {
+    tasks.push(this._addSourceToGeoPackage.bind(this, mapSources[i], progressCallback));
   }
 
-  var extent = turf.extent(cache.geometry);
+  async.series(tasks, function (err, results) {
+    console.log('all sources are complete');
+    return doneCallback(null, cacheObj);
+  });
+}
+
+GeoPackage.prototype._calculateExtentFromGeometry = function(geometry) {
+  var extent = turf.extent(geometry);
   extent[0] = Math.max(-180, extent[0]);
   extent[1] = Math.max(-85, extent[1]);
   extent[2] = Math.min(180, extent[2]);
   extent[3] = Math.min(85, extent[3]);
+  return extent;
+}
 
-  cache.status.generatedFeatures = 0;
+GeoPackage.prototype._addSourceToGeoPackage = function(s, progressCallback, callback) {
+  var cache = this.cache.cache;
+  var params = cache.cacheCreationParams;
+  log.info('params are', params);
+  log.debug('Checking if %s - %s should be added to the cache', s.source.name, s.source.id.toString());
+  if (params.dataSources.indexOf(s.source.id.toString()) == -1) {
+    log.debug('%s - %s is not being added to the cache', s.source.name, s.source.id.toString());
+    return callback();
+  }
+  log.info('Adding %s - %s to the cache', s.source.name, s.source.id.toString());
+  if (s.vector) {
+    this._addVectorSourceToGeoPackage(s, progressCallback, callback);
+  } else {
+    this._addRasterSourceToGeoPackage(s, progressCallback, callback);
+  }
+}
 
-  // async.waterfall([
-  //   function(callback) {
-  //     callback(null, {cache: cache, filePath: path.join(dir, filename)});
-  //   },
-  //   openGeoPackage,
-  //   addSourcesToGeoPackage,
-  //   setSourceStyle,
-  //   setSourceProperties
-  // ], function (err, source){
-  //   source.status.complete = true;
-  //   source.status.message = "Complete";
-  //   callback(err, source);
-  // });
+GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progressCallback, sourceFinishedCallback) {
+  log.info('Adding the features for cache %s from the source %s - %s', this.cache.cache.id, vectorSource.source.name, vectorSource.source.id)
 
-  var filePath = path.join(dir, filename);
-  var geoPackage = new GeoPackageApi();
-  geoPackage.createAndOpenGeoPackageFile(filePath, function() {
-    console.log('geoPackage is created and open');
-    async.eachSeries(sorted, function iterator(s, sourceFinishedCallback) {
-      log.info('Checking source %s', s.source.id.toString());
-      if (params.dataSources.indexOf(s.source.id.toString()) == -1) {
-        return sourceFinishedCallback();
-      }
-      var tableName = s.source.name ? s.source.name.toString() : s.source.id.toString();
-      tableName = tableName.replace(/[^a-z0-9]/gi,'');
+  var tableName = vectorSource.source.name ? vectorSource.source.name.toString() : vectorSource.source.id.toString();
+  tableName = tableName.replace(/[^a-z0-9]/gi,'');
 
-      if (s.source.vector) {
-        log.info('Creating the cache features for cache %s from the source %s', cache.id, s.source.id);
-        var propertyColumnNames = [];
-        for (var i = 0; i < s.source.properties.length; i++) {
-          propertyColumnNames.push(s.source.properties[i].key);
+  var cache = this.cache.cache;
+  var extent = this._calculateExtentFromGeometry(cache.geometry);
+
+  var propertyColumnNames = [];
+  for (var i = 0; i < vectorSource.source.properties.length; i++) {
+    propertyColumnNames.push(vectorSource.source.properties[i].key);
+  }
+  console.log('property column names', propertyColumnNames);
+  var sourceFeaturesCreated = 0;
+  // write these to the geoPackage
+  FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, vectorSource.source.id, extent[0], extent[1], extent[2], extent[3], '3857', function(err, features) {
+    this.geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
+      this.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
+        console.log('features.length', features.length);
+        if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
+          this.geoPackage.indexGeoPackage(tableName, features.length, sourceFinishedCallback);
+        } else {
+          sourceFinishedCallback();
         }
-        console.log('property column names', propertyColumnNames);
-        var sourceFeaturesCreated = 0;
-        // write these to the geoPackage
-        FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, s.source.id, extent[0], extent[1], extent[2], extent[3], '3857', function(err, features) {
-          geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
-            geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
-              console.log('features.length', features.length);
-              if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
-                geoPackage.indexGeoPackage(tableName, features.length, sourceFinishedCallback);
-              } else {
-                sourceFinishedCallback();
-              }
-            }, function(progress, callback) {
-              cache.status.generatedFeatures = cache.status.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
-              sourceFeaturesCreated = progress.featuresAdded;
+      }, function(progress, callback) {
+        cache.status.generatedFeatures = cache.status.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
+        sourceFeaturesCreated = progress.featuresAdded;
 
-              progressCallback(cache, callback);
-            });
-          });
-        });
-      } else {
-        log.info('Creating the tiles for cache %s from the source %s', cache.id, s.source.id);
-        var xRangeMinZoom = xyzTileUtils.calculateXTileRange(extent, cache.minZoom);
-        var yRangeMinZoom = xyzTileUtils.calculateXTileRange(extent, cache.minZoom);
-
-        var llCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, cache.minZoom);
-        var urCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, cache.minZoom);
-        var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
-        geoPackage.createTileTable(extent, tableName, cache.minZoom, cache.maxZoom, function() {
-          xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
-              var xRange = xyzTileUtils.calculateXTileRange(totalTileExtent, tile.z);
-              var yRange = xyzTileUtils.calculateYTileRange(totalTileExtent, tile.z);
-
-              var tileRow = tile.y - yRange.min;
-              var tileColumn = tile.x - xRange.min;
-              s.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
-                if (err || !tileStream) { return tileDone()};
-                geoPackage.addTileToGeoPackage(tileStream, tableName, tile.z, tileRow, tileColumn, tileDone);
-              });
-            },
-            function(zoom, callback) {
-              log.info('zoom level %d is done for %s', zoom, cache.id);
-              callback();
-            },
-            function(err, data) {
-              log.info('all tiles are done for %s', cache.id);
-              self.cache.cache = data;
-              log.info('need to callback the finished callback', sourceFinishedCallback);
-              sourceFinishedCallback(null, self.cache);
-            }
-          );
-        });
-      }
-    }, function done() {
-      console.log('all sources are complete');
-      return doneCallback(null, cacheObj);
+        progressCallback(cache, callback);
+      });
     });
+  });
+}
+
+GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progressCallback, sourceFinishedCallback) {
+  log.info('Adding the tiles for cache %s from the source %s - %s', this.cache.cache.id, rasterSource.source.name, rasterSource.source.id);
+
+  var tableName = rasterSource.source.name ? rasterSource.source.name.toString() : rasterSource.source.id.toString();
+  tableName = tableName.replace(/[^a-z0-9]/gi,'');
+
+  var cache = this.cache.cache;
+
+  var extent = this._calculateExtentFromGeometry(cache.geometry);
+
+  var xRangeMinZoom = xyzTileUtils.calculateXTileRange(extent, cache.minZoom);
+  var yRangeMinZoom = xyzTileUtils.calculateXTileRange(extent, cache.minZoom);
+
+  var llCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, cache.minZoom);
+  var urCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, cache.minZoom);
+  var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
+  var self = this;
+  this.geoPackage.createTileTable(extent, tableName, cache.minZoom, cache.maxZoom, function() {
+    xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
+        var xRange = xyzTileUtils.calculateXTileRange(totalTileExtent, tile.z);
+        var yRange = xyzTileUtils.calculateYTileRange(totalTileExtent, tile.z);
+
+        var tileRow = tile.y - yRange.min;
+        var tileColumn = tile.x - xRange.min;
+        rasterSource.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
+          if (err || !tileStream) { return tileDone()};
+          self.geoPackage.addTileToGeoPackage(tileStream, tableName, tile.z, tileRow, tileColumn, tileDone);
+        });
+      },
+      function(zoom, zoomFinishedCallback) {
+        log.info('zoom level %d is done for %s', zoom, cache.id);
+        zoomFinishedCallback();
+      },
+      function(err, data) {
+        log.info('all tiles are done for %s', cache.id);
+        self.cache.cache = data;
+        log.info('need to callback the finished callback', sourceFinishedCallback);
+        sourceFinishedCallback(null, self.cache);
+      }
+    );
   });
 }
 
@@ -165,23 +186,17 @@ GeoPackage.prototype.getDataWithin = function(west, south, east, north, projecti
   callback(null, null);
 }
 
-function openGeoPackage(data, callback) {
-  var geoPackage = new GeoPackageApi();
-  geoPackage.createAndOpenGeoPackageFile(filePath, function() {
-    data.geoPackage = geoPackage;
-    callback(null, data);
+GeoPackage.prototype._openGeoPackage = function(callback) {
+  log.info('Opening a new GeoPackage at %s', this.filePath);
+  this.geoPackage = new GeoPackageApi();
+  this.geoPackage.createAndOpenGeoPackageFile(this.filePath, function() {
+    callback(null, this.geoPackage);
   });
 }
 
-function zOrderDatasources(a, b) {
-  if (a.source.zOrder < b.source.zOrder) {
-    return -1;
-  }
-  if (a.source.zOrder > b.source.zOrder) {
-    return 1;
-  }
-  // a must be equal to b
-  return 0;
+GeoPackage.prototype._checkGeoPackage = function(callback) {
+  log.info('the geopackage is', this.geoPackage);
+  callback(null);
 }
 
 module.exports = GeoPackage;
