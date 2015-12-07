@@ -50,18 +50,8 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   log.info('Generating cache with id %s', this.cache.cache.id);
 
-  var extent = turf.extent(cache.geometry);
-
   var map = cache.source.map;
   var mapSources = map.dataSources;
-  // var params = cache.cacheCreationParams || {};
-  // if (!params.dataSources || params.dataSources.length == 0) {
-  //   params.dataSources = [];
-  //   for (var i = 0; i < mapSources.length; i++) {
-  //     log.debug('adding the datasource', mapSources[i].source.id);
-  //     params.dataSources.push(mapSources[i].source.id);
-  //   }
-  // }
   cache.status.generatedFeatures = 0;
 
   var tasks = [];
@@ -97,7 +87,7 @@ GeoPackage.prototype._addSourceToGeoPackage = function(s, progressCallback, call
     return callback();
   }
   log.info('Adding %s - %s to the cache', s.source.name, s.source.id.toString());
-  if (s.vector) {
+  if (s.source.vector) {
     this._addVectorSourceToGeoPackage(s, progressCallback, callback);
   } else {
     this._addRasterSourceToGeoPackage(s, progressCallback, callback);
@@ -120,12 +110,13 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
   console.log('property column names', propertyColumnNames);
   var sourceFeaturesCreated = 0;
   // write these to the geoPackage
+  var self = this;
   FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, vectorSource.source.id, extent[0], extent[1], extent[2], extent[3], '3857', function(err, features) {
-    this.geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
-      this.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
+    self.geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
+      self.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
         console.log('features.length', features.length);
         if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
-          this.geoPackage.indexGeoPackage(tableName, features.length, sourceFinishedCallback);
+          self.geoPackage.indexGeoPackage(tableName, features.length, sourceFinishedCallback);
         } else {
           sourceFinishedCallback();
         }

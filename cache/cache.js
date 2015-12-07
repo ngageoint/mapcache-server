@@ -59,6 +59,8 @@ Cache.prototype.generateFormat = function(format, doneCallback, progressCallback
   log.info("Generate the format %s for cache %s", format, this.cache.id);
   this.callbackWhenInitialized(function(err, self) {
     var mapSources = self.cache.source.map.dataSources;
+    self.cache.status = self.cache.status || {};
+    self.cache.status.totalFeatures = 0;
     console.log('mapsources', mapSources);
     log.info('cacheCreationParams', self.cache.cacheCreationParams);
     var params = self.cache.cacheCreationParams || {};
@@ -75,6 +77,7 @@ Cache.prototype.generateFormat = function(format, doneCallback, progressCallback
       if (!s.source.vector) return sourceFinishedCallback();
       FeatureModel.getFeatureCountBySourceAndCache(s.source.id, self.cache.id, function(countResults) {
         if (countResults[0].count != '0') {
+          self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
           return sourceFinishedCallback();
         }
         var extent = turf.extent(self.cache.geometry);
