@@ -7,9 +7,6 @@ var gdal = require("gdal")
   , png = require('pngjs')
   , xyzTileUtils = require('xyz-tile-utils')
   , async = require('async')
-  // , models = require('mapcache-models')
-  // , CacheModel = models.Cache
-  // , SourceModel = models.Source
   , config = require('mapcache-config');
 
   exports.processSource = function(source, callback, progressCallback) {
