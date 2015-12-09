@@ -332,8 +332,10 @@ function sourceCorners(ds) {
 exports.gdalInfo = function(ds) {
   console.log("number of bands: " + ds.bands.count());
   var size = ds.rasterSize;
-  console.log("width: " + ds.rasterSize.x);
-  console.log("height: " + ds.rasterSize.y);
+  if (ds.rasterSize) {
+    console.log("width: " + ds.rasterSize.x);
+    console.log("height: " + ds.rasterSize.y);
+  }
   var geotransform = ds.geoTransform;
   if (geotransform) {
     console.log('Origin = (' + geotransform[0] + ', ' + geotransform[3] + ')');
@@ -341,6 +343,14 @@ exports.gdalInfo = function(ds) {
     console.log('GeoTransform =');
     console.log(geotransform);
   }
+
+  var layer = ds.layers;
+  console.log('DataSource Layer Count', layer.count());
+  for (var i = 0; i < layer.count(); i++) {
+    console.log('Layer %d:', i, layer.get(i));
+  }
+
+
   console.log("srs: " + (ds.srs ? ds.srs.toPrettyWKT() : 'null'));
   if (!ds.srs) return;
   // corners

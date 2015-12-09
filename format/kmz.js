@@ -1,8 +1,13 @@
 var fs = require('fs-extra')
   , path = require('path')
+  , find = require('findit')
+  , async = require('async')
+  , geojsonStream = require('geojson-stream')
   , extend = require('util')._extend
-  , shp2json = require('shp2json')
-  , GeoJSON = require('./geojson')
+  , decompress = require('decompress-zip')
+  , ogr2ogr = require('ogr2ogr')
+  , tile = require('mapcache-tile')
+  , FeatureModel = require('mapcache-models').Feature
   , log = require('mapcache-log');
 
 var KMZ = function(config) {
@@ -15,51 +20,177 @@ var KMZ = function(config) {
 }
 
 KMZ.prototype.processSource = function(doneCallback, progressCallback) {
-  var dir = this.config.outputDirectory || path.dirname(this.source.file.path);
-  var fileName = path.basename(path.basename(this.source.file.path), path.extname(this.source.file.path)) + '.geojson';
 
-  this.geoJsonFile = path.join(dir, fileName);
-  if (fs.existsSync(this.geoJsonFile)) {
-    log.info('Source is already processed and saved to %s', this.geoJsonFile);
-    return doneCallback(null, this.source);
-  }
+  this.source.vector = true;
+  this.source.status = this.source.status || {};
 
-  var kmzReadStream = fs.createReadStream(this.source.file.path);
-  var geoJsonOutStream = fs.createOutputStream(this.geoJsonFile);
+  isAlreadyProcessed(this.source, function(processed) {
+    console.log('the source was processed? ', processed);
+    if (processed) {
+      return completeProcessing(this.source, function(err, source) {
+        console.log('source was already processed, returning', source);
 
-  var gj = "";
-  var Transform = require('stream').Transform;
+        doneCallback(null, source);
+      });
+    }
+    this.outDirectory = this.config.outputDirectory || path.dirname(this.source.file.path);
+    var fileName = path.basename(path.basename(this.source.file.path), path.extname(this.source.file.path)) + '.geojson';
 
-  var parser = new Transform();
-  parser._transform = function(data, encoding, done) {
-    console.log('data transforming');
-    gj = gj + data.toString();
-    this.push(data);
-    done();
-  };
+    this.geoJsonFile = path.join(this.outDirectory, fileName);
 
-  log.debug('parse shapefile to json');
-  console.time('shape to json');
+    log.info('Decompressing kmz file');
+    var zip = new decompress(this.source.file.path);
+    var self = this;
+    zip.on('extract', function() {
 
-  geoJsonOutStream.on('close', this._finishedTransforming.bind(this, doneCallback, progressCallback));
-  shp2json(kmzReadStream).pipe(parser).pipe(geoJsonOutStream);
+      console.log('extract happened');
+      // find the kml file
+      var kmlFile;
+      var finder = find(path.join(this.outDirectory, 'extract'));
+
+      finder.on('file', function(file, stat){
+        console.log('file', file);
+        if (/^\.(kml)$/i.test(path.extname(file))) {
+          kmlFile = file;
+        }
+      });
+
+      finder.on('end', function() {
+        console.log('kmlfile', kmlFile);
+        var gdal = require("gdal");
+        var ds = gdal.open(kmlFile);
+        var gdalType = require('./gdalType');
+
+        var layer = ds.layers;
+        console.log('DataSource Layer Count', layer.count());
+
+        var tasks = [];
+        for (var i = 0; i < layer.count(); i++) {
+          console.log('Layer %d:', i, layer.get(i));
+          tasks.push(self._extractLayer.bind(self, kmlFile, layer.get(i).name));
+        }
+
+        async.parallel(tasks,
+          function(err, results) {
+            log.info('Merge the GeoJSON files', results);
+            return completeProcessing(self.source, function(err, source) {
+              console.log('source was already processed, returning', source);
+
+              doneCallback(null, source);
+            });
+          }
+        );
+      });
+    }.bind(this));
+
+    zip.extract({
+      path: path.join(this.outDirectory, 'extract')
+    });
+  }.bind(this));
+
 }
 
-KMZ.prototype._finishedTransforming = function(doneCallback, progressCallback, status) {
-  console.timeEnd('shape to json');
-  var geoJsonSource = extend({}, this.source);
-  geoJsonSource.file = {
-    path: this.geoJsonFile,
-    name: path.basename(this.geoJsonFile)
-  };
-  this.geoJsonFormat = new GeoJSON({
-    source: geoJsonSource
+KMZ.prototype._extractLayer = function(file, layer, callback) {
+  console.log('this', this);
+  log.info('Extract the layer %s', layer);
+
+  var ogr = ogr2ogr(file);
+  var stream = ogr.skipfailures().options([layer]).stream();
+  var gjStream = geojsonStream.parse();
+  gjStream.on('data', function(feature) {
+    // console.log('feature', feature);
+    FeatureModel.createFeatureForSource(feature, this.source.id, function(err) {
+
+    });
+  }.bind(this));
+  gjStream.on('end', function() {
+    callback(null, layer);
+  })
+  stream.pipe(gjStream);
+}
+
+function isAlreadyProcessed(source, callback) {
+  log.debug('is it already processed?', source);
+  if (source.status && source.status.complete) {
+    return callback(true);
+  }
+  FeatureModel.getFeatureCountBySource(source.id, function(resultArray){
+    log.debug("The source already has features", resultArray);
+    if (resultArray[0].count != '0') {
+      return callback(true);
+    } else {
+      return callback(false);
+    }
   });
-  this.geoJsonFormat.processSource(doneCallback, progressCallback);
+}
+
+function setSourceCount(source, callback) {
+  FeatureModel.getFeatureCountBySource(source.id, function(resultArray){
+    source.status.totalFeatures = resultArray[0].count;
+    callback(null, source);
+  });
+}
+
+function setSourceExtent(source, callback) {
+  FeatureModel.getExtentOfSource(source.id, function(resultArray) {
+    source.geometry = {
+      type: "Feature",
+      geometry: JSON.parse(resultArray[0].extent)
+    };
+    callback(null, source);
+  });
+}
+
+function setSourceStyle(source, callback) {
+  source.style = source.style || {
+    defaultStyle: {
+      style: {
+        'fill': "#000000",
+        'fill-opacity': 0.5,
+        'stroke': "#0000FF",
+        'stroke-opacity': 1.0,
+        'stroke-width': 1
+      }
+    }
+  };
+  source.style.styles = source.style.styles || [];
+  callback(null, source);
+}
+
+function setSourceProperties(source, callback) {
+  source.properties = [];
+  FeatureModel.getPropertyKeysFromSource(source.id, function(propertyArray){
+    async.eachSeries(propertyArray, function(key, propertyDone) {
+      FeatureModel.getValuesForKeyFromSource(key.property, source.id, function(valuesArray) {
+        source.properties.push({key: key.property, values: valuesArray.map(function(current) {
+          return current.value;
+        })});
+        propertyDone();
+      });
+    }, function() {
+      callback(null, source);
+    });
+  });
+}
+
+function completeProcessing(source, callback) {
+  async.waterfall([
+    function(callback) {
+      callback(null, source);
+    },
+    setSourceCount,
+    setSourceExtent,
+    setSourceStyle,
+    setSourceProperties
+  ], function (err, source){
+    source.status.complete = true;
+    source.status.message = "Complete";
+    callback(err, source);
+  });
 }
 
 KMZ.prototype.getTile = function(format, z, x, y, params, callback) {
-  this.geoJsonFormat.getTile(format, z, x, y, params, callback);
+  tile.getVectorTile(this.source, format, z, x, y, params, callback);
 }
 
 KMZ.prototype.generateCache = function(doneCallback, progressCallback) {
@@ -67,7 +198,7 @@ KMZ.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 KMZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  this.geoJsonFormat.getDataWithin(west, south, east, north, projection, callback);
+  FeatureModel.findFeaturesBySourceIdWithin(this.source.id, west, south, east, north, projection, callback);
 }
 
 module.exports = KMZ;

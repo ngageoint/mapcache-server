@@ -85,16 +85,15 @@ describe('KMZ', function() {
           done(err);
           return;
         }
-
-        var lstream = lengthStream(function(length) {
-          console.log('tile size is ', length);
-          length.should.be.greaterThan(0);
+        var ws = fs.createWriteStream('/tmp/kmz_test.geojson');
+        stream.pipe(ws);
+        stream.on('end', function() {
+          console.log('wrote the file to /tmp/kmz_test.geojson');
           done();
         });
-        stream.pipe(lstream).pipe(devnull());
       });
     });
-    it('should get all features of the source', function(done) {
+    xit('should get all features of the source', function(done) {
       this.timeout(0);
       kmz.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
         console.log('err', err);

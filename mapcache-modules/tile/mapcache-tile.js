@@ -55,7 +55,7 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				handleTileData(tile, format, source.source, imageTile, callback);
 			});
 		} else {
-			FeatureModel.fetchTileForSourceId(source.id, bbox, z, 'vector', function(err, tile) {
+			FeatureModel.fetchTileForSourceId(source.id, bbox, z, format == 'geojson' ? '4326' : 'vector', function(err, tile) {
 				console.log('err fetching tile? ', err);
 				// console.log('tile is', tile);
 				handleTileData(tile, format, source, imageTile, callback);

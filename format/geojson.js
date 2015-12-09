@@ -363,7 +363,7 @@ function getTileForCache(cache, z, x, y, format, params, callback) {
 function getTileFromSource(source, z, x, y, format, params, callback) {
   console.log('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
 
-tile.getVectorTile(source, format, z, x, y, params, callback);
+  tile.getVectorTile(source, format, z, x, y, params, callback);
 }
 
 function createDir(cacheName, filepath){
