@@ -19,7 +19,7 @@ exports.getTile = tile.getVectorTile;
 exports.getFeatures = tile.getFeatures;
 
 exports.getData = function(source, west, south, east, north, callback) {
-  FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, 4326, callback);
+  FeatureModel.findFeaturesWithin({sourceId: source.id}, west, south, east, north, 4326, callback);
 }
 
 exports.processSource = function(source, callback) {
@@ -89,7 +89,7 @@ function parseGeoJSONFile(source, callback) {
     console.log('gjdata.features', gjData.features.length);
     var count = 0;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
-      FeatureModel.createFeatureForSource(feature, source.id, function(err) {
+      FeatureModel.createFeature(feature, {sourceId: source.id}, function(err) {
         count++;
         // console.log('err', err);
         async.setImmediate(function() {

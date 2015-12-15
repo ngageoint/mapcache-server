@@ -12,7 +12,7 @@ var fs = require('fs-extra')
 	, FeatureModel = mapcacheModels.Feature;
 
 exports.getFeatures = function(source, west, south, east, north, zoom, callback) {
-	FeatureModel.findFeaturesBySourceIdWithin(source.id, west, south, east, north, 4326, callback);
+	FeatureModel.findFeaturesWithin({sourceId: source.id}, west, south, east, north, 4326, callback);
 }
 
 function tileContainsData(source, bbox) {
@@ -70,23 +70,6 @@ function handleTileData(tile, format, source, imageTile, callback) {
 			return exports.createImage(tile, source.style, function(err, pngStream) {
 				var size = 0;
 				var done = true;
-				// pngStream.on('data', function(chunk) {
-				// 	size += chunk.length;
-				// });
-				// pngStream.on('end', function() {
-				// 	if (!done && source){
-				// 		// SourceModel.updateSourceAverageSize(source, size, function(err) {
-				// 		// });
-				// 		done = true;
-				// 	}
-				// });
-
-
-				// fs.mkdirsSync(path.dirname(imageTile), function(err){
-				// 	 if (err) console.log(err);
-				//  });
-				// var tileWriter = fs.createWriteStream(imageTile);
-				// pngStream.pipe(tileWriter);
 				return callback(err, pngStream);
 			});
 		} else if (format == 'geojson') {
@@ -107,8 +90,6 @@ function handleTileData(tile, format, source, imageTile, callback) {
 			return callback(null);
 		}
 	} catch (e) {
-		// console.log('error with tile ', tile);
-		// console.log(tile);
 		console.log(e);
 		throw e;
 	}

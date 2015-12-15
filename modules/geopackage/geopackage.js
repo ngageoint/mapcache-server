@@ -82,10 +82,14 @@ var GeoPackage = function() {
 }
 
 GeoPackage.prototype.initialize = function() {
+  console.log('Initializing the GeoPackage with the package json', __dirname+'/package.json');
   var self = this;
+  console.log('mvn', mvn);
+  try {
   mvn({
     packageJsonPath: __dirname+'/package.json'
   }, function(err, mvnResults) {
+    console.log('retrieved the maven atrifacts');
     if (err) {
       return console.error('could not resolve maven dependencies', err);
     }
@@ -97,6 +101,9 @@ GeoPackage.prototype.initialize = function() {
     console.log('resolving promise');
     self.initDefer.resolve(self);
   });
+} catch (e) {
+  console.log('e', e);
+}
 }
 
 GeoPackage.prototype.createAndOpenGeoPackageFile = function(filePath, callback) {
@@ -113,6 +120,24 @@ GeoPackage.prototype.createAndOpenGeoPackageFile = function(filePath, callback) 
     var srsWgs84 = srsDao.getOrCreateSync(4326);
     var srsEpsg3857 = srsDao.getOrCreateSync(3857);
     callback();
+  }).done();
+}
+
+GeoPackage.prototype.openGeoPackageFile = function(filePath, callback) {
+  console.log('opening geopackage ' + filePath);
+  console.log('init promise', this.initPromise);
+  this.initPromise.then(function(self) {
+    console.log('promise inited');
+    try {
+      var File = java.import('java.io.File');
+      var gpkgFile = new File(filePath);
+      var canRead = gpkgFile.canReadSync();
+      console.log('can read the geopackage file? ', canRead);
+      self.geoPackage = java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'open', gpkgFile);
+      callback();
+    } catch (e) {
+      callback(e);
+    }
   }).done();
 }
 
@@ -289,6 +314,174 @@ GeoPackage.prototype.addMultiPolygon = function(multiPolygon, featureRow, callba
     featureRow.setGeometrySync(geometryData);
     callback();
   }).done();
+}
+
+GeoPackage.prototype.getFeatureTables = function(callback) {
+  this.initPromise.then(function(self) {
+    var featureTables = self.geoPackage.getFeatureTablesSync();
+    callback(null, featureTables);
+  });
+}
+
+GeoPackage.prototype.iterateFeaturesFromTable = function(table, featureCallback, doneCallback) {
+  this.initPromise.then(function(self) {
+
+    var dataColumnsDao = self.geoPackage.getDataColumnsDaoSync();
+
+    var columnMap = {};
+
+    var featureDao = self.geoPackage.getFeatureDaoSync(table);
+    var featureTable = featureDao.getTableSync();
+    var columnNames = featureTable.getColumnNamesSync();
+
+
+    console.log('column names that i got', columnNames);
+    for (var i = 0; i < columnNames.length; i++) {
+      console.log('columnNames[i]', columnNames[i]);
+      try {
+        var dc = dataColumnsDao.getDataColumnSync(table, columnNames[i]);
+        console.log('dc', dc);
+        console.log('name', dc.getNameSync());
+        columnMap[columnNames[i]] = dc.getNameSync();
+      } catch (e) {
+        console.log('e', e);
+      }
+    }
+
+
+    console.log('FeatureDAO retrieved');
+    var featureResultSet = featureDao.queryForAllSync();
+    console.log('FeatureResultSet retrieved');
+
+    async.whilst(
+      function() {
+        var move = featureResultSet.moveToNextSync();
+        console.log('move? ', move);
+        return move;
+      },
+      function(callback) {
+        var row = featureResultSet.getRowSync();
+        console.log('row', row);
+        self._rowToJson(row, columnMap, function(err, json) {
+          featureCallback(null, json, callback);
+        });
+      },
+      function(err) {
+        console.log('done');
+        featureResultSet.closeSync();
+        doneCallback();
+      }
+    )
+  });
+}
+
+GeoPackage.prototype._rowToJson = function(row, columnMap, callback) {
+  var jsonRow = {
+    properties: { },
+    geometry: { }
+  };
+
+  console.log('column map', columnMap);
+
+  var columnNames = row.getColumnNamesSync();
+  console.log('column names', columnNames);
+
+  var values = row.getValuesSync();
+
+  var pkIndex = row.getPkColumnIndexSync();
+  var geometryIndex = row.getGeometryColumnIndexSync();
+
+  for (var i = 0; i < values.length; i++) {
+    console.log('values[i]', values[i]);
+    if (i == pkIndex) {
+      // do something with the id
+    } else if (i == geometryIndex) {
+      // set the geometry
+    } else if (values[i] != null && values[i] != 'null') {
+      jsonRow.properties[columnMap[columnNames[i]]] = values[i];
+    }
+  }
+
+  var gpkgGeometryData = row.getGeometrySync();
+  var srsId = gpkgGeometryData.getSrsIdSync();
+  console.log('srsId', srsId);
+  var javaLong = java.newInstanceSync("java.lang.Long", 3857);
+  var projection = java.callStaticMethodSync('mil.nga.geopackage.projection.ProjectionFactory', 'getProjection', srsId);
+  console.log('projection');
+  var transformation = projection.getTransformationSync(3857);
+  console.log('transformation');
+  var geometry = gpkgGeometryData.getGeometrySync();
+
+  var type = geometry.getGeometryTypeSync().nameSync();
+
+  var geomCoordinates;
+  console.log('type', type);
+  switch (type) {
+    case 'POINT':
+      jsonRow.geometry.type = 'Point';
+      jsonRow.geometry.coordinates = this.readPoint(geometry, transformation);
+      break;
+    case 'MULTIPOINT':
+      jsonRow.geometry.type = 'MultiPoint';
+      jsonRow.geometry.coordinates = this.readMultiPoint(geometry, transformation);
+      break;
+    case 'LINESTRING':
+      jsonRow.geometry.type = 'LineString';
+      jsonRow.geometry.coordinates = this.readLine(geometry, transformation);
+      break;
+    case 'MULTILINESTRING':
+      jsonRow.geometry.type = 'MultiLineString';
+      jsonRow.geometry.coordinates = this.readMultiLine(geometry, transformation);
+      break;
+    case 'POLYGON':
+      jsonRow.geometry.type = 'Polygon';
+      jsonRow.geometry.coordinates = this.readPolygon(geometry, transformation);
+      break;
+    case 'MULTIPOLYGON':
+      jsonRow.geometry.type = 'MultiPolygon';
+      jsonRow.geometry.coordinates = this.readMultiPolygon(geometry, transformation);
+      break;
+  }
+
+  callback(null, jsonRow);
+
+  // var featureRow = featureDao.newRowSync();
+  // for (var propertyKey in feature.properties) {
+  //   featureRow.setValue(self.tableProperties[tableName][propertyKey], ''+feature.properties[propertyKey]);
+  // }
+  //
+  // var featureGeometry = JSON.parse(feature.geometry);
+  // var geom = featureGeometry.coordinates;
+  // var type = featureGeometry.type;
+  //
+  // var geometryAddComplete = function() {
+  //   featureDao.createSync(featureRow);
+  //   progress.featuresAdded++;
+  //   progressCallback(progress, function(err) {
+  //     featureComplete(err, featureRow);
+  //   });
+  // }
+  //
+  // if (type === 'Point') {
+  //   self.addPoint(geom, featureRow, geometryAddComplete);
+  // } else if (type === 'MultiPoint') {
+  //   self.addMultiPoint(geom, featureRow, geometryAddComplete);
+  // } else if (type === 'LineString') {
+  //   self.addLine(geom, featureRow, geometryAddComplete);
+  // } else if (type === 'MultiLineString') {
+  //   self.addMultiLine(geom, featureRow, geometryAddComplete);
+  // } else if (type === 'Polygon') {
+  //   self.addPolygon(geom, featureRow, geometryAddComplete);
+  // } else if (type === 'MultiPolygon') {
+  //   self.addMultiPolygon(geom, featureRow, geometryAddComplete);
+  // }
+}
+
+GeoPackage.prototype.getTileTables = function(callback) {
+  this.initPromise.then(function(self) {
+    var tileTables = self.geoPackage.getTileTablesSync();
+    callback(null, tileTables);
+  });
 }
 
 GeoPackage.prototype.createTileTable = function(extent, tableName, minZoom, maxZoom, callback) {
@@ -500,9 +693,23 @@ GeoPackage.prototype.createFeatureTable = function(extent, tableName, propertyCo
   }).done();
 }
 
+GeoPackage.prototype.readPoint = function(point, transformation) {
+  return transformation.transformSync(point.getXSync(), point.getYSync());
+}
+
 GeoPackage.prototype.createPoint = function(point) {
   var Point = java.import('mil.nga.wkb.geom.Point');
   return new Point(java.newDouble(point[0]), java.newDouble(point[1]));
+}
+
+GeoPackage.prototype.readMultiPoint = function(multiPoint, transformation) {
+  var points = multiPoint.getPointsSync();
+  var numPoints = multiPoint.numPointsSync();
+  var jsonPoints = [];
+  for (var i = 0; i < numPoints; i++) {
+    jsonPoints.push(this.readPoint(points.getSync(i), transformation));
+  }
+  return jsonPoints;
 }
 
 GeoPackage.prototype.createMultiPoint = function(multiPoint) {
@@ -513,6 +720,16 @@ GeoPackage.prototype.createMultiPoint = function(multiPoint) {
     multiPointGeom.addPointSync(this.createPoint(multiPoint[i]));
   }
   return multiPointGeom;
+}
+
+GeoPackage.prototype.readLine = function(line, transformation) {
+  var points = line.getPointsSync();
+  var numPoints = line.numPointsSync();
+  var jsonPoints = [];
+  for (var i = 0; i < numPoints; i++) {
+    jsonPoints.push(this.readPoint(points.getSync(i), transformation));
+  }
+  return jsonPoints;
 }
 
 GeoPackage.prototype.createLine = function(line) {
@@ -527,6 +744,17 @@ GeoPackage.prototype.createLine = function(line) {
   return lineGeom;
 }
 
+GeoPackage.prototype.readMultiLine = function(multiLine, transformation) {
+  var lineStrings = multiLine.getLineStringsSync();
+  var numStrings = multiLine.numLineStringsSync();
+  var jsonLines = [];
+  for (var i = 0; i < numStrings; i++) {
+    var line = lineStrings.getSync(i);
+    jsonLines.push(this.readLine(line, transformation));
+  }
+  return jsonLines;
+}
+
 GeoPackage.prototype.createMultiLine = function(multiLine) {
   var MultiLineString = java.import('mil.nga.wkb.geom.MultiLineString');
 
@@ -538,6 +766,17 @@ GeoPackage.prototype.createMultiLine = function(multiLine) {
   return multiLineGeom;
 }
 
+GeoPackage.prototype.readPolygon = function(polygon, transformation) {
+  var rings = polygon.getRingsSync();
+  var numRings = polygon.getNumRingsSync();
+  var jsonRings = [];
+  for (var i = 0; i < numRings; i++) {
+    var ring = rings.getSync(i);
+    jsonRings.push(this.readLine(ring, transformation));
+  }
+  return jsonRings;
+}
+
 GeoPackage.prototype.createPolygon = function(polygon) {
   var Polygon = java.import('mil.nga.wkb.geom.Polygon');
   var polygonGeom = new Polygon(false, false);
@@ -546,6 +785,17 @@ GeoPackage.prototype.createPolygon = function(polygon) {
     polygonGeom.addRingSync(this.createLine(linearRing));
   }
   return polygonGeom;
+}
+
+GeoPackage.prototype.readMultiPolygon = function(multiPolygon, transformation) {
+  var polygons = multiPolygon.getPolygonsSync();
+  var numPolygons = multiPolygon.getNumPolygonsSync();
+  var jsonPolygons = [];
+  for (var i = 0; i < numPolygons; i++) {
+    var polygon = polygons.getSync(i);
+    jsonPolygons.push(this.readPolygon(polygon, transformation));
+  }
+  return jsonPolygons;
 }
 
 GeoPackage.prototype.createMultiPolygon = function(multiPolygon) {

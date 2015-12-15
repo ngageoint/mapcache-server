@@ -21,13 +21,29 @@ GeoPackage.prototype.initialize = function() {
 
 GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
-  progressCallback = progressCallback || function(cache, callback) {callback(null, cache);};
+  progressCallback = progressCallback || function(source, callback) {callback(null, source);};
 
-  doneCallback(null, this.source);
+  var tasks = [];
+  // read in the GeoPackage
+  tasks.push(this._openGeoPackage.bind(this, this.source.file.path));
+  // find all the layers
+
+  // pull the feature layers out and put them in postgres
+  tasks.push(this._insertVectorLayers.bind(this, this.geoPackage));
+  // leave the tile layers in
+
+  async.series(tasks, function(err, results) {
+    log.info('done creating the geopackage');
+    doneCallback(err, this.source);
+  }.bind(this));
 }
 
 GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
-  this.cache.cache.source.getTile(format, z, x, y, params, callback);
+  if (this.source) {
+
+  } else {
+    this.cache.cache.source.getTile(format, z, x, y, params, callback);
+  }
 }
 
 GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
@@ -56,7 +72,7 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   var tasks = [];
 
-  tasks.push(this._openGeoPackage.bind(this));
+  tasks.push(this._createGeoPackage.bind(this));
 
   for (var i = 0; i < mapSources.length; i++) {
     tasks.push(this._addSourceToGeoPackage.bind(this, mapSources[i], progressCallback));
@@ -177,11 +193,56 @@ GeoPackage.prototype.getDataWithin = function(west, south, east, north, projecti
   callback(null, null);
 }
 
-GeoPackage.prototype._openGeoPackage = function(callback) {
+GeoPackage.prototype._createGeoPackage = function(callback) {
   log.info('Opening a new GeoPackage at %s', this.filePath);
   this.geoPackage = new GeoPackageApi();
   this.geoPackage.createAndOpenGeoPackageFile(this.filePath, function() {
     callback(null, this.geoPackage);
+  });
+}
+
+GeoPackage.prototype._openGeoPackage = function(path, callback) {
+  log.info('Opening GeoPackage at %s', path);
+  this.geoPackage = new GeoPackageApi();
+  this.geoPackage.openGeoPackageFile(path, function(err) {
+    callback(err, this.geoPackage);
+  });
+}
+
+GeoPackage.prototype._insertVectorLayers = function(geoPackage, callback) {
+  log.info('Retrieving vector layers from GeoPackage');
+
+  var gp = this.geoPackage;
+  var self = this;
+  gp.getFeatureTables(function(err, featureTables) {
+    console.log('featureTables', featureTables.sizeSync());
+
+    var featureTableLength = featureTables.sizeSync();
+    var count = 0;
+    async.whilst(
+      function() {
+        return count < featureTableLength;
+      },
+      function(callback) {
+        log.info('Getting features from table %d', count);
+        var featureTable = featureTables.getSync(count);
+        log.info('feature table', featureTable);
+        // var featureCount = featureTable.getCountSync();
+        gp.iterateFeaturesFromTable(featureTable, function(err, feature, callback) {
+          FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function(err) {
+            log.debug('Created feature for sourceId %s and layerId %s', self.source.id, count, feature);
+            callback();
+          });
+        }, function(err) {
+          console.log('all features for table %d complete', count);
+          count++;
+          callback();
+        });
+      },
+      function(err, results) {
+        callback(err);
+      }
+    )
   });
 }
 

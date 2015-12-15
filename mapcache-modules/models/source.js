@@ -13,6 +13,12 @@ var DatasourceSchema = new Schema({
   vector: { type: Boolean, required: false, default: false},
   metadata: Schema.Types.Mixed,
   geometry: Schema.Types.Mixed,
+  layers: [{
+    name: { type: String, required: false},
+    zOrder: { type: Number, required: false, default: 1 },
+    vector: { type: Boolean, required: false, default: false},
+    id: { type: Number, required: true}
+  }],
   file: {
     name: { type: String, required: false},
     path: { type: String, required: false}

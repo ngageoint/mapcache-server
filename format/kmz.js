@@ -67,7 +67,7 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
         var tasks = [];
         for (var i = 0; i < layer.count(); i++) {
           console.log('Layer %d:', i, layer.get(i));
-          tasks.push(self._extractLayer.bind(self, kmlFile, layer.get(i).name));
+          tasks.push(self._extractLayer.bind(self, kmlFile, layer.get(i).name, i));
         }
 
         async.parallel(tasks,
@@ -90,7 +90,7 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
 
 }
 
-KMZ.prototype._extractLayer = function(file, layer, callback) {
+KMZ.prototype._extractLayer = function(file, layer, layerId, callback) {
   console.log('this', this);
   log.info('Extract the layer %s', layer);
 
@@ -99,8 +99,9 @@ KMZ.prototype._extractLayer = function(file, layer, callback) {
   var gjStream = geojsonStream.parse();
   gjStream.on('data', function(feature) {
     // console.log('feature', feature);
-    FeatureModel.createFeatureForSource(feature, this.source.id, function(err) {
-
+    var source = this.source.id;
+    FeatureModel.createFeature(feature, {sourceId: this.source.id, layerId: layerId}, function(err) {
+      log.debug('Created feature for sourceId %s and layerId %s', source, layerId, feature);
     });
   }.bind(this));
   gjStream.on('end', function() {
@@ -114,7 +115,7 @@ function isAlreadyProcessed(source, callback) {
   if (source.status && source.status.complete) {
     return callback(true);
   }
-  FeatureModel.getFeatureCountBySource(source.id, function(resultArray){
+  FeatureModel.getFeatureCount({sourceId: source.id}, function(resultArray){
     log.debug("The source already has features", resultArray);
     if (resultArray[0].count != '0') {
       return callback(true);
@@ -125,14 +126,14 @@ function isAlreadyProcessed(source, callback) {
 }
 
 function setSourceCount(source, callback) {
-  FeatureModel.getFeatureCountBySource(source.id, function(resultArray){
+  FeatureModel.getFeatureCount({sourceId: source.id}, function(resultArray){
     source.status.totalFeatures = resultArray[0].count;
     callback(null, source);
   });
 }
 
 function setSourceExtent(source, callback) {
-  FeatureModel.getExtentOfSource(source.id, function(resultArray) {
+  FeatureModel.getExtentOfSource({sourceId:source.id}, function(resultArray) {
     source.geometry = {
       type: "Feature",
       geometry: JSON.parse(resultArray[0].extent)
@@ -159,9 +160,9 @@ function setSourceStyle(source, callback) {
 
 function setSourceProperties(source, callback) {
   source.properties = [];
-  FeatureModel.getPropertyKeysFromSource(source.id, function(propertyArray){
+  FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
     async.eachSeries(propertyArray, function(key, propertyDone) {
-      FeatureModel.getValuesForKeyFromSource(key.property, source.id, function(valuesArray) {
+      FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {
         source.properties.push({key: key.property, values: valuesArray.map(function(current) {
           return current.value;
         })});
@@ -198,7 +199,7 @@ KMZ.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 KMZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  FeatureModel.findFeaturesBySourceIdWithin(this.source.id, west, south, east, north, projection, callback);
+  FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
 }
 
 module.exports = KMZ;

@@ -70,7 +70,7 @@ exports.processSource = function(source, callback) {
         var count = 0;
         async.eachSeries(gjData.features, function iterator(feature, callback) {
           // console.log('saving feature %d', count++);
-          FeatureModel.createFeatureForSource(feature, source.id, function(err) {
+          FeatureModel.createFeature(feature, {sourceId: source.id}, function(err) {
             count++;
             // console.log('err', err);
             async.setImmediate(function() {

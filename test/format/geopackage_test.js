@@ -78,6 +78,23 @@ var rivers = {
   }
 };
 
+var riversGeopackage = {
+  id: 'rivers-gp',
+  name: 'rivers-gp',
+  vector: true,
+  file: {
+    path:__dirname + '/rivers-test.gpkg',
+    name: 'rivers_test.gpkg'
+  },
+  format: 'geopackage',
+  zOrder: 2,
+  style: {
+    defaultStyle: {
+      style: getRandomStyle()
+    }
+  }
+};
+
 var map = {
   id: 'land-map',
   dataSources: [rivers, land, osm]
@@ -102,7 +119,31 @@ var GeoPackage = require('../../format/geopackage');
 var cacheDir = '/tmp/testcaches';
 
 describe('Geo Package', function() {
-  describe('Geo Package cache tests', function() {
+
+  describe('Geo Package source tests', function() {
+    var geoPackage = new GeoPackage({source: riversGeopackage, outputDirectory: '/tmp/geopackage-test'});
+
+    before(function(done) {
+      FeatureModel.deleteFeaturesBySourceId(riversGeopackage.id, function(count) {
+        log.info('deleted %d %s features', count, riversGeopackage.id);
+        done();
+      });
+    });
+
+    it('should process the GeoPackage', function(done) {
+      this.timeout(30000);
+      geoPackage.processSource(function(err, source) {
+        console.log('done processing source', source);
+        console.log('err is', err);
+        done();
+      }, function(source, callback) {
+        console.log('source processing progress', source);
+        callback(null, source);
+      });
+    });
+  });
+
+  xdescribe('Geo Package cache tests', function() {
     var cacheName = 'gp-cache';
 
     var geopackage;

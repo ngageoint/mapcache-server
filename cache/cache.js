@@ -75,7 +75,7 @@ Cache.prototype.generateFormat = function(format, doneCallback, progressCallback
     async.eachSeries(mapSources, function iterator(s, sourceFinishedCallback) {
       log.info('Checking source %s', s.source.id.toString());
       if (!s.source.vector) return sourceFinishedCallback();
-      FeatureModel.getFeatureCountBySourceAndCache(s.source.id, self.cache.id, function(countResults) {
+      FeatureModel.getFeatureCount({sourceId: s.source.id, cacheId: self.cache.id}, function(countResults) {
         if (countResults[0].count != '0') {
           self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
           return sourceFinishedCallback();

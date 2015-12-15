@@ -123,7 +123,7 @@ function isAlreadyProcessed(source, callback) {
   if (source.status && source.status.complete) {
     return callback(true);
   }
-  FeatureModel.getFeatureCountBySource(source.id, function(resultArray){
+  FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     log.debug("The source already has features", resultArray);
     if (resultArray[0].count != '0') {
       return callback(true);
@@ -148,7 +148,7 @@ function parseGeoJSONFile(source, callback, progressCallback) {
       async.setImmediate(function() {
         var fivePercent = Math.floor(gjData.features.length * .05);
         // console.log('create feature', feature);
-        FeatureModel.createFeatureForSource(feature, source.id, function(err) {
+        FeatureModel.createFeature(feature, {sourceId:source.id}, function(err) {
           count++;
           // console.log('err', err);
           async.setImmediate(function() {
@@ -174,14 +174,14 @@ function parseGeoJSONFile(source, callback, progressCallback) {
 }
 
 function setSourceCount(source, callback) {
-  FeatureModel.getFeatureCountBySource(source.id, function(resultArray){
+  FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     source.status.totalFeatures = resultArray[0].count;
     callback(null, source);
   });
 }
 
 function setSourceExtent(source, callback) {
-  FeatureModel.getExtentOfSource(source.id, function(resultArray) {
+  FeatureModel.getExtentOfSource({sourceId:source.id}, function(resultArray) {
     source.geometry = {
       type: "Feature",
       geometry: JSON.parse(resultArray[0].extent)
@@ -208,9 +208,9 @@ function setSourceStyle(source, callback) {
 
 function setSourceProperties(source, callback) {
   source.properties = [];
-  FeatureModel.getPropertyKeysFromSource(source.id, function(propertyArray){
+  FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
     async.eachSeries(propertyArray, function(key, propertyDone) {
-      FeatureModel.getValuesForKeyFromSource(key.property, source.id, function(valuesArray) {
+      FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {
         source.properties.push({key: key.property, values: valuesArray.map(function(current) {
           return current.value;
         })});
@@ -240,7 +240,7 @@ function completeProcessing(source, callback) {
 
 GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   if (this.source) {
-    FeatureModel.findFeaturesBySourceIdWithin(this.source.id, west, south, east, north, projection, callback);
+    FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
   } else {
     FeatureModel.findFeaturesByCacheIdWithin(this.cache.id, west, south, east, north, projection, callback);
   }

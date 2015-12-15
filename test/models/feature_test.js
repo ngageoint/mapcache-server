@@ -83,12 +83,12 @@ describe('Feature Model Tests', function() {
         log.info('deleted %d %s features', count, 'featuretestcache');
 
         async.eachSeries([box1, box2], function(feature, callback) {
-          FeatureModel.createFeatureForSource(feature, 'featuretest', function(collection) {
+          FeatureModel.createFeature(feature, {sourceId:'featuretest'}, function(collection) {
             callback();
           });
         }, function() {
           async.eachSeries([box1, box2], function(feature, callback) {
-            FeatureModel.createFeatureForCache(feature, 'featuretestcache', 'featuretest', function(collection) {
+            FeatureModel.createFeature(feature, {cacheId:'featuretestcache', sourceId:'featuretest'}, function(collection) {
               callback();
             });
           }, function() {
@@ -111,14 +111,14 @@ describe('Feature Model Tests', function() {
   });
 
   it('should count the features in the feature set', function (done) {
-    FeatureModel.getFeatureCountBySource('featuretest', function(collection) {
+    FeatureModel.getFeatureCount({sourceId:'featuretest', cacheId: null}, function(collection) {
       collection[0].count.should.be.equal('2');
       done();
     })
   });
 
   it('should get the extent of the feature set', function (done) {
-    FeatureModel.getExtentOfSource('rivers-ds', function(collection) {
+    FeatureModel.getExtentOfSource({sourceId:'rivers-ds'}, function(collection) {
       console.log('collection', collection);
       collection[0].extent.should.be.equal('{"type":"Polygon","coordinates":[[[9.49218750000001,16.972741019999],[9.49218750000001,31],[32,31],[32,16.972741019999],[9.49218750000001,16.972741019999]]]}');
       done();
@@ -126,7 +126,7 @@ describe('Feature Model Tests', function() {
   });
 
   it('should get the properties of the feature set', function (done) {
-    FeatureModel.getPropertyKeysFromSource('rivers-ds', function(collection) {
+    FeatureModel.getPropertyKeysFromSource({sourceId:'rivers-ds'}, function(collection) {
       console.log('collection', collection);
       // collection[0].property.should.be.equal('state');
       // collection[1].property.should.be.equal('year');
@@ -135,7 +135,7 @@ describe('Feature Model Tests', function() {
   });
 
   it('should get the values of the feature set', function (done) {
-    FeatureModel.getValuesForKeyFromSource('Name','rivers-ds', function(collection) {
+    FeatureModel.getValuesForKeyFromSource('Name',{sourceId:'rivers-ds'}, function(collection) {
       console.log('collection values', collection);
       collection[0].value.should.be.equal('California');
       collection[1].value.should.be.equal('Colorado');
