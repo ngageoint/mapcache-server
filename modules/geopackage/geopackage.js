@@ -3,7 +3,11 @@ var java = require('java')
   , proj4 = require('proj4')
   , async = require('async')
   , toArray = require('stream-to-array')
+  , streamify = require('stream-array')
+  , BufferStream = require('simple-bufferstream')
   , q = require('q');
+
+  java.options.push("-Djava.awt.headless=true");
 
   Math.radians = function(degrees) {
     return degrees * Math.PI / 180;
@@ -79,12 +83,25 @@ var GeoPackage = function() {
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
   this.initialize();
+  this.initPromise.then(function(self){
+    var ConsoleAppender = java.import('org.apache.log4j.ConsoleAppender');
+    var PatternLayout = java.import('org.apache.log4j.PatternLayout');
+    //
+    console.log('make a console');
+    var consoleAppender = new ConsoleAppender(); //create appender
+    // //configure the appender
+    var PATTERN = "%d [%p|%c|%C{1}] %m%n";
+    consoleAppender.setLayoutSync(new PatternLayout(PATTERN));
+    consoleAppender.setThresholdSync(java.callStaticMethodSync('org.apache.log4j.Level', 'toLevel', 'DEBUG'));
+    consoleAppender.activateOptionsSync();
+    //add appender to any Logger (here is root)
+    java.callStaticMethodSync('org.apache.log4j.Logger', 'getRootLogger').addAppenderSync(consoleAppender);
+  });
 }
 
 GeoPackage.prototype.initialize = function() {
   console.log('Initializing the GeoPackage with the package json', __dirname+'/package.json');
   var self = this;
-  console.log('mvn', mvn);
   try {
   mvn({
     packageJsonPath: __dirname+'/package.json'
@@ -97,6 +114,7 @@ GeoPackage.prototype.initialize = function() {
       console.log('adding ' + c + ' to classpath');
       java.classpath.push(c);
     });
+
     self.initialized = true;
     console.log('resolving promise');
     self.initDefer.resolve(self);
@@ -334,40 +352,27 @@ GeoPackage.prototype.iterateFeaturesFromTable = function(table, featureCallback,
     var featureTable = featureDao.getTableSync();
     var columnNames = featureTable.getColumnNamesSync();
 
-
-    console.log('column names that i got', columnNames);
     for (var i = 0; i < columnNames.length; i++) {
-      console.log('columnNames[i]', columnNames[i]);
-      try {
-        var dc = dataColumnsDao.getDataColumnSync(table, columnNames[i]);
-        console.log('dc', dc);
-        console.log('name', dc.getNameSync());
+      var dc = dataColumnsDao.getDataColumnSync(table, columnNames[i]);
+      if (dc) {
         columnMap[columnNames[i]] = dc.getNameSync();
-      } catch (e) {
-        console.log('e', e);
       }
     }
 
-
-    console.log('FeatureDAO retrieved');
     var featureResultSet = featureDao.queryForAllSync();
-    console.log('FeatureResultSet retrieved');
-
     async.whilst(
       function() {
         var move = featureResultSet.moveToNextSync();
-        console.log('move? ', move);
         return move;
       },
       function(callback) {
         var row = featureResultSet.getRowSync();
-        console.log('row', row);
+
         self._rowToJson(row, columnMap, function(err, json) {
           featureCallback(null, json, callback);
         });
       },
       function(err) {
-        console.log('done');
         featureResultSet.closeSync();
         doneCallback();
       }
@@ -381,18 +386,12 @@ GeoPackage.prototype._rowToJson = function(row, columnMap, callback) {
     geometry: { }
   };
 
-  console.log('column map', columnMap);
-
   var columnNames = row.getColumnNamesSync();
-  console.log('column names', columnNames);
-
   var values = row.getValuesSync();
-
   var pkIndex = row.getPkColumnIndexSync();
   var geometryIndex = row.getGeometryColumnIndexSync();
 
   for (var i = 0; i < values.length; i++) {
-    console.log('values[i]', values[i]);
     if (i == pkIndex) {
       // do something with the id
     } else if (i == geometryIndex) {
@@ -404,18 +403,13 @@ GeoPackage.prototype._rowToJson = function(row, columnMap, callback) {
 
   var gpkgGeometryData = row.getGeometrySync();
   var srsId = gpkgGeometryData.getSrsIdSync();
-  console.log('srsId', srsId);
-  var javaLong = java.newInstanceSync("java.lang.Long", 3857);
   var projection = java.callStaticMethodSync('mil.nga.geopackage.projection.ProjectionFactory', 'getProjection', srsId);
-  console.log('projection');
-  var transformation = projection.getTransformationSync(3857);
-  console.log('transformation');
+  var transformation = projection.getTransformationSync(4326);
   var geometry = gpkgGeometryData.getGeometrySync();
 
   var type = geometry.getGeometryTypeSync().nameSync();
 
   var geomCoordinates;
-  console.log('type', type);
   switch (type) {
     case 'POINT':
       jsonRow.geometry.type = 'Point';
@@ -444,43 +438,82 @@ GeoPackage.prototype._rowToJson = function(row, columnMap, callback) {
   }
 
   callback(null, jsonRow);
-
-  // var featureRow = featureDao.newRowSync();
-  // for (var propertyKey in feature.properties) {
-  //   featureRow.setValue(self.tableProperties[tableName][propertyKey], ''+feature.properties[propertyKey]);
-  // }
-  //
-  // var featureGeometry = JSON.parse(feature.geometry);
-  // var geom = featureGeometry.coordinates;
-  // var type = featureGeometry.type;
-  //
-  // var geometryAddComplete = function() {
-  //   featureDao.createSync(featureRow);
-  //   progress.featuresAdded++;
-  //   progressCallback(progress, function(err) {
-  //     featureComplete(err, featureRow);
-  //   });
-  // }
-  //
-  // if (type === 'Point') {
-  //   self.addPoint(geom, featureRow, geometryAddComplete);
-  // } else if (type === 'MultiPoint') {
-  //   self.addMultiPoint(geom, featureRow, geometryAddComplete);
-  // } else if (type === 'LineString') {
-  //   self.addLine(geom, featureRow, geometryAddComplete);
-  // } else if (type === 'MultiLineString') {
-  //   self.addMultiLine(geom, featureRow, geometryAddComplete);
-  // } else if (type === 'Polygon') {
-  //   self.addPolygon(geom, featureRow, geometryAddComplete);
-  // } else if (type === 'MultiPolygon') {
-  //   self.addMultiPolygon(geom, featureRow, geometryAddComplete);
-  // }
 }
 
 GeoPackage.prototype.getTileTables = function(callback) {
   this.initPromise.then(function(self) {
     var tileTables = self.geoPackage.getTileTablesSync();
     callback(null, tileTables);
+  });
+}
+
+GeoPackage.prototype.getTileFromTable = function(table, z, x, y, callback) {
+  this.initPromise.then(function(self) {
+    var tileDao = self.geoPackage.getTileDaoSync(table);
+    console.log('tile dao', tileDao);
+    var maxZoom = tileDao.getMaxZoomSync();
+    var minZoom = tileDao.getMinZoomSync();
+    console.log('max zoom %d, minZoom %d', maxZoom, minZoom);
+
+    // var tileRow = tileDao.queryForTileSync(java.newLong(column), java.newLong(row), java.newLong(z));
+    // console.log('there aretiles', tileRow);
+
+    // var tileMatrixSet = tileDao.getTileMatrixSetSync();
+    // console.log('tms', tileMatrixSet);
+    // var projection = java.callStaticMethodSync('mil.nga.geopackage.projection.ProjectionFactory', 'getProjection', tileMatrixSet.getSrsSync().getOrganizationCoordsysIdSync());
+    // console.log('projeciton', projection);
+    // var transformation = projection.getTransformationSync(4326);
+    // console.log('transformation', transformation);
+    // var setProjectionBoundingBox = tileMatrixSet.getBoundingBoxSync();
+    // console.log('setProjectionBoundingBox', setProjectionBoundingBox);
+    // var setWebMercatorBoundingBox = transformation.transformSync(setProjectionBoundingBox);
+    // console.log('bbox: %d, %d, %d, %d', setWebMercatorBoundingBox.getMinLongitudeSync(), setWebMercatorBoundingBox.getMinLatitudeSync(), setWebMercatorBoundingBox.getMaxLongitudeSync(), setWebMercatorBoundingBox.getMaxLatitudeSync());
+    //
+    // var tileRow = java.callStaticMethodSync('mil.nga.geopackage.tiles.TileDraw', 'getRawTileRow', tileDao, tileDao.getTileMatrixSync(java.newLong(z)), setWebMercatorBoundingBox, java.newLong(x), java.newLong(y), java.newLong(z));
+    //
+    // console.log('tilerow', tileRow);
+
+    //
+    //
+    // var newRow = tileDao.newRowSync();
+    // newRow.setZoomLevelSync(java.newLong(zoom));
+    // newRow.setTileColumnSync(java.newLong(tileColumn));
+    // newRow.setTileRowSync(java.newLong(tileRow));
+    //
+    // toArray(tileStream, function (err, parts) {
+    //   var byteArray = [];
+    //   for (var k = 0; k < parts.length; k++) {
+    //     var part = parts[k];
+    //     for (var i = 0; i < part.length; i++) {
+    //       var bufferPiece = part[i];
+    //       var byte = java.newByte(bufferPiece);
+    //       byteArray.push(byte);
+    //     }
+    //   }
+    //   var bytes = java.newArray('byte', byteArray);
+    //   newRow.setTileDataSync(bytes);
+    //   tileDao.createSync(newRow);
+    //   callback();
+    // });
+    //
+    //
+    //
+    //
+    //
+
+
+    try {
+      var bytes = java.callStaticMethodSync('mil.nga.geopackage.tiles.TileDraw', 'drawTileBytes', self.geoPackage, table, 'png', java.newLong(x), java.newLong(y), java.newLong(z));
+      // var bytes = java.callStaticMethodSync('mil.nga.geopackage.tiles.ImageUtils', 'writeImageToBytes', bufferedImage, 'png');
+      // console.log('bytes', bytes);
+      var buffer = new Buffer(bytes);
+      // buffer = Buffer.concat([buffer, bytes]);
+      callback(null, BufferStream(buffer));
+      // var stream = new BufferStream();
+      // callback(null, streamify(bytes));
+    } catch (e) {
+      console.log('e', e);
+    }
   });
 }
 

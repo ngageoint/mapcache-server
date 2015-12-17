@@ -141,6 +141,18 @@ describe('Geo Package', function() {
         callback(null, source);
       });
     });
+
+    it('should get a tile', function(done) {
+      this.timeout(30000);
+      geoPackage.getTile('png', 0, 0, 0, {}, function(err, stream) {
+        var ws = fs.createWriteStream('/tmp/gp_test.png');
+
+        stream.pipe(ws);
+        ws.on('finish', function() {
+          done();
+        });
+      });
+    });
   });
 
   xdescribe('Geo Package cache tests', function() {

@@ -3,7 +3,10 @@ var GeoPackageApi = require('geopackage')
   , path = require('path')
   , fs = require('fs-extra')
   , log = require('mapcache-log')
+  , Canvas = require('canvas')
+  , Image = Canvas.Image
   , turf = require('turf')
+  , tile = require('mapcache-tile')
   , async = require('async')
   , xyzTileUtils = require('xyz-tile-utils');
 
@@ -23,6 +26,8 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(source, callback) {callback(null, source);};
 
+  this.source.status = this.source.status || {};
+
   var tasks = [];
   // read in the GeoPackage
   tasks.push(this._openGeoPackage.bind(this, this.source.file.path));
@@ -32,15 +37,193 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   tasks.push(this._insertVectorLayers.bind(this, this.geoPackage));
   // leave the tile layers in
 
-  async.series(tasks, function(err, results) {
-    log.info('done creating the geopackage');
-    doneCallback(err, this.source);
+  tasks.push(completeProcessing.bind(this, this.source));
+
+  this._isAlreadyProcessed(function(processed) {
+    if (processed) {
+      var source = this.source;
+      this._openGeoPackage(this, source.file.path, function(err) {
+        return completeProcessing(source, function(err, source) {
+          console.log('source was already processed, returning', source);
+
+          doneCallback(null, source);
+        });
+      });
+    }
+    async.series(tasks, function(err, results) {
+      log.info('done creating the geopackage');
+      doneCallback(err, this.source);
+    }.bind(this));
   }.bind(this));
 }
+
+GeoPackage.prototype._isAlreadyProcessed = function(callback) {
+  log.debug('is it already processed?', this.source);
+  if (this.source.status && this.source.status.complete) {
+    return callback(true);
+  }
+  FeatureModel.getFeatureCount({sourceId: this.source.id, cacheId: null}, function(resultArray){
+    log.debug("The source already has features", resultArray);
+    if (resultArray[0].count != '0') {
+      return callback(true);
+    } else {
+      return callback(false);
+    }
+  });
+}
+
+function setSourceCount(source, callback) {
+  FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
+    source.status.totalFeatures = resultArray[0].count;
+    callback(null, source);
+  });
+}
+
+function setSourceExtent(source, callback) {
+  FeatureModel.getExtentOfSource({sourceId:source.id}, function(resultArray) {
+    source.geometry = {
+      type: "Feature",
+      geometry: JSON.parse(resultArray[0].extent)
+    };
+    callback(null, source);
+  });
+}
+
+function setSourceStyle(source, callback) {
+  source.style = source.style || {
+    defaultStyle: {
+      style: {
+        'fill': "#000000",
+        'fill-opacity': 0.5,
+        'stroke': "#0000FF",
+        'stroke-opacity': 1.0,
+        'stroke-width': 1
+      }
+    }
+  };
+  source.style.styles = source.style.styles || [];
+  callback(null, source);
+}
+
+function setSourceProperties(source, callback) {
+  source.properties = [];
+  FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
+    async.eachSeries(propertyArray, function(key, propertyDone) {
+      FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {
+        source.properties.push({key: key.property, values: valuesArray.map(function(current) {
+          return current.value;
+        })});
+        propertyDone();
+      });
+    }, function() {
+      callback(null, source);
+    });
+  });
+}
+
+function completeProcessing(source, callback) {
+  async.waterfall([
+    function(callback) {
+      callback(null, source);
+    },
+    setSourceCount,
+    setSourceExtent,
+    setSourceStyle,
+    setSourceProperties
+  ], function (err, source){
+    source.status.complete = true;
+    source.status.message = "Complete";
+    callback(err, source);
+  });
+}
+
 
 GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
   if (this.source) {
 
+    var canvas = new Canvas(256,256);
+    var ctx = canvas.getContext('2d');
+    var height = canvas.height;
+
+    ctx.clearRect(0, 0, height, height);
+
+    var gp = this.geoPackage;
+    var self = this;
+
+    gp.getTileTables(function(err, tileTables) {
+
+      console.log('tileTables', tileTables.sizeSync());
+      var tileTableLength = tileTables.sizeSync();
+
+      var count = 0;
+      async.whilst(
+        function() {
+          return count < tileTableLength;
+        },
+        function(callback) {
+          console.log('tile table', tileTables.getSync(count));
+          gp.getTileFromTable(tileTables.getSync(count), z, x, y, function(err, tileStream) {
+            count++;
+            if (!tileStream) return callback();
+
+            var buffer = new Buffer(0);
+            var chunk;
+            tileStream.on('data', function(chunk) {
+              console.log('chunk', chunk);
+              console.log('buffer.concat', Buffer.concat);
+              buffer = Buffer.concat([buffer, chunk]);
+            });
+            tileStream.on('end', function() {
+              var img = new Image;
+              img.onload = function() {
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                callback();
+              };
+              img.src = buffer;
+            });
+          });
+        },
+        function(err, results) {
+
+          gp.getFeatureTables(function(err, featureTables) {
+            console.log('featureTables', featureTables.sizeSync());
+            var featureTableLength = featureTables.sizeSync();
+
+            var count = 0;
+            async.whilst(
+              function() {
+                return count < featureTableLength;
+              },
+              function(callback) {
+                log.info('Getting features from table %d', count);
+                tile.getVectorTileWithLayer(self.source, {id: count}, format, z, x, y, params, function(err, tileStream) {
+                  count++;
+                  if (!tileStream) return callback();
+
+                  var buffer = new Buffer(0);
+                  var chunk;
+                  tileStream.on('data', function(chunk) {
+                    buffer = Buffer.concat([buffer, chunk]);
+                  });
+                  tileStream.on('end', function() {
+                    var img = new Image;
+                    img.onload = function() {
+                      ctx.drawImage(img, 0, 0, img.width, img.height);
+                      callback();
+                    };
+                    img.src = buffer;
+                  });
+                });
+
+              },
+              function(err, results) {
+                callback(null, canvas.pngStream());
+              }
+            );
+          });
+        }
+      );
+    });
   } else {
     this.cache.cache.source.getTile(format, z, x, y, params, callback);
   }
@@ -227,10 +410,9 @@ GeoPackage.prototype._insertVectorLayers = function(geoPackage, callback) {
         log.info('Getting features from table %d', count);
         var featureTable = featureTables.getSync(count);
         log.info('feature table', featureTable);
-        // var featureCount = featureTable.getCountSync();
         gp.iterateFeaturesFromTable(featureTable, function(err, feature, callback) {
           FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function(err) {
-            log.debug('Created feature for sourceId %s and layerId %s', self.source.id, count, feature);
+            log.debug('Created feature for sourceId %s and layerId %s', self.source.id, count);
             callback();
           });
         }, function(err) {

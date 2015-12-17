@@ -32,19 +32,31 @@ function tileContainsData(source, bbox) {
 }
 
 exports.getVectorTile = function(source, format, z, x, y, params, callback) {
+	exports.getVectorTileWithLayer(source, null, format, z, x, y, params, callback);
+}
+
+exports.getVectorTileWithLayer = function(source, layer, format, z, x, y, params, callback) {
+	console.log('layer', layer);
 	console.log('getting vector tile %d %d %d', z, x, y);
 	var bbox = xyzTileUtils.tileBboxCalculator(x, y, z);
+	console.log('bbox', bbox);
+	console.log('source', source);
 
 	if (!tileContainsData(source.source ? source.source : source, bbox)) {
 		console.log("No data, returning early");
 		return callback(null, null);
 	}
 
+	console.log('tile has data');
+
 	// use the style time to determine if there has already been an image created for this source and style
 	var imageTile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.'+format);
+	console.log('imagetile', imageTile);
 	if (source.source) {
 		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.'+format);
 	}
+	console.log('imagetile2', imageTile);
+
 	if (params && !params.noCache && fs.existsSync(imageTile)) {
 		console.log('pulling tile from prebuilt', imageTile);
 		return callback(null, fs.createReadStream(imageTile));
@@ -55,11 +67,20 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 				handleTileData(tile, format, source.source, imageTile, callback);
 			});
 		} else {
-			FeatureModel.fetchTileForSourceId(source.id, bbox, z, format == 'geojson' ? '4326' : 'vector', function(err, tile) {
-				console.log('err fetching tile? ', err);
-				// console.log('tile is', tile);
-				handleTileData(tile, format, source, imageTile, callback);
-			});
+			console.log('what is layer? ', layer);
+			if (layer) {
+				FeatureModel.fetchTileForSourceIdAndLayerId(source.id, layer.id, bbox, z, format == 'geojson' ? '4326' : 'vector', function(err, tile) {
+					console.log('err fetching tile? ', err);
+					// console.log('tile is', tile);
+					handleTileData(tile, format, source, imageTile, callback);
+				});
+			} else {
+				FeatureModel.fetchTileForSourceId(source.id, bbox, z, format == 'geojson' ? '4326' : 'vector', function(err, tile) {
+					console.log('err fetching tile? ', err);
+					// console.log('tile is', tile);
+					handleTileData(tile, format, source, imageTile, callback);
+				});
+			}
 		}
 	}
 }
@@ -248,7 +269,7 @@ function styleFunction(feature, style) {
     opacity: defaultStyle.style['stroke-opacity'],
     weight: defaultStyle.style['stroke-width'],
     fillColor: defaultStyle.style['fill'],
-		styleId: style.styles.length
+		styleId: style.styles ? style.styles.length : 0
   }
 }
 
