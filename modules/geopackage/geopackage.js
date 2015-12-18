@@ -3,17 +3,15 @@ var java = require('java')
   , proj4 = require('proj4')
   , async = require('async')
   , toArray = require('stream-to-array')
-  , streamify = require('stream-array')
   , BufferStream = require('simple-bufferstream')
   , q = require('q');
-
+  // this is necessary for the ImageIO calls within the GeoPackage library
   java.options.push("-Djava.awt.headless=true");
 
   Math.radians = function(degrees) {
     return degrees * Math.PI / 180;
   };
 
-  // Converts from radians to degrees.
   Math.degrees = function(radians) {
     return radians * 180 / Math.PI;
   };
@@ -61,8 +59,6 @@ var java = require('java')
   	return y;
   }
 
-
-
   var tileBboxCalculator = function(x, y, z) {
     x = Number(x);
     y = Number(y);
@@ -76,7 +72,8 @@ var java = require('java')
     return tileBounds;
   }
 
-var GeoPackage = function() {
+var GeoPackage = function(config) {
+  config = config || {};
   this.featureDaos = {};
   this.tileDaos = {};
   this.tableProperties = {};
@@ -84,17 +81,14 @@ var GeoPackage = function() {
   this.initPromise = this.initDefer.promise;
   this.initialize();
   this.initPromise.then(function(self){
+    // set up the log4j library to log to the console.
     var ConsoleAppender = java.import('org.apache.log4j.ConsoleAppender');
     var PatternLayout = java.import('org.apache.log4j.PatternLayout');
-    //
-    console.log('make a console');
     var consoleAppender = new ConsoleAppender(); //create appender
-    // //configure the appender
     var PATTERN = "%d [%p|%c|%C{1}] %m%n";
     consoleAppender.setLayoutSync(new PatternLayout(PATTERN));
-    consoleAppender.setThresholdSync(java.callStaticMethodSync('org.apache.log4j.Level', 'toLevel', 'DEBUG'));
+    consoleAppender.setThresholdSync(java.callStaticMethodSync('org.apache.log4j.Level', 'toLevel', config.log4jLevel || 'INFO'));
     consoleAppender.activateOptionsSync();
-    //add appender to any Logger (here is root)
     java.callStaticMethodSync('org.apache.log4j.Logger', 'getRootLogger').addAppenderSync(consoleAppender);
   });
 }
@@ -103,25 +97,25 @@ GeoPackage.prototype.initialize = function() {
   console.log('Initializing the GeoPackage with the package json', __dirname+'/package.json');
   var self = this;
   try {
-  mvn({
-    packageJsonPath: __dirname+'/package.json'
-  }, function(err, mvnResults) {
-    console.log('retrieved the maven atrifacts');
-    if (err) {
-      return console.error('could not resolve maven dependencies', err);
-    }
-    mvnResults.classpath.forEach(function(c) {
-      console.log('adding ' + c + ' to classpath');
-      java.classpath.push(c);
-    });
+    mvn({
+      packageJsonPath: __dirname+'/package.json'
+    }, function(err, mvnResults) {
+      console.log('retrieved the maven atrifacts');
+      if (err) {
+        return console.error('could not resolve maven dependencies', err);
+      }
+      mvnResults.classpath.forEach(function(c) {
+        console.log('adding ' + c + ' to classpath');
+        java.classpath.push(c);
+      });
 
-    self.initialized = true;
-    console.log('resolving promise');
-    self.initDefer.resolve(self);
-  });
-} catch (e) {
-  console.log('e', e);
-}
+      self.initialized = true;
+      console.log('resolving promise');
+      self.initDefer.resolve(self);
+    });
+  } catch (e) {
+    console.error('e', e);
+  }
 }
 
 GeoPackage.prototype.createAndOpenGeoPackageFile = function(filePath, callback) {
@@ -188,7 +182,6 @@ GeoPackage.prototype.addFeaturesToGeoPackage = function(features, tableName, cal
   };
   console.log('adding %d features to geopackage table %s', features.length, tableName);
   this.initPromise.then(function(self) {
-    console.log('self', self);
     var featureDao = self.featureDaos[tableName];
     var index = 0;
     var progress = {
@@ -388,10 +381,8 @@ GeoPackage.prototype._rowToJson = function(row, columnMap, callback) {
   var geometryIndex = row.getGeometryColumnIndexSync();
 
   for (var i = 0; i < values.length; i++) {
-    if (i == pkIndex) {
-      // do something with the id
-    } else if (i == geometryIndex) {
-      // set the geometry
+    if (i == pkIndex || i == geometryIndex) {
+      // ignore these fields
     } else if (values[i] != null && values[i] != 'null') {
       jsonRow.properties[columnMap[columnNames[i]]] = values[i];
     }
@@ -446,67 +437,13 @@ GeoPackage.prototype.getTileTables = function(callback) {
 GeoPackage.prototype.getTileFromTable = function(table, z, x, y, callback) {
   this.initPromise.then(function(self) {
     var tileDao = self.geoPackage.getTileDaoSync(table);
-    console.log('tile dao', tileDao);
     var maxZoom = tileDao.getMaxZoomSync();
     var minZoom = tileDao.getMinZoomSync();
-    console.log('max zoom %d, minZoom %d', maxZoom, minZoom);
-
-    // var tileRow = tileDao.queryForTileSync(java.newLong(column), java.newLong(row), java.newLong(z));
-    // console.log('there aretiles', tileRow);
-
-    // var tileMatrixSet = tileDao.getTileMatrixSetSync();
-    // console.log('tms', tileMatrixSet);
-    // var projection = java.callStaticMethodSync('mil.nga.geopackage.projection.ProjectionFactory', 'getProjection', tileMatrixSet.getSrsSync().getOrganizationCoordsysIdSync());
-    // console.log('projeciton', projection);
-    // var transformation = projection.getTransformationSync(4326);
-    // console.log('transformation', transformation);
-    // var setProjectionBoundingBox = tileMatrixSet.getBoundingBoxSync();
-    // console.log('setProjectionBoundingBox', setProjectionBoundingBox);
-    // var setWebMercatorBoundingBox = transformation.transformSync(setProjectionBoundingBox);
-    // console.log('bbox: %d, %d, %d, %d', setWebMercatorBoundingBox.getMinLongitudeSync(), setWebMercatorBoundingBox.getMinLatitudeSync(), setWebMercatorBoundingBox.getMaxLongitudeSync(), setWebMercatorBoundingBox.getMaxLatitudeSync());
-    //
-    // var tileRow = java.callStaticMethodSync('mil.nga.geopackage.tiles.TileDraw', 'getRawTileRow', tileDao, tileDao.getTileMatrixSync(java.newLong(z)), setWebMercatorBoundingBox, java.newLong(x), java.newLong(y), java.newLong(z));
-    //
-    // console.log('tilerow', tileRow);
-
-    //
-    //
-    // var newRow = tileDao.newRowSync();
-    // newRow.setZoomLevelSync(java.newLong(zoom));
-    // newRow.setTileColumnSync(java.newLong(tileColumn));
-    // newRow.setTileRowSync(java.newLong(tileRow));
-    //
-    // toArray(tileStream, function (err, parts) {
-    //   var byteArray = [];
-    //   for (var k = 0; k < parts.length; k++) {
-    //     var part = parts[k];
-    //     for (var i = 0; i < part.length; i++) {
-    //       var bufferPiece = part[i];
-    //       var byte = java.newByte(bufferPiece);
-    //       byteArray.push(byte);
-    //     }
-    //   }
-    //   var bytes = java.newArray('byte', byteArray);
-    //   newRow.setTileDataSync(bytes);
-    //   tileDao.createSync(newRow);
-    //   callback();
-    // });
-    //
-    //
-    //
-    //
-    //
-
 
     try {
       var bytes = java.callStaticMethodSync('mil.nga.geopackage.tiles.TileDraw', 'drawTileBytes', self.geoPackage, table, 'png', java.newLong(x), java.newLong(y), java.newLong(z));
-      // var bytes = java.callStaticMethodSync('mil.nga.geopackage.tiles.ImageUtils', 'writeImageToBytes', bufferedImage, 'png');
-      // console.log('bytes', bytes);
       var buffer = new Buffer(bytes);
-      // buffer = Buffer.concat([buffer, bytes]);
       callback(null, BufferStream(buffer));
-      // var stream = new BufferStream();
-      // callback(null, streamify(bytes));
     } catch (e) {
       console.log('e', e);
     }
@@ -542,7 +479,6 @@ GeoPackage.prototype.createTileTable = function(extent, tableName, minZoom, maxZ
     contents.setTableNameSync(tableName);
     contents.setDataTypeSync(java.callStaticMethodSync('mil.nga.geopackage.core.contents.ContentsDataType', 'fromName', 'tiles'));
     contents.setIdentifierSync(tableName);
-    // contents.setDescription("");
 
     var srsDao = self.geoPackage.getSpatialReferenceSystemDaoSync();
     var srsWgs84 = srsDao.getOrCreateSync(4326);
@@ -604,8 +540,6 @@ GeoPackage.prototype.createTileTable = function(extent, tableName, minZoom, maxZ
       tileMatrix.setPixelYSizeSync(java.newDouble(pixelYSize));
       tileMatrixDao.createSync(tileMatrix);
     }
-
-
     callback();
   }).done();
 
