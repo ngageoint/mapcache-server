@@ -44,6 +44,7 @@ var gdal = require("gdal")
   }
 
 function expandColorsIfNecessary(ds, source, callback) {
+  console.log('ds.bands.get(1).colorInterpretation', ds.bands.get(1).colorInterpretation);
   if (ds.bands.get(1).colorInterpretation == 'Palette') {
     // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
     var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
@@ -206,6 +207,8 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   // exports.gdalInfo(in_ds);
 
   var in_srs = in_ds.srs;
+  console.log('in_ds.bands.get(1).colorInterpretation', in_ds.bands.get(1).colorInterpretation);
+  var grayscale = in_ds.bands.get(1).colorInterpretation == 'Gray';
 
   var in_gt = in_ds.geoTransform;
 
@@ -226,10 +229,18 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   var out_ds = reproject(in_ds, 3857, cutline, srcCutline);
 
-  var pixelRegion1 = out_ds.bands.get(1).pixels.read(0, 0, 256, 256, null, options);
-  var pixelRegion2 = out_ds.bands.get(2).pixels.read(0, 0, 256, 256, null, options);
-  var pixelRegion3 = out_ds.bands.get(3).pixels.read(0, 0, 256, 256, null, options);
-  var pixelRegion4 = out_ds.bands.get(4).pixels.read(0, 0, 256, 256, null, options);
+  var readOptions = {};
+  if (grayscale) {
+    readOptions.pixel_space = 1;
+  }
+  var pixelRegion1 = out_ds.bands.get(1).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion2 = out_ds.bands.get(2).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion3 = out_ds.bands.get(3).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion4 = out_ds.bands.get(4).pixels.read(0, 0, 256, 256, null, readOptions);
+
+  if (grayscale) {
+    pixelRegion2 = pixelRegion3 = pixelRegion1;
+  }
 
   if (!pixelRegion1) {
     return callback();
