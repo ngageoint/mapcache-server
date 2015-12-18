@@ -146,16 +146,12 @@ GeoPackage.prototype.openGeoPackageFile = function(filePath, callback) {
   console.log('init promise', this.initPromise);
   this.initPromise.then(function(self) {
     console.log('promise inited');
-    try {
-      var File = java.import('java.io.File');
-      var gpkgFile = new File(filePath);
-      var canRead = gpkgFile.canReadSync();
-      console.log('can read the geopackage file? ', canRead);
-      self.geoPackage = java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'open', gpkgFile);
-      callback();
-    } catch (e) {
-      callback(e);
-    }
+    var File = java.import('java.io.File');
+    var gpkgFile = new File(filePath);
+    var canRead = gpkgFile.canReadSync();
+    console.log('can read the geopackage file? ', canRead);
+    self.geoPackage = java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'open', gpkgFile);
+    callback();
   }).done();
 }
 

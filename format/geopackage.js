@@ -32,7 +32,7 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   // read in the GeoPackage
   tasks.push(this._openGeoPackage.bind(this, this.source.file.path));
   // find all the layers
-
+  tasks.push(this._insertTileLayers.bind(this));
   // pull the feature layers out and put them in postgres
   tasks.push(this._insertVectorLayers.bind(this, this.geoPackage));
   // leave the tile layers in
@@ -388,7 +388,43 @@ GeoPackage.prototype._openGeoPackage = function(path, callback) {
   log.info('Opening GeoPackage at %s', path);
   this.geoPackage = new GeoPackageApi();
   this.geoPackage.openGeoPackageFile(path, function(err) {
+    console.error('calling callback in open geopackage', new Error().stack);
+    //var err = new Error();
+    //console.log('stack', err.stack);
     callback(err, this.geoPackage);
+  });
+}
+
+GeoPackage.prototype._insertTileLayers = function(callback) {
+  console.log('insert tile layers');
+  var self = this;
+  this.geoPackage.getTileTables(function(err, tileTables) {
+
+    console.log('tileTables', tileTables.sizeSync());
+    var tileTableLength = tileTables.sizeSync();
+
+    var count = 0;
+    async.whilst(
+      function() {
+        return count < tileTableLength;
+      },
+      function(callback) {
+        var tileTable = tileTables.getSync(count);
+        console.log('tile table', tileTable);
+
+        self.source.layers = self.source.layers || [];
+        self.source.layers.push({
+          name: tileTable,
+          zOrder: self.source.layers.length,
+          vector: false
+        });
+        count++;
+        callback();
+      },
+      function(err, results) {
+        callback(err, results);
+      }
+    );
   });
 }
 
@@ -418,6 +454,12 @@ GeoPackage.prototype._insertVectorLayers = function(geoPackage, callback) {
         }, function(err) {
           console.log('all features for table %d complete', count);
           count++;
+          self.source.layers = self.source.layers || [];
+          self.source.layers.push({
+            name: featureTable,
+            zOrder: self.source.layers.length,
+            vector: true
+          });
           callback();
         });
       },

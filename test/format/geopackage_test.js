@@ -149,6 +149,7 @@ describe('Geo Package', function() {
 
         stream.pipe(ws);
         ws.on('finish', function() {
+          console.log('GeoPackage image written to /tmp/gp_test.png');
           done();
         });
       });
