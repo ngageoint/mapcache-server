@@ -152,8 +152,8 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
 
     gp.getTileTables(function(err, tileTables) {
 
-      console.log('tileTables', tileTables.sizeSync());
-      var tileTableLength = tileTables.sizeSync();
+      console.log('tileTables', tileTables.length);
+      var tileTableLength = tileTables.length;
 
       var count = 0;
       async.whilst(
@@ -161,8 +161,8 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
           return count < tileTableLength;
         },
         function(callback) {
-          console.log('tile table', tileTables.getSync(count));
-          gp.getTileFromTable(tileTables.getSync(count), z, x, y, function(err, tileStream) {
+          console.log('tile table', tileTables[count]);
+          gp.getTileFromTable(tileTables[count], z, x, y, function(err, tileStream) {
             count++;
             if (!tileStream) return callback();
 
@@ -170,13 +170,16 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
             var chunk;
             tileStream.on('data', function(chunk) {
               console.log('chunk', chunk);
-              console.log('buffer.concat', Buffer.concat);
               buffer = Buffer.concat([buffer, chunk]);
             });
             tileStream.on('end', function() {
+              console.log('end buffer');
               var img = new Image;
+              console.log('img');
               img.onload = function() {
+                console.log('draw it');
                 ctx.drawImage(img, 0, 0, img.width, img.height);
+                console.log('drawn');
                 callback();
               };
               img.src = buffer;
@@ -186,8 +189,8 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
         function(err, results) {
 
           gp.getFeatureTables(function(err, featureTables) {
-            console.log('featureTables', featureTables.sizeSync());
-            var featureTableLength = featureTables.sizeSync();
+            console.log('featureTables', featureTables.length);
+            var featureTableLength = featureTables.length;
 
             var count = 0;
             async.whilst(
@@ -241,7 +244,7 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
   this.filePath = path.join(dir, filename);
 
   if (fs.existsSync(this.filePath)) {
-    log.info('Cache already exists, returning');
+    log.info('Cache %s already exists, returning', this.filePath);
     return doneCallback(null, cacheObj);
   }
 
@@ -303,7 +306,8 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
   var extent = this._calculateExtentFromGeometry(cache.geometry);
 
   var propertyColumnNames = [];
-  for (var i = 0; i < vectorSource.source.properties.length; i++) {
+  log.debug('vector source properties', vectorSource.source);
+  for (var i = 0; vectorSource.source.properties && i < vectorSource.source.properties.length; i++) {
     propertyColumnNames.push(vectorSource.source.properties[i].key);
   }
   console.log('property column names', propertyColumnNames);
@@ -311,6 +315,7 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
   // write these to the geoPackage
   var self = this;
   FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, vectorSource.source.id, extent[0], extent[1], extent[2], extent[3], '3857', function(err, features) {
+    log.info('Adding %d features to the GeoPackage', features.length);
     self.geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
       self.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
         console.log('features.length', features.length);
@@ -388,9 +393,6 @@ GeoPackage.prototype._openGeoPackage = function(path, callback) {
   log.info('Opening GeoPackage at %s', path);
   this.geoPackage = new GeoPackageApi();
   this.geoPackage.openGeoPackageFile(path, function(err) {
-    console.error('calling callback in open geopackage', new Error().stack);
-    //var err = new Error();
-    //console.log('stack', err.stack);
     callback(err, this.geoPackage);
   });
 }
@@ -400,8 +402,8 @@ GeoPackage.prototype._insertTileLayers = function(callback) {
   var self = this;
   this.geoPackage.getTileTables(function(err, tileTables) {
 
-    console.log('tileTables', tileTables.sizeSync());
-    var tileTableLength = tileTables.sizeSync();
+    console.log('tileTables', tileTables.length);
+    var tileTableLength = tileTables.length;
 
     var count = 0;
     async.whilst(
@@ -409,7 +411,7 @@ GeoPackage.prototype._insertTileLayers = function(callback) {
         return count < tileTableLength;
       },
       function(callback) {
-        var tileTable = tileTables.getSync(count);
+        var tileTable = tileTables[count];
         console.log('tile table', tileTable);
 
         self.source.layers = self.source.layers || [];
@@ -434,9 +436,9 @@ GeoPackage.prototype._insertVectorLayers = function(geoPackage, callback) {
   var gp = this.geoPackage;
   var self = this;
   gp.getFeatureTables(function(err, featureTables) {
-    console.log('featureTables', featureTables.sizeSync());
+    console.log('featureTables', featureTables.length);
 
-    var featureTableLength = featureTables.sizeSync();
+    var featureTableLength = featureTables.length;
     var count = 0;
     async.whilst(
       function() {
@@ -444,7 +446,7 @@ GeoPackage.prototype._insertVectorLayers = function(geoPackage, callback) {
       },
       function(callback) {
         log.info('Getting features from table %d', count);
-        var featureTable = featureTables.getSync(count);
+        var featureTable = featureTables[count];
         log.info('feature table', featureTable);
         gp.iterateFeaturesFromTable(featureTable, function(err, feature, callback) {
           FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function(err) {

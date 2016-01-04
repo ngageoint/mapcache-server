@@ -25,6 +25,7 @@ exports.getExtentOfSource = function(query, callback) {
 }
 
 exports.getPropertyKeysFromSource = function(query, callback) {
+	if (!query.layerId) query.layerId = null;
 	knex(function(knex) {
 		knex('features').distinct(knex.raw('json_object_keys(properties) as property')).select().where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}).then(callback);
 	});
@@ -87,6 +88,7 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 }
 
 exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, south, east, north, projection, callback) {
+	console.log('cacheid %s sourceId %s', cacheId, sourceId);
 	createGeometrySelect(projection, {west: west, south: south, east: east, north: north}, function(geometrySelect){
 		console.log('cache_id', cacheId);
 		console.log('source_id', sourceId);
@@ -191,6 +193,10 @@ exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {
 }
 
 function createGeometrySelect(projection, queryBox, transformationBox, callback) {
+	if (!callback && typeof transformationBox === 'function') {
+		callback = transformationBox;
+		transformationBox = null;
+	}
 	var geometrySelect;
 	if (!projection || projection == 'vector') {
 		knex(function(knex) {
