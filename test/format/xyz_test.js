@@ -1,7 +1,9 @@
 var assert = require('assert')
   , turf = require('turf')
+  , fs = require('fs-extra')
   , lengthStream = require('length-stream')
   , devnull = require('dev-null')
+  , path = require('path')
   , Cache = require('../../cache/cache')
   , should = require('should');
 
@@ -110,9 +112,16 @@ describe('xyz', function() {
       cacheObj.callbackWhenInitialized(function(err, cacheObj) {
         xyz = new XYZ({
           cache: cacheObj,
-          outputDirectory:'/tmp/1'
+          outputDirectory:cache.outputDirectory
         });
         done();
+      });
+    });
+    after(function(done) {
+      fs.remove(path.join(cache.outputDirectory, cache.id), function(err) {
+        fs.remove(path.join(cache.outputDirectory, map.id), function(err) {
+          done(err);
+        });
       });
     });
     it('should pull the 0/0/0 tile for the cache', function(done) {
@@ -121,6 +130,8 @@ describe('xyz', function() {
           done(err);
           return;
         }
+
+        done();
 
         var lstream = lengthStream(function(length) {
           length.should.be.greaterThan(0);
@@ -137,6 +148,7 @@ describe('xyz', function() {
         done();
       }, function(cache, callback) {
         console.log('progress', cache);
+        callback(null, cache);
       })
     });
   });

@@ -2,6 +2,7 @@ var mongoose = require('mongoose')
 	, fs = require('fs-extra')
 	, FeatureModel = require('./feature')
 	, turf = require('turf')
+	, log = require('mapcache-log')
 	, config = require('mapcache-config')
 	, shortid = require('shortid')
 	, SourceModel = require('./source');
@@ -17,7 +18,7 @@ var TileFailureSchema = new Schema({
 
 // Creates the Schema for the cache objects
 var CacheSchema = new Schema({
-  name: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   description: { type: String, required: false },
   date: {type: Date, required: false },
 	geometry: Schema.Types.Mixed,
@@ -139,34 +140,32 @@ exports.deleteCache = function(cache, callback) {
 }
 
 exports.createCache = function(cache, callback) {
-	Cache.findOne({name: cache.name}, function(err, duplicateCache) {
-		if (duplicateCache) {
-			return callback(new Error("Cache with this name already exists"));
-		}
-		if (cache.source) {
-			cache.sourceId = cache.source.id;
-			cache.humanReadableId = cache.humanReadableId || shortid.generate();
-			Cache.create(cache, function(err, newCache) {
-				if(err) return callback(err);
-				Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
-			    if (err) {
-			      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
-			    }
-					if (cache) {
-						cache.source = cache.sourceId;
-						if (cache.source.vector) {
-							var extent = turf.extent(cache.geometry);
-							FeatureModel.createCacheFeaturesFromSource(cache.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
-								return callback(err, cache);
-							});
-						} else {
-							return callback(err, cache);
-						}
-					}
-				});
-			});
-			return;
-		}
+	if (cache.source) {
+		cache.sourceId = cache.source.id;
+	}
+	cache.humanReadableId = cache.humanReadableId || shortid.generate();
+	Cache.create(cache, function(err, newCache) {
+		if(err) return callback(err);
+		Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
+	    if (err) {
+	      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
+	    }
+			if (cache) {
+				cache.source = cache.sourceId;
+				cache.id = cache._id;
+				log.warn('cache.sourceId', cache.sourceId.id);
+				log.warn('cache.source', cache.source.id);
+
+				if (cache.source.vector) {
+					var extent = turf.extent(cache.geometry);
+					FeatureModel.createCacheFeaturesFromSource(cache.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+						return callback(err, cache);
+					});
+				} else {
+					return callback(err, cache);
+				}
+			}
+		});
 	});
 }
 

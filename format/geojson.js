@@ -14,7 +14,7 @@ var tileImage = require('tile-image')
   , async = require('async');
 
 var GeoJSON = function(config) {
-  log.debug('Constructing a GeoJSON format', config);
+  log.debug('Constructing a GeoJSON format');
   this.config = config || {};
   this.source = this.config.source;
   this.cache = this.config.cache;
@@ -119,7 +119,7 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
 }
 
 function isAlreadyProcessed(source, callback) {
-  log.debug('is it already processed?', source);
+  log.debug('Checking if the source %s is already processed', source.id);
   if (source.status && source.status.complete) {
     return callback(true);
   }
@@ -208,7 +208,7 @@ function setSourceStyle(source, callback) {
 
 function setSourceProperties(source, callback) {
   source.properties = [];
-  log.info('looking for properties for source', source);
+  log.info('looking for properties for source %s: %s', source.name, source.id);
   FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
     log.info('property array', propertyArray);
     async.eachSeries(propertyArray, function(key, propertyDone) {
@@ -241,6 +241,7 @@ function completeProcessing(source, callback) {
 }
 
 GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
+  log.info('Getting GeoJSON data for source', this.source.id);
   if (this.source) {
     FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
   } else {

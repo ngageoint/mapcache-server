@@ -32,6 +32,8 @@ exports.getPropertyKeysFromSource = function(query, callback) {
 }
 
 exports.getValuesForKeyFromSource = function(key, query, callback) {
+	if (!query.sourceId) query.sourceId = null;
+	if (!query.layerId) query.layerId = null;
 	knex(function(knex) {
 		knex('features').distinct(knex.raw('properties::jsonb -> \''+key+'\' as value')).select().where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}).andWhere(knex.raw("properties::jsonb\\?|array[\'"+key+"\']")).then(callback);
 	});
@@ -58,6 +60,9 @@ exports.getFeatureCount = function(query, callback) {
 }
 
 exports.findFeaturesWithin = function(query, west, south, east, north, projection, callback) {
+	if (!query.cacheId) query.cacheId = null;
+	if (!query.layerId) query.layerId = null;
+	if (!query.sourceId) query.sourceId = null;
 	createGeometrySelect(projection, {west: west, south: south, east: east, north: north}, function(geometrySelect){
 		knex(function(knex) {
 				knex.select(geometrySelect, 'properties')

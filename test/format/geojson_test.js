@@ -2,6 +2,7 @@ var assert = require('assert')
   , FeatureModel = require('mapcache-models').Feature
   , turf = require('turf')
   , lengthStream = require('length-stream')
+  , log = require('mapcache-log')
   , devnull = require('dev-null')
   , should = require('should');
 
@@ -56,7 +57,8 @@ describe('geojson', function() {
       geojson.source.id.should.equal('5');
     });
     it('should construct an geojson with a cache', function() {
-      var geojson = new GeoJSON({cache: {id: '6'}});
+      var geojson = new GeoJSON({cache: {id: '6'}, outputDirectory: '/tmp'});
+      console.log('geojson ', geojson.cache.id);
       geojson.cache.id.should.equal('6');
     });
   });
@@ -65,7 +67,8 @@ describe('geojson', function() {
     var geojson;
     before(function(done) {
       geojson = new GeoJSON({
-        source: pointDataSource
+        source: pointDataSource,
+        outputDirectory: '/tmp'
       });
       FeatureModel.deleteFeaturesBySourceId(geojson.source.id, function(err) {
         console.log('err is', err);
@@ -74,7 +77,7 @@ describe('geojson', function() {
     });
     after(function(done) {
       FeatureModel.deleteFeaturesBySourceId(geojson.source.id, function(err) {
-        console.log('err is', err);
+        log.info('Deleted %d features from the source %s', err, geojson.source.id);
         done();
       });
     });
@@ -85,11 +88,11 @@ describe('geojson', function() {
           return done(err);
         }
         console.log('after the source has been processed', newSource);
-        console.log('XXXXXXXXXXX ----------------------', geojson.source);
+        log.info('XXXXXXXXXXX ----------------------', geojson.source);
         map.dataSources.push(newSource);
         newSource.status.message.should.equal("Complete");
         FeatureModel.getAllSourceFeatures(geojson.source.id, function(err, features) {
-          console.log('features', features);
+          log.info('features', features);
           done();
         });
       }, function(source, callback) {
@@ -131,14 +134,14 @@ describe('geojson', function() {
     });
     it('should get all features of the source', function(done) {
       this.timeout(0);
-      geojson.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
+      geojson.getDataWithin(-179, -85, 179, 85, 4326, function(err, features) {
         console.log('err', err);
         if (err) {
           done(err);
           return;
         }
 
-        console.log("feature count", features);
+        log.info("Get All Features feature count", features);
         features.length.should.be.equal(1);
         done();
       });
@@ -148,7 +151,8 @@ describe('geojson', function() {
       before(function(done) {
         cache.source = map;
         geoJson = new GeoJSON({
-          cache: cache
+          cache: cache,
+          outputDirectory: '/tmp'
         });
         FeatureModel.deleteFeaturesByCacheId(geoJson.cache.id, function(count) {
           console.log('deleted %d features before test', count);

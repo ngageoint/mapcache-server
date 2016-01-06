@@ -87,7 +87,7 @@ describe('Cache Tests', function() {
     id: 'cache-test',
     name: 'cache-test',
     minZoom: 0,
-    maxZoom: 3,
+    maxZoom: 1,
     geometry: turf.polygon([[
       [-180, -85],
       [-180, 85],
@@ -101,36 +101,45 @@ describe('Cache Tests', function() {
   };
 
   before(function(done) {
-    this.timeout(0);
     async.eachSeries([rivers], function(source, callback) {
       FeatureModel.deleteFeaturesBySourceId(source.id, function(count) {
         log.info('deleted %d %s features', count, source.id);
         callback();
       });
     }, function() {
-      done();
-      //fs.remove(cacheDir, done);
+      fs.remove(cacheDir, function(err) {
+        done();
+      });
     });
   });
 
   after(function(done) {
-    this.timeout(0);
-    done();
+    async.eachSeries([rivers], function(source, callback) {
+      FeatureModel.deleteFeaturesBySourceId(source.id, function(count) {
+        log.info('deleted %d %s features', count, source.id);
+        callback();
+      });
+    }, function() {
+      fs.remove(cacheDir, function(err) {
+        done();
+      });
+    });
   });
 
   it('should construct a cache from all the sources', function (done) {
-    this.timeout(0);
+    // this.timeout(0);
     cache = new Cache(cacheModel);
     cache.callbackWhenInitialized(function(err, newCache) {
+      console.log('called back in construct a cache from all the sources')
       console.log(err);
       // log.info('Cache was initialized', JSON.stringify(newCache.cache.source.source.properties, null, 2));
-      newCache.cache.source.getTile.should.be.a.Function;
+      // newCache.cache.getTile.should.be.a.Function;
       done(err);
     });
   });
 
-  xit('should pull the 0/0/0 tile from the cache', function (done) {
-    this.timeout(0);
+  it('should pull the 0/0/0 tile from the cache', function (done) {
+    // this.timeout(0);
     cache.getTile('png', 0, 0, 0, function(err, tileStream) {
       should.exist(tileStream);
       var ws = fs.createOutputStream('/tmp/cache_test.png');
@@ -155,7 +164,7 @@ describe('Cache Tests', function() {
     });
 
     it('should generate the XYZ format for the cache', function (done) {
-      this.timeout(0);
+      // this.timeout(0);
       cache.generateFormat('xyz', function(err, cache) {
           console.log('cache finished with err?', err);
           console.log('cache completed', cache);
@@ -169,7 +178,7 @@ describe('Cache Tests', function() {
     });
 
     it('should generate the GeoPackage format for the cache', function (done) {
-      this.timeout(0);
+      this.timeout(10000);
       cache.generateFormat('geopackage', function(err, cache) {
           console.log('cache finished with err?', err);
           console.log('cache completed', cache);

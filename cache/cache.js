@@ -10,8 +10,9 @@ var FeatureModel = require('mapcache-models').Feature
   , q = require('q');
 
 var Cache = function(cache) {
-  console.log('cache', cache);
+  console.log('cache', cache.source.id);
   this.cache = cache || {};
+  this.map = {};
   if (this.cache && !this.cache.status) {
     this.cache.status = {};
   }
@@ -25,7 +26,11 @@ Cache.prototype.initialize = function() {
   if (this.cache.source && !this.cache.source.getTile) {
     var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
-      self.cache.source = map;
+      console.log('map id', map);
+      console.log('map.source.id', map.map.id);
+      console.log('map initilzed in cache', self.cache);
+      self.map = map;
+      self.cache.source = map.map;
       self._updateDataSourceParams();
       self.initDefer.resolve(self);
     });
@@ -36,7 +41,7 @@ Cache.prototype.initialize = function() {
 }
 
 Cache.prototype._updateDataSourceParams = function() {
-  var mapSources = this.cache.source.map.dataSources;
+  var mapSources = this.map.dataSources;
   var params = this.cache.cacheCreationParams || {};
   if (!params.dataSources || params.dataSources.length == 0) {
     params.dataSources = [];
@@ -51,6 +56,7 @@ Cache.prototype._updateDataSourceParams = function() {
 
 Cache.prototype.callbackWhenInitialized = function(callback) {
   this.initPromise.then(function(self) {
+    console.log('calling back in cache');
     callback(null, self);
   });
 }
@@ -58,7 +64,7 @@ Cache.prototype.callbackWhenInitialized = function(callback) {
 Cache.prototype.generateFormat = function(format, doneCallback, progressCallback) {
   log.info("Generate the format %s for cache %s", format, this.cache.id);
   this.callbackWhenInitialized(function(err, self) {
-    var mapSources = self.cache.source.map.dataSources;
+    var mapSources = self.map.dataSources;
     self.cache.status = self.cache.status || {};
     self.cache.status.totalFeatures = 0;
     console.log('mapsources', mapSources);
@@ -112,24 +118,9 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   callback = callback || function(){}
 
   this.initPromise.then(function(self) {
-    params = util._extend(params, self.cache.cacheCreationParams);
-    var dir = createDir(self.cache.outputDirectory + '/' + self.cache.id, '/tiles/' + z + '/' + x + '/');
-    var filename = y + '.' + format;
-    console.log('params are now', JSON.stringify(params, null, 2));
-
-    if (fs.existsSync(dir + filename) && !params.noCache) {
-      console.log('file already exists, skipping: %s', dir+filename);
-      return callback(null, fs.createReadStream(dir+filename));
-    }
-    self.cache.source.getTile(format, z, x, y, params, function(err, tileStream) {
+    console.log('promise inited in cache.getTile');
+    self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       log.debug('stream from the cache get tile is', tileStream);
-      var stream = fs.createWriteStream(dir + filename);
-
-      stream.on('close',function(status){
-      });
-
-      tileStream.pipe(stream);
-
       callback(null, tileStream);
     });
   });

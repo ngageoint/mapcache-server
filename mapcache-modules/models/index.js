@@ -11,6 +11,7 @@ var Cache = require('./cache')
 exports.Cache = Cache;
 exports.Feature = Feature;
 exports.Source = Source;
+exports.Map = Source;
 exports.Role = Role;
 exports.Token = Token;
 exports.Login = Login;

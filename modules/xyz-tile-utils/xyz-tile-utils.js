@@ -36,12 +36,12 @@ exports.getXYZFullyEncompassingExtent = function(extent, minZoom, maxZoom) {
 	var zoom = maxZoom || 18;
 	var min = minZoom || 0;
 	//find the first zoom level with 1 tile
-	var y = exports.yCalculator(extent, zoom);
-	var x = exports.xCalculator(extent, zoom);
+	var y = exports.calculateYTileRange(extent, zoom);
+	var x = exports.calculateXTileRange(extent, zoom);
 	var found = false;
 	for (zoom; zoom >= min && !found; zoom--) {
-		y = exports.yCalculator(extent, zoom);
-		x = exports.xCalculator(extent, zoom);
+		y = exports.calculateYTileRange(extent, zoom);
+		x = exports.calculateXTileRange(extent, zoom);
 		if (y.min == y.max && x.min == x.max) {
 			found = true;
 		}

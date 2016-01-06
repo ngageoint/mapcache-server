@@ -118,7 +118,7 @@ describe('Feature Model Tests', function() {
   });
 
   it('should get the extent of the feature set', function (done) {
-    FeatureModel.getExtentOfSource({sourceId:'rivers-ds'}, function(collection) {
+    FeatureModel.getExtentOfSource({sourceId:'featuretest'}, function(collection) {
       console.log('collection', collection);
       collection[0].extent.should.be.equal('{"type":"Polygon","coordinates":[[[9.49218750000001,16.972741019999],[9.49218750000001,31],[32,31],[32,16.972741019999],[9.49218750000001,16.972741019999]]]}');
       done();
@@ -126,19 +126,19 @@ describe('Feature Model Tests', function() {
   });
 
   it('should get the properties of the feature set', function (done) {
-    FeatureModel.getPropertyKeysFromSource({sourceId:'rivers-ds'}, function(collection) {
+    FeatureModel.getPropertyKeysFromSource({sourceId:'featuretest'}, function(collection) {
       console.log('collection', collection);
-      // collection[0].property.should.be.equal('state');
-      // collection[1].property.should.be.equal('year');
+      collection[0].property.should.be.equal('state');
+      collection[1].property.should.be.equal('year');
       done();
     })
   });
 
   it('should get the values of the feature set', function (done) {
-    FeatureModel.getValuesForKeyFromSource('Name',{sourceId:'rivers-ds'}, function(collection) {
+    FeatureModel.getValuesForKeyFromSource('state',{sourceId:'featuretest'}, function(collection) {
       console.log('collection values', collection);
-      collection[0].value.should.be.equal('California');
-      collection[1].value.should.be.equal('Colorado');
+      collection[0].value.should.be.equal('Colorado');
+      collection[1].value.should.be.equal('California');
       done();
     })
   });

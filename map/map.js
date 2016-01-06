@@ -9,6 +9,7 @@ var models = require('mapcache-models')
 
 var Map = function(map, config) {
   this.map = map || {};
+  this.dataSources = [];
   this.config = config || {};
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
@@ -28,7 +29,7 @@ Map.prototype.initialize = function(callback) {
   this.map.dataSources = [];
   var self = this;
   async.eachSeries(tempDataSources, function(ds, done) {
-    log.info('Processing the data source %s', ds.name);
+    log.info('Processing the data source %s', ds.name, JSON.stringify(ds, null, 2));
     self.addDataSource(ds, done);
   }, function done() {
     log.info('Map %s was initialized', self.map.id);
@@ -48,24 +49,24 @@ Map.prototype.addDataSource = function(ds, callback) {
     log.debug('data source is already made', ds);
     if (ds.source.status && ds.source.status.complete) {
       log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
-      self.map.dataSources.push(ds);
+      self.dataSources.push(ds);
+      self.map.dataSources.push(ds.source);
       callback(null, ds);
     } else {
       log.debug('Processing the datasource %s to add to the map %s', ds.source.id, this.map.id);
       ds.processSource(function(err, source) {
-        self.map.dataSources.push(ds);
+        self.dataSources.push(ds);
+        self.map.dataSources.push(ds.source);
         log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
         callback(null, ds);
       });
     }
   } else {
-    log.debug('have to make the ds', ds);
     var DataSource = require('../format/'+ds.format);
-    log.debug('made it');
     var dsObj = new DataSource({source: ds});
-    log.debug('dsobj', dsObj);
     if (dsObj.source.status && dsObj.source.status.complete) {
-      self.map.dataSources.push(dsObj);
+      self.dataSources.push(dsObj);
+      self.map.dataSources.push(dsObj.source);
       log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
       callback(null, dsObj);
     } else {
@@ -73,7 +74,9 @@ Map.prototype.addDataSource = function(ds, callback) {
       try {
       dsObj.processSource(function(err, source) {
         if (err) { log.error('Error processing the datasource %s', ds.id, err); }
-        self.map.dataSources.push(dsObj);
+        console.log('finished processing the source %s', source.id);
+        self.dataSources.push(dsObj);
+        self.map.dataSources.push(dsObj.source);
         log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
         callback(err, dsObj);
       });
@@ -113,7 +116,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
       log.info('the file %s does not exist for the map %s, creating', path.join(dir, filename), self.map.id);
     }
 
-    var sorted = self.map.dataSources.sort(zOrderDatasources);
+    var sorted = self.dataSources.sort(zOrderDatasources);
     params = params || {};
     if (!params.dataSources || params.dataSources.length == 0) {
       params.dataSources = [];

@@ -17,24 +17,13 @@ var failDataSource = {
   zOrder: 0
 };
 
-// var successDataSource = {
-//   id: 'test-ds',
-//   name: 'mrsid',
-//   format: 'mrsid',
-//   file: {
-//     path: __dirname + '/toronto.sid',
-//     name: 'toronto.sid'
-//   },
-//   zOrder: 0
-// };
-
 var successDataSource = {
   id: 'test-ds',
   name: 'mrsid',
   format: 'mrsid',
   file: {
-    path: __dirname + '/robert.sid',
-    name: 'robert.sid'
+    path: __dirname + '/toronto.sid',
+    name: 'toronto.sid'
   },
   zOrder: 0
 };
@@ -160,21 +149,6 @@ describe('MrSID', function() {
             imagesAreSame.should.be.true();
             done();
           });
-        });
-      });
-    });
-    it('should do tylers test', function(done) {
-      this.timeout(0);
-      mrsid.getTile('png', 18, 230696, 103960, {noCache: true}, function(err, stream) {
-        if (err) {
-          done(err);
-          return;
-        }
-        should.exist(stream);
-        var ws = fs.createWriteStream('/tmp/tyler.png');
-        stream.pipe(ws);
-        stream.on('end', function() {
-          done();
         });
       });
     });

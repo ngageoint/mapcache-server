@@ -10,7 +10,7 @@ var wmsDataSource = {
   id: 'test-ds',
   name: 'wms',
   format: 'wms',
-  url: 'http://gis.srh.noaa.gov/arcgis/services/QPF/MapServer/WMSServer',
+  url: 'http://watzmann.geog.uni-heidelberg.de/cached/osm',
   zOrder: 0
 };
 
@@ -90,16 +90,6 @@ describe('WMS', function() {
         stream.pipe(ws);
         stream.on('end', function() {
           done();
-          // var imageDiff = require('image-diff');
-          // imageDiff({
-          //   actualImage: tmpImage,
-          //   expectedImage: __dirname + '/geotifftile.png',
-          //   diffImage: '/tmp/difference.png',
-          // }, function (err, imagesAreSame) {
-          //   should.not.exist(err);
-          //   imagesAreSame.should.be.true();
-          //   done();
-          // });
         });
       });
     });

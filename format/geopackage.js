@@ -252,7 +252,7 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   log.info('Generating cache with id %s', this.cache.cache.id);
 
-  var map = cache.source.map;
+  var map = cacheObj.map;
   var mapSources = map.dataSources;
   cache.status.generatedFeatures = 0;
 

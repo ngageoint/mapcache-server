@@ -3,11 +3,13 @@ var models = require('mapcache-models')
   , turf = require('turf')
   , fs = require('fs-extra')
   , archiver = require('archiver')
+  , log = require('mapcache-log')
   , sourceProcessor = require('./sources')
   , cacheProcessor = require('./caches')
   , config = require('mapcache-config')
   , FeatureModel = models.Feature
   , async = require('async')
+  , CacheApi = require('../cache/cache')
   , exec = require('child_process').exec;
 
 function Cache(cacheModel) {
@@ -35,34 +37,54 @@ Cache.create = function(cache, formats, callback) {
     generatedFeatures: 0,
     zoomLevelStatus: {}
   };
-  console.log('cache to create', cache);
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);
-    console.log('created cache', newCache);
-    callback(err, newCache);
+    log.warn('created cache', newCache.source.id);
 
-    // if the cache has vector datasources we need to populate postgis
-    var vectorSources = [];
-    for (var i = 0; i < newCache.source.dataSources.length; i++) {
-      if (newCache.source.dataSources[i].vector) {
-        vectorSources.push(newCache.source.dataSources[i]);
-      }
-    }
-
-    var extent = turf.extent(cache.geometry);
-
-    async.eachSeries(vectorSources, function(dataSource, done) {
-      if (newCache.cacheCreationParams.dataSources.indexOf(dataSource._id.toString()) == -1) {
-        return done();
-      }
-      console.log('cache', newCache);
-      console.log('datasource', dataSource);
-      console.log('inserting features for cache %s from source %s', newCache._id, dataSource._id);
-      FeatureModel.createCacheFeaturesFromSource(dataSource._id, newCache._id, extent[0], extent[1], extent[2], extent[3], done);
-    }, function() {
-      new Cache(newCache).createFormat(formats);
-    })
+    var cacheApi = new CacheApi(newCache);
+    cacheApi.callbackWhenInitialized(function(err, cache) {
+      console.log('cache was initialized', cache);
+      async.eachSeries(formats, function(format, done) {
+        var Format = require('../format/'+format);
+        console.log('output dir', config.server.cacheDirectory.path);
+        var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
+        cacheFormat.generateCache(function(err, cache) {
+          log.info('cache is done generating %s', cache.cache.name);
+          done();
+        }, function(cacheProgress, callback) {
+          log.info('progress on the cache %s', cache.name);
+          callback(null, cache);
+        });
+      }, function() {
+        log.info('Created all requested formats');
+        callback(err, cache);
+      })
+    });
   });
+
+
+  //   // if the cache has vector datasources we need to populate postgis
+  //   var vectorSources = [];
+  //   for (var i = 0; i < newCache.source.dataSources.length; i++) {
+  //     if (newCache.source.dataSources[i].vector) {
+  //       vectorSources.push(newCache.source.dataSources[i]);
+  //     }
+  //   }
+  //
+  //   var extent = turf.extent(cache.geometry);
+  //
+  //   async.eachSeries(vectorSources, function(dataSource, done) {
+  //     if (newCache.cacheCreationParams.dataSources.indexOf(dataSource._id.toString()) == -1) {
+  //       return done();
+  //     }
+  //     console.log('cache', newCache);
+  //     console.log('datasource', dataSource);
+  //     console.log('inserting features for cache %s from source %s', newCache._id, dataSource._id);
+  //     FeatureModel.createCacheFeaturesFromSource(dataSource._id, newCache._id, extent[0], extent[1], extent[2], extent[3], done);
+  //   }, function() {
+  //     new Cache(newCache).createFormat(formats);
+  //   })
+  // });
 }
 
 Cache.getCachesFromMapId = function(id, callback) {
