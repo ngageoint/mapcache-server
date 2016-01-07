@@ -93,7 +93,7 @@ describe('KMZ', function() {
         });
       });
     });
-    xit('should get all features of the source', function(done) {
+    it('should get all features of the source', function(done) {
       this.timeout(0);
       kmz.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
         console.log('err', err);
@@ -103,7 +103,7 @@ describe('KMZ', function() {
         }
 
         console.log("feature count", features.length);
-        features.length.should.be.equal(1);
+        features.length.should.be.equal(3807);
         done();
       });
     });

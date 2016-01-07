@@ -30,7 +30,9 @@ describe('Cache Routes', function() {
   });
 
   after(function(done) {
-    done();
+    mongoose.disconnect(function() {
+      done();
+    });
   });
 
   it('should get all maps', function(done) {

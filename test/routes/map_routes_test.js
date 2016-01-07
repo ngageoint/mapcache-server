@@ -27,7 +27,9 @@ describe('Map Routes', function() {
   });
 
   after(function(done) {
-    done();
+    mongoose.disconnect(function() {
+      done();
+    });
   });
 
   it('should get all maps', function(done) {
@@ -51,7 +53,10 @@ describe('Map Routes', function() {
           callback();
         });
       }, function() {
-        MapModel.deleteSource({id: createdMap.id}, done);
+        Map.getById(createdMap.id, function(err, map) {
+          var m = new Map(map);
+          m.delete(done);
+        });
       });
     });
 
@@ -107,7 +112,10 @@ describe('Map Routes', function() {
           callback();
         });
       }, function() {
-        MapModel.deleteSource({id: createdMap.id}, done);
+        Map.getById(createdMap.id, function(err, map) {
+          var m = new Map(map);
+          m.delete(done);
+        });
       });
     });
 

@@ -116,7 +116,7 @@ describe('MrSID', function() {
         callback(null, source);
       });
     });
-    xit('should not pull the 13/1710/3111 tile for the data source because no data exists there', function(done) {
+    it('should not pull the 13/1710/3111 tile for the data source because no data exists there', function(done) {
       this.timeout(0);
       mrsid.getTile('png', 13, 1710, 3111, {noCache: true}, function(err, stream) {
         if (err) {
@@ -127,7 +127,7 @@ describe('MrSID', function() {
         done();
       });
     });
-    xit('should pull the 11/572/747 tile for the data source', function(done) {
+    it('should pull the 11/572/747 tile for the data source', function(done) {
       this.timeout(0);
       mrsid.getTile('png', 11, 572, 747, {noCache: true}, function(err, stream) {
         if (err) {

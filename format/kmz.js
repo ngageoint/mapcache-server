@@ -199,6 +199,7 @@ KMZ.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 KMZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
+  console.log('this.source.id', this.source);
   FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
 }
 

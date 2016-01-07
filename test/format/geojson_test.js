@@ -1,5 +1,6 @@
 var assert = require('assert')
   , FeatureModel = require('mapcache-models').Feature
+  , Cache = require('../../cache/cache')
   , turf = require('turf')
   , lengthStream = require('length-stream')
   , log = require('mapcache-log')
@@ -150,13 +151,21 @@ describe('geojson', function() {
       var geoJson;
       before(function(done) {
         cache.source = map;
-        geoJson = new GeoJSON({
-          cache: cache,
-          outputDirectory: '/tmp'
-        });
-        FeatureModel.deleteFeaturesByCacheId(geoJson.cache.id, function(count) {
-          console.log('deleted %d features before test', count);
-          done();
+        var cacheObj = new Cache(cache);
+        cacheObj.callbackWhenInitialized(function(err, cacheObj) {
+          geoJson = new GeoJSON({
+            cache: cacheObj,
+            outputDirectory: '/tmp'
+          });
+
+          FeatureModel.deleteFeaturesByCacheId(geoJson.cache.id, function(count) {
+            console.log('deleted %d features before test', count);
+            geoJson.generateCache(function(err, cache) {
+              console.log('generated the cache', cache);
+              done();
+            });
+
+          });
         });
       });
       after(function(done) {

@@ -97,7 +97,7 @@ var riversGeopackage = {
 
 var map = {
   id: 'land-map',
-  dataSources: [rivers, land, osm]
+  dataSources: [rivers, osm]
 };
 
 var cacheModel = {
@@ -130,6 +130,13 @@ describe('Geo Package', function() {
       });
     });
 
+    after(function(done) {
+      FeatureModel.deleteFeaturesBySourceId(riversGeopackage.id, function(count) {
+        log.info('deleted %d %s features', count, riversGeopackage.id);
+        done();
+      });
+    });
+
     it('should process the GeoPackage', function(done) {
       this.timeout(30000);
       geoPackage.processSource(function(err, source) {
@@ -156,7 +163,7 @@ describe('Geo Package', function() {
     });
   });
 
-  xdescribe('Geo Package cache tests', function() {
+  describe('Geo Package cache tests', function() {
     var cacheName = 'gp-cache';
 
     var geopackage;
@@ -188,7 +195,15 @@ describe('Geo Package', function() {
         });
       });
     });
-    after(function() {
+    after(function(done) {
+      async.eachSeries([rivers, land], function(source, callback) {
+        FeatureModel.deleteFeaturesBySourceId(source.id, function(count) {
+          log.info('deleted %d %s features', count, source.id);
+          callback();
+        });
+      }, function() {
+        done();
+      });
     });
     it('should pull the 0/0/0 tile for the cache', function(done) {
       this.timeout(0);
@@ -208,7 +223,7 @@ describe('Geo Package', function() {
       });
     });
 
-    xit('should generate the cache', function(done) {
+    it('should generate the cache', function(done) {
       this.timeout(0);
       geopackage.generateCache(function(err, cache) {
         console.log('err', err);

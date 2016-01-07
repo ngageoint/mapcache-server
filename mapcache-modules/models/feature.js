@@ -60,15 +60,16 @@ exports.getFeatureCount = function(query, callback) {
 }
 
 exports.findFeaturesWithin = function(query, west, south, east, north, projection, callback) {
-	if (!query.cacheId) query.cacheId = null;
-	if (!query.layerId) query.layerId = null;
-	if (!query.sourceId) query.sourceId = null;
+	var whereQuery = {};
+	if (query.cacheId) whereQuery.cache_id = query.cacheId;
+	if (query.layerId) whereQuery.layer_id = query.layerId;
+	if (query.sourceId) whereQuery.source_id = query.sourceId;
 	createGeometrySelect(projection, {west: west, south: south, east: east, north: north}, function(geometrySelect){
 		knex(function(knex) {
 				knex.select(geometrySelect, 'properties')
 			.from('features')
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
-			.andWhere({cache_id: query.cacheId, layer_id: query.layerId, source_id: query.sourceId})
+			.andWhere(whereQuery)
 			.then(function(collection){
 				console.log('returned ' + collection.length + ' features');
 			  callback(null, collection);
@@ -80,7 +81,7 @@ exports.findFeaturesWithin = function(query, west, south, east, north, projectio
 exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north, projection, callback) {
 	createGeometrySelect(projection, {west: west, south: south, east: east, north: north}, function(geometrySelect){
 		knex(function(knex) {
-			knex.select(geometrySelect, 'properties')
+			var kx = knex.select(geometrySelect, 'properties')
 			.from('features')
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
 			.andWhere({cache_id: cacheId})
@@ -88,7 +89,9 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 				console.log('returned ' + collection.length + ' features');
 		    callback(null, collection);
 		  });
+			console.log('kx', kx);
 		});
+
 	});
 }
 
