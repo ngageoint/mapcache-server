@@ -1,5 +1,6 @@
 var should = require('should')
   , mongoose = require('mongoose')
+  , expect = require('chai').expect
   , async = require('async')
   , FeatureModel = require('mapcache-models').Feature
   , CacheModel = require('mapcache-models').Cache
@@ -75,7 +76,7 @@ describe('Cache Routes', function() {
       var cache = {
         name: 'XYZ',
         minZoom: 0,
-        maxZoom: 1,
+        maxZoom: 3,
         geometry: turf.polygon([[
           [-180, -85],
           [-180, 85],
@@ -93,12 +94,16 @@ describe('Cache Routes', function() {
         Cache.create(cache, ['xyz'], function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache.cache;
-          console.log('cache was created', cache);
-          done();
+          expect(cache.cache.status).to.have.property('complete', true);
+          expect(cache.cache.status).to.have.property('generatedTiles', 85);
+          expect(cache.cache.status).to.have.property('totalTiles', 85);
+          CacheModel.getCacheById(cache.cache.id, function(err, cache) {
+            log.info('cache was created', JSON.stringify(cache, null, 2));
+            done();
+          });
         });
       });
     });
-
   });
 
   describe('create a GeoPackage cache', function() {
@@ -147,7 +152,7 @@ describe('Cache Routes', function() {
         Cache.create(cache, ['geopackage'], function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache.cache;
-          console.log('cache was created', cache);
+          log.info('cache was created', JSON.stringify(cache.cache, null, 2));
           done();
         });
       });

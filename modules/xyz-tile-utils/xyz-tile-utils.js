@@ -86,6 +86,16 @@ exports.calculateYTileRange = function(bbox, z) {
   };
 }
 
+exports.tileCountInExtent = function(extent, minZoom, maxZoom) {
+  var tiles = 0;
+  for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
+    var yRange = exports.calculateYTileRange(extent, zoom);
+    var xRange = exports.calculateXTileRange(extent, zoom);
+    tiles += (1+yRange.max-yRange.min)*(1+xRange.max-xRange.min);
+  }
+  return tiles;
+}
+
 exports.iterateAllTilesInExtent = function(extent, minZoom, maxZoom, data, processTileCallback, zoomCompleteCallback, completeCallback) {
   var zoom = minZoom;
   async.whilst(

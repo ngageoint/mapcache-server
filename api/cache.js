@@ -51,9 +51,11 @@ Cache.create = function(cache, formats, callback) {
         cacheFormat.generateCache(function(err, cache) {
           log.info('cache is done generating %s', cache.cache.name);
           done();
-        }, function(cacheProgress, callback) {
-          log.info('progress on the cache %s', cache.name);
-          callback(null, cache);
+        }, function(cache, callback) {
+          console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
+          cache.save(function() {
+            callback(null, cache);
+          });
         });
       }, function() {
         log.info('Created all requested formats');
