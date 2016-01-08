@@ -73,15 +73,20 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateCache,
     function(req, res, next) {
-
+      var called = false;
       api.Cache.create(req.newCache, function(err, newCache) {
-        console.log('cache was posted', newCache);
-        if (err) return res.status(400).send(err.message);
 
-        if (!newCache) return res.status(400).send();
+      }, function(err, newCache) {
+        if (newCache._id && !called) {
+          called = true;
+          console.log('cache was posted', newCache);
+          if (err) return res.status(400).send(err.message);
 
-        var response = cacheXform.transform(newCache);
-        res.location(newCache._id.toString()).json(response);
+          if (!newCache) return res.status(400).send();
+
+          var response = cacheXform.transform(newCache);
+          res.location(newCache._id.toString()).json(response);
+        }
       });
     }
   );

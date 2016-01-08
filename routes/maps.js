@@ -3,13 +3,14 @@ module.exports = function(app, auth) {
     , api = require('../api')
     , fs = require('fs-extra')
     , path = require('path')
+    , log = require('mapcache-log')
     , xyzTileUtils = require('xyz-tile-utils')
+    , Map = require('../api/source')
     , request = require('request')
     , config = require('mapcache-config')
     , DOMParser = global.DOMParser = require('xmldom').DOMParser
     , WMSCapabilities = require('wms-capabilities')
     , sourceXform = require('../transformers/source')
-    , sourceProcessor = require('../api/sources')
     , cacheXform = require('../transformers/cache');
 
   var passport = auth.authentication.passport
@@ -67,6 +68,7 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       console.log('req.files', req.files);
       console.log('req.newSource', req.newSource);
+      if (!req.files || !req.files.mapFile) return next();
       if (!req.is('multipart/form-data')) return next();
       if (!req.newSource.dataSources) {
         console.log('no data sources');
@@ -92,12 +94,14 @@ module.exports = function(app, auth) {
     validateSource,
     function(req, res, next) {
 
-      api.Source.create(req.newSource, function(err, newSource) {
-        if (err) return next(err);
+      Map.create(req.newSource, function(err, map) {
+        Map.getById(map.id, function(err, newMap) {
+          if (err) return next(err);
 
-        if (!newSource) return res.status(400).send();
-        var response = sourceXform.transform(newSource);
-        res.location(newSource._id.toString()).json(response);
+          if (!newMap) return res.status(400).send();
+          var response = sourceXform.transform(newMap);
+          res.location(newMap._id.toString()).json(response);
+        });
       });
     }
   );
@@ -126,7 +130,7 @@ module.exports = function(app, auth) {
     		extent = turf.extent(map.geometry);
     	}
       var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(extent);
-      Maps.getTile(map, 'png', xyz.z, xyz.x, xyz.y, {}, function(err, tileStream) {
+      Map.getTile(map, 'png', xyz.z, xyz.x, xyz.y, {}, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 
@@ -141,7 +145,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var source = req.source;
-      sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
+      Map.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
         res.setHeader('Cache-Control', 'max-age=86400');
@@ -156,12 +160,14 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var source = req.source;
-
-      sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
-        if (err) return next(err);
-        if (!tileStream) return res.status(404).send();
-        res.setHeader('Cache-Control', 'max-age=86400');
-        tileStream.pipe(res);
+      var map = new Map(source);
+      map.callbackWhenInitialized(function(err, map) {
+        map.getTile(req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
+          if (err) return next(err);
+          if (!tileStream) return res.status(404).send();
+          res.setHeader('Cache-Control', 'max-age=86400');
+          tileStream.pipe(res);
+        });
       });
     }
   );

@@ -90,8 +90,9 @@ describe('Cache Routes', function() {
         createdMap = map;
         log.info('Created a map %s with id %s', map.name, map.id);
         cache.source = map;
+        cache.create = ['xyz'];
 
-        Cache.create(cache, ['xyz'], function(err, cache) {
+        Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache.cache;
           expect(cache.cache.status).to.have.property('complete', true);
@@ -101,6 +102,8 @@ describe('Cache Routes', function() {
             log.info('cache was created', JSON.stringify(cache, null, 2));
             done();
           });
+        }, function(err, cache) {
+          console.log('Cache progress', cache);
         });
       });
     });
@@ -148,8 +151,9 @@ describe('Cache Routes', function() {
         createdMap = map;
         log.info('Created a map %s with id %s', map.name, map.id);
         cache.source = map;
+        cache.create = ['geopackage'];
 
-        Cache.create(cache, ['geopackage'], function(err, cache) {
+        Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache.cache;
           log.info('cache was created', JSON.stringify(cache.cache, null, 2));
