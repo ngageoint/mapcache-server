@@ -9,7 +9,7 @@ var should = require('should')
   , log = require('mapcache-log')
   , Map = require('../../api/source');
 
-describe('Map Routes', function() {
+describe('Map API', function() {
 
   before(function(done) {
     var mongodbConfig = config.server.mongodb;

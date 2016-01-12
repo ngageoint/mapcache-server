@@ -138,7 +138,6 @@ describe("map route tests", function() {
         .expect(function(res) {
           map = res.body;
           mapId = map.id;
-          console.log('map', map);
         })
         .end(done)
     });

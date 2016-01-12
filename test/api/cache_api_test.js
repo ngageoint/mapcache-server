@@ -13,7 +13,7 @@ var should = require('should')
   , Cache = require('../../api/cache')
   , Map = require('../../api/source');
 
-describe('Cache Routes', function() {
+describe('Cache API', function() {
 
   before(function(done) {
     var mongodbConfig = config.server.mongodb;
@@ -94,11 +94,12 @@ describe('Cache Routes', function() {
 
         Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
-          createdCache = cache.cache;
-          expect(cache.cache.status).to.have.property('complete', true);
-          expect(cache.cache.status).to.have.property('generatedTiles', 85);
-          expect(cache.cache.status).to.have.property('totalTiles', 85);
-          CacheModel.getCacheById(cache.cache.id, function(err, cache) {
+          console.log('Created Cache', cache);
+          createdCache = cache;
+          expect(cache.status).to.have.property('complete', true);
+          expect(cache.status).to.have.property('generatedTiles', 85);
+          expect(cache.status).to.have.property('totalTiles', 85);
+          CacheModel.getCacheById(cache.id, function(err, cache) {
             log.info('cache was created', JSON.stringify(cache, null, 2));
             done();
           });
@@ -155,8 +156,8 @@ describe('Cache Routes', function() {
 
         Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
-          createdCache = cache.cache;
-          log.info('cache was created', JSON.stringify(cache.cache, null, 2));
+          createdCache = cache;
+          log.info('cache was created', JSON.stringify(cache, null, 2));
           done();
         });
       });
