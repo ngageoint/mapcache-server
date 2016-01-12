@@ -82,6 +82,8 @@ function transform(source, ret, options) {
     var addVectorSources = false;
     var addRasterSources = false;
     ret.dataSources.forEach(function(ds) {
+      ds.id = ds._id;
+      delete ds._id;
       if (ds.vector) {
         addVectorSources = true;
         addRasterSources = true;
@@ -277,6 +279,7 @@ exports.deleteDataSource = function(source, dataSourceId, callback) {
     '_id': dataSourceId
   };
   source.update({'$pull': {dataSources: dataSource}}, function(err, number, raw) {
+    console.log('Removing the datasource %s number %d', dataSourceId, number);
     callback(err);
   });
 }

@@ -88,15 +88,15 @@ Map.prototype.addDataSource = function(ds, callback) {
   }
 }
 
-// Map.prototype.getDataWithin = function(west, south, east, north, projection, sourceDataCallback, doneCallback) {
-//   this.initPromise.then(function(self) {
-//     async.eachSeries(self.map.dataSources, function iterator(s, callback) {
-//       sourceDataCallback()
-//     }, function done() {
-//
-//     });
-//   });
-// }
+Map.prototype.getDataWithin = function(west, south, east, north, zoom, projection, query, sourceDataCallback, doneCallback) {
+  this.initPromise.then(function(self) {
+    async.eachSeries(self.map.dataSources, function iterator(s, callback) {
+      sourceDataCallback()
+    }, function done() {
+
+    });
+  });
+}
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
   log.info('get tile %d/%d/%d.%s for map %s', z, x, y, format, this.map.id);

@@ -4,6 +4,7 @@ var models = require('mapcache-models')
   , path = require('path')
   , async = require('async')
   , Feature = models.Feature
+  , log = require('mapcache-log')
   , Map = require('../map/map')
   , config = require('mapcache-config');
 
@@ -198,6 +199,7 @@ Source.prototype.delete = function(callback) {
 
 Source.prototype.deleteDataSource = function(dataSourceId, callback) {
   var source = this.sourceModel;
+  log.info('Deleting the datasource %s from source %s', dataSourceId, this.sourceModel.id);
   SourceModel.deleteDataSource(source, dataSourceId, function(err) {
     if (err) return callback(err);
     var dataSource;
@@ -206,7 +208,6 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
         dataSource = source.dataSources[i];
       }
     }
-    console.log('removing datasource', dataSource);
     if (dataSource && dataSource.file && dataSource.file.path) {
       fs.remove(dataSource.file.path, function(err) {
         SourceModel.getSourceById(source.id, function(err, source) {
@@ -214,7 +215,9 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
         });
       });
     } else {
-      callback(err, source);
+      SourceModel.getSourceById(source.id, function(err, source) {
+        callback(err, source);
+      });
     }
   });
 }
