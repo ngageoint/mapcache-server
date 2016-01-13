@@ -96,9 +96,9 @@ describe('Cache API', function() {
           if (err) console.log('err creating cache', err);
           console.log('Created Cache', cache);
           createdCache = cache;
-          expect(cache.status).to.have.property('complete', true);
-          expect(cache.status).to.have.property('generatedTiles', 85);
-          expect(cache.status).to.have.property('totalTiles', 85);
+          expect(cache.formats.xyz).to.have.property('complete', true);
+          expect(cache.formats.xyz).to.have.property('generatedTiles', 85);
+          expect(cache.formats.xyz).to.have.property('totalTiles', 85);
           CacheModel.getCacheById(cache.id, function(err, cache) {
             log.info('cache was created', JSON.stringify(cache, null, 2));
             done();

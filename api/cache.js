@@ -4,8 +4,6 @@ var models = require('mapcache-models')
   , fs = require('fs-extra')
   , archiver = require('archiver')
   , log = require('mapcache-log')
-  // , sourceProcessor = require('./sources')
-  // , cacheProcessor = require('./caches')
   , config = require('mapcache-config')
   , FeatureModel = models.Feature
   , async = require('async')
@@ -18,6 +16,13 @@ function Cache(cacheModel) {
 
 Cache.getAll = function(options, callback) {
   CacheModel.getCaches(options, callback);
+}
+
+Cache.getById = function(id, callback) {
+  console.log('get cache by id', id);
+  CacheModel.getCacheById(id, function(err, cache) {
+    callback(err, cache);
+  });
 }
 
 Cache.create = function(cache, callback, progressCallback) {
@@ -40,32 +45,44 @@ Cache.create = function(cache, callback, progressCallback) {
     if (err) return callback(err);
     log.warn('created cache', newCache.source.id);
     progressCallback(null, newCache);
-    var cacheApi = new CacheApi(newCache);
-    cacheApi.callbackWhenInitialized(function(err, cache) {
-      console.log('cache was initialized', cache);
-      async.eachSeries(formats, function(format, done) {
-        var Format = require('../format/'+format);
-        console.log('output dir', config.server.cacheDirectory.path);
-        var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
-        cacheFormat.generateCache(function(err, cache) {
-          log.info('cache is done generating %s', cache.cache.name);
+    createFormat(formats, newCache, callback, progressCallback);
+  });
+}
+
+function createFormat(formats, cache, callback, progressCallback) {
+  var cacheApi = new CacheApi(cache);
+  cacheApi.callbackWhenInitialized(function(err, cache) {
+    console.log('cache was initialized', cache);
+    async.eachSeries(formats, function(format, done) {
+      var Format = require('../format/'+format);
+      console.log('format', format);
+      console.log('output dir', config.server.cacheDirectory.path);
+      var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
+      console.log('cacheformat', cacheFormat);
+      cacheFormat.generateCache(function(err, cache) {
+        log.info('cache is done generating %s', cache.cache.name);
+        cache.cache.markModified('status');
+        cache.cache.markModified('formats');
+        cache.cache.save(function() {
+          if (progressCallback) progressCallback(null, cache.cache);
           done();
-        }, function(cache, callback) {
-          console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
-          cache.markModified('status');
-          cache.save(function() {
-            progressCallback(null, cache);
-            callback(null, cache);
-          });
         });
-      }, function() {
-        log.info('Created all requested formats');
-        CacheModel.getCacheById(cacheApi.cache.id, function(err, cache) {
-          cache.status.complete = true;
-          cache.save(function() {
-            progressCallback(null, cache);
-            callback(null, cache);
-          });
+      }, function(cache, callback) {
+        console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
+        cache.markModified('status');
+        cache.markModified('formats');
+        cache.save(function() {
+          if (progressCallback) progressCallback(null, cache);
+          callback(null, cache);
+        });
+      });
+    }, function() {
+      log.info('Created all requested formats for cache %s', cacheApi.cache.id);
+      CacheModel.getCacheById(cacheApi.cache.id, function(err, cache) {
+        cache.status.complete = true;
+        cache.save(function() {
+          if (progressCallback) progressCallback(null, cache);
+          callback(null, cache);
         });
       });
     });
@@ -99,70 +116,72 @@ Cache.prototype.deleteFormat = function(format, callback) {
   });
 }
 
-Cache.prototype.createFormat = function(formats, callback) {
+Cache.prototype.createFormat = function(formats, callback, progressCallback) {
   var cache = this.cacheModel;
-  var newFormats = [];
-  if (formats) {
-    if (typeof formats === "string") {
-      console.log('formats is a string', formats);
-      formats = [formats];
-    }
-    if (Array.isArray(formats)) {
-      for (var i = 0; i < formats.length; i++) {
-        if (!cache.formats || !cache.formats[formats[i]]) {
-          newFormats.push(formats[i]);
-        }
-      }
-    }
-  }
-
-  console.log('formats', newFormats);
-
-  // if the request speficied a format that has a dependency and that
-  // dependency is not in the format list, add it here
-  var formatMap = {};
-  config.sourceCacheTypes.raster.forEach(function(t) {
-    formatMap[t.type] = t;
-  });
-  config.sourceCacheTypes.vector.forEach(function(t) {
-    formatMap[t.type] = t;
-  });
-
-  newFormats.forEach(function(format) {
-    if (formatMap[format].depends) {
-      if (newFormats.indexOf(formatMap[format].depends) == -1 && !cache.formats[formatMap[format].depends]) {
-        newFormats.push(formatMap[format].depends);
-      }
-    }
-  });
-
-  console.log('new formats now', newFormats);
-
-  var cacheApi = new CacheApi(this.cacheModel);
-  cacheApi.callbackWhenInitialized(function(err, cache) {
-
-    async.eachSeries(newFormats, function(newFormat, done) {
-      console.log("creating format " + newFormat + " for cache " + cache.name);
-
-      var Format = require('../format/'+newFormat);
-      console.log('output dir', config.server.cacheDirectory.path);
-      var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
-      cacheFormat.generateCache(function(err, cache) {
-        log.info('cache is done generating %s', cache.cache.name);
-        done();
-      }, function(cache, callback) {
-        console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
-        cache.save(function() {
-          // progressCallback(null, cache);
-          callback(null, cache);
-        });
-      });
-    }, function() {
-      if (callback) {
-        callback(null, cache);
-      }
-    });
-  });
+  formats = Array.isArray(formats) ? formats : [formats];
+  createFormat(formats, cache, callback, progressCallback);
+  // var newFormats = [];
+  // if (formats) {
+  //   if (typeof formats === "string") {
+  //     console.log('formats is a string', formats);
+  //     formats = [formats];
+  //   }
+  //   if (Array.isArray(formats)) {
+  //     for (var i = 0; i < formats.length; i++) {
+  //       if (!cache.formats || !cache.formats[formats[i]]) {
+  //         newFormats.push(formats[i]);
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // console.log('formats', newFormats);
+  //
+  // // if the request speficied a format that has a dependency and that
+  // // dependency is not in the format list, add it here
+  // var formatMap = {};
+  // config.sourceCacheTypes.raster.forEach(function(t) {
+  //   formatMap[t.type] = t;
+  // });
+  // config.sourceCacheTypes.vector.forEach(function(t) {
+  //   formatMap[t.type] = t;
+  // });
+  //
+  // newFormats.forEach(function(format) {
+  //   if (formatMap[format].depends) {
+  //     if (newFormats.indexOf(formatMap[format].depends) == -1 && !cache.formats[formatMap[format].depends]) {
+  //       newFormats.push(formatMap[format].depends);
+  //     }
+  //   }
+  // });
+  //
+  // console.log('new formats now', newFormats);
+  //
+  // var cacheApi = new CacheApi(this.cacheModel);
+  // cacheApi.callbackWhenInitialized(function(err, cache) {
+  //
+  //   async.eachSeries(newFormats, function(newFormat, done) {
+  //     console.log("creating format " + newFormat + " for cache " + cache.name);
+  //
+  //     var Format = require('../format/'+newFormat);
+  //     console.log('output dir', config.server.cacheDirectory.path);
+  //     var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
+  //     cacheFormat.generateCache(function(err, cache) {
+  //       log.info('cache is done generating %s', cache.cache.name);
+  //       done();
+  //     }, function(cache, callback) {
+  //       console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
+  //       cache.save(function() {
+  //         // progressCallback(null, cache);
+  //         callback(null, cache);
+  //       });
+  //     });
+  //   }, function() {
+  //     if (callback) {
+  //       callback(null, cache);
+  //     }
+  //   });
+  // });
 
 }
 
@@ -184,14 +203,10 @@ Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
   // cacheProcessor.getCacheData(this.cacheModel, format, minZoom, maxZoom, callback);
 }
 
-Cache.prototype.getTile = function(format, z, x, y, callback) {
+Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   var cacheApi = new CacheApi(this.cacheModel);
   cacheApi.callbackWhenInitialized(function(err, cache) {
-
-    var Format = require('../format/'+newFormat);
-    console.log('output dir', config.server.cacheDirectory.path);
-    var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
-    cacheFormat.getTile(format, z, x, y, callback);
+    cacheApi.getTile(format, z, x, y, params, callback);
   });
 }
 

@@ -50,10 +50,19 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     generatedTiles: 0,
     complete: false
   };
-  cache.status.totalTiles = xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom);
-  cache.status.zoomLevelStatus = [];
+  cache.formats = cache.formats || {};
+  cache.formats.xyz = cache.formats.xyz || {
+    generatedTiles: 0,
+    complete: false
+  };
+
+  cache.formats.xyz.totalTiles = xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom);
+
+  console.log('cache.status', cache.formats.xyz);
+
+  cache.formats.xyz.zoomLevelStatus = [];
   for (var i = cache.minZoom; i <= cache.maxZoom; i++) {
-    cache.status.zoomLevelStatus[i] = {
+    cache.formats.xyz.zoomLevelStatus[i] = {
       generatedTiles: 0,
       totalTiles: xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), i, i),
       complete: false
@@ -67,8 +76,8 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
 
       if (fs.existsSync(path.join(dir, filename)) && (!cache.cacheCreationParams || (cache.cacheCreationParams && !cache.cacheCreationParams.noCache))) {
         log.debug('file already exists, skipping: %s', path.join(dir, filename));
-        cache.status.zoomLevelStatus[tile.z].generatedTiles++;
-        cache.status.generatedTiles++;
+        cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles++;
+        cache.formats.xyz.generatedTiles++;
         progressCallback(cache, function(err, updatedCache) {
           cache = updatedCache;
           return tileDone(null, tile);
@@ -80,8 +89,8 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
           stream.pipe(ws);
           ws.on('finish', function(){
             log.info('the file %s was written for the xyz cache %s', path.join(dir, filename), cacheId);
-            cache.status.zoomLevelStatus[tile.z].generatedTiles++;
-            cache.status.generatedTiles++;
+            cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles++;
+            cache.formats.xyz.generatedTiles++;
             progressCallback(cache, function(err, updatedCache) {
               cache = updatedCache;
               return tileDone(null, tile);
@@ -92,7 +101,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     },
     function(zoom, callback) {
       log.info('zoom level %d is done for %s', zoom, cacheId);
-      cache.status.zoomLevelStatus[zoom].complete = true;
+      cache.formats.xyz.zoomLevelStatus[zoom].complete = true;
       progressCallback(cache, function(err, updatedCache) {
         cache = updatedCache;
         callback();
@@ -100,7 +109,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     },
     function(err, data) {
       log.info('all tiles are done for %s', cacheId);
-      data.status.complete = true;
+      data.formats.xyz.complete = true;
       self.cache.cache = data;
       callback(null, self.cache);
     }

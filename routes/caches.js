@@ -1,6 +1,6 @@
 module.exports = function(app, auth) {
   var access = require('../access')
-    , api = require('../api')
+    , Cache = require('../api/cache')
     , fs = require('fs-extra')
     , xyzTileUtils = require('xyz-tile-utils')
     , config = require('mapcache-config')
@@ -15,6 +15,9 @@ module.exports = function(app, auth) {
     var cache = req.body;
     if (cache.id) {
       cache._id = cache.id;
+    }
+    if (!cache.geometry) {
+      return res.status(400).send('geometry is required');
     }
     req.newCache = cache;
     next();
@@ -34,12 +37,18 @@ module.exports = function(app, auth) {
     access.authorize('EXPORT_CACHE'),
     function (req, res, next) {
     	var format = req.param('format');
+      var sent = false;
     	console.log('create cache format ' + format + ' for cache ' + req.cache.name);
       var cache = req.cache;
       req.cache.minZoom = req.param('minZoom') || req.cache.minZoom;
       req.cache.maxZoom = req.param('maxZoom') || req.cache.maxZoom;
-      new api.Cache(req.cache).createFormat(format, function(err, newCache) {
+      new Cache(req.cache).createFormat(format, function(err, newCache) {
+        console.log('cache done', newCache);
+      }, function(err, newCache) {
+        console.log('cache progress', newCache);
+        if (sent) return;
         if (!err) {
+          sent = true;
           return res.sendStatus(202);
         }
         next(err);
@@ -57,7 +66,7 @@ module.exports = function(app, auth) {
 
       };
 
-      api.Cache.getAll(options, function(err, caches) {
+      Cache.getAll(options, function(err, caches) {
         if (err) return next(err);
 
         var caches = cacheXform.transform(caches);
@@ -74,7 +83,7 @@ module.exports = function(app, auth) {
     validateCache,
     function(req, res, next) {
       var called = false;
-      api.Cache.create(req.newCache, function(err, newCache) {
+      Cache.create(req.newCache, function(err, newCache) {
 
       }, function(err, newCache) {
         if (newCache._id && !called) {
@@ -97,7 +106,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     function(req, res, next) {
 
-      new api.Cache(req.cache).restart(req.param('format'), function(err, newCache) {
+      new Cache(req.cache).restart(req.param('format'), function(err, newCache) {
         if (err) return res.status(400).send(err.message);
 
         if (!newCache) return res.status(400).send();
@@ -113,9 +122,10 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      new api.Cache(req.cache).getTile(req.param('format'), req.param('z'), req.param('x'), req.param('y'), function(err, tileStream) {
+      new Cache(req.cache).getTile(req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
+        console.log('stream', tileStream);
 
         tileStream.pipe(res);
       });
@@ -146,7 +156,7 @@ module.exports = function(app, auth) {
     	var maxZoom = parseInt(req.param('maxZoom'));
     	var format = req.param('format');
     	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
-      new api.Cache(req.cache).getData(format, minZoom, maxZoom, function(err, status) {
+      new Cache(req.cache).getData(format, minZoom, maxZoom, function(err, status) {
         if (err) {
           return res.send(400, err);
         }
@@ -178,7 +188,7 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.Cache(req.cache).deleteFormat(req.param('format'), function(err) {
+      new Cache(req.cache).deleteFormat(req.param('format'), function(err) {
         if (err) return next(err);
         res.status(200);
         res.json(req.cache);
@@ -192,7 +202,7 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.Cache(req.cache).delete(function(err) {
+      new Cache(req.cache).delete(function(err) {
         if (err) return next(err);
         res.status(200);
         res.json(req.cache);

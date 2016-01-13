@@ -15,8 +15,8 @@
   },
   "homepage": "https://www1.nga.mil",
   "engines": {
-    "node": ">= 0.8.0",
-    "npm": ">= 1.2.0"
+    "node": ">= 0.12.0",
+    "npm": ">= 2.0"
   },
   "dependencies": {
     "adm-zip": "^0.4.7",
@@ -90,7 +90,8 @@
     "supertest": "^1.1.0"
   },
   "scripts": {
-    "postinstall": "node_modules/.bin/bower install --config.cwd=public --config.interactive=false && node_modules/.bin/grunt build"
+    "postinstall": "node_modules/.bin/bower install --config.cwd=public --config.interactive=false && node_modules/.bin/grunt build",
+    "test": "mocha"
   },
   "bundleDependencies": [],
   "private": true,
