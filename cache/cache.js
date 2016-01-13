@@ -2,6 +2,7 @@ var FeatureModel = require('mapcache-models').Feature
   , turf = require('turf')
   , Canvas = require('canvas')
   , log = require('mapcache-log')
+  , config = require('mapcache-config')
   , Image = Canvas.Image
   , fs = require('fs-extra')
   , async = require('async')
@@ -12,6 +13,7 @@ var FeatureModel = require('mapcache-models').Feature
 var Cache = function(cache) {
   console.log('cache', cache.source.id);
   this.cache = cache || {};
+  this.cache.outputDirectory = this.cache.outputDirectory || config.server.cacheDirectory.path;
   this.map = {};
   if (this.cache && !this.cache.status) {
     this.cache.status = {};
@@ -45,7 +47,6 @@ Cache.prototype.initialize = function() {
 }
 
 Cache.prototype._updateDataSourceParams = function(callback) {
-  console.log('cache', this.cache);
   var self = this;
   var mapSources = this.map.dataSources;
   var params = this.cache.cacheCreationParams || {};
@@ -118,6 +119,12 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
       callback(null, tileStream);
     });
   });
+}
+
+Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
+  var DataSource = require('../format/'+format);
+  var ds = new DataSource({cache: this, outputDirectory: this.cache.outputDirectory});
+  ds.getData(minZoom, maxZoom, callback);
 }
 
 function createDir(cacheName, filepath){

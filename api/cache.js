@@ -50,6 +50,7 @@ Cache.create = function(cache, callback, progressCallback) {
 }
 
 function createFormat(formats, cache, callback, progressCallback) {
+  callback = callback || function() {};
   var cacheApi = new CacheApi(cache);
   cacheApi.callbackWhenInitialized(function(err, cache) {
     console.log('cache was initialized', cache);
@@ -200,7 +201,14 @@ Cache.prototype.generateMoreZooms = function(format, newMinZoom, newMaxZoom, cal
 }
 
 Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
-  // cacheProcessor.getCacheData(this.cacheModel, format, minZoom, maxZoom, callback);
+  if (!this.cacheModel.formats || !this.cacheModel.formats[format] || !this.cacheModel.formats[format].complete) {
+    this.createFormat(format);
+    return callback(null, {creating: true});
+  }
+  var cacheApi = new CacheApi(this.cacheModel);
+  cacheApi.callbackWhenInitialized(function(err, cache) {
+    cacheApi.getData(format, minZoom, maxZoom, callback);
+  });
 }
 
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {

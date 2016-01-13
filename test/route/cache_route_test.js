@@ -354,40 +354,80 @@ describe("Cache Route Tests", function() {
         });
     });
 
-    xit ('should pull the overview tile', function(done) {
+    it('should pull the overview tile', function(done) {
+      var file = fs.createWriteStream('/tmp/cache_overview_tile_test.png');
+      file.on('close', done);
       request(app)
-        .get('/api/maps/'+mapId+'/overviewTile')
+        .get('/api/caches/'+cacheId+'/overviewTile')
         .set('Authorization', 'Bearer 12345')
         .expect(200)
         .expect(function(res) {
-          console.log('res', res);
+          console.log('XXXXXXXXXXXXXX_____-------______-------res', res);
         })
-        .end(done);
+        .pipe(file);
     });
 
-    xit ('should delete a datasource', function(done) {
+    it('should pull the 0/0/0 tile', function(done) {
+      var file = fs.createWriteStream('/tmp/cache_zero_tile_test.png');
+      file.on('close', done);
       request(app)
-        .delete('/api/maps/'+mapId+'/dataSources/'+map.dataSources[0].id)
+        .get('/api/caches/'+cacheId+'/0/0/0.png')
         .set('Authorization', 'Bearer 12345')
         .expect(200)
         .expect(function(res) {
-          var map = res.body;
-          map.should.have.property('dataSources', []);
+          console.log('XXXXXXXXXXXXXX_____-------______-------res', res);
         })
-        .end(done);
+        .pipe(file);
     });
 
-    xit ('should delete the source', function(done) {
+    it.only ('should generate an xyz cache and download it', function(done) {
+      this.timeout(15000);
       request(app)
-        .delete('/api/maps/'+mapId)
+        .get('/api/caches/'+cacheId + '/xyz')
         .set('Authorization', 'Bearer 12345')
-        .expect(200)
+        .expect(202)
         .expect(function(res) {
-          var map = res.body;
-          map.should.have.property('id', mapId);
-          mapId = undefined;
-        })
-        .end(done);
+          var cache = res.body;
+          cache.should.have.property('id', cacheId);
+          cache.should.have.property('name', 'Cache');
+          cache.should.have.property('minZoom', 0);
+          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('status');
+          cache.status.should.have.property('xyz');
+          console.log(res.body);
+        }).end(function() {
+          var finishedGenerating = false;
+          console.log('until');
+          async.until(
+            function() { return finishedGenerating; },
+            function(callback) {
+              request(app)
+                .get('/api/caches/'+cacheId)
+                .set('Authorization', 'Bearer 12345')
+                .expect(200)
+                .expect(function(res) {
+                  var cache = res.body;
+                  cache.formats.should.have.property('xyz');
+                  if (cache.formats.xyz.complete) {
+                    cache.formats.xyz.should.have.property('generatedTiles', 85);
+                    finishedGenerating = true;
+                  }
+                }).end(function() {
+                  setTimeout(callback, 500);
+                });
+            },
+            function() {
+              var file = fs.createWriteStream('/tmp/xyz_cache.zip');
+              file.on('close', done);
+              console.log('going to get xyz cache for %s', cacheId);
+              request(app)
+                .get('/api/caches/'+cacheId+'/xyz')
+                .set('Authorization', 'Bearer 12345')
+                .expect(200)
+                .pipe(file);
+            }
+          );
+        });
     });
 
   });

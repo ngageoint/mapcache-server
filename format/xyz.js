@@ -116,6 +116,20 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
   );
 }
 
+XYZ.prototype.getData = function(minZoom, maxZoom, callback) {
+  var cp = require('child_process');
+  var args = ['-rq', '-'];
+  for (var i = minZoom; i <= maxZoom; i++) {
+    args.push('xyztiles/'+i);
+  }
+
+  console.log('working dir',path.join(this.config.outputDirectory, this.cache.cache.id.toString() ));
+  var zip = cp.spawn('zip', args, {cwd: path.join(this.config.outputDirectory, this.cache.cache.id.toString())}).on('close', function(code) {
+    console.log('close the zip');
+  });
+  callback(null, {stream: zip.stdout, extension: '.zip'});
+}
+
 function getTileForCache(cache, z, x, y, format, params, outputDirectory, callback) {
   var dir = path.join(outputDirectory, cache.cache.id.toString(), 'xyztiles', z.toString(), x.toString());
   var filename = y + '.png';

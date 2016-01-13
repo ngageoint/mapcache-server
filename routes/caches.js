@@ -2,6 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , Cache = require('../api/cache')
     , fs = require('fs-extra')
+    , turf = require('turf')
     , xyzTileUtils = require('xyz-tile-utils')
     , config = require('mapcache-config')
     , cacheXform = require('../transformers/cache');
@@ -137,8 +138,8 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      var xyz = getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry), cache.minZoom, cache.maxZoom);
-      Caches.getTile(cache, 'png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
+      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry));
+      new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 
@@ -152,8 +153,8 @@ module.exports = function(app, auth) {
   	access.authorize('EXPORT_CACHE'),
   	function (req, res, next) {
     	var id = req.params.cacheId;
-    	var minZoom = parseInt(req.param('minZoom'));
-    	var maxZoom = parseInt(req.param('maxZoom'));
+    	var minZoom = req.param('minZoom') ? parseInt(req.param('minZoom')) : req.cache.minZoom;
+    	var maxZoom = req.param.maxZoom ? parseInt(req.param('maxZoom')) : req.cache.maxZoom;
     	var format = req.param('format');
     	console.log('export zoom ' + minZoom + " to " + maxZoom + " in format " + format);
       new Cache(req.cache).getData(format, minZoom, maxZoom, function(err, status) {
@@ -164,6 +165,7 @@ module.exports = function(app, auth) {
           return res.sendStatus(202);
         }
         if (status.stream) {
+          console.log('streaming %s', req.cache.name + '_' + format + status.extension)
           res.attachment(req.cache.name + '_' + format + status.extension);
           status.stream.pipe(res);
         }
