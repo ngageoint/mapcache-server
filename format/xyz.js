@@ -37,6 +37,11 @@ XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
   }
 }
 
+XYZ.prototype.delete = function(callback) {
+  if (!this.cache) return callback();
+  fs.remove(path.join(this.config.outputDirectory, 'xyztiles'), callback);
+}
+
 XYZ.prototype.generateCache = function(callback, progressCallback) {
   log.info('Generating cache with id %s', this.cache.cache.id);
   var self = this;

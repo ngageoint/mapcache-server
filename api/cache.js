@@ -109,9 +109,12 @@ Cache.prototype.delete = function(callback) {
 
 Cache.prototype.deleteFormat = function(format, callback) {
   var cacheModel = this.cacheModel;
+  if (!cacheModel.formats[format]) return callback(null, cacheModel);
   CacheModel.deleteFormat(cacheModel, format, function(err) {
     if (err) return callback(err);
-    cacheProcessor.deleteCacheFormat(cacheModel, format, function(err) {
+    var Format = require('../format/'+format);
+    var cacheFormat = new Format({cache: cacheModel, outputDirectory: config.server.cacheDirectory.path});
+    cacheFormat.delete(function(err) {
       callback(err, cacheModel);
     });
   });
@@ -121,69 +124,6 @@ Cache.prototype.createFormat = function(formats, callback, progressCallback) {
   var cache = this.cacheModel;
   formats = Array.isArray(formats) ? formats : [formats];
   createFormat(formats, cache, callback, progressCallback);
-  // var newFormats = [];
-  // if (formats) {
-  //   if (typeof formats === "string") {
-  //     console.log('formats is a string', formats);
-  //     formats = [formats];
-  //   }
-  //   if (Array.isArray(formats)) {
-  //     for (var i = 0; i < formats.length; i++) {
-  //       if (!cache.formats || !cache.formats[formats[i]]) {
-  //         newFormats.push(formats[i]);
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // console.log('formats', newFormats);
-  //
-  // // if the request speficied a format that has a dependency and that
-  // // dependency is not in the format list, add it here
-  // var formatMap = {};
-  // config.sourceCacheTypes.raster.forEach(function(t) {
-  //   formatMap[t.type] = t;
-  // });
-  // config.sourceCacheTypes.vector.forEach(function(t) {
-  //   formatMap[t.type] = t;
-  // });
-  //
-  // newFormats.forEach(function(format) {
-  //   if (formatMap[format].depends) {
-  //     if (newFormats.indexOf(formatMap[format].depends) == -1 && !cache.formats[formatMap[format].depends]) {
-  //       newFormats.push(formatMap[format].depends);
-  //     }
-  //   }
-  // });
-  //
-  // console.log('new formats now', newFormats);
-  //
-  // var cacheApi = new CacheApi(this.cacheModel);
-  // cacheApi.callbackWhenInitialized(function(err, cache) {
-  //
-  //   async.eachSeries(newFormats, function(newFormat, done) {
-  //     console.log("creating format " + newFormat + " for cache " + cache.name);
-  //
-  //     var Format = require('../format/'+newFormat);
-  //     console.log('output dir', config.server.cacheDirectory.path);
-  //     var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
-  //     cacheFormat.generateCache(function(err, cache) {
-  //       log.info('cache is done generating %s', cache.cache.name);
-  //       done();
-  //     }, function(cache, callback) {
-  //       console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
-  //       cache.save(function() {
-  //         // progressCallback(null, cache);
-  //         callback(null, cache);
-  //       });
-  //     });
-  //   }, function() {
-  //     if (callback) {
-  //       callback(null, cache);
-  //     }
-  //   });
-  // });
-
 }
 
 Cache.prototype.restart = function(format, callback) {

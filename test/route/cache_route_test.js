@@ -380,7 +380,7 @@ describe("Cache Route Tests", function() {
         .pipe(file);
     });
 
-    it.only ('should generate an xyz cache and download it', function(done) {
+    it ('should generate an xyz cache and download it', function(done) {
       this.timeout(15000);
       request(app)
         .get('/api/caches/'+cacheId + '/xyz')
@@ -427,6 +427,33 @@ describe("Cache Route Tests", function() {
                 .pipe(file);
             }
           );
+        });
+    });
+
+    it('should delete the cache xyz format', function(done) {
+      request(app)
+        .get('/api/caches/'+cacheId + '/generate')
+        .set('Authorization', 'Bearer 12345')
+        .query({format: 'xyz'})
+        .expect(202)
+        .expect(function(res) {
+          var cache = res.body;
+          cache.should.have.property('id', cacheId);
+          cache.should.have.property('name', 'Cache');
+          cache.should.have.property('minZoom', 0);
+          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('status');
+          cache.status.should.have.property('xyz');
+          console.log(res.body);
+        }).end(function() {
+          request(app)
+            .delete('/api/caches/'+cacheId+'/xyz')
+            .set('Authorization', 'Bearer 12345')
+            .expect(200)
+            .expect(function(res) {
+              console.log('XXXXXXXXXXXXXX_____-------______-------res', res);
+            })
+            .end(done);
         });
     });
 

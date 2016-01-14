@@ -151,5 +151,28 @@ describe('xyz', function() {
         callback(null, cache);
       })
     });
+    it('should generate the cache then download the format', function(done) {
+      this.timeout(10000);
+      xyz.generateCache(function(err, cache) {
+        console.log('done', cache);
+        xyz.getData(cache.minZoom, cache.maxZoom, function(err, status) {
+          should.exist(status.stream);
+          done();
+        });
+      }, function(cache, callback) {
+        console.log('progress', cache);
+        callback(null, cache);
+      })
+    });
+    it('should generate the cache then delete the format', function(done) {
+      this.timeout(10000);
+      xyz.generateCache(function(err, cache) {
+        console.log('done', cache);
+        xyz.delete(done);
+      }, function(cache, callback) {
+        console.log('progress', cache);
+        callback(null, cache);
+      })
+    });
   });
 });
