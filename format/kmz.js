@@ -199,8 +199,14 @@ KMZ.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 KMZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  console.log('this.source.id', this.source);
-  FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
+  if (this.source) {
+    FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
+  } else {
+    var c = this.cache;
+    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
+      FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
+    });
+  }
 }
 
 module.exports = KMZ;

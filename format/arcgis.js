@@ -109,7 +109,7 @@ ArcGIS.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 ArcGIS.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  callback(null, null);
+  callback(null, []);
 }
 
 function getRandomInt(min, max) {

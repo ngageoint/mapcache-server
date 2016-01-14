@@ -27,7 +27,7 @@ GeoTIFF.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 GeoTIFF.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  callback(null, null);
+  callback(null, []);
 }
 
 module.exports = GeoTIFF;

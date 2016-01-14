@@ -259,11 +259,8 @@ GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection,
   if (this.source) {
     FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
   } else {
-    console.log('this.cache', this.cache);
     var c = this.cache;
-    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: 'test-point'}, function(count) {
-      log.debug('count', count);
-      log.debug('cache id', c.cache.id);
+    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
       FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
     });
   }
@@ -286,41 +283,6 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
 
     if (format == 'png') {
       this.cache.getTile(format, z, x, y, params, callback);
-
-    //   var canvas = new Canvas(256,256);
-    //   var ctx = canvas.getContext('2d');
-    //   var height = canvas.height;
-    //
-    //   ctx.clearRect(0, 0, height, height);
-    //
-    //   async.eachSeries(sorted, function iterator(s, callback) {
-    //     if (params.dataSources.indexOf(s.id) == -1) return callback();
-    //     console.log('s', s);
-    //     console.log('constructing the data source format %s', s.format);
-    //     var DataSource = require('./' + s.format);
-    //     var dataSource = new DataSource({source: s});
-    //     dataSource.getTile(format, z, x, y, params, function(err, tileStream) {
-    //       if (!tileStream) {
-    //         return callback();
-    //       }
-    //       var buffer = new Buffer(0);
-    //       var chunk;
-    //       tileStream.on('data', function(chunk) {
-    //         buffer = Buffer.concat([buffer, chunk]);
-    //       });
-    //       tileStream.on('end', function() {
-    //         var img = new Image;
-    //         img.onload = function() {
-    //           ctx.drawImage(img, 0, 0, img.width, img.height);
-    //           callback();
-    //         };
-    //         img.src = buffer;
-    //       });
-    //     });
-    //   }, function done() {
-    //     console.log('done getting tile for cache');
-    //     callback(null, canvas.pngStream());
-    //   });
     } else {
       var queue = new StreamQueue();
 
@@ -377,15 +339,7 @@ function zOrderDatasources(a, b) {
 }
 
 function getTileForCache(cache, z, x, y, format, params, callback) {
-
   return tile.getVectorTile(cache, format, z, x, y, params, callback);
-  // var dir = createDir(source._id, 'xyztiles/' + z + '/' + x + '/');
-  // var filename = y + '.png';
-  //
-  // if (fs.existsSync(dir + filename)) {
-  //   console.log('file already exists, skipping: %s', dir+filename);
-  //   return done(null, dir+filename);
-  // }
 }
 
 function getTileFromSource(source, z, x, y, format, params, callback) {

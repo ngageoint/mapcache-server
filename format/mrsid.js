@@ -27,7 +27,7 @@ MrSID.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 MrSID.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  callback(null, null);
+  callback(null, []);
 }
 
 module.exports = MrSID;

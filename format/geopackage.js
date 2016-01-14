@@ -395,7 +395,14 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
 }
 
 GeoPackage.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  callback(null, null);
+  if (this.source) {
+    FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
+  } else {
+    var c = this.cache;
+    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
+      FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
+    });
+  }
 }
 
 GeoPackage.prototype._createGeoPackage = function(callback) {

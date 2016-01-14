@@ -89,7 +89,7 @@ WMS.prototype.generateCache = function(doneCallback, progressCallback) {
 }
 
 WMS.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  callback(null, null);
+  callback(null, []);
 }
 
 module.exports = WMS;

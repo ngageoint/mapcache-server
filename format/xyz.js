@@ -26,7 +26,7 @@ XYZ.prototype.processSource = function(doneCallback, progressCallback) {
 }
 
 XYZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
-  callback(null, null);
+  callback(null, []);
 }
 
 XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
