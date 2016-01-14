@@ -23,6 +23,7 @@ GeoPackage.prototype.initialize = function() {
 }
 
 GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
+  log.info('Process the GeoPackage');
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(source, callback) {callback(null, source);};
 
@@ -34,7 +35,7 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   // find all the layers
   tasks.push(this._insertTileLayers.bind(this));
   // pull the feature layers out and put them in postgres
-  tasks.push(this._insertVectorLayers.bind(this, this.geoPackage));
+  tasks.push(this._insertVectorLayers.bind(this));
   // leave the tile layers in
 
   tasks.push(completeProcessing.bind(this, this.source));
@@ -42,26 +43,24 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   this._isAlreadyProcessed(function(processed) {
     if (processed) {
       var source = this.source;
-      this._openGeoPackage(this, source.file.path, function(err) {
+      this._openGeoPackage(source.file.path, function(err) {
         return completeProcessing(source, function(err, source) {
           console.log('source was already processed, returning', source);
 
           doneCallback(null, source);
         });
       });
+    } else {
+      async.series(tasks, function(err, results) {
+        log.info('done creating the geopackage');
+        doneCallback(err, this.source);
+      }.bind(this));
     }
-    async.series(tasks, function(err, results) {
-      log.info('done creating the geopackage');
-      doneCallback(err, this.source);
-    }.bind(this));
   }.bind(this));
 }
 
 GeoPackage.prototype._isAlreadyProcessed = function(callback) {
   log.debug('is it already processed?', this.source);
-  if (this.source.status && this.source.status.complete) {
-    return callback(true);
-  }
   FeatureModel.getFeatureCount({sourceId: this.source.id, cacheId: null}, function(resultArray){
     log.debug("The source already has features", resultArray);
     if (resultArray[0].count != '0') {
@@ -146,6 +145,7 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
     var height = canvas.height;
 
     ctx.clearRect(0, 0, height, height);
+    console.log('Get the tile in GeoPackage', this.geoPackage);
 
     var gp = this.geoPackage;
     var self = this;
@@ -228,8 +228,23 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
       );
     });
   } else {
-    this.cache.cache.source.getTile(format, z, x, y, params, callback);
+    this.cache.getTile(format, z, x, y, params, callback);
   }
+}
+
+GeoPackage.prototype.getData = function(minZoom, maxZoom, callback) {
+  var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'gpkg');
+  var filename = this.cache.cache.id + '.gpkg';
+  var geoPackageFile = path.join(dir, filename);
+  var stream = fs.createReadStream(geoPackageFile);
+  callback(null, {stream: stream, extension: '.gpkg'});
+}
+
+GeoPackage.prototype.delete = function(callback) {
+  if (!this.cache) return callback();
+  var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'gpkg');
+  var filename = this.cache.cache.id + '.gpkg';
+  fs.remove(path.join(dir, filename), callback);
 }
 
 GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
@@ -245,7 +260,9 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   if (fs.existsSync(this.filePath)) {
     log.info('Cache %s already exists, returning', this.filePath);
-    return doneCallback(null, cacheObj);
+    return this._openGeoPackage(this.filePath, function() {
+      return doneCallback(null, cacheObj);
+    });
   }
 
   fs.emptyDirSync(dir);
@@ -320,7 +337,7 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
       self.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
         console.log('features.length', features.length);
         if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
-          self.geoPackage.indexGeoPackage(tableName, features.length, sourceFinishedCallback);
+          self.geoPackage.indexGeoPackage(tableName, sourceFinishedCallback);
         } else {
           sourceFinishedCallback();
         }
@@ -430,7 +447,7 @@ GeoPackage.prototype._insertTileLayers = function(callback) {
   });
 }
 
-GeoPackage.prototype._insertVectorLayers = function(geoPackage, callback) {
+GeoPackage.prototype._insertVectorLayers = function(callback) {
   log.info('Retrieving vector layers from GeoPackage');
 
   var gp = this.geoPackage;

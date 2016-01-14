@@ -64,27 +64,27 @@ Map.prototype.addDataSource = function(ds, callback) {
   } else {
     var DataSource = require('../format/'+ds.format);
     var dsObj = new DataSource({source: ds});
-    if (dsObj.source.status && dsObj.source.status.complete) {
-      self.dataSources.push(dsObj);
-      self.map.dataSources.push(dsObj.source);
-      log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
-      callback(null, dsObj);
-    } else {
+    // if (dsObj.source.status && dsObj.source.status.complete) {
+    //   self.dataSources.push(dsObj);
+    //   self.map.dataSources.push(dsObj.source);
+    //   log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
+    //   callback(null, dsObj);
+    // } else {
       log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
       try {
-      dsObj.processSource(function(err, source) {
-        if (err) { log.error('Error processing the datasource %s', ds.id, err); }
-        console.log('finished processing the source %s', source.id);
-        self.dataSources.push(dsObj);
-        self.map.dataSources.push(dsObj.source);
-        log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
-        callback(err, dsObj);
-      });
-    } catch (e) {
-      console.log('e is', e);
-      console.error(e.stack);
-    }
-    }
+        dsObj.processSource(function(err, source) {
+          if (err) { log.error('Error processing the datasource %s', ds.id, err); }
+          console.log('finished processing the source %s', source.id);
+          self.dataSources.push(dsObj);
+          self.map.dataSources.push(dsObj.source);
+          log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
+          callback(err, dsObj);
+        });
+      } catch (e) {
+        console.log('e is', e);
+        console.error(e.stack);
+      }
+    // }
   }
 }
 

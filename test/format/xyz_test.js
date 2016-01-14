@@ -130,9 +130,6 @@ describe('xyz', function() {
           done(err);
           return;
         }
-
-        done();
-
         var lstream = lengthStream(function(length) {
           length.should.be.greaterThan(0);
           done();

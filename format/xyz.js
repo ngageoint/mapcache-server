@@ -152,7 +152,7 @@ function getTileForCache(cache, z, x, y, format, params, outputDirectory, callba
 
     var ws = fs.createOutputStream(path.join(dir, filename));
     stream.pipe(ws);
-    callback(null, ws);
+    callback(null, stream);
   });
 }
 

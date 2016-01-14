@@ -49,6 +49,21 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   });
 }
 
+GeoJSON.prototype.getData = function(minZoom, maxZoom, callback) {
+  var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'geojson');
+  var filename = this.cache.cache.id + '.geojson';
+  var geojsonFile = path.join(dir, filename);
+  var stream = fs.createReadStream(geojsonFile);
+  callback(null, {stream: stream, extension: '.geojson'});
+}
+
+GeoJSON.prototype.delete = function(callback) {
+  if (!this.cache) return callback();
+  var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'geojson');
+  var filename = this.cache.cache.id + '.geojson';
+  fs.remove(path.join(dir, filename), callback);
+}
+
 GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(source, callback) {callback(null, source);};
@@ -123,9 +138,6 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
 
 function isAlreadyProcessed(source, callback) {
   log.debug('Checking if the source %s is already processed', source.id);
-  if (source.status && source.status.complete) {
-    return callback(true);
-  }
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     log.debug("The source already has features", resultArray);
     if (resultArray[0].count != '0') {
