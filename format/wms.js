@@ -22,18 +22,30 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
   this.source.status.message = "Parsing GetCapabilities";
   this.source.status.complete = false;
   progressCallback(this.source, function(err, updatedSource) {
+    self.source = updatedSource;
     var DOMParser = global.DOMParser = require('xmldom').DOMParser;
     var WMSCapabilities = require('wms-capabilities');
     var req = request.get({url: updatedSource.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
       var json = new WMSCapabilities(body).toJSON();
-      updatedSource.wmsGetCapabilities = json;
-      updatedSource.status.message = "Complete";
-      updatedSource.status.complete = true;
-      self.source = updatedSource;
-      doneCallback(null, updatedSource);
-      // SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
-      //   callback(err);
-      // });
+      self.source.wmsGetCapabilities = json;
+      self.source.status.message = "Complete";
+      self.source.status.complete = true;
+      if (self.source.wmsLayer.Name && json.Capability && json.Capability.Layer && json.Capability.Layer.Layer && Array.isArray(json.Capability.Layer.Layer)) {
+        var layerArray = json.Capability.Layer.Layer;
+        var layer;
+        console.log('json', json.Capability.Layer.Layer);
+        for (var i = 0; i < layerArray.length && !layer; i++) {
+          if (layerArray[i].Name == self.source.wmsLayer.Name) {
+            layer = layerArray[i];
+          }
+        }
+        self.setSourceLayer(layer, function(err, updatedSource) {
+          self.source = updatedSource;
+          doneCallback(null, self.source);
+        });
+      } else {
+        doneCallback(null, self.source);
+      }
     });
   });
 }
@@ -49,6 +61,19 @@ WMS.prototype.setSourceLayer = function(layer, callback) {
       [box[2], box[1]],
       [box[0], box[1]]
     ]]);
+  } else if (layer.BoundingBox && Array.isArray(layer.BoundingBox)) {
+    for (var i = 0; i < layer.BoundingBox.length; i++) {
+      if (layer.BoundingBox[i].crs == 'EPSG:4326') {
+        var box = layer.BoundingBox[i].extent;
+        this.source.geometry = turf.polygon([[
+          [box[0], box[1]],
+          [box[0], box[3]],
+          [box[2], box[3]],
+          [box[2], box[1]],
+          [box[0], box[1]]
+        ]]);
+      }
+    }
   }
   callback(null, this.source);
 }

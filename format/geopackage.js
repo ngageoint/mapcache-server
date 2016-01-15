@@ -399,6 +399,7 @@ GeoPackage.prototype.getDataWithin = function(west, south, east, north, projecti
     FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
   } else {
     var c = this.cache;
+    console.log('this.cache.map.source.id', this.cache.map);
     FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
       FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
     });

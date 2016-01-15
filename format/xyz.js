@@ -22,6 +22,20 @@ XYZ.prototype.processSource = function(doneCallback, progressCallback) {
   this.source.status = this.source.status || {};
   this.source.status.message = "Complete";
   this.source.status.complete = true;
+  this.source.geometry = {
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "Polygon",
+      coordinates: [[
+        [180, -85],
+        [-180, -85],
+        [-180, 85],
+        [180, 85],
+        [180, -85]
+      ]]
+    }
+  };
   doneCallback(null, this.source);
 }
 
