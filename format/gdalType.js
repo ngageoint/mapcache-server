@@ -182,6 +182,8 @@ function createPixelCoordinateCutline(envelope, ds) {
 }
 
 exports.getTile = function(source, format, z, x, y, params, callback) {
+  format = format.toLowerCase();
+  if (format != 'png' && format != 'jpeg') return callback(null, null);
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
   var filePath = source.file.path;

@@ -57,6 +57,8 @@ ArcGIS.prototype.processSource = function(doneCallback, progressCallback) {
 // }
 
 ArcGIS.prototype.getTile = function(format, z, x, y, params, callback) {
+  format = format.toLowerCase();
+  if (format != 'png' && format != 'jpeg') return callback(null, null);
   console.log('get tile ' + z + '/' + y + '/' + x + '.' + format + ' for source ' + this.source.name);
   console.log('random', getRandomInt(0, this.source.wmsGetCapabilities.tileServers.length));
   var url = this.source.wmsGetCapabilities.tileServers[getRandomInt(0, this.source.wmsGetCapabilities.tileServers.length)] + "/tile/"+z+"/"+y+"/"+x;

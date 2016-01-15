@@ -54,6 +54,8 @@ WMS.prototype.setSourceLayer = function(layer, callback) {
 }
 
 WMS.prototype.getTile = function(format, z, x, y, params, callback) {
+  format = format.toLowerCase();
+  if (format != 'png' && format != 'jpeg') return callback(null, null);
   if (params.layer == undefined || params.layer == null) {
     if (this.source.wmsLayer && this.source.wmsLayer.Name) {
       params.layer = this.source.wmsLayer.Name;

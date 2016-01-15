@@ -30,6 +30,8 @@ XYZ.prototype.getDataWithin = function(west, south, east, north, projection, cal
 }
 
 XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
+  format = format.toLowerCase();
+  if (format != 'png' && format != 'jpeg') return callback(null, null);
   if (this.source) {
     getTileFromSource(this.source, z, x, y, format, callback);
   } else if (this.cache) {
@@ -124,6 +126,8 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
 XYZ.prototype.getData = function(minZoom, maxZoom, callback) {
   var cp = require('child_process');
   var args = ['-rq', '-'];
+  console.log('minzoom', minZoom);
+  console.log('maxzoom', maxZoom);
   for (var i = minZoom; i <= maxZoom; i++) {
     args.push('xyztiles/'+i);
   }

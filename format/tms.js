@@ -25,6 +25,8 @@ Tms.prototype.getDataWithin = function(west, south, east, north, projection, cal
 }
 
 Tms.prototype.getTile = function(format, z, x, y, params, callback) {
+  format = format.toLowerCase();
+  if (format != 'png' && format != 'jpeg') return callback(null, null);
   if (this.source) {
     getTileFromSource(this.source, z, x, y, format, callback);
   } else if (this.cache) {
