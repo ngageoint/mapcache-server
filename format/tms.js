@@ -30,6 +30,7 @@ Tms.prototype.processSource = function(doneCallback, progressCallback) {
         [180, -85]
       ]]
     }
+  };
   doneCallback(null, this.source);
 }
 

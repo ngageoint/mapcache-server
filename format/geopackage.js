@@ -203,6 +203,8 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
                   count++;
                   if (!tileStream) return callback();
 
+                  console.log('tilestream is ', tileStream);
+
                   var buffer = new Buffer(0);
                   var chunk;
                   tileStream.on('data', function(chunk) {
@@ -400,9 +402,7 @@ GeoPackage.prototype.getDataWithin = function(west, south, east, north, projecti
   } else {
     var c = this.cache;
     console.log('this.cache.map.source.id', this.cache.map);
-    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
-      FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
-    });
+    FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
   }
 }
 

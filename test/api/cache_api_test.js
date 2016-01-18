@@ -165,4 +165,95 @@ describe('Cache API', function() {
 
   });
 
+  describe('xyz cache with null in the cache creation params data source array', function() {
+    var map = {
+      "name":"OSM",
+      "styleTime":1,
+      "tileSize":0,
+      "dataSources":[{
+        "geometry":{
+          "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]}
+        },
+        "url":"http://osm.geointapps.org/osm",
+        "name":"OSM",
+        "format":"xyz",
+        "zOrder":0
+      }]
+    };
+    var cache  = {
+      "geometry": {
+        "type":"Polygon",
+        "coordinates":[
+          [[-108.80859375,35.460669951495305],[-108.80859375,42.293564192170095],[-99.140625,42.293564192170095],[-99.140625,35.460669951495305],[-108.80859375,35.460669951495305]]]
+        },
+        "name":"OSM1",
+        "cacheCreationParams":{
+          "dataSources":[null]
+        },
+        "tileSizeLimit":2147483648,
+        "vector":false,
+        "minZoom":0,
+        "maxZoom":5
+    };
+
+    var createdCache;
+    var createdMap;
+
+    after(function(done) {
+      new Cache(createdCache).delete(function(err, cache) {
+        Map.getById(createdMap.id, function(err, map) {
+          new Map(map).delete(done);
+        });
+      });
+    });
+
+    before(function(done) {
+      Map.create(map, function(err, map) {
+        createdMap = map;
+        log.info('Created a map %s with id %s', map.name, map.id);
+        cache.source = map;
+        cache.create = ['xyz'];
+
+        Cache.create(cache, function(err, cache) {
+          if (err) console.log('err creating cache', err);
+          createdCache = cache;
+          log.info('cache was created', JSON.stringify(cache, null, 2));
+          done();
+        });
+      });
+    });
+
+    it('should pull the 0/0/0 tile', function(done) {
+      var c = new Cache(createdCache);
+      c.getTile('png', 0, 0, 0, {}, function(err, stream) {
+        var imageFile = path.join('/tmp', 'cache_test.png');
+        var ws = fs.createOutputStream(imageFile);
+        ws.on('close', function() {
+          var imageDiff = require('image-diff');
+          imageDiff({
+            actualImage: imageFile,
+            expectedImage: __dirname + '/osm_0_0_0.png',
+            diffImage: '/tmp/difference.png',
+          }, function (err, imagesAreSame) {
+            console.log('images the same? ', imagesAreSame);
+            console.log('err', err);
+            should.not.exist(err);
+            imagesAreSame.should.be.true();
+            done();
+          });
+        });
+
+        stream.pipe(ws);
+      });
+    });
+
+    it('should not have a 5/5/11 tile', function(done) {
+      var c = new Cache(createdCache);
+      c.getTile('png', 5, 5, 11, {}, function(err, stream) {
+        should.not.exist(stream);
+        done();
+      });
+    });
+  });
+
 });

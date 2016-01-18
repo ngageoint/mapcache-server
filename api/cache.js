@@ -41,6 +41,16 @@ Cache.create = function(cache, callback, progressCallback) {
     generatedFeatures: 0,
     zoomLevelStatus: {}
   };
+  if (cache.cacheCreationParams && cache.cacheCreationParams.dataSources) {
+    var ds = cache.cacheCreationParams.dataSources;
+    var cleanDataSources = [];
+    if (Array.isArray(ds)) {
+      for (var i = 0; i < ds.length; i++) {
+        if (ds[i] != null) cleanDataSources.push(ds[i]);
+      }
+      cache.cacheCreationParams.dataSources = cleanDataSources;
+    }
+  }
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);
     log.warn('created cache', newCache.source.id);

@@ -4,6 +4,7 @@ var FeatureModel = require('mapcache-models').Feature
   , log = require('mapcache-log')
   , config = require('mapcache-config')
   , Image = Canvas.Image
+  , xyzTileUtils = require('xyz-tile-utils')
   , fs = require('fs-extra')
   , async = require('async')
   , Map = require('../map/map')
@@ -113,6 +114,15 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   callback = callback || function(){}
 
   this.initPromise.then(function(self) {
+
+    // determine if the cache bounds intersect this tile
+    var bounds = xyzTileUtils.tileBboxCalculator(x, y, z);
+    var tilePoly = turf.bboxPolygon([bounds.west, bounds.south, bounds.east, bounds.north]);
+    var intersection = turf.intersect(tilePoly, self.cache.geometry);
+    if (!intersection) {
+      return callback(null, null);
+    }
+
     console.log('promise inited in cache.getTile');
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       log.debug('stream from the cache get tile is', tileStream);

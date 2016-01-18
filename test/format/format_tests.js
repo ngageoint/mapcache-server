@@ -3,6 +3,7 @@ var assert = require('assert')
   , turf = require('turf')
   , fs = require('fs-extra')
   , log = require('mapcache-log')
+  , xyzTileUtils = require('xyz-tile-utils')
   , FeatureModel = require('mapcache-models').Feature
   , devnull = require('dev-null')
   , path = require('path')
@@ -37,7 +38,7 @@ var formatDataSources = [{
   url: 'http://osm.geointapps.org/osm',
   format: 'xyz',
   zOrder: 0
-}/*,{
+},{
   id: 'test-mapbox-xyz',
   name: 'mapbox',
   url: 'http://mapbox.geointapps.org:2999/v4/mapbox.light',
@@ -118,8 +119,8 @@ var formatDataSources = [{
   testParams: {
     featureCount: 3807
   }
-}*/];
-//var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(arcgis.source.geometry));
+}];
+
 describe('Format Tests', function() {
 
   formatDataSources.forEach(function(dataSource) {
@@ -172,12 +173,11 @@ describe('Format Tests', function() {
           console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~DONE PROCESSING THE SOURCE');
           done();
         }, function(source, callback) {
-          console.log('source processing progress', source);
           callback(null, source);
         });
       });
       it('should pull the 0/0/0 tile for the data source ' + dataSource.id, function(done) {
-        f.getTile('png', 0, 0, 0, dataSource.params || {}, function(err, tileStream) {
+        f.getTile('png', 0, 0, 0, dataSource.testParams || {}, function(err, tileStream) {
           if (err) {
             console.log('there was an err', err);
             done(err);
@@ -195,6 +195,32 @@ describe('Format Tests', function() {
           tileStream.pipe(ws);
         });
       });
+      it('should pull a tile containing the extent of the geometry for source ' + dataSource.id, function(done) {
+        if (!dataSource.geometry) {
+          console.log('no geometry for source ' + dataSource.format);
+          return done(new Error('no geom for source ' + dataSource.format));
+        }
+        console.log('source geometry', dataSource.geometry);
+        var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(dataSource.geometry));
+        console.log('xyz is', xyz);
+        f.getTile('png', xyz.z, xyz.x, xyz.y, dataSource.testParams || {}, function(err, tileStream) {
+          if (err) {
+            console.log('there was an err', err);
+            done(err);
+            return;
+          }
+
+          should.exist(tileStream);
+
+          console.log('writing the file');
+          var ws = fs.createOutputStream(path.join('/tmp', 'test_extent_'+dataSource.id+'.png'));
+          ws.on('close', function() {
+            done();
+          });
+
+          tileStream.pipe(ws);
+        });
+      })
 
       it('should get all features of the source', function(done) {
         f.getDataWithin(-179, -85, 179, 85, 4326, function(err, features) {
@@ -294,7 +320,7 @@ describe('Format Tests', function() {
             });
           });
 
-          it('should pull the 0/0/0 geojson tile for the cache if there is one', function(done) {
+          it.skip('should pull the 0/0/0 geojson tile for the cache if there is one', function(done) {
             this.timeout(30000);
             f.getTile('geojson', 0, 0, 0, {noCache: true, projection: 4326}, function(err, stream) {
               if (err) {
@@ -333,15 +359,14 @@ describe('Format Tests', function() {
             it('should generate the cache', function(done) {
               this.timeout(30000);
               f.generateCache(function(err, cache) {
-                console.log('done', cache);
                 done();
               }, function(cache, callback) {
-                console.log('progress', cache);
                 callback(null, cache);
               })
             });
 
             it('should pull features for the cache', function(done) {
+              this.timeout(30000);
               f.generateCache(function(err, cache) {
                 console.log('done', cache);
                 f.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
@@ -354,12 +379,11 @@ describe('Format Tests', function() {
                 });
               });
             });
-            
+
             it('should generate the cache then download the format', function(done) {
               this.timeout(30000);
               f.generateCache(function(err, cache) {
                 cache = cache.cache;
-                console.log('done', cache);
                 f.getData(cache.minZoom, cache.maxZoom, function(err, status) {
                   if (status.noData) return done();
 
@@ -372,17 +396,14 @@ describe('Format Tests', function() {
                   status.stream.pipe(ws);
                 });
               }, function(cache, callback) {
-                console.log('progress', cache);
                 callback(null, cache);
               })
             });
             it('should generate the cache then delete the format', function(done) {
               this.timeout(30000);
               f.generateCache(function(err, cache) {
-                console.log('done', cache);
                 f.delete(done);
               }, function(cache, callback) {
-                console.log('progress', cache);
                 callback(null, cache);
               })
             });
