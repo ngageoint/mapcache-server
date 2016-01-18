@@ -29,14 +29,9 @@ Cache.prototype.initialize = function() {
   if (this.cache.source && !this.cache.source.getTile) {
     var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
-      console.log('map id', map);
-      console.log('map.source.id', map.map.id);
-      console.log('map initilzed in cache', self.cache);
       self.map = map;
       self.cache.source = map.map;
-      console.log('going to updated');
       self._updateDataSourceParams(function() {
-        console.log('update dataSources');
         self.initDefer.resolve(self);
       });
     });
@@ -58,7 +53,6 @@ Cache.prototype._updateDataSourceParams = function(callback) {
     }
   }
 
-  console.log('params.dataSources', params.dataSources);
   async.eachSeries(mapSources, function iterator(s, sourceFinishedCallback) {
     log.info('Checking source %s', s.source.id.toString());
     if (!s.source.vector) return sourceFinishedCallback();
@@ -88,7 +82,6 @@ Cache.prototype._updateDataSourceParams = function(callback) {
 
 Cache.prototype.callbackWhenInitialized = function(callback) {
   this.initPromise.then(function(self) {
-    console.log('calling back in cache');
     callback(null, self);
   });
 }
@@ -123,7 +116,6 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
       return callback(null, null);
     }
 
-    console.log('promise inited in cache.getTile');
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       log.debug('stream from the cache get tile is', tileStream);
       callback(null, tileStream);

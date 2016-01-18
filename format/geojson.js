@@ -26,11 +26,10 @@ var GeoJSON = function(config) {
 GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(cache, callback) {callback(null, cache);};
+  var self = this;
   var cacheObj = this.cache;
   var cache = this.cache.cache;
-
-  console.log('cache', cache);
-  console.log('cache obj', cacheObj);
+  cache.formats = cache.formats || {};
 
   var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
   var filename = cache.id + '.geojson';
@@ -41,11 +40,36 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     return doneCallback(null, cacheObj);
   }
 
-  log.info('Generating cache with id %s', this.cache.cache.id);
+  FeatureModel.getFeatureCount({sourceId: self.cache.map.map.id, cacheId: self.cache.id}, function(countResults) {
+    if (countResults[0].count != '0') {
+      return self._writeCacheFile(dir, filename, doneCallback);
+    }
+    var extent = turf.extent(self.cache.cache.geometry);
+    extent[0] = Math.max(-180, extent[0]);
+    extent[1] = Math.max(-85, extent[1]);
+    extent[2] = Math.min(180, extent[2]);
+    extent[3] = Math.min(85, extent[3]);
+    log.debug('Creating the cache features from the source %s', self.cache.map.map.id);
+    FeatureModel.createCacheFeaturesFromSource(self.cache.map.map.id, self.cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+      log.info('Created the cache features for cache %s ', self.cache.id, features);
+      self._writeCacheFile(dir, filename, doneCallback);
+    });
+  });
 
+}
+
+GeoJSON.prototype._writeCacheFile = function(dir, filename, callback) {
+  var self = this;
+  log.info('Generating cache with id %s', this.cache.cache.id);
+  var cache = self.cache.cache;
   FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
     log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
-    return doneCallback(null, cacheObj);
+    var stats = fs.statSync(path.join(dir, filename));
+    cache.formats.geojson = {
+      complete: true,
+      size: stats.size
+    };
+    return callback(null, self.cache);
   });
 }
 
@@ -75,14 +99,13 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
     log.info('is already processed?', processed);
     if (processed) {
       return completeProcessing(source, function(err, source) {
-        console.log('source was already processed, returning', source);
+        console.log('source %s was already processed, returning', source.id);
 
         doneCallback(null, source);
       });
     }
     source.status.message = "Parsing GeoJSON";
     progressCallback(source, function(err, updatedSource) {
-      console.log('updated source', updatedSource);
       if (updatedSource.url) {
         var dir = path.join(config.server.sourceDirectory.path, updatedSource.id);
         fs.mkdirp(dir, function(err) {
@@ -126,7 +149,6 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
           updatedSource.status.complete = true;
           updatedSource.status.message="Complete";
           source = updatedSource;
-          console.log('updated source style blabhabl', source);
           doneCallback(err, source);
         }, progressCallback);
       } else {
@@ -150,14 +172,14 @@ function isAlreadyProcessed(source, callback) {
 
 function parseGeoJSONFile(source, callback, progressCallback) {
   var stream = fs.createReadStream(source.file.path);
-  console.log('reading in the file', source.file.path);
+  log.info('reading in the file', source.file.path);
   fs.readFile(source.file.path, function(err, fileData) {
-    console.log('parsing file data', source.file.path);
+    log.debug('parsing file data', source.file.path);
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
     // save the geojson to the db
-    console.log('gjdata.features', gjData.features.length);
+    log.debug('gjdata.features', gjData.features.length);
     var count = 0;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
       async.setImmediate(function() {
@@ -180,7 +202,7 @@ function parseGeoJSONFile(source, callback, progressCallback) {
         });
       });
     }, function done() {
-      console.log('done processing features');
+      log.info('done processing features');
       completeProcessing(source, function(err, source) {
         callback(null, source);
       });
@@ -260,9 +282,7 @@ GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection,
     FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
   } else {
     var c = this.cache;
-    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
-      FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
-    });
+    FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
   }
 }
 
@@ -276,7 +296,6 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
     if (!params.dataSources || params.dataSources.length == 0) {
       params.dataSources = [];
       for (var i = 0; i < sorted.length; i++) {
-        console.log('sorted[i]', sorted[i]);
         params.dataSources.push(sorted[i].source.id);
       }
     }
@@ -292,7 +311,6 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
       stream.push(null);
       queue.queue(stream);
       async.eachSeries(sorted, function iterator(s, callback) {
-        console.log('s', s);
         s = s.source;
         if (params.dataSources.indexOf(s.id) == -1) return callback();
         var DataSource = require('./' + s.format);
@@ -315,7 +333,7 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
 
         });
       }, function done() {
-        console.log('done getting tile for cache');
+        log.debug('done getting tile for cache');
         var stream = new Readable();
         stream.push(']}');
         stream.push(null);
@@ -343,7 +361,7 @@ function getTileForCache(cache, z, x, y, format, params, callback) {
 }
 
 function getTileFromSource(source, z, x, y, format, params, callback) {
-  console.log('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
+  log.info('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
 
   tile.getVectorTile(source, format, z, x, y, params, callback);
 }

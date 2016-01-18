@@ -29,7 +29,7 @@ Map.prototype.initialize = function(callback) {
   this.map.dataSources = [];
   var self = this;
   async.eachSeries(tempDataSources, function(ds, done) {
-    log.info('Processing the data source %s', ds.name, JSON.stringify(ds, null, 2));
+    log.info('Processing the data source %s', ds.name);
     self.addDataSource(ds, done);
   }, function done() {
     log.info('Map %s was initialized', self.map.id);
@@ -74,7 +74,7 @@ Map.prototype.addDataSource = function(ds, callback) {
       try {
         dsObj.processSource(function(err, source) {
           if (err) { log.error('Error processing the datasource %s', ds.id, err); }
-          console.log('finished processing the source %s', source.id);
+          log.info('finished processing the source %s', source.id);
           self.dataSources.push(dsObj);
           self.map.dataSources.push(dsObj.source);
           log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);

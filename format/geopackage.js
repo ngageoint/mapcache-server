@@ -255,6 +255,7 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
   var cacheObj = this.cache;
   var self = this;
   var cache = this.cache.cache;
+  cache.formats = cache.formats || {};
 
   var dir = path.join(this.config.outputDirectory, cache.id, 'gpkg');
   var filename = cache.id + '.gpkg';
@@ -285,8 +286,13 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   async.series(tasks, function (err, results) {
     console.log('all sources are complete');
+    var stats = fs.statSync(this.filePath);
+    cacheObj.cache.formats.geopackage = {
+      complete: true,
+      size: stats.size
+    };
     return doneCallback(null, cacheObj);
-  });
+  }.bind(this));
 }
 
 GeoPackage.prototype._calculateExtentFromGeometry = function(geometry) {

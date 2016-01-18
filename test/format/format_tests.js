@@ -3,12 +3,37 @@ var assert = require('assert')
   , turf = require('turf')
   , fs = require('fs-extra')
   , log = require('mapcache-log')
+  , colors = require('colors')
   , xyzTileUtils = require('xyz-tile-utils')
   , FeatureModel = require('mapcache-models').Feature
   , devnull = require('dev-null')
   , path = require('path')
   , Cache = require('../../cache/cache')
   , should = require('should');
+
+function startTest(test) {
+  console.log('Starting: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function endTest(test) {
+  console.log('Complete: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function beforeTest(test) {
+  console.log('Before: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function afterTest(test) {
+  console.log('After: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function beforeEach(test) {
+  console.log('Before Each: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function afterEachTest(test) {
+  console.log('After Each: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
@@ -148,6 +173,7 @@ describe('Format Tests', function() {
     describe(dataSource.format + ' source tests', function() {
       var f;
       before(function(done) {
+        beforeTest(dataSource.format + ' source tests');
         f = new Format({
           source: dataSource,
           outputDirectory:'/tmp'
@@ -158,25 +184,28 @@ describe('Format Tests', function() {
         });
       });
       after(function(done){
+        afterTest(dataSource.format + ' source tests');
         FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(count) {
           log.info('deleted %d %s features', count, dataSource.id);
           done();
         });
       });
       it('should process the source ' + dataSource.id, function(done) {
+        startTest('Process the source ' + dataSource.id);
         this.timeout(30000);
         f.processSource(function(err, newSource) {
           if(err) {
             return done(err);
           }
           newSource.status.message.should.equal("Complete");
-          console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~DONE PROCESSING THE SOURCE');
+          endTest('Process the source ' + dataSource.id);
           done();
         }, function(source, callback) {
           callback(null, source);
         });
       });
       it('should pull the 0/0/0 tile for the data source ' + dataSource.id, function(done) {
+        startTest('Pull the 0/0/0 tile for the data source ' + dataSource.id);
         f.getTile('png', 0, 0, 0, dataSource.testParams || {}, function(err, tileStream) {
           if (err) {
             console.log('there was an err', err);
@@ -189,6 +218,7 @@ describe('Format Tests', function() {
           console.log('writing the file');
           var ws = fs.createOutputStream(path.join('/tmp', 'test_'+dataSource.id+'.png'));
           ws.on('close', function() {
+            endTest('Pull the 0/0/0 tile for the data source ' + dataSource.id);
             done();
           });
 
@@ -196,13 +226,12 @@ describe('Format Tests', function() {
         });
       });
       it('should pull a tile containing the extent of the geometry for source ' + dataSource.id, function(done) {
+        startTest('Pull a tile containing the extent of the geometry for source ' + dataSource.id);
         if (!dataSource.geometry) {
           console.log('no geometry for source ' + dataSource.format);
           return done(new Error('no geom for source ' + dataSource.format));
         }
-        console.log('source geometry', dataSource.geometry);
         var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(dataSource.geometry));
-        console.log('xyz is', xyz);
         f.getTile('png', xyz.z, xyz.x, xyz.y, dataSource.testParams || {}, function(err, tileStream) {
           if (err) {
             console.log('there was an err', err);
@@ -212,9 +241,10 @@ describe('Format Tests', function() {
 
           should.exist(tileStream);
 
-          console.log('writing the file');
           var ws = fs.createOutputStream(path.join('/tmp', 'test_extent_'+dataSource.id+'.png'));
           ws.on('close', function() {
+            endTest('Pull a tile containing the extent of the geometry for source ' + dataSource.id);
+
             done();
           });
 
@@ -223,6 +253,7 @@ describe('Format Tests', function() {
       })
 
       it('should get all features of the source', function(done) {
+        startTest('Get all features of the source ' + dataSource.id);
         f.getDataWithin(-179, -85, 179, 85, 4326, function(err, features) {
           console.log('err', err);
           if (err) {
@@ -236,6 +267,8 @@ describe('Format Tests', function() {
           } else {
             features.length.should.be.equal(0);
           }
+          endTest('Get all features of the source ' + dataSource.id);
+
           done();
         });
       });
@@ -267,33 +300,16 @@ describe('Format Tests', function() {
 
       var f;
       before(function(done) {
-        this.timeout(30000);
-        console.log('doing the before');
-        FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(count) {
-          log.info('deleted %d %s features', count, dataSource.id);
-          var cacheObj = new Cache(cache);
-          cacheObj.callbackWhenInitialized(function(err, cacheObj) {
-            console.log('format', Format);
-            try {
-              f = new Format({
-                cache: cacheObj,
-                outputDirectory:cache.outputDirectory
-              });
-            } catch (e) {
-            }
-            done();
+        beforeTest('Check ' + dataSource.format + ' for ability to be a cache');
+        try {
+          f = new Format({
+            cache: cacheObj,
+            outputDirectory:cache.outputDirectory
           });
-        });
-      });
-      after(function(done) {
-        fs.remove(path.join(cache.outputDirectory, cache.id), function(err) {
-          fs.remove(path.join(cache.outputDirectory, map.id), function(err) {
-            FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(count) {
-              log.info('deleted %d %s features', count, dataSource.id);
-              done();
-            });
-          });
-        });
+        } catch (e) {
+        }
+        done();
+
       });
 
       it ('should run tests if available for source ' + dataSource.format, function() {
@@ -301,7 +317,41 @@ describe('Format Tests', function() {
         describe(dataSource.format + ' cache tests if available', function() {
           console.log('in the cache tests for source ' + dataSource.format);
 
+          before(function(done) {
+            beforeTest(dataSource.format + ' cache tests');
+            this.timeout(30000);
+            console.log('doing the before');
+            FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(count) {
+              log.info('deleted %d %s features', count, dataSource.id);
+              var cacheObj = new Cache(cache);
+              cacheObj.callbackWhenInitialized(function(err, cacheObj) {
+                console.log('format', !!Format);
+                try {
+                  f = new Format({
+                    cache: cacheObj,
+                    outputDirectory:cache.outputDirectory
+                  });
+                } catch (e) {
+                }
+                done();
+              });
+            });
+          });
+
+          after(function(done){
+            afterTest(dataSource.format + ' cache tests');
+            fs.remove(path.join(cache.outputDirectory, cache.id), function(err) {
+              fs.remove(path.join(cache.outputDirectory, map.id), function(err) {
+                FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(count) {
+                  log.info('deleted %d %s features', count, dataSource.id);
+                  done();
+                });
+              });
+            });
+          });
+
           it('should pull the 0/0/0 tile for the cache', function(done) {
+            startTest('should pull the 0/0/0 tile for the cache ' + dataSource.format);
             this.timeout(30000);
             f.getTile('png', 0, 0, 0, dataSource.params || {noCache: true}, function(err, stream) {
               if (err) {
@@ -313,6 +363,7 @@ describe('Format Tests', function() {
 
               var ws = fs.createOutputStream(path.join('/tmp', 'test_000_'+dataSource.id+'.png'));
               ws.on('close', function() {
+                endTest('should pull the 0/0/0 tile for the cache ' + dataSource.format);
                 done();
               });
               stream.pipe(ws);
@@ -341,24 +392,15 @@ describe('Format Tests', function() {
             });
           });
 
-          describe('cache generation tests', function() {
-            beforeEach(function(done) {
-              FeatureModel.deleteFeaturesByCacheId(cache.id, function(count) {
-                log.info('deleted %d %s features', count, cache.id);
-                done();
-              });
-            });
-
-            afterEach(function(done) {
-              FeatureModel.deleteFeaturesByCacheId(cache.id, function(count) {
-                log.info('deleted %d %s features', count, cache.id);
-                done();
-              });
-            });
-
             it('should generate the cache', function(done) {
+              startTest('Generate the cache ' + dataSource.format);
               this.timeout(30000);
-              f.generateCache(function(err, cache) {
+              f.generateCache(function(err, cacheObj) {
+                var cache = cacheObj.cache;
+                should.exist(cache.formats);
+                should.exist(cache.formats[dataSource.format]);
+                should.exist(cache.formats[dataSource.format].size);
+                endTest('Generate the cache ' + dataSource.format);
                 done();
               }, function(cache, callback) {
                 callback(null, cache);
@@ -366,21 +408,23 @@ describe('Format Tests', function() {
             });
 
             it('should pull features for the cache', function(done) {
+              startTest('Pull features for the cache ' + dataSource.format);
               this.timeout(30000);
               f.generateCache(function(err, cache) {
-                console.log('done', cache);
                 f.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
                   if (err) {
                     done(err);
                     return;
                   }
                   features.length.should.equal(dataSource.testParams.featureCount);
+                  endTest('Pull features for the cache ' + dataSource.format);
                   done();
                 });
               });
             });
 
             it('should generate the cache then download the format', function(done) {
+              startTest('Generate the cache then download the format ' + dataSource.format);
               this.timeout(30000);
               f.generateCache(function(err, cache) {
                 cache = cache.cache;
@@ -391,6 +435,7 @@ describe('Format Tests', function() {
 
                   var ws = fs.createOutputStream(path.join('/tmp', 'export_'+dataSource.id+status.extension));
                   ws.on('close', function() {
+                    endTest('Generate the cache then download the format ' + dataSource.format);
                     done();
                   });
                   status.stream.pipe(ws);
@@ -400,15 +445,18 @@ describe('Format Tests', function() {
               })
             });
             it('should generate the cache then delete the format', function(done) {
+              startTest('Generate the cache then delete the format ' + dataSource.format);
               this.timeout(30000);
               f.generateCache(function(err, cache) {
-                f.delete(done);
+                f.delete(function() {
+                  endTest('Generate the cache then delete the format ' + dataSource.format);
+                  done();
+                });
               }, function(cache, callback) {
                 callback(null, cache);
               })
             });
           });
-        });
       });
     });
   });

@@ -89,7 +89,6 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 				console.log('returned ' + collection.length + ' features');
 		    callback(null, collection);
 		  });
-			console.log('kx', kx);
 		});
 
 	});

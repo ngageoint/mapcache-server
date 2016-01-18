@@ -74,7 +74,8 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
   cache.formats = cache.formats || {};
   cache.formats.xyz = cache.formats.xyz || {
     generatedTiles: 0,
-    complete: false
+    complete: false,
+    size: 0
   };
 
   cache.formats.xyz.totalTiles = xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom);
@@ -86,7 +87,8 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     cache.formats.xyz.zoomLevelStatus[i] = {
       generatedTiles: 0,
       totalTiles: xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), i, i),
-      complete: false
+      complete: false,
+      size: 0
     };
   }
   xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
@@ -99,10 +101,15 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
         log.debug('file already exists, skipping: %s', path.join(dir, filename));
         cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles++;
         cache.formats.xyz.generatedTiles++;
-        progressCallback(cache, function(err, updatedCache) {
-          cache = updatedCache;
-          return tileDone(null, tile);
-        });
+
+        fs.stat(path.join(dir, filename), function(err, stat) {
+          cache.formats.xyz.size += stat.size;
+          cache.formats.xyz.zoomLevelStatus[tile.z].size += stat.size;
+          progressCallback(cache, function(err, updatedCache) {
+            cache = updatedCache;
+            return tileDone(null, tile);
+          });
+      	});
       } else {
         log.info('the file %s does not exist for the xyz cache %s, creating', path.join(dir, filename), cacheId);
         self.cache.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
@@ -112,10 +119,14 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
             log.info('the file %s was written for the xyz cache %s', path.join(dir, filename), cacheId);
             cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles++;
             cache.formats.xyz.generatedTiles++;
-            progressCallback(cache, function(err, updatedCache) {
-              cache = updatedCache;
-              return tileDone(null, tile);
-            });
+            fs.stat(path.join(dir, filename), function(err, stat) {
+              cache.formats.xyz.size += stat.size;
+              cache.formats.xyz.zoomLevelStatus[tile.z].size += stat.size;
+              progressCallback(cache, function(err, updatedCache) {
+                cache = updatedCache;
+                return tileDone(null, tile);
+              });
+          	});
           });
         });
       }

@@ -1,6 +1,7 @@
 var fs = require('fs-extra')
 	, path = require('path')
 	, turf = require('turf')
+	, log = require('mapcache-log')
 	, Canvas = require('canvas')
 	, Readable = require('stream').Readable
 	, xyzTileUtils = require('xyz-tile-utils')
@@ -36,38 +37,30 @@ exports.getVectorTile = function(source, format, z, x, y, params, callback) {
 }
 
 exports.getVectorTileWithLayer = function(source, layer, format, z, x, y, params, callback) {
-	console.log('layer', layer);
-	console.log('getting vector tile %d %d %d', z, x, y);
+	log.debug('getting vector tile %d %d %d', z, x, y);
 	var bbox = xyzTileUtils.tileBboxCalculator(x, y, z);
-	console.log('bbox', bbox);
-	console.log('source', source);
 
 	if (!tileContainsData(source.source ? source.source : source, bbox)) {
 		console.log("No data, returning early");
 		return callback(null, null);
 	}
 
-	console.log('tile has data');
-
 	// use the style time to determine if there has already been an image created for this source and style
 	var imageTile = path.join(config.server.sourceDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.'+format);
-	console.log('imagetile', imageTile);
 	if (source.source) {
 		imageTile = path.join(config.server.cacheDirectory.path, source.id.toString(), 'prebuilt-'+source.styleTime, z.toString(), x.toString(), y.toString()+'.'+format);
 	}
-	console.log('imagetile2', imageTile);
 
 	if (params && !params.noCache && fs.existsSync(imageTile)) {
-		console.log('pulling tile from prebuilt', imageTile);
+		log.debug('pulling tile from prebuilt', imageTile);
 		return callback(null, fs.createReadStream(imageTile));
 	} else {
-		console.log('getting tile from db', imageTile);
+		log.debug('getting tile from db', imageTile);
 		if (source.source) {
 			FeatureModel.fetchTileForCacheId(source.id, bbox, z, function(err, tile) {
 				handleTileData(tile, format, source.source, imageTile, callback);
 			});
 		} else {
-			console.log('what is layer? ', layer);
 			if (layer) {
 				FeatureModel.fetchTileForSourceIdAndLayerId(source.id, layer.id, bbox, z, format == 'geojson' ? '4326' : 'vector', function(err, tile) {
 					console.log('err fetching tile? ', err);
@@ -96,10 +89,9 @@ function handleTileData(tile, format, source, imageTile, callback) {
 		} else if (format == 'geojson') {
 			var s = new Readable();
 			var features = tile;
-			console.log('there are %d features', features.length);
+			log.info('there are %d features', features.length);
 			for (var i = 0; i < features.length; i++) {
 				var feature = features[i];
-				console.log('feature', feature);
 				feature.geometry = JSON.parse(feature.geometry);
 				if (i) s.push(',');
 				s.push(JSON.stringify(feature));
@@ -123,7 +115,7 @@ exports.createImage = function(tile, style, callback) {
 	// console.time('creating image for tile', tile);
 	var ratio = 256 / 4096;
 	var features = tile;
-	console.log('creating image with %d features', features.length);
+	log.info('creating image with %d features', features.length);
 
 	var points = 0;
 	var drawnFeatures = 0;
@@ -144,10 +136,6 @@ exports.createImage = function(tile, style, callback) {
 	      ctx.lineWidth = styles.weight;
 	      var rgbStroke = hexToRgb(styles.color);
 	      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
-				console.log('styles fill color', styles.fillColor);
-				console.log('rgbfill', rgbFill);
-				console.log('styles color', styles.color);
-				console.log('rgbstroke', rgbStroke);
 	    } else {
 				ctx = canvases[styles.styleId].ctx;
 			}
@@ -196,14 +184,13 @@ exports.createImage = function(tile, style, callback) {
 			var img = new Image;
 
 			img.onload = function() {
-				console.log('img height %d img width %d', img.height, img.width);
 				finalCtx.drawImage(img, 0, 0, 256, 256);
 				callback();
 			};
 			img.src = canvases[key].canvas.toBuffer();
 		}, function() {
 			console.timeEnd('creating image');
-			console.log('finished creating image with %d features', drawnFeatures);
+			log.info('finished creating image with %d features', drawnFeatures);
 
 		  callback(null, finalCanvas.pngStream());
 		});
