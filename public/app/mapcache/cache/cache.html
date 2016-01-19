@@ -111,7 +111,7 @@
       <span class="page-entity-label">Cache Format Status</span>
     </div>
   </div>
-  <div ng-repeat="(formatName, cacheFormat) in cache.formats">
+  <div ng-repeat="(formatName, cacheFormat) in cache.formats" ng-hide="cacheFormat.status.complete">
     <div class="row">
       <div class="col-md-12">
         <span class="page-sub-entity-label">{{formatName | cacheFormat}}</span> <a class="small" ng-click="expanded[formatName] = !expanded[formatName]" href=""><span ng-show="expanded[formatName]">hide</span><span ng-show="!expanded[formatName]">show</span> detailed status</a>
@@ -151,7 +151,7 @@
             </div>
           </div>
         </div>
-        {{cacheFormat | json:4}}
+        <!-- {{cacheFormat | json:4}} -->
       </div>
     </div>
   </div>

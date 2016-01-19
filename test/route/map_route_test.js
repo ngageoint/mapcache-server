@@ -150,6 +150,18 @@ describe("map route tests", function() {
       });
     });
 
+    it.only ('should pull all of the maps', function(done) {
+      request(app)
+        .get('/api/maps')
+        .set('Authorization', 'Bearer 12345')
+        .expect(200)
+        .expect(function(res) {
+          var maps = res.body;
+          maps.length.should.be.greaterThan(0);
+        })
+        .end(done);
+    });
+
     it ('should pull the 0/0/0 tile for the map', function(done) {
       request(app)
         .get('/api/maps/'+mapId+'/0/0/0.png')

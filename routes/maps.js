@@ -55,7 +55,7 @@ module.exports = function(app, auth) {
 
       Map.getAll(options, function(err, sources) {
         if (err) return next(err);
-        var sources = sourceXform.transform({}, sources);
+        var sources = sourceXform.transform(sources);
         res.json(sources);
       });
     }

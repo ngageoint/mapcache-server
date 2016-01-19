@@ -28,7 +28,7 @@
       <div class="form-group">
         <span class="page-sub-entity-title one-line-ellipsis">Format of {{mapDatasource.url}}</span>
         <span ng-repeat="format in validUrlFormats">
-          <input value="{{format.format}}" id="{{format.format}}" ng-model="mapDatasource.format" type="radio" name="{{'mapformat'+mapDatasource.zOrder}}" checked>
+          <input value="{{format.format}}" id="{{format.format}}" class="radio" ng-model="mapDatasource.format" type="radio" name="{{'mapformat'+mapDatasource.zOrder}}" checked>
           <label for="{{format.format}}">{{format.format | cacheFormat}}</label>
         </span>
       </div>
