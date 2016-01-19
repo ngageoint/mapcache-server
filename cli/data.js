@@ -1,7 +1,30 @@
 var api = require('../api')
   , async = require('async')
-  , cacheModel = require('../models/cache')
+  , models = require('mapcache-models')
+  , cacheModel = models.Cache
   , caches = require('../api/caches');
+
+exports.testGeoPackage = function(yargs) {
+  var java = require('java');
+  var mvn = require('node-java-maven');
+
+  mvn(function(err, mvnResults) {
+    if (err) {
+      return console.error('could not resolve maven dependencies', err);
+    }
+    mvnResults.classpath.forEach(function(c) {
+      console.log('adding ' + c + ' to classpath');
+      java.classpath.push(c);
+    });
+
+    var File = java.import('java.io.File');
+    var GeoPackageManager = java.import('mil.nga.geopackage.manager.GeoPackageManager');
+
+    var gpkgFile = new File('/tmp/gpkg.gpkg');
+    java.callStaticMethodSync('mil.nga.geopackage.manager.GeoPackageManager', 'create', gpkgFile);
+    process.exit();
+  });
+}
 
 exports.ensureDataIntegrity = function(yargs) {
   var argv =
@@ -13,11 +36,11 @@ exports.ensureDataIntegrity = function(yargs) {
     createDataSources,
   ], function(err, results) {
     process.exit();
-  })
+  });
 }
 
 function createDataSources(finished) {
-  new api.Source().getAll({}, function(err, sources) {
+  api.Source.getAll({}, function(err, sources) {
     if (err) {
       console.log("There was an error retrieving sources.");
       finished();
@@ -52,7 +75,7 @@ function createDataSources(finished) {
 }
 
 function undo(finished) {
-  new api.Source().getAll({}, function(err, sources) {
+  api.Source.getAll({}, function(err, sources) {
     if (err) {
       console.log("There was an error retrieving sources.");
       finished();
@@ -91,7 +114,7 @@ function undo(finished) {
 }
 
 function moveSourceUrlAndFileLocation(finished) {
-  new api.Source().getAll({}, function(err, sources) {
+  api.Source.getAll({}, function(err, sources) {
     if (err) {
       console.log("There was an error retrieving sources.");
       finished();
@@ -145,23 +168,3 @@ function moveSourceUrlAndFileLocation(finished) {
     });
   });
 }
-
-// exports.resetGenerating = function(yargs) {
-//   var argv =
-//     yargs.usage('Resets all the generating formats.')
-//     .help('help')
-//     .argv;
-//
-//   new api.Cache().getAll({}, function(err, caches) {
-//     if (err) {
-//       console.log('There was an error retrieving caches.');
-//       process.exit();
-//     }
-//     if (!caches) {
-//       console.log('No caches were found.');
-//       process.exit();
-//     }
-//
-//     process.exit();
-//   });
-// }

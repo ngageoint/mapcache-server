@@ -1,0 +1,27 @@
+{
+  "name": "tile-image",
+  "version": "0.0.2",
+  "description": "tile-image",
+  "keywords": [
+    "NGA",
+    "mapcache"
+  ],
+  "author": {
+    "name": "NGA"
+  },
+  "contributors": {
+    "name": "Daniel Barela",
+    "email": "barelad@bit-sys.com"
+  },
+  "homepage": "https://www1.nga.mil",
+  "engines": {
+    "node": ">= 0.8.0",
+    "npm": ">= 1.2.0"
+  },
+  "dependencies": {
+    "canvas": "^1.2.3",
+    "request": "2.51.x"
+  },
+  "private": true,
+  "main": "tile-image.js"
+}

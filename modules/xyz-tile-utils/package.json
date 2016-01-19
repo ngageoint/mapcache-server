@@ -1,0 +1,23 @@
+{
+  "name": "xyz-tile-utils",
+  "version": "0.0.2",
+  "description": "xyz-tile-utils",
+  "keywords": [
+    "NGA",
+    "mapcache"
+  ],
+  "author": {
+    "name": "NGA"
+  },
+  "contributors": {
+    "name": "Daniel Barela",
+    "email": "barelad@bit-sys.com"
+  },
+  "homepage": "https://www1.nga.mil",
+  "engines": {
+    "node": ">= 0.8.0",
+    "npm": ">= 1.2.0"
+  },
+  "private": true,
+  "main": "xyz-tile-utils.js"
+}

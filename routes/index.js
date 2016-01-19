@@ -1,10 +1,11 @@
 module.exports = function(app, security) {
   var fs = require('fs-extra')
     , api = require('../api')
-    , User = require('../models/user')
-    , Role = require('../models/role')
-    , Cache = require('../models/cache')
-    , Source = require('../models/source')
+    , models = require('mapcache-models')
+    , User = models.User
+    , Role = models.Role
+    , Cache = models.Cache
+    , Source = models.Source
     , log = require('winston');
 
   var passport = security.authentication.passport

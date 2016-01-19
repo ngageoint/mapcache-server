@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet Quick Start Guide Example</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+</head>
+<body>
+	<div id="map" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0;"></div>
+
+	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+	<script>
+
+		var map = L.map('map').setView([0,0], 0);
+
+		L.tileLayer('./xyztiles/{z}/{x}/{y}.png', {
+			maxZoom: 18,
+			id: 'cache'
+		}).addTo(map);
+
+		var popup = L.popup();
+
+		function onMapClick(e) {
+			popup
+				.setLatLng(e.latlng)
+				.setContent("You clicked the map at " + e.latlng.toString())
+				.openOn(map);
+		}
+
+		map.on('click', onMapClick);
+
+	</script>
+</body>
+</html>

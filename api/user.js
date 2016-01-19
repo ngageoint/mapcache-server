@@ -1,9 +1,10 @@
-var UserModel = require('../models/user')
-  , TokenModel = require('../models/token')
-  , LoginModel = require('../models/login')
+var models = require('mapcache-models')
+  , UserModel = models.User
+  , TokenModel = models.Token
+  , LoginModel = models.Login
   , path = require('path')
   , async = require('async')
-  , config = require('../config.js');
+  , config = require('mapcache-config');
 
 var userBase = config.server.userBaseDirectory;
 

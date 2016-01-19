@@ -2,7 +2,8 @@ var fs = require('fs-extra')
   , path = require('path')
   , api = require('../api')
   , turf = require('turf')
-  , cacheModel = require('../models/cache')
+  , models = require('mapcache-models')
+  , cacheModel = models.Cache
   , caches = require('../api/caches');
 
 exports.getAllCaches = function(yargs) {
@@ -10,7 +11,8 @@ exports.getAllCaches = function(yargs) {
   .help('help')
   .argv;
 
-  new api.Cache().getAll({}, function(err, caches) {
+console.log('api.Cache', api.Cache);
+  api.Cache.getAll({}, function(err, caches) {
     if (err) {
       console.log('There was an error retrieving caches.');
       process.exit();
@@ -127,7 +129,7 @@ exports.createCache = function(yargs) {
     };
   }
 
-  new api.Cache().create(cache, argv.f, function(err, cache) {
+  api.Cache.create(cache, argv.f, function(err, cache) {
     if (err) {
       console.log('Error creating the cache ', err);
       process.exit();
@@ -162,7 +164,7 @@ exports.generateFormat = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().create(cache, argv.f, function(err, cache) {
+    new api.Cache(cache).createFormat(argv.f, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -198,7 +200,7 @@ exports.restartFormat = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().restart(cache, argv.f, function(err, cache) {
+    new api.Cache(cache).restart(argv.f, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -243,7 +245,7 @@ exports.generateMoreZooms = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().generateMoreZooms(cache, argv.f, argv.m, argv.x, function(err, cache) {
+    new api.Cache(cache).generateMoreZooms(argv.f, argv.m, argv.x, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -292,7 +294,7 @@ exports.getCacheTile = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().getTile(cache, argv.f, argv.z, argv.x, argv.y, function(err, tileStream) {
+    new api.Cache(cache).getTile(argv.f, argv.z, argv.x, argv.y, function(err, tileStream) {
       if (err) {
         console.log('Error getting tile');
         process.exit();
@@ -348,7 +350,7 @@ exports.exportCache = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().getData(cache, argv.f, argv.m, argv.x, function(err, status) {
+    new api.Cache(cache).getData(argv.f, argv.m, argv.x, function(err, status) {
       if (err) {
         console.log('Error getting cache');
         process.exit();
@@ -392,7 +394,7 @@ exports.deleteFormat = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().deleteFormat(cache, argv.f, function(err) {
+    new api.Cache(cache).deleteFormat(argv.f, function(err) {
       if (err) {
         console.log('Error deleting format');
         process.exit();
@@ -414,7 +416,7 @@ exports.deleteCache = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().delete(cache, function(err) {
+    new api.Cache(cache).delete(function(err) {
       if (err) {
         console.log('Error deleting cache');
         process.exit();

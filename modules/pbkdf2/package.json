@@ -1,0 +1,23 @@
+{
+  "name": "pbkdf2",
+  "version": "0.0.2",
+  "description": "pbkdf2",
+  "keywords": [
+    "NGA",
+    "mapcache"
+  ],
+  "author": {
+    "name": "NGA"
+  },
+  "contributors": {
+    "name": "Daniel Barela",
+    "email": "barelad@bit-sys.com"
+  },
+  "homepage": "https://www1.nga.mil",
+  "engines": {
+    "node": ">= 0.8.0",
+    "npm": ">= 1.2.0"
+  },
+  "private": true,
+  "main": "pbkdf2.js"
+}

@@ -1,5 +1,6 @@
-var Role = require('../models/role')
-  , User = require('../models/user');
+var models = require('mapcache-models')
+  , Role = models.Role
+  , User = models.User;
 
 exports.id = 'create-initial-admin-user';
 

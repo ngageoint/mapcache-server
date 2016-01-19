@@ -1,6 +1,6 @@
 module.exports = function(app, security) {
   var access = require('../access')
-    , Role = require('../models/role')
+    , Role = require('mapcache-models').Role
     , passport = security.authentication.passport
     , authenticationStrategy = security.authentication.authenticationStrategy;
 
@@ -25,7 +25,7 @@ module.exports = function(app, security) {
 
   // get all roles
   app.get(
-    '/api/roles', 
+    '/api/roles',
     access.authorize('READ_ROLE'),
     function (req, res) {
       Role.getRoles(function(err, roles) {
@@ -36,8 +36,8 @@ module.exports = function(app, security) {
 
   // get role
   app.get(
-    '/api/roles/:roleId', 
-    access.authorize('READ_ROLE'), 
+    '/api/roles/:roleId',
+    access.authorize('READ_ROLE'),
     function (req, res) {
       res.json(req.role);
     }
@@ -62,7 +62,7 @@ module.exports = function(app, security) {
   // Update a role
   app.put(
     '/api/roles/:roleId',
-    access.authorize('UPDATE_ROLE'), 
+    access.authorize('UPDATE_ROLE'),
     function(req, res) {
       var update = {};
       if (req.roleParam.name) update.name = req.roleParam.name;
@@ -83,7 +83,7 @@ module.exports = function(app, security) {
 
   // Delete a role
   app.delete(
-    '/api/roles/:roleId', 
+    '/api/roles/:roleId',
     access.authorize('DELETE_ROLE'),
     function(req, res) {
       Role.deleteRole(req.role, function(err, role) {

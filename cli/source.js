@@ -1,7 +1,7 @@
 var fs = require('fs-extra')
   , path = require('path')
   , api = require('../api')
-  , knex = require('../db/knex')
+  , knex = require('../mapcache-modules/models/db/knex')
   , async = require('async')
   , sources = require('../api/sources');
 
@@ -34,13 +34,13 @@ exports.createSource = function(yargs) {
   };
   if (argv.f) {
     fs.copy(argv.f, '/tmp/' + path.basename(argv.f), function(err) {
-      new api.Source().import(source, {path: '/tmp/' + path.basename(argv.f)}, function(err, source) {
+      new api.Source(source).import({path: '/tmp/' + path.basename(argv.f)}, function(err, source) {
         setTimeout(sourceTimerFunction, 0, source);
       });
     });
   } else if (argv.u) {
     source.url = argv.u;
-    new api.Source().create(source, function(err, source) {
+    api.Source.create(source, function(err, source) {
       setTimeout(sourceTimerFunction, 0, source);
     });
   } else {
@@ -59,7 +59,7 @@ exports.getSource = function(yargs) {
     })
     .help('help')
     .argv;
-  new api.Source().getById(argv.i, function(err, source) {
+  api.Source.getById(argv.i, function(err, source) {
     if (!source) {
       console.log('No source found.');
       process.exit();
@@ -73,7 +73,7 @@ exports.getAllSources = function(yargs) {
   var argv = yargs.usage('Gets all sources.')
   .help('help')
   .argv;
-  new api.Source().getAll({}, function(err, sources) {
+  api.Source.getAll({}, function(err, sources) {
     if (sources.length ==0 ) {
       console.log("Found 0 sources.");
     }
@@ -98,8 +98,8 @@ exports.deleteSource = function(yargs) {
     })
     .help('help')
     .argv;
-  new api.Source().getById(argv.i, function(err, source) {
-    new api.Source().delete(source, function(err, source) {
+  api.Source.getById(argv.i, function(err, source) {
+    api.Source(source).delete(function(err, source) {
       console.log('Deleted Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
       process.exit();
     });
@@ -137,7 +137,7 @@ exports.getSourceTile = function(yargs) {
   .help('help')
   .argv;
 
-  new api.Source().getById(argv.i, function(err, source) {
+  api.Source.getById(argv.i, function(err, source) {
     sources.getTile(source, argv.f, argv.z, argv.x, argv.y, {}, function(err, tileStream) {
       if (err) {
         console.log('Error getting tile');
@@ -203,7 +203,7 @@ exports.getSourceFeatures = function(yargs) {
   })
   .help('help')
   .argv;
-  new api.Source().getById(argv.i, function(err, source) {
+  api.Source.getById(argv.i, function(err, source) {
     sources.getFeatures(source, argv.w, argv.s, argv.e, argv.n, 0, function(err, features) {
       if (err) {
         console.log('error retrieving features', err);
@@ -242,7 +242,7 @@ exports.getSourceData = function(yargs) {
   })
   .help('help')
   .argv;
-  new api.Source().getById(argv.i, function(err, source) {
+  api.Source.getById(argv.i, function(err, source) {
     sources.getData(source, argv.f, function(err, data) {
       if (err) {
         console.log('error retrieving data', err);
@@ -277,7 +277,7 @@ exports.ingestMissingVectors = function(yargs) {
   .help('help')
   .argv;
 
-  new api.Source().getAll({}, function(err, mongoSources) {
+  api.Source.getAll({}, function(err, mongoSources) {
     if (mongoSources.length ==0 ) {
       console.log("Found 0 sources.");
       return;
@@ -315,13 +315,13 @@ exports.reingestVectors = function(yargs) {
   .help('help')
   .argv;
 
-  new api.Source().getById(argv.i, function(err, source) {
+  api.Source.getById(argv.i, function(err, source) {
 
   });
 }
 
 function sourceTimerFunction(source) {
-  new api.Source().getById(source._id, function(err, source) {
+  api.Source.getById(source._id, function(err, source) {
     if (!source.status.complete) {
       console.log('Source is being created:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
       setTimeout(sourceTimerFunction, 5000, source);
