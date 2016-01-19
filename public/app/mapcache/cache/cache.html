@@ -4,44 +4,6 @@
       <span class="page-entity-label">Cache: <span class="page-entity-title">{{cache.name}}</span>
     </div>
   </div>
-  <!--
-  <div class="row" ng-show="!cache.status.complete">
-    <div class="col-md-12">
-      <p class="lead">Thank you for submitting your {{cache.name}} map to be created.</p>
-      Feel free to return to the <a href="" ng-click="returnToList()">map list</a> where you can also view the progress.  Don't worry, your map will continue to be generated.
-      <div class="row">
-        <div class="col-md-12">
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" style="width: {{cacheProgress(cache)}}%">
-              <span>{{cacheProgress(cache) | number: 2}}% Complete</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row" ng-show="!cache.status.complete">
-        <div class="col-md-12">
-          <div class="form-group">
-            <span class="page-sub-entity-title">Map is currently estimated to be <span class="page-sub-entity-label">{{(cache.totalTileSize/cache.status.generatedTiles) * cache.status.totalTiles | fileSize}} with {{cache.status.totalTiles}} tiles</span></span>
-          </div>
-        </div>
-      </div>
-      <div class="row cache-types-row">
-        <div class="col-md-12">
-          <div class="row" ng-repeat="zoomRow in zoomRows">
-            <div class="col-md-4" ng-repeat="zoom in zoomRow">
-              Zoom Level {{zoom.zoom}} Size: {{zoom.status.size | fileSize}} Tiles: {{zoom.status.generatedTiles}}
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: {{zoomProgress(zoom.status)}}%">
-                  <span>{{zoomProgress(zoom.status) | number: 2}}% Complete</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
--->
 
   <div class="row">
     <div class="col-md-12">

@@ -6,7 +6,6 @@ var assert = require('assert')
   , colors = require('colors')
   , xyzTileUtils = require('xyz-tile-utils')
   , FeatureModel = require('mapcache-models').Feature
-  , devnull = require('dev-null')
   , path = require('path')
   , Cache = require('../../cache/cache')
   , should = require('should');

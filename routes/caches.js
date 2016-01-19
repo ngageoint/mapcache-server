@@ -126,8 +126,6 @@ module.exports = function(app, auth) {
       new Cache(req.cache).getTile(req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
-        console.log('stream', tileStream);
-
         tileStream.pipe(res);
       });
     }

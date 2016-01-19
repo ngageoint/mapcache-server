@@ -309,7 +309,6 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      console.log('transform the source', req.source);
       var sourceJson = sourceXform.transform(req.source);
       res.json(sourceJson);
     }

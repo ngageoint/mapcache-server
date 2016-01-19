@@ -117,7 +117,6 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
     }
 
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
-      log.debug('stream from the cache get tile is', tileStream);
       callback(null, tileStream);
     });
   });

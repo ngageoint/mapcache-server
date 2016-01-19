@@ -2,7 +2,6 @@ var assert = require('assert')
   , FeatureModel = require('mapcache-models').Feature
   , turf = require('turf')
   , lengthStream = require('length-stream')
-  , devnull = require('dev-null')
   , fs = require('fs')
   , should = require('should');
 
