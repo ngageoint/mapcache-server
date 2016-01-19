@@ -279,6 +279,26 @@ describe("Cache Route Tests", function() {
       });
     });
 
+    it.only ('should get all caches for the map', function(done) {
+      request(app)
+        .get('/api/maps/'+mapId+'/caches')
+        .set('Authorization', 'Bearer 12345')
+        .expect(200)
+        .expect(function(res) {
+          console.log('res', res.body);
+          var caches = res.body;
+          console.log("caches", caches);
+          caches.length.should.be.equal(1);
+          var cache = caches[0];
+          cache.should.have.property('id', cacheId);
+          cache.should.have.property('name', 'Cache');
+          cache.should.have.property('minZoom', 0);
+          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('status');
+        })
+        .end(done);
+    });
+
     it ('should pull the cache', function(done) {
       request(app)
         .get('/api/caches/'+cacheId)

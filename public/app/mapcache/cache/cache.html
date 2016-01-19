@@ -4,6 +4,7 @@
       <span class="page-entity-label">Cache: <span class="page-entity-title">{{cache.name}}</span>
     </div>
   </div>
+  <!--
   <div class="row" ng-show="!cache.status.complete">
     <div class="col-md-12">
       <p class="lead">Thank you for submitting your {{cache.name}} map to be created.</p>
@@ -40,24 +41,25 @@
       </div>
     </div>
   </div>
+-->
 
-  <div class="row" ng-show="cache.status.complete">
+  <div class="row">
     <div class="col-md-12">
       <div class="row" ng-show="cache.status.complete && hasVectorSources">
         <div class="col-md-12">
           <span class="small">Vectors:</span>
         </div>
       </div>
-      <div class="row" ng-show="cache.status.complete && hasVectorSources">
+      <div class="row" ng-show="hasVectorSources">
         <div class="col-md-12">
           <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes | filter: {vector: true}">
             <div ng-if="cache.formats[cacheType.type] || !cacheType.secondary || (cacheType.secondary && cacheType.depends && cache.formats[cacheType.depends])">
               <div class="col-md-2 cache-type-details">
-                <a ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].generating" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
+                <a ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].complete" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
                   <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
                   <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
                 </a>
-                <div ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].generating">
+                <div ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].complete">
                   <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
                   <div class="cache-size">Generating...</div>
                 </div>
@@ -72,21 +74,21 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <span class="small">Tiles:<span  ng-show="cache.status.complete"> Zoom Levels {{cache.minZoom}} - {{cache.maxZoom}}</span></span>
+          <span class="small">Tiles:<span> Zoom Levels {{cache.minZoom}} - {{cache.maxZoom}}</span></span>
         </div>
       </div>
-      <div class="row" ng-show="cache.status.complete && cache.formats['xyz']">
+      <div class="row" ng-show="cache.formats['xyz']">
         <div class="col-md-12">
           <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes | filter: {vector: '!true'}">
             <div ng-if="cache.formats[cacheType.type] || !cacheType.secondary || (cacheType.secondary && cacheType.depends && cache.formats[cacheType.depends])">
               <div class="col-md-2 cache-type-details">
-                <a ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].generating" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
+                <a ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].complete" class="cache-type-download-box" target="_blank" ng-href="/api/caches/{{cache.id}}/{{cacheType.type}}?minZoom={{cache.minZoom}}&maxZoom={{cache.maxZoom}}&access_token={{token}}">
                   <div class="cache-type"><i class="fa fa-download"></i> {{cacheType.type | cacheFormat}}</div>
                   <div class="cache-size">{{cache.formats[cacheType.type].size | fileSize}}</div>
                 </a>
-                <div ng-show="cache.formats[cacheType.type] && cache.formats[cacheType.type].generating">
+                <div ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].complete">
                   <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
-                  <div class="cache-size">Generating...</div>
+                  <div class="cache-size">{{(100 * cache.formats[cacheType.type].generatedTiles/cache.formats[cacheType.type].totalTiles) | number: 2}}% complete</div>
                 </div>
                 <a ng-hide="cache.formats[cacheType.type]" class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
                   <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
@@ -123,7 +125,7 @@
   </div>
   <div class="row top-gap hidden-xs">
     <div class="col-md-12">
-      <span ng-show="cache.status.complete" class="page-sub-entity-label">Map tiles are shown below. (light grey map is only for geographic reference)</span>
+      <span class="page-sub-entity-label">Map tiles are shown below. (light grey map is only for geographic reference)</span>
       <div leaflet-cache cache="cache" options="mapOptions"></div>
     </div>
   </div>
@@ -138,6 +140,57 @@
       </div>
         <div><span class="page-sub-entity-label">Bounding Box: <span class="page-sub-entity-title">West: {{cache.geometry | turf : 'extent' : 'w' | number : 6}} South: {{cache.geometry | turf : 'extent' : 's' | number : 6}} East: {{cache.geometry | turf : 'extent' : 'e' | number : 6}} North: {{cache.geometry | turf : 'extent' : 'n' | number : 6}}</span></div>
         <div><span class="page-sub-entity-label">Map: <span class="page-sub-entity-title"><a ng-href="/#/map/{{cache.source.id}}">{{cache.source.name}}</a></span></div>
+    </div>
+  </div>
+</div>
+<div class="container top-gap-l">
+  <div class="row">
+    <div class="col-md-12">
+      <span class="page-entity-label">Cache Format Status</span>
+    </div>
+  </div>
+  <div ng-repeat="(formatName, cacheFormat) in cache.formats">
+    <div class="row">
+      <div class="col-md-12">
+        <span class="page-sub-entity-label">{{formatName | cacheFormat}}</span> <a class="small" ng-click="expanded[formatName] = !expanded[formatName]" href=""><span ng-show="expanded[formatName]">hide</span><span ng-show="!expanded[formatName]">show</span> detailed status</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" style="width: {{100*(cacheFormat.generatedTiles/cacheFormat.totalTiles)}}%">
+                <span>{{100*(cacheFormat.generatedTiles/cacheFormat.totalTiles) | number: 2}}% Complete</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div ng-show="expanded[formatName]">
+          <div class="row" ng-show="!cacheFormat.complete">
+            <div class="col-md-12">
+              <div class="form-group">
+                <span class="page-sub-entity-label">Map is currently estimated to be <span class="page-sub-entity-title">{{(cacheFormat.size/cacheFormat.generatedTiles) * cacheFormat.totalTiles | fileSize}} with {{cacheFormat.totalTiles}} tiles</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="row cache-types-row">
+            <div class="col-md-12">
+              <div class="row">
+                <div class="col-md-4" ng-repeat="zoom in cacheFormat.zoomLevelStatus">
+                  Zoom Level {{$index}} Size: {{zoom.size | fileSize}} Tiles: {{zoom.generatedTiles}} of {{zoom.totalTiles}}
+                  <div class="progress">
+                    <div class="progress-bar" role="progressbar" style="width: {{100*(zoom.generatedTiles/zoom.totalTiles)}}%">
+                      <span>{{100*(zoom.generatedTiles/zoom.totalTiles) | number: 2}}% Complete</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{cacheFormat | json:4}}
+      </div>
     </div>
   </div>
 </div>

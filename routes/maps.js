@@ -5,6 +5,7 @@ module.exports = function(app, auth) {
     , log = require('mapcache-log')
     , xyzTileUtils = require('xyz-tile-utils')
     , Map = require('../api/source')
+    , Cache = require('../api/cache')
     , request = require('request')
     , config = require('mapcache-config')
     , DOMParser = global.DOMParser = require('xmldom').DOMParser
@@ -184,7 +185,7 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      api.Cache.getCachesFromMapId(req.param('sourceId'), function(err, caches) {
+      Cache.getCachesFromMapId(req.param('sourceId'), function(err, caches) {
         if (err) return next(err);
 
         var caches = cacheXform.transform(caches);

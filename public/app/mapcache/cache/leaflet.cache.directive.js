@@ -40,12 +40,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, LeafletUt
   var cacheLayer = null;
 
   $scope.$watch('cache', function(cache, oldCache) {
-    if (oldCache && oldCache.status.complete) return;
-    if (cache == oldCache) return;
-    if (!cache.status.complete) return;
-    // for (var key in cache.formats) {
-    //   cache.source.cacheTypes
-    // }
+    if (map) return;
     map = L.map($element[0], {
       center: [45,0],
       zoom: 3,
