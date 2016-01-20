@@ -110,6 +110,68 @@ describe('Cache API', function() {
     });
   });
 
+  describe.skip('(Skipped until we support caches of any feature type) create an xyz cache with non normalized bounds', function() {
+    var createdCache;
+    var createdMap;
+    after(function(done) {
+      new Cache(createdCache).delete(function(err, cache) {
+        Map.getById(createdMap.id, function(err, map) {
+          new Map(map).delete(done);
+        });
+      });
+    });
+
+    it('should get create an xyz cache', function(done) {
+      this.timeout(0);
+      var osmDataSource = {
+        name: 'osm',
+        url: 'http://osm.geointapps.org/osm',
+        format: 'xyz',
+        zOrder: 0
+      };
+
+      var map = {
+        name: 'Cache Route Test',
+        dataSources: [osmDataSource]
+      };
+
+      var cache = {
+        name: 'XYZ',
+        minZoom: 0,
+        maxZoom: 3,
+        geometry: turf.polygon([[
+          [-250, -85],
+          [-250, 85],
+          [-181, 85],
+          [-181, -85],
+          [-250, -85]
+        ]]).geometry
+      };
+
+      Map.create(map, function(err, map) {
+        createdMap = map;
+        log.info('Created a map %s with id %s', map.name, map.id);
+        cache.source = map;
+        cache.create = ['xyz'];
+
+        Cache.create(cache, function(err, cache) {
+          if (err) console.log('err creating cache', err);
+          console.log('Created Cache', cache);
+          createdCache = cache;
+          expect(cache.formats.xyz).to.have.property('complete', true);
+          expect(cache.formats.xyz).to.have.property('generatedTiles', 85);
+          expect(cache.formats.xyz).to.have.property('totalTiles', 85);
+          CacheModel.getCacheById(cache.id, function(err, cache) {
+            log.info('cache was created', JSON.stringify(cache, null, 2));
+            done();
+          });
+        }, function(err, cache) {
+          console.log('Cache progress', cache);
+        });
+      });
+    });
+  });
+
   describe('create a GeoPackage cache', function() {
     var createdCache;
     var createdMap;

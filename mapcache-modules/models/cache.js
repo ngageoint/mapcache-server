@@ -47,7 +47,6 @@ var CacheSchema = new Schema({
 	strict: true
 });
 
-CacheSchema.index({geometry: "2dsphere"});
 CacheSchema.index({'name': 1});
 
 function transform(cache, ret, options) {
@@ -81,6 +80,7 @@ if (mongoose.models.Cache) {
 } else {
 	Cache = mongoose.model('Cache', CacheSchema);
 }
+
 exports.cacheModel = Cache;
 
 function getSourceByUrlAndFormat(url, format, callback) {

@@ -72,7 +72,7 @@ exports.calculateXTileRange = function(bbox, z) {
   var east = long2tile(bbox[2], z);
   return {
     min: Math.max(0, Math.min(west, east)),
-    max: Math.max(west, east)
+    max: Math.max(0, Math.max(west, east))
   };
 }
 
@@ -81,7 +81,7 @@ exports.calculateYTileRange = function(bbox, z) {
   var north = lat2tile(bbox[3], z);
   return {
     min: Math.max(0, Math.min(south, north)),
-    max: Math.max(south, north),
+    max: Math.max(0, Math.max(south, north)),
     current: Math.max(0,Math.min(south, north))
   };
 }

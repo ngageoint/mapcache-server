@@ -113,6 +113,14 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
       } else {
         log.info('the file %s does not exist for the xyz cache %s, creating', path.join(dir, filename), cacheId);
         self.cache.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
+          log.info('pulled the tile', stream);
+          if (err) {
+            log.error(err);
+            return tileDone(null, null);
+          } else if (!stream) {
+            log.error('There was no tile for ' + path.join(dir, filename));
+            return tileDone(null, null);
+          }
           var ws = fs.createOutputStream(path.join(dir, filename));
           stream.pipe(ws);
           ws.on('finish', function(){

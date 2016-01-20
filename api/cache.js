@@ -51,6 +51,13 @@ Cache.create = function(cache, callback, progressCallback) {
       cache.cacheCreationParams.dataSources = cleanDataSources;
     }
   }
+
+  cache.geometry = turf.intersect({
+    type: "Feature",
+    properties: {},
+    geometry: cache.geometry
+  }, turf.bboxPolygon([-180, -85, 180, 85]));
+
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);
     log.warn('created cache', newCache.source.id);

@@ -22,7 +22,8 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
 
   var options = {
     maxZoom: 18,
-    tms: false
+    tms: false,
+    noWrap: true
   };
 
   var defaultLayer = 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png';
@@ -36,7 +37,8 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     zoom: 3,
     minZoom: 0,
     maxZoom: 18,
-    worldCopyJump: true
+    worldCopyJump: true,
+    maxBounds: L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180))
   });
 
   baseLayer.addTo(map);

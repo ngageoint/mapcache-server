@@ -80,9 +80,9 @@ console.info = function(){
 console.warn = function(){
   logger.warn.apply(logger, formatArgs(arguments));
 };
-// console.error = function(){
-//   logger.error.apply(logger, formatArgs(arguments));
-// };
+console.error = function(){
+  logger.error.apply(logger, formatArgs(arguments));
+};
 console.debug = function(){
   logger.debug.apply(logger, formatArgs(arguments));
 };
