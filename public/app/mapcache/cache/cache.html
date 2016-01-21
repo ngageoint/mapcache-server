@@ -105,7 +105,7 @@
     </div>
   </div>
 </div>
-<div class="container top-gap-l" ng-show="{{(cache.formats | filter: {complete:true}).length != 0}}">
+<div class="container top-gap-l" ng-show="{{formatGenerating}}">
   <div class="row">
     <div class="col-md-12">
       <span class="page-entity-label">Cache Format Status</span>
@@ -122,7 +122,7 @@
         <div class="row">
           <div class="col-md-12">
             <div class="progress">
-              <div class="progress-bar" role="progressbar" style="width: {{100*(cacheFormat.generatedTiles/cacheFormat.totalTiles)}}%">
+              <div class="progress-bar" role="progressbar" style="width: {{cacheFormat.percentComplete}}%">
                 <span>{{cacheFormat.percentComplete | number: 2}}% Complete</span>
               </div>
             </div>

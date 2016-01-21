@@ -29,36 +29,6 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, $roo
     $location.path('/mapcache');
   };
 
-  $scope.cacheProgress = function(cache) {
-    if (cache)
-      return Math.min(100,100*(cache.status.generatedTiles/cache.status.totalTiles));
-  }
-  $scope.zoomProgress = function(zoomStatus) {
-    if (zoomStatus)
-      return Math.min(100,100*(zoomStatus.generatedTiles/zoomStatus.totalTiles));
-  }
-  $scope.sortedZooms = function(cache) {
-    console.log('zoom rows', cache);
-    if (!cache) return;
-    var zoomRows = [];
-    if (!cache.status.zoomLevelStatus) return zoomRows;
-    for (var i = cache.minZoom; i <= cache.maxZoom; i=i+3) {
-      var row = [];
-      if (cache.status.zoomLevelStatus[i]) {
-        row.push({zoom: i, status:cache.status.zoomLevelStatus[i]});
-      }
-      if (cache.status.zoomLevelStatus[i+1]) {
-        row.push({zoom: i+1, status:cache.status.zoomLevelStatus[i+1]});
-      }
-      if (cache.status.zoomLevelStatus[i+2]) {
-        row.push({zoom: i+2, status:cache.status.zoomLevelStatus[i+2]});
-      }
-      zoomRows.push(row);
-    }
-    console.log('zoom rows', zoomRows);
-    return zoomRows;
-  }
-
   $scope.generateFormat = function(cache, format) {
     CacheService.createCacheFormat(cache, format, function() {
       cache.formats = cache.formats || {};
@@ -92,15 +62,14 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, $roo
       }
       $rootScope.title = $scope.cache.name;
 
-      $scope.zoomRows = $scope.sortedZooms(cache);
-      if (!cache.status.complete && $location.path().indexOf('/cache') == 0) {
+      $scope.formatGenerating = _.some($scope.cache.formats, function(format) {
+        console.log('format', format);
+        return !format.complete;
+      });
+
+      console.log('format generating', formatGenerating);
+      if ($scope.formatGenerating && $location.path().indexOf('/cache') == 0) {
         $timeout(getCache, 5000);
-      } else {
-        for (var format in cache.formats) {
-          if(cache.formats.hasOwnProperty(format) && cache.formats[format].generating && $location.path().indexOf('/cache') == 0) {
-            $timeout(getCache, 5000);
-          }
-        }
       }
     }, function(data) {
       // error

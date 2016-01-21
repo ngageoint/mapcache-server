@@ -374,7 +374,7 @@ describe("Cache Route Tests", function() {
         });
     });
 
-    it.only ('should generate a geopackage cache', function(done) {
+    it ('should generate a geopackage cache', function(done) {
       this.timeout(10000);
       request(app)
         .get('/api/caches/'+cacheId + '/generate')
@@ -388,7 +388,7 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('minZoom', 0);
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
-          cache.status.should.have.property('xyz');
+          cache.formats.should.have.property('xyz');
           console.log(res.body);
         }).end(function() {
           var finishedGenerating = false;
