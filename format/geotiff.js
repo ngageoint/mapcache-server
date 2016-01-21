@@ -14,7 +14,7 @@ GeoTIFF.prototype.initialize = function() {
 GeoTIFF.prototype.processSource = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(source, callback) { callback(null, source);};
-  this.source.status = {};
+  this.source.status = this.source.status || {};
   gdalType.processSource(this.source, doneCallback, progressCallback);
 }
 

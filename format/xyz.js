@@ -20,7 +20,8 @@ var XYZ = function(config) {
 
 XYZ.prototype.processSource = function(doneCallback, progressCallback) {
   this.source.status = this.source.status || {};
-  this.source.status.message = "Complete";
+  this.source.status.message = "Complete WOO";
+  this.source.status.failure = false;
   this.source.status.complete = true;
   this.source.geometry = {
     type: "Feature",

@@ -14,7 +14,8 @@ var gdal = require("gdal")
     progressCallback = progressCallback || function(source, callback) { callback(null, source);};
     source.status.message="Processing source";
     source.status.complete = false;
-    progressCallback(source, function(err, source) {
+    progressCallback(source, function(err, newSource) {
+      source = newSource;
       var ds = gdal.open(source.file.path);
       console.log(exports.gdalInfo(ds));
 
@@ -31,9 +32,12 @@ var gdal = require("gdal")
       }
       var polygon = turf.polygon([sourceCorners(ds)]);
       source.geometry = polygon;
-      expandColorsIfNecessary(ds, source, function(err, source) {
-        progressCallback(source, function(err, source) {
-          createLowerResolution(ds, source, function(err, source) {
+      expandColorsIfNecessary(ds, source, function(err, newSource) {
+        source = newSource;
+        progressCallback(source, function(err, newSource) {
+          source = newSource;
+          createLowerResolution(ds, source, function(err, newSource) {
+            source = newSource;
             source.status.message = "Complete";
             source.status.complete = true;
             callback(null, source);

@@ -1,7 +1,9 @@
 var models = require('mapcache-models')
   , log = require('mapcache-log')
   , Canvas = require('canvas')
+  , xyzTileUtils = require('xyz-tile-utils')
   , Image = Canvas.Image
+  , turf = require('turf')
   , fs = require('fs-extra')
   , async = require('async')
   , path = require('path')
@@ -33,7 +35,10 @@ Map.prototype.initialize = function(callback) {
     self.addDataSource(ds, done);
   }, function done() {
     log.info('Map %s was initialized', self.map.id);
+    // log.info('self.map', self.map);
     self.initialized = true;
+    self.map.status.message = "Completed map processing";
+    self.map.status.complete = true;
     if (callback) {
       callback(null, self);
     }
@@ -96,6 +101,25 @@ Map.prototype.getDataWithin = function(west, south, east, north, zoom, projectio
 
     });
   });
+}
+
+Map.prototype.getOverviewTile = function(callback) {
+  var merged;
+  for (var i = 0; i < this.map.dataSources.length; i++) {
+    var ds = this.map.dataSources[i];
+    if (ds.geometry && !merged) {
+      merged = ds.geometry;
+    } else {
+      merged = turf.merge(merged, ds.geometry);
+    }
+  }
+  if (merged) {
+    extent = turf.extent(merged);
+  } else {
+    extent = [-180, -85, 180, 85];
+  }
+  var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(extent);
+  this.getTile('png', xyz.z, xyz.x, xyz.y, {}, callback);
 }
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {

@@ -20,7 +20,9 @@ module.exports = function(app, auth) {
 
   var validateSource = function(req, res, next) {
     var source = req.body;
-
+    if (req.files) {
+      source = JSON.parse(source.map);
+    }
     req.newSource = source;
     if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
       req.newSource.dataSources = JSON.parse(source.dataSources);
@@ -68,19 +70,24 @@ module.exports = function(app, auth) {
     function(req, res, next) {
       console.log('req.files', req.files);
       console.log('req.newSource', req.newSource);
+      console.log('is multipart/form', req.is('multipart/form-data'));
       if (!req.files || !req.files.mapFile) return next();
       if (!req.is('multipart/form-data')) return next();
       if (!req.newSource.dataSources) {
         console.log('no data sources');
         return res.sendStatus(400);
       }
-      new Map(req.newSource).import(req.files.mapFile, function(err, newSource) {
-        if (err) return next(err);
 
-        if (!newSource) return res.status(400).send();
+      Map.create(req.newSource, req.files.mapFile, function(err, map) {
+        Map.getById(map.id, function(err, newMap) {
+          if (err) return next(err);
 
-        var response = sourceXform.transform(newSource);
-        res.location(newSource._id.toString()).json(response);
+          if (!newMap) return res.status(400).send();
+          console.log('transformting the source in create', newMap);
+
+          var response = sourceXform.transform(newMap);
+          res.location(newMap._id.toString()).json(response);
+        });
       });
     }
   );
@@ -127,14 +134,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var map = req.source;
-      console.log('req.source', req.source);
-      console.log('req.newSource', req.newSource);
-      var extent = [-180, -85, 180, 85];
-    	if (map.geometry) {
-    		extent = turf.extent(map.geometry);
-    	}
-      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(extent);
-      Map.getTile(map, 'png', xyz.z, xyz.x, xyz.y, {}, function(err, tileStream) {
+      Map.getOverviewTile(map, 'png', xyz.z, xyz.x, xyz.y, {}, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 

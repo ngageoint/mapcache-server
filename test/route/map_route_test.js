@@ -4,6 +4,7 @@ var request = require('supertest')
   , Token = require('mapcache-models').Token
   , BufferStream = require('simple-bufferstream')
   , fs = require('fs-extra')
+  , path = require('path')
   , TokenModel = mongoose.model('Token')
   , sinon = require('sinon')
   , Map = require('../../api/source')
@@ -77,7 +78,7 @@ describe("map route tests", function() {
 
     var mapId;
 
-    after(function(done) {
+    afterEach(function(done) {
       Map.getById(mapId, function(err, map) {
         var m = new Map(map);
         m.delete(done);
@@ -105,6 +106,40 @@ describe("map route tests", function() {
         .expect(function(res) {
           var source = res.body;
           mapId = source.id;
+          source.should.have.property('id');
+          source.should.have.property('name');
+          source.should.have.property('dataSources');
+          source.dataSources[0].should.have.property('id');
+        })
+        .end(done)
+    });
+
+    it.only("api should create a map from a file", function(done) {
+
+      var mapJson = {
+        dataSources: [{
+          zOrder: 0,
+          format: 'geojson',
+          name: 'rivers',
+          file: {
+            name: 'Rivers.geojson'
+          }
+        }],
+        name: 'Rivers'
+      };
+
+      request(app)
+        .post('/api/maps')
+        .set('Accept', 'application/json')
+        .set('Authorization', 'Bearer 12345')
+        .attach('mapFile', path.join(__dirname, '../format/Rivers.geojson'))
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .field('map', JSON.stringify(mapJson))
+        .expect(function(res) {
+          var source = res.body;
+          mapId = source.id;
+          console.log('map', source);
           source.should.have.property('id');
           source.should.have.property('name');
           source.should.have.property('dataSources');
@@ -150,7 +185,7 @@ describe("map route tests", function() {
       });
     });
 
-    it.only ('should pull all of the maps', function(done) {
+    it ('should pull all of the maps', function(done) {
       request(app)
         .get('/api/maps')
         .set('Authorization', 'Bearer 12345')

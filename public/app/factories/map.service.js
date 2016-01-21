@@ -168,15 +168,22 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
             map.dataSources[i].file = {name: map.dataSources[i].file.name};
           }
         }
-        for (var key in map) {
-          if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
-            if (typeof map[key] === 'string' || map[key] instanceof String) {
-              formData.append(key, map[key]);
-            } else {
-              formData.append(key, angular.toJson(map[key]));
-            }
-          }
-        }
+
+        var sendMap = map;
+        delete sendMap.mapFile;
+        delete sendMap.data;
+
+        formData.append('map', JSON.stringify(sendMap));
+
+        // for (var key in map) {
+        //   if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
+        //     if (typeof map[key] === 'string' || map[key] instanceof String) {
+        //       formData.append(key, map[key]);
+        //     } else {
+        //       formData.append(key, angular.toJson(map[key]));
+        //     }
+        //   }
+        // }
 
         $.ajax({
           url: '/api/maps',

@@ -28,15 +28,10 @@ Source.update = function(id, update, callback) {
 }
 
 Source.create = function(source, sourceFiles, callback) {
-
   if (!callback && typeof sourceFiles === 'function') {
 		callback = sourceFiles;
 		sourceFiles = [];
 	}
-
-  console.log('there are sourceFiles', sourceFiles);
-  console.log('callback is', callback);
-
   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
 
   SourceModel.createSource(source, function(err, newSource) {
@@ -52,14 +47,15 @@ Source.create = function(source, sourceFiles, callback) {
         var ds = newSource.dataSources.filter(function(dataSource) {
           return dataSource.file && dataSource.file.name == file.originalname;
         });
+        if (ds) ds = ds[0];
         var fileName = file.originalname;
-        var file = path.join(dir, dataSource.id);
-        fs.rename(file.path, file, function(err) {
+        var newFilePath = path.join(dir, ds.id);
+        fs.rename(file.path, newFilePath, function(err) {
           console.log('err', err);
           if (err) return callback(err);
-          fs.stat(file, function(err, stat) {
-            dataSource.file.path = file;
-            dataSource.size = stat.size;
+          fs.stat(newFilePath, function(err, stat) {
+            ds.file.path = newFilePath;
+            ds.size = stat.size;
             newSource.markModified('datasources');
             callback();
           });
@@ -68,10 +64,13 @@ Source.create = function(source, sourceFiles, callback) {
         newSource.save(function() {
           var map = new Map(newSource);
           map.callbackWhenInitialized(function(err, map) {
+            newSource = map.map;
             console.log('map.map', JSON.stringify(map.map, null, 2));
             newSource.status = newSource.status || {};
             newSource.status.complete = true;
-            newSource.save(function() {
+            console.log('about to save', newSource);
+            newSource.save(function(err) {
+              console.log('err from save', err);
               callback(err, map.map);
             });
           });
@@ -79,54 +78,6 @@ Source.create = function(source, sourceFiles, callback) {
       });
     });
   });
-
-  // SourceModel.createSource(source, function(err, newSource) {
-  //   if (err) return callback(err);
-  //   newSource.complete = false;
-  //   newSource.status = {
-  //     message: "Creating",
-  //     complete: false,
-  //     zoomLevelStatus: {}
-  //   };
-
-    // var dir = path.join(config.server.sourceDirectory.path, newSource.id);
-    // fs.mkdirp(dir, function(err) {
-    //   console.log('error creating directory? ', err);
-    //   if (err) return callback(err);
-    //
-    //   async.each(newSource.dataSources, function(dataSource, callback) {
-    //     if (dataSource.file && dataSource.file.name) {
-    //       var originalFile = sourceFiles.filter(function(file) {
-    //         return file.originalname === dataSource.file.name;
-    //       })[0];
-    //       var fileName = path.basename(originalFile.path);
-    //       var file = path.join(dir, dataSource.id);
-    //
-    //       fs.rename(originalFile.path, file, function(err) {
-    //         console.log('err', err);
-    //         if (err) return callback(err);
-    //         fs.stat(file, function(err, stat) {
-    //           dataSource.file.path = file;
-    //           dataSource.size = stat.size;
-    //           newSource.markModified('datasources');
-    //           callback();
-    //         });
-    //       });
-    //     } else {
-    //       callback();
-    //     }
-    //   }, function() {
-    //     newSource.status = {
-    //       message: "Creating",
-    //       complete: false,
-    //       zoomLevelStatus: {}
-    //     };
-    //     newSource.save(function(err){
-    //       sourceProcessor.process(newSource, callback);
-    //     });
-    //   });
-    // });
-  // });
 }
 
 Source.getTile = function(source, format, z, x, y, params, callback) {
@@ -136,50 +87,12 @@ Source.getTile = function(source, format, z, x, y, params, callback) {
   });
 }
 
-// Source.prototype.import = function(sourceFiles, callback) {
-//   var source = this.sourceModel;
-//   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
-//   SourceModel.createSource(source, function(err, newSource) {
-//     if (err) return callback(err);
-//     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
-//     fs.mkdirp(dir, function(err) {
-//       console.log('error creating directory? ', err);
-//       if (err) return callback(err);
-//
-//       async.each(newSource.dataSources, function(dataSource, callback) {
-//         if (dataSource.file && dataSource.file.name) {
-//           var originalFile = sourceFiles.filter(function(file) {
-//             return file.originalname === dataSource.file.name;
-//           })[0];
-//           var fileName = path.basename(originalFile.path);
-//           var file = path.join(dir, dataSource.id);
-//
-//           fs.rename(originalFile.path, file, function(err) {
-//             console.log('err', err);
-//             if (err) return callback(err);
-//             fs.stat(file, function(err, stat) {
-//               dataSource.file.path = file;
-//               dataSource.size = stat.size;
-//               newSource.markModified('datasources');
-//               callback();
-//             });
-//           });
-//         } else {
-//           callback();
-//         }
-//       }, function() {
-//         newSource.status = {
-//           message: "Creating",
-//           complete: false,
-//           zoomLevelStatus: {}
-//         };
-//         SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
-//           sourceProcessor.process(updatedSource, callback);
-//         });
-//       });
-//     });
-//   });
-// }
+Source.getOverviewTile = function(source, format, z, x, y, params, callback) {
+  var map = new Map(source);
+  map.callbackWhenInitialized(function(err, map) {
+    map.getOverviewTile(format, z, x, y, params, callback);
+  });
+}
 
 Source.prototype.delete = function(callback) {
   var source = this.sourceModel;
@@ -221,7 +134,5 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
     }
   });
 }
-
-
 
 module.exports = Source;

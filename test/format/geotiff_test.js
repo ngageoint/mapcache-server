@@ -3,6 +3,7 @@ var assert = require('assert')
   , turf = require('turf')
   , lengthStream = require('length-stream')
   , fs = require('fs')
+  , Map = require('../../map/map')
   , should = require('should');
 
 var geotiffDataSource = {
@@ -10,15 +11,15 @@ var geotiffDataSource = {
   name: 'geotiff',
   format: 'geotiff',
   file: {
-    path: __dirname + '/denver.tif',
+    path: __dirname + '/bogota.tif',
     name: 'geotiff'
   },
   zOrder: 0
 };
 
-var map = {
+var mapModel = {
   id: 'test-map',
-  dataSources: []
+  dataSources: [geotiffDataSource]
 };
 
 /* Bounds of denver.tif *
@@ -33,115 +34,35 @@ Center      (  513902.796, 4389778.166) (104d50'16.56"W, 39d39'27.69"N)
 var cache = {
   id: 'test-cache',
   name: 'generic test cache',
-  geometry: turf.polygon([[
-    [-104.86, 39.6],
-    [-104.86, 39.7],
-    [-104.81, 39.7],
-    [-104.81, 39.6],
-    [-104.86, 39.6]
-  ]]),
   minZoom: 0,
   maxZoom: 12,
-  formats: ['xyz']
+  formats: ['xyz'],
+  outputDirectory: '/tmp/mapcache-test'
 };
-
-var GeoTIFF = require('../../format/geotiff');
 
 var tmpImage = '/tmp/geotiff_test.png';
 
-describe('geotiff', function() {
-  describe('#constructor', function () {
-    it('should construct an geotiff with a source', function () {
-      var geotiff = new GeoTIFF({source: {id: '5'}});
-      geotiff.source.id.should.equal('5');
-    });
-    it('should throw an error since geotiff caches are not supported', function() {
-      try {
-        new GeoTIFF({cache: {id: '6'}}).should.throw(Error);
-      } catch (e) {
-        console.log('threw error', e);
-      }
+xdescribe('geotiff source tests', function() {
+  var map;
+  before(function(done) {
+    this.timeout(10000);
+    map = new Map(mapModel);
+    map.callbackWhenInitialized(function() {
+      done();
     });
   });
-
-  describe('geotiff source tests', function() {
-    var geotiff;
-    before(function() {
-      geotiff = new GeoTIFF({
-        source: geotiffDataSource
-      });
-      // var stat = fs.statSync(__dirname + '/test_geotiff_out.png');
-      // console.log('stat', stat);
-      // if (stat.isFile()) {
-      //   fs.unlinkSync(__dirname + '/test_geotiff_out.png');
-      // }
-    });
-    after(function() {
-    });
-    it('should process the source', function(done) {
-      geotiff.processSource(function(err, newSource) {
-        if(err) {
-          return done(err);
-        }
-        var geom = {
-          type:"Feature",
-          geometry: {
-            type:"Polygon",
-            coordinates:[[
-              [-104.85249416245563,39.67088552045151],
-              [-104.82331093941556,39.67084478892132],
-              [-104.82337800954186,39.64449869141027],
-              [-104.85255015490993,39.64453938508538],
-              [-104.85249416245563,39.67088552045151]
-            ]]
-          },
-          "properties":{
-          }
-        };
-        newSource.geometry.geometry.coordinates.should.containDeep(geom.geometry.coordinates);
-        newSource.projection.should.be.equal('26913');
-        should.exist(newSource.scaledFiles);
-        map.dataSources.push(newSource);
-        done();
-      }, function(source, callback) {
-        console.log('progress', source);
-        callback(null, source);
-      });
-    });
-    it('should pull the 13/1710/3111 tile for the data source', function(done) {
-      this.timeout(0);
-      geotiff.getTile('png', 13, 1710, 3111, {noCache: true}, function(err, stream) {
-        if (err) {
-          done(err);
-          return;
-        }
-        should.exist(stream);
-        var ws = fs.createWriteStream(tmpImage);
-        stream.pipe(ws);
-        stream.on('end', function() {
-
-          var imageDiff = require('image-diff');
-          imageDiff({
-            actualImage: tmpImage,
-            expectedImage: __dirname + '/geotifftile.png',
-            diffImage: '/tmp/difference.png',
-          }, function (err, imagesAreSame) {
-            should.not.exist(err);
-            imagesAreSame.should.be.true();
-            done();
-          });
-        });
-      });
-    });
-    it('should get all features of the source', function(done) {
-      this.timeout(0);
-      geotiff.getDataWithin(-180, -85, 180, 85, 4326, function(err, features) {
-        console.log('err', err);
-        if (err) {
-          done(err);
-          return;
-        }
-        should.not.exist(features);
+  after(function() {
+    // fs.remove(path.join(cache.outputDirectory, cache.id), function(err) {
+    //   fs.remove(path.join(cache.outputDirectory, map.id), function(err) {
+    //     done();
+    //   });
+    // });
+  });
+  it('should show the map', function(done) {
+    map.getOverviewTile(function(err, tileStream) {
+      var ws = fs.createWriteStream(tmpImage);
+      tileStream.pipe(ws);
+      ws.on('close', function() {
         done();
       });
     });
