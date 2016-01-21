@@ -31,6 +31,12 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   var cache = this.cache.cache;
   cache.formats = cache.formats || {};
 
+  cache.formats.geojson = {
+    complete: false,
+    generatedFeatures: 0,
+    percentComplete: 0
+  };
+
   var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
   var filename = cache.id + '.geojson';
   fs.emptyDirSync(dir);
@@ -52,6 +58,7 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     log.debug('Creating the cache features from the source %s', self.cache.map.map.id);
     FeatureModel.createCacheFeaturesFromSource(self.cache.map.map.id, self.cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
       log.info('Created the cache features for cache %s ', self.cache.id, features);
+      cache.formats.geojson.generatedFeatures = features;
       self._writeCacheFile(dir, filename, doneCallback);
     });
   });
@@ -65,10 +72,8 @@ GeoJSON.prototype._writeCacheFile = function(dir, filename, callback) {
   FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
     log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
     var stats = fs.statSync(path.join(dir, filename));
-    cache.formats.geojson = {
-      complete: true,
-      size: stats.size
-    };
+    cache.formats.geojson.complete = true;
+    cache.formats.geojson.size = stats.size;
     return callback(null, self.cache);
   });
 }

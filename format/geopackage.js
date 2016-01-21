@@ -257,6 +257,13 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
   var cache = this.cache.cache;
   cache.formats = cache.formats || {};
 
+  cache.formats.geopackage = {
+    complete: false,
+    generatedFeatures: 0,
+    generatedTiles: 0,
+    percentComplete: 0
+  };
+
   var dir = path.join(this.config.outputDirectory, cache.id, 'gpkg');
   var filename = cache.id + '.gpkg';
   this.filePath = path.join(dir, filename);
@@ -274,7 +281,6 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 
   var map = cacheObj.map;
   var mapSources = map.dataSources;
-  cache.status.generatedFeatures = 0;
 
   var tasks = [];
 
@@ -284,15 +290,18 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
     tasks.push(this._addSourceToGeoPackage.bind(this, mapSources[i], progressCallback));
   }
 
-  async.series(tasks, function (err, results) {
-    console.log('all sources are complete');
-    var stats = fs.statSync(this.filePath);
-    cacheObj.cache.formats.geopackage = {
-      complete: true,
-      size: stats.size
-    };
-    return doneCallback(null, cacheObj);
-  }.bind(this));
+  var filePath = this.filePath;
+  progressCallback(cache, function(err, updatedCache) {
+    cache = updatedCache;
+    async.series(tasks, function (err, results) {
+      console.log('all sources are complete');
+      var stats = fs.statSync(filePath);
+      cache.formats.geopackage.complete = true;
+      cache.formats.geopackage.size = stats.size;
+      cache.formats.geopackage.percentComplete = 100;
+      return doneCallback(null, cacheObj);
+    }.bind(this));
+  });
 }
 
 GeoPackage.prototype._calculateExtentFromGeometry = function(geometry) {
@@ -350,7 +359,11 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
           sourceFinishedCallback();
         }
       }, function(progress, callback) {
-        cache.status.generatedFeatures = cache.status.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
+        cache.formats.geopackage.percentComplete += cache.formats.geopackage.generatedFeatures
+        cache.formats.geopackage.generatedFeatures = cache.formats.geopackage.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
+
+        cache.formats.geopackage.percentComplete += (100 * ((progress.featuresAdded - sourceFeaturesCreated) / features.length)) / this.cache.map.dataSources.length;
+
         sourceFeaturesCreated = progress.featuresAdded;
 
         progressCallback(cache, callback);
@@ -375,6 +388,10 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
   var llCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.min, yRangeMinZoom.max, cache.minZoom);
   var urCorner = xyzTileUtils.tileBboxCalculator(xRangeMinZoom.max, yRangeMinZoom.min, cache.minZoom);
   var totalTileExtent = [llCorner.west, llCorner.south, urCorner.east, urCorner.north];
+  var totalTiles = xyzTileUtils.tileCountInExtent(totalTileExtent, cache.minZoom, cache.maxZoom);
+
+  var generatedTiles = 0;
+
   var self = this;
   this.geoPackage.createTileTable(extent, tableName, cache.minZoom, cache.maxZoom, function() {
     xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
@@ -385,7 +402,15 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
         var tileColumn = tile.x - xRange.min;
         rasterSource.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
           if (err || !tileStream) { return tileDone()};
-          self.geoPackage.addTileToGeoPackage(tileStream, tableName, tile.z, tileRow, tileColumn, tileDone);
+          log.info('Adding the tile zoom: %d, row: %d, column: %d', tile.z, tileRow, tileColumn);
+          self.geoPackage.addTileToGeoPackage(tileStream, tableName, tile.z, tileRow, tileColumn, function(err) {
+            generatedTiles++;
+            cache.formats.geopackage.percentComplete += (100 * (1 / totalTiles)) / self.cache.map.dataSources.length;
+            progressCallback(cache, function(err, updatedCache) {
+              cache = updatedCache;
+              return tileDone(err, tile);
+            });
+          });
         });
       },
       function(zoom, zoomFinishedCallback) {
@@ -395,7 +420,6 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
       function(err, data) {
         log.info('all tiles are done for %s', cache.id);
         self.cache.cache = data;
-        log.info('need to callback the finished callback', sourceFinishedCallback);
         sourceFinishedCallback(null, self.cache);
       }
     );

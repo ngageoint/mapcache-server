@@ -279,7 +279,7 @@ describe("Cache Route Tests", function() {
       });
     });
 
-    it.only ('should get all caches for the map', function(done) {
+    it ('should get all caches for the map', function(done) {
       request(app)
         .get('/api/maps/'+mapId+'/caches')
         .set('Authorization', 'Bearer 12345')
@@ -361,6 +361,51 @@ describe("Cache Route Tests", function() {
                   cache.formats.should.have.property('xyz');
                   if (cache.formats.xyz.complete) {
                     cache.formats.xyz.should.have.property('generatedTiles', 85);
+                    finishedGenerating = true;
+                  }
+                }).end(function() {
+                  setTimeout(callback, 500);
+                });
+            },
+            function() {
+              done();
+            }
+          );
+        });
+    });
+
+    it.only ('should generate a geopackage cache', function(done) {
+      this.timeout(10000);
+      request(app)
+        .get('/api/caches/'+cacheId + '/generate')
+        .set('Authorization', 'Bearer 12345')
+        .query({format: 'geopackage'})
+        .expect(202)
+        .expect(function(res) {
+          var cache = res.body;
+          cache.should.have.property('id', cacheId);
+          cache.should.have.property('name', 'Cache');
+          cache.should.have.property('minZoom', 0);
+          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('status');
+          cache.status.should.have.property('xyz');
+          console.log(res.body);
+        }).end(function() {
+          var finishedGenerating = false;
+          console.log('until');
+          async.until(
+            function() { return finishedGenerating; },
+            function(callback) {
+              request(app)
+                .get('/api/caches/'+cacheId)
+                .set('Authorization', 'Bearer 12345')
+                .expect(200)
+                .expect(function(res) {
+                  var cache = res.body;
+                  cache.formats.should.have.property('geopackage');
+                  console.log('GeoPackage', cache.formats.geopackage.percentComplete);
+                  if (cache.formats.geopackage.complete) {
+                    cache.formats.geopackage.should.have.property('complete');
                     finishedGenerating = true;
                   }
                 }).end(function() {

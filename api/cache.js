@@ -71,9 +71,11 @@ function createFormat(formats, cache, callback, progressCallback) {
   var cacheApi = new CacheApi(cache);
   cacheApi.callbackWhenInitialized(function(err, cache) {
     console.log('cache was initialized', cache);
+    console.log('formats', formats);
     async.eachSeries(formats, function(format, done) {
+      console.log('Format is', format);
       var Format = require('../format/'+format);
-      console.log('format', format);
+      console.log('format', Format);
       console.log('output dir', config.server.cacheDirectory.path);
       var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
       console.log('cacheformat', cacheFormat);
@@ -86,7 +88,7 @@ function createFormat(formats, cache, callback, progressCallback) {
           done();
         });
       }, function(cache, callback) {
-        console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.status);
+        console.log('~~~~~~~~~~~~~~~progress on the cache %s', cache.formats[format]);
         cache.markModified('status');
         cache.markModified('formats');
         cache.save(function() {

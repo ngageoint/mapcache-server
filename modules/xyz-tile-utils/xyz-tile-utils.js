@@ -137,7 +137,7 @@ function pushNextTileTasks(q, data, zoom, x, yRange, numberOfTasks, stopCallback
     var tile = {z:zoom, x: x, y: i, data: data};
     q.push({z:zoom, x: x, y: i, data: data}, stopCallback);
   }
-  yRange.current = yRange.current + numberOfTasks;
+  yRange.current = yRange.current + numberOfTasks + 1;
   return true;
 }
 

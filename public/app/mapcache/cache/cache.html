@@ -50,7 +50,7 @@
                 </a>
                 <div ng-show="cache.formats[cacheType.type] && !cache.formats[cacheType.type].complete">
                   <div class="cache-type"><i class="fa fa-spinner fa-pulse"></i> {{cacheType.type | cacheFormat}}</div>
-                  <div class="cache-size">{{(100 * cache.formats[cacheType.type].generatedTiles/cache.formats[cacheType.type].totalTiles) | number: 2}}% complete</div>
+                  <div class="cache-size">{{cache.formats[cacheType.type].percentComplete | number: 2}}% complete</div>
                 </div>
                 <a ng-hide="cache.formats[cacheType.type]" class="cache-type-download-box" ng-click="generateFormat(cache, cacheType.type)" ng-href="">
                   <div class="cache-type">{{cacheType.type | cacheFormat}}</div>
@@ -105,13 +105,13 @@
     </div>
   </div>
 </div>
-<div class="container top-gap-l">
+<div class="container top-gap-l" ng-show="{{(cache.formats | filter: {complete:true}).length != 0}}">
   <div class="row">
     <div class="col-md-12">
       <span class="page-entity-label">Cache Format Status</span>
     </div>
   </div>
-  <div ng-repeat="(formatName, cacheFormat) in cache.formats" ng-hide="cacheFormat.status.complete">
+  <div ng-repeat="(formatName, cacheFormat) in cache.formats" ng-hide="cacheFormat.complete">
     <div class="row">
       <div class="col-md-12">
         <span class="page-sub-entity-label">{{formatName | cacheFormat}}</span> <a class="small" ng-click="expanded[formatName] = !expanded[formatName]" href=""><span ng-show="expanded[formatName]">hide</span><span ng-show="!expanded[formatName]">show</span> detailed status</a>
@@ -123,7 +123,7 @@
           <div class="col-md-12">
             <div class="progress">
               <div class="progress-bar" role="progressbar" style="width: {{100*(cacheFormat.generatedTiles/cacheFormat.totalTiles)}}%">
-                <span>{{100*(cacheFormat.generatedTiles/cacheFormat.totalTiles) | number: 2}}% Complete</span>
+                <span>{{cacheFormat.percentComplete | number: 2}}% Complete</span>
               </div>
             </div>
           </div>
@@ -142,8 +142,8 @@
                 <div class="col-md-4" ng-repeat="zoom in cacheFormat.zoomLevelStatus">
                   Zoom Level {{$index}} Size: {{zoom.size | fileSize}} Tiles: {{zoom.generatedTiles}} of {{zoom.totalTiles}}
                   <div class="progress">
-                    <div class="progress-bar" role="progressbar" style="width: {{100*(zoom.generatedTiles/zoom.totalTiles)}}%">
-                      <span>{{100*(zoom.generatedTiles/zoom.totalTiles) | number: 2}}% Complete</span>
+                    <div class="progress-bar" role="progressbar" style="width: {{(zoom.percentComplete)}}%">
+                      <span>{{(zoom.percentComplete) | number: 2}}% Complete</span>
                     </div>
                   </div>
                 </div>
