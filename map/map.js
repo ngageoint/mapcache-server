@@ -36,6 +36,7 @@ Map.prototype.initialize = function(callback) {
   }, function done() {
     log.info('Map %s was initialized', self.map.id);
     // log.info('self.map', self.map);
+    self.map.status = self.map.status || {};
     self.initialized = true;
     self.map.status.message = "Completed map processing";
     self.map.status.complete = true;
