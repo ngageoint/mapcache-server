@@ -81,9 +81,8 @@ function createLowerResolution(ds, source, callback) {
     height = 1024;
   }
 
-
   var python = exec(
-    'gdalwarp -ts '+ width+' ' + height +' -t_srs \'EPSG:3857\' -co COMPRESS=LZW -co TILED=YES ' + source.file.path + " " + file,
+    'gdalwarp -ts '+ width+' ' + height +' -dstalpha -t_srs \'EPSG:3857\' -co COMPRESS=LZW -co TILED=YES ' + source.file.path + " " + file,
   function(error, stdout, stderr) {
     console.log('stderr', stderr);
     var in_ds = gdal.open(file);
@@ -94,9 +93,6 @@ function createLowerResolution(ds, source, callback) {
       resolution: in_ds.geoTransform[1]
     });
     callback(null, source);
-    // SourceModel.updateDatasource(source, function(err, source) {
-    //   callback(err, source);
-    // });
   });
 }
 
