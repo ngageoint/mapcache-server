@@ -7,6 +7,7 @@ var gdal = require("gdal")
   , png = require('pngjs')
   , xyzTileUtils = require('xyz-tile-utils')
   , async = require('async')
+  , log = require('mapcache-log')
   , config = require('mapcache-config');
 
   exports.processSource = function(source, callback, progressCallback) {
@@ -49,10 +50,10 @@ var gdal = require("gdal")
 
 function expandColorsIfNecessary(ds, source, callback) {
   console.log('ds.bands.get(1).colorInterpretation', ds.bands.get(1).colorInterpretation);
-  if (ds.bands.get(1).colorInterpretation == 'Palette') {
+  var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
+  var file = path.join(path.dirname(source.file.path), fileName);
+  if (ds.bands.get(1).colorInterpretation == 'Palette' && !fs.existsSync(file)) {
     // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
-    var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
-    var file = path.join(path.dirname(source.file.path), fileName);
     var python = exec(
       'gdal_translate -expand rgb ' + source.file.path + " " + file,
     function(error, stdout, stderr) {
@@ -65,6 +66,12 @@ function expandColorsIfNecessary(ds, source, callback) {
 }
 
 function createLowerResolution(ds, source, callback) {
+  var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_1024.tif';
+  var file = path.join(path.dirname(source.file.path), fileName);
+
+  if (fs.existsSync(file)) {
+    return callback(null, source);
+  }
 
   if (ds.rasterSize.x < ds.rasterSize.y) {
     width = 1024;
@@ -74,11 +81,11 @@ function createLowerResolution(ds, source, callback) {
     height = 1024;
   }
 
-  var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_1024.tif';
-  var file = path.join(path.dirname(source.file.path), fileName);
+
   var python = exec(
-    'gdalwarp -ts '+ width+' ' + height +' -co COMPRESS=LZW -co TILED=YES ' + source.file.path + " " + file,
+    'gdalwarp -ts '+ width+' ' + height +' -t_srs \'EPSG:3857\' -co COMPRESS=LZW -co TILED=YES ' + source.file.path + " " + file,
   function(error, stdout, stderr) {
+    console.log('stderr', stderr);
     var in_ds = gdal.open(file);
 
     source.scaledFiles = source.scaledFiles || [];
@@ -194,6 +201,7 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   var zoomRes = xyzTileUtils.getZoomLevelResolution(z);
   var currentRes = 0;
   for (var i = 0; source.scaledFiles && i < source.scaledFiles.length; i++) {
+    log.info('Zoom res: %d scaledFile res: %d current Res: %d', zoomRes, source.scaledFiles[i].resolution, currentRes);
     if (zoomRes > source.scaledFiles[i].resolution && currentRes < source.scaledFiles[i].resolution) {
       filePath = source.scaledFiles[i].path;
     }
@@ -267,6 +275,8 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     img.data[(i*4)+2] = pixelRegion3[i];
     img.data[(i*4)+3] = pixelRegion4[i];
   }
+
+  console.log('got the image data');
 
   var tileSize = 0;
   var stream = img.pack();
