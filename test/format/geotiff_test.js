@@ -59,6 +59,7 @@ xdescribe('geotiff source tests', function() {
     // });
   });
   it('should show the map', function(done) {
+    this.timeout(10000);
     map.getOverviewTile(function(err, tileStream) {
       var ws = fs.createWriteStream(tmpImage);
       tileStream.pipe(ws);

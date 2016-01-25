@@ -1,7 +1,7 @@
 var gdalType = require('./gdalType');
 
 var MrSID = function(config) {
-  config = config || {};
+  this.config = config || {};
   this.source = config.source;
   if (config.cache) {
     throw new Error('cannot create a MrSID cache at this time');

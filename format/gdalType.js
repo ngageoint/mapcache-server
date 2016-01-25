@@ -68,8 +68,16 @@ function expandColorsIfNecessary(ds, source, callback) {
 function createLowerResolution(ds, source, callback) {
   var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_1024.tif';
   var file = path.join(path.dirname(source.file.path), fileName);
+  log.info('Creating lower resolution image at %s', file);
 
   if (fs.existsSync(file)) {
+    var in_ds = gdal.open(file);
+
+    source.scaledFiles = source.scaledFiles || [];
+    source.scaledFiles.push({
+      path: file,
+      resolution: in_ds.geoTransform[1]
+    });
     return callback(null, source);
   }
 

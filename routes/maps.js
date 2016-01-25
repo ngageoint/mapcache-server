@@ -20,7 +20,8 @@ module.exports = function(app, auth) {
 
   var validateSource = function(req, res, next) {
     var source = req.body;
-    if (req.files) {
+    console.log('req.files is', req.files);
+    if (req.files && source.map) {
       source = JSON.parse(source.map);
     }
     req.newSource = source;
@@ -78,16 +79,20 @@ module.exports = function(app, auth) {
         return res.sendStatus(400);
       }
 
+      var sent = false;
+
       Map.create(req.newSource, req.files.mapFile, function(err, map) {
-        Map.getById(map.id, function(err, newMap) {
+        if (sent) return;
+        sent = true;
+        // Map.getById(map.id, function(err, newMap) {
           if (err) return next(err);
 
-          if (!newMap) return res.status(400).send();
-          console.log('transformting the source in create', newMap);
+          if (!map) return res.status(400).send();
+          console.log('transformting the source in create', map);
 
-          var response = sourceXform.transform(newMap);
-          res.location(newMap._id.toString()).json(response);
-        });
+          var response = sourceXform.transform(map);
+          res.location(map._id.toString()).json(response);
+        // });
       });
     }
   );
@@ -98,17 +103,19 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
-
+      var sent = false;
       Map.create(req.newSource, function(err, map) {
-        Map.getById(map.id, function(err, newMap) {
-          if (err) return next(err);
+        if (sent) return;
+        sent = true;
+        // Map.getById(map.id, function(err, newMap) {
+        if (err) return next(err);
 
-          if (!newMap) return res.status(400).send();
-          console.log('transformting the source in create', newMap);
+        if (!map) return res.status(400).send();
+        console.log('transformting the source in create', map);
 
-          var response = sourceXform.transform(newMap);
-          res.location(newMap._id.toString()).json(response);
-        });
+        var response = sourceXform.transform(map);
+        res.location(map._id.toString()).json(response);
+        // });
       });
     }
   );
@@ -134,7 +141,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var map = req.source;
-      Map.getOverviewTile(map, 'png', xyz.z, xyz.x, xyz.y, {}, function(err, tileStream) {
+      Map.getOverviewTile(map, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 

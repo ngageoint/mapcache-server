@@ -36,6 +36,7 @@ Source.create = function(source, sourceFiles, callback) {
 
   SourceModel.createSource(source, function(err, newSource) {
     console.log('new source', JSON.stringify(newSource, null, 2));
+    callback(err, newSource);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
     fs.mkdirp(dir, function(err) {
       console.log('error creating directory? ', err);
@@ -87,10 +88,10 @@ Source.getTile = function(source, format, z, x, y, params, callback) {
   });
 }
 
-Source.getOverviewTile = function(source, format, z, x, y, params, callback) {
+Source.getOverviewTile = function(source, callback) {
   var map = new Map(source);
   map.callbackWhenInitialized(function(err, map) {
-    map.getOverviewTile(format, z, x, y, params, callback);
+    map.getOverviewTile(callback);
   });
 }
 

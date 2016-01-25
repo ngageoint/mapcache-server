@@ -79,6 +79,7 @@ describe("map route tests", function() {
     var mapId;
 
     afterEach(function(done) {
+      if (!mapId) return done();
       Map.getById(mapId, function(err, map) {
         var m = new Map(map);
         m.delete(done);
@@ -114,7 +115,7 @@ describe("map route tests", function() {
         .end(done)
     });
 
-    it.only("api should create a map from a file", function(done) {
+    it("api should create a map from a file", function(done) {
 
       var mapJson = {
         dataSources: [{

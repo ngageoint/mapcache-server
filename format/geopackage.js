@@ -362,7 +362,7 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
         cache.formats.geopackage.percentComplete += cache.formats.geopackage.generatedFeatures
         cache.formats.geopackage.generatedFeatures = cache.formats.geopackage.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
 
-        cache.formats.geopackage.percentComplete += (100 * ((progress.featuresAdded - sourceFeaturesCreated) / features.length)) / this.cache.map.dataSources.length;
+        cache.formats.geopackage.percentComplete += (100 * ((progress.featuresAdded - sourceFeaturesCreated) / features.length)) / self.cache.map.dataSources.length;
 
         sourceFeaturesCreated = progress.featuresAdded;
 

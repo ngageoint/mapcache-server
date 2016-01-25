@@ -196,6 +196,7 @@ describe('Format Tests', function() {
           if(err) {
             return done(err);
           }
+          console.log('Source', newSource);
           newSource.status.message.should.equal("Complete");
           endTest('Process the source ' + dataSource.id);
           done();
@@ -204,6 +205,7 @@ describe('Format Tests', function() {
         });
       });
       it('should pull the 0/0/0 tile for the data source ' + dataSource.id, function(done) {
+        this.timeout(10000);
         startTest('Pull the 0/0/0 tile for the data source ' + dataSource.id);
         f.getTile('png', 0, 0, 0, dataSource.testParams || {}, function(err, tileStream) {
           if (err) {
@@ -225,6 +227,7 @@ describe('Format Tests', function() {
         });
       });
       it('should pull a tile containing the extent of the geometry for source ' + dataSource.id, function(done) {
+        this.timeout(10000);
         startTest('Pull a tile containing the extent of the geometry for source ' + dataSource.id);
         if (!dataSource.geometry) {
           console.log('no geometry for source ' + dataSource.format);
