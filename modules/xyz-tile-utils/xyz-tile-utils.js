@@ -30,7 +30,7 @@ var zoomLevelResolutions = [156412,78206,39103,19551,9776,4888,2444,1222,610.984
 
 exports.getZoomLevelResolution = function(z) {
 	return zoomLevelResolutions[z];
-}
+};
 
 exports.getXYZFullyEncompassingExtent = function(extent, minZoom, maxZoom) {
 	var zoom = maxZoom || 18;
@@ -42,7 +42,7 @@ exports.getXYZFullyEncompassingExtent = function(extent, minZoom, maxZoom) {
 	for (zoom; zoom >= min && !found; zoom--) {
 		y = exports.calculateYTileRange(extent, zoom);
 		x = exports.calculateXTileRange(extent, zoom);
-		if (y.min == y.max && x.min == x.max) {
+		if (y.min === y.max && x.min === x.max) {
 			found = true;
 		}
 	}
@@ -52,7 +52,7 @@ exports.getXYZFullyEncompassingExtent = function(extent, minZoom, maxZoom) {
 		x: x.min,
 		y: y.min
 	};
-}
+};
 
 exports.tileBboxCalculator = function(x, y, z) {
   x = Number(x);
@@ -65,7 +65,7 @@ exports.tileBboxCalculator = function(x, y, z) {
   };
 
   return tileBounds;
-}
+};
 
 exports.calculateXTileRange = function(bbox, z) {
   var west = long2tile(bbox[0], z);
@@ -74,7 +74,7 @@ exports.calculateXTileRange = function(bbox, z) {
     min: Math.max(0, Math.min(west, east)),
     max: Math.max(0, Math.max(west, east))
   };
-}
+};
 
 exports.calculateYTileRange = function(bbox, z) {
   var south = lat2tile(bbox[1], z);
@@ -84,7 +84,7 @@ exports.calculateYTileRange = function(bbox, z) {
     max: Math.max(0, Math.max(south, north)),
     current: Math.max(0,Math.min(south, north))
   };
-}
+};
 
 exports.tileCountInExtent = function(extent, minZoom, maxZoom) {
   var tiles = 0;
@@ -94,7 +94,7 @@ exports.tileCountInExtent = function(extent, minZoom, maxZoom) {
     tiles += (1+yRange.max-yRange.min)*(1+xRange.max-xRange.min);
   }
   return tiles;
-}
+};
 
 exports.iterateAllTilesInExtent = function(extent, minZoom, maxZoom, data, processTileCallback, zoomCompleteCallback, completeCallback) {
   var zoom = minZoom;
@@ -129,12 +129,11 @@ exports.iterateAllTilesInExtent = function(extent, minZoom, maxZoom, data, proce
       completeCallback(err, data);
     }
   );
-}
+};
 
 function pushNextTileTasks(q, data, zoom, x, yRange, numberOfTasks, stopCallback) {
   if (yRange.current > yRange.max) return false;
   for (var i = yRange.current; i <= yRange.current + numberOfTasks && i <= yRange.max; i++) {
-    var tile = {z:zoom, x: x, y: i, data: data};
     q.push({z:zoom, x: x, y: i, data: data}, stopCallback);
   }
   yRange.current = yRange.current + numberOfTasks + 1;
@@ -144,7 +143,7 @@ function pushNextTileTasks(q, data, zoom, x, yRange, numberOfTasks, stopCallback
 function getXRow(data, xRow, yRange, zoom, xRowDone, processTileCallback) {
   var q = async.queue(processTileCallback, 100);
 
-  q.drain = function(err) {
+  q.drain = function() {
     var tasksPushed = pushNextTileTasks(q, data, zoom, xRow, yRange, 10, function(stop) {
       if (stop) {
         q.kill();

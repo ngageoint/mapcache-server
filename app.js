@@ -1,9 +1,4 @@
-var express = require("express")
-  , bodyParser = require('body-parser')
-  , multer = require('multer')
-  , path = require('path')
-  , mongoose = require('mongoose')
-  , fs = require('fs-extra')
+var  mongoose = require('mongoose')
   , log = require('winston')
   , config = require('mapcache-config');
 

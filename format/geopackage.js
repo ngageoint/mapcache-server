@@ -17,10 +17,10 @@ var GeoPackage = function(config) {
   if (this.config.cache && !this.config.outputDirectory) {
     throw new Error('An output directory must be specified in config.outputDirectory');
   }
-}
+};
 
 GeoPackage.prototype.initialize = function() {
-}
+};
 
 GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
   log.info('Process the GeoPackage');
@@ -44,6 +44,7 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
     if (processed) {
       var source = this.source;
       this._openGeoPackage(source.file.path, function(err) {
+        if (err) return doneCallback(err, source);
         return completeProcessing(source, function(err, source) {
           console.log('source was already processed, returning', source);
 
@@ -51,25 +52,25 @@ GeoPackage.prototype.processSource = function(doneCallback, progressCallback) {
         });
       });
     } else {
-      async.series(tasks, function(err, results) {
+      async.series(tasks, function(err) {
         log.info('done creating the geopackage');
         doneCallback(err, this.source);
       }.bind(this));
     }
   }.bind(this));
-}
+};
 
 GeoPackage.prototype._isAlreadyProcessed = function(callback) {
   log.debug('is it already processed?', this.source);
   FeatureModel.getFeatureCount({sourceId: this.source.id, cacheId: null}, function(resultArray){
     log.debug("The source already has features", resultArray);
-    if (resultArray[0].count != '0') {
+    if (resultArray[0].count !== '0') {
       return callback(true);
     } else {
       return callback(false);
     }
   });
-}
+};
 
 function setSourceCount(source, callback) {
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
@@ -167,14 +168,13 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
             if (!tileStream) return callback();
 
             var buffer = new Buffer(0);
-            var chunk;
             tileStream.on('data', function(chunk) {
               console.log('chunk', chunk);
               buffer = Buffer.concat([buffer, chunk]);
             });
             tileStream.on('end', function() {
               console.log('end buffer');
-              var img = new Image;
+              var img = new Image();
               console.log('img');
               img.onload = function() {
                 console.log('draw it');
@@ -186,7 +186,8 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
             });
           });
         },
-        function(err, results) {
+        function(err) {
+          if (err) console.log('error reading tile tables', err);
 
           gp.getFeatureTables(function(err, featureTables) {
             console.log('featureTables', featureTables.length);
@@ -206,12 +207,11 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
                   console.log('tilestream is ', tileStream);
 
                   var buffer = new Buffer(0);
-                  var chunk;
                   tileStream.on('data', function(chunk) {
                     buffer = Buffer.concat([buffer, chunk]);
                   });
                   tileStream.on('end', function() {
-                    var img = new Image;
+                    var img = new Image();
                     img.onload = function() {
                       ctx.drawImage(img, 0, 0, img.width, img.height);
                       callback();
@@ -221,8 +221,8 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
                 });
 
               },
-              function(err, results) {
-                callback(null, canvas.pngStream());
+              function(err) {
+                callback(err, canvas.pngStream());
               }
             );
           });
@@ -232,7 +232,7 @@ GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
   } else {
     this.cache.getTile(format, z, x, y, params, callback);
   }
-}
+};
 
 GeoPackage.prototype.getData = function(minZoom, maxZoom, callback) {
   var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'gpkg');
@@ -240,20 +240,19 @@ GeoPackage.prototype.getData = function(minZoom, maxZoom, callback) {
   var geoPackageFile = path.join(dir, filename);
   var stream = fs.createReadStream(geoPackageFile);
   callback(null, {stream: stream, extension: '.gpkg'});
-}
+};
 
 GeoPackage.prototype.delete = function(callback) {
   if (!this.cache) return callback();
   var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'gpkg');
   var filename = this.cache.cache.id + '.gpkg';
   fs.remove(path.join(dir, filename), callback);
-}
+};
 
 GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(cache, callback) {callback(null, cache);};
   var cacheObj = this.cache;
-  var self = this;
   var cache = this.cache.cache;
   cache.formats = cache.formats || {};
 
@@ -293,7 +292,8 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
   var filePath = this.filePath;
   progressCallback(cache, function(err, updatedCache) {
     cache = updatedCache;
-    async.series(tasks, function (err, results) {
+    async.series(tasks, function (err) {
+      if (err) cache.formats.geopackage.error = JSON.stringify(err);
       console.log('all sources are complete');
       var stats = fs.statSync(filePath);
       cache.formats.geopackage.complete = true;
@@ -302,7 +302,7 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
       return doneCallback(null, cacheObj);
     }.bind(this));
   });
-}
+};
 
 GeoPackage.prototype._calculateExtentFromGeometry = function(geometry) {
   var extent = turf.extent(geometry);
@@ -311,14 +311,14 @@ GeoPackage.prototype._calculateExtentFromGeometry = function(geometry) {
   extent[2] = Math.min(180, extent[2]);
   extent[3] = Math.min(85, extent[3]);
   return extent;
-}
+};
 
 GeoPackage.prototype._addSourceToGeoPackage = function(s, progressCallback, callback) {
   var cache = this.cache.cache;
   var params = cache.cacheCreationParams;
   log.info('params are', params);
   log.debug('Checking if %s - %s should be added to the cache', s.source.name, s.source.id.toString());
-  if (params.dataSources.indexOf(s.source.id.toString()) == -1) {
+  if (params.dataSources.indexOf(s.source.id.toString()) === -1) {
     log.debug('%s - %s is not being added to the cache', s.source.name, s.source.id.toString());
     return callback();
   }
@@ -328,10 +328,10 @@ GeoPackage.prototype._addSourceToGeoPackage = function(s, progressCallback, call
   } else {
     this._addRasterSourceToGeoPackage(s, progressCallback, callback);
   }
-}
+};
 
 GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progressCallback, sourceFinishedCallback) {
-  log.info('Adding the features for cache %s from the source %s - %s', this.cache.cache.id, vectorSource.source.name, vectorSource.source.id)
+  log.info('Adding the features for cache %s from the source %s - %s', this.cache.cache.id, vectorSource.source.name, vectorSource.source.id);
 
   var tableName = vectorSource.source.name ? vectorSource.source.name.toString() : vectorSource.source.id.toString();
   tableName = tableName.replace(/[^a-z0-9]/gi,'');
@@ -351,7 +351,15 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
   FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, vectorSource.source.id, extent[0], extent[1], extent[2], extent[3], '3857', function(err, features) {
     log.info('Adding %d features to the GeoPackage', features.length);
     self.geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
+      if (err) {
+        console.log('Failure to create the feature table', err);
+        return sourceFinishedCallback(err);
+      }
       self.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
+        if (err) {
+          console.log('Failed to add features to the GeoPackage', err);
+          return sourceFinishedCallback(err);
+        }
         console.log('features.length', features.length);
         if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
           self.geoPackage.indexGeoPackage(tableName, sourceFinishedCallback);
@@ -359,7 +367,7 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
           sourceFinishedCallback();
         }
       }, function(progress, callback) {
-        cache.formats.geopackage.percentComplete += cache.formats.geopackage.generatedFeatures
+        cache.formats.geopackage.percentComplete += cache.formats.geopackage.generatedFeatures;
         cache.formats.geopackage.generatedFeatures = cache.formats.geopackage.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
 
         cache.formats.geopackage.percentComplete += (100 * ((progress.featuresAdded - sourceFeaturesCreated) / features.length)) / self.cache.map.dataSources.length;
@@ -370,7 +378,7 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
       });
     });
   });
-}
+};
 
 GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progressCallback, sourceFinishedCallback) {
   log.info('Adding the tiles for cache %s from the source %s - %s', this.cache.cache.id, rasterSource.source.name, rasterSource.source.id);
@@ -401,9 +409,12 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
         var tileRow = tile.y - yRange.min;
         var tileColumn = tile.x - xRange.min;
         rasterSource.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
-          if (err || !tileStream) { return tileDone()};
+          if (err || !tileStream) { return tileDone();}
           log.info('Adding the tile zoom: %d, row: %d, column: %d', tile.z, tileRow, tileColumn);
           self.geoPackage.addTileToGeoPackage(tileStream, tableName, tile.z, tileRow, tileColumn, function(err) {
+            if (err) {
+              console.log('error adding tile zoom: %d, row: %d, column: %d', tile.z, tile.x, tile.y);
+            }
             generatedTiles++;
             cache.formats.geopackage.percentComplete += (100 * (1 / totalTiles)) / self.cache.map.dataSources.length;
             progressCallback(cache, function(err, updatedCache) {
@@ -424,7 +435,7 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
       }
     );
   });
-}
+};
 
 GeoPackage.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   if (this.source) {
@@ -434,7 +445,7 @@ GeoPackage.prototype.getDataWithin = function(west, south, east, north, projecti
     console.log('this.cache.map.source.id', this.cache.map);
     FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
   }
-}
+};
 
 GeoPackage.prototype._createGeoPackage = function(callback) {
   log.info('Opening a new GeoPackage at %s', this.filePath);
@@ -442,7 +453,7 @@ GeoPackage.prototype._createGeoPackage = function(callback) {
   this.geoPackage.createAndOpenGeoPackageFile(this.filePath, function() {
     callback(null, this.geoPackage);
   });
-}
+};
 
 GeoPackage.prototype._openGeoPackage = function(path, callback) {
   log.info('Opening GeoPackage at %s', path);
@@ -450,7 +461,7 @@ GeoPackage.prototype._openGeoPackage = function(path, callback) {
   this.geoPackage.openGeoPackageFile(path, function(err) {
     callback(err, this.geoPackage);
   });
-}
+};
 
 GeoPackage.prototype._insertTileLayers = function(callback) {
   console.log('insert tile layers');
@@ -483,7 +494,7 @@ GeoPackage.prototype._insertTileLayers = function(callback) {
       }
     );
   });
-}
+};
 
 GeoPackage.prototype._insertVectorLayers = function(callback) {
   log.info('Retrieving vector layers from GeoPackage');
@@ -505,10 +516,16 @@ GeoPackage.prototype._insertVectorLayers = function(callback) {
         log.info('feature table', featureTable);
         gp.iterateFeaturesFromTable(featureTable, function(err, feature, callback) {
           FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function(err) {
+            if (err) {
+              log.error('error creating feature for geopackage', err);
+            }
             log.debug('Created feature for sourceId %s and layerId %s', self.source.id, count);
             callback();
           });
         }, function(err) {
+          if (err) {
+            log.error('Error inserting vector layer into geopackage', err);
+          }
           console.log('all features for table %d complete', count);
           count++;
           self.source.layers = self.source.layers || [];
@@ -520,16 +537,16 @@ GeoPackage.prototype._insertVectorLayers = function(callback) {
           callback();
         });
       },
-      function(err, results) {
+      function(err) {
         callback(err);
       }
-    )
+    );
   });
-}
+};
 
 GeoPackage.prototype._checkGeoPackage = function(callback) {
   log.info('the geopackage is', this.geoPackage);
   callback(null);
-}
+};
 
 module.exports = GeoPackage;

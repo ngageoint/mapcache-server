@@ -1,9 +1,6 @@
 var request = require('supertest')
   , mongoose = require('mongoose')
   , config = require('mapcache-config')
-  , Token = require('mapcache-models').Token
-  , BufferStream = require('simple-bufferstream')
-  , fs = require('fs-extra')
   , path = require('path')
   , TokenModel = mongoose.model('Token')
   , sinon = require('sinon')
@@ -51,7 +48,7 @@ describe("map route tests", function() {
           });
         }
       }
-    }
+    };
 
     sandbox.mock(TokenModel)
       .expects('findOne')
@@ -112,7 +109,7 @@ describe("map route tests", function() {
           source.should.have.property('dataSources');
           source.dataSources[0].should.have.property('id');
         })
-        .end(done)
+        .end(done);
     });
 
     it("api should create a map from a file", function(done) {
@@ -146,7 +143,7 @@ describe("map route tests", function() {
           source.should.have.property('dataSources');
           source.dataSources[0].should.have.property('id');
         })
-        .end(done)
+        .end(done);
     });
   });
 
@@ -175,7 +172,7 @@ describe("map route tests", function() {
           map = res.body;
           mapId = map.id;
         })
-        .end(done)
+        .end(done);
     });
 
     afterEach(function(done) {
