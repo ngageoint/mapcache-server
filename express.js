@@ -46,10 +46,10 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-app.use(function(err, req, res) {
+app.use(function(err, req, res, leaveThisHereSoExpressWillTreatThisAsAnErrorFunctionEvenThoughItIsNotUsed) { //jshint ignore: line
   console.error(err.message);
   console.error(err.stack);
-  res.send(500, 'Internal server error, please contact MapCahe administrator.');
+  res.status(500).send('Internal server error, please contact mapcache administrator.');
 });
 
 // Configure routes

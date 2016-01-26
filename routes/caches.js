@@ -146,7 +146,7 @@ module.exports = function(app, auth) {
       new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
-
+        console.log('bloop');
         tileStream.pipe(res);
       });
     }

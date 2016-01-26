@@ -3,13 +3,11 @@ var FeatureModel = require('mapcache-models').Feature
   , log = require('mapcache-log')
   , config = require('mapcache-config')
   , xyzTileUtils = require('xyz-tile-utils')
-  , fs = require('fs-extra')
   , async = require('async')
   , Map = require('../map/map')
   , q = require('q');
 
 var Cache = function(cache) {
-  console.log('cache', cache.source.id);
   this.cache = cache || {};
   this.cache.outputDirectory = this.cache.outputDirectory || config.server.cacheDirectory.path;
   this.map = {};
@@ -23,9 +21,14 @@ var Cache = function(cache) {
 
 Cache.prototype.initialize = function() {
   var self = this;
-  if (this.cache.source && !this.cache.source.getTile) {
+  if (!this.cache.source) {
+    this.error = new Error('There is no map associated with this cache');
+    this.initDefer.resolve(self);
+  } else if (this.cache.source && !this.cache.source.getTile) {
     var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
+      log.info('map was made');
+
       self.map = map;
       self.cache.source = map.map;
       self._updateDataSourceParams(function() {
@@ -41,7 +44,7 @@ Cache.prototype.initialize = function() {
 
 Cache.prototype._updateDataSourceParams = function(callback) {
   var self = this;
-  var mapSources = this.map.dataSources;
+  var mapSources = this.map.dataSources || [];
   var params = this.cache.cacheCreationParams || {};
   if (!params.dataSources || params.dataSources.length === 0) {
     params.dataSources = [];
@@ -104,7 +107,7 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   callback = callback || function(){};
 
   this.initPromise.then(function(self) {
-
+    if (self.error) return callback(self.error);
     // determine if the cache bounds intersect this tile
     var bounds = xyzTileUtils.tileBboxCalculator(x, y, z);
     var tilePoly = turf.bboxPolygon([bounds.west, bounds.south, bounds.east, bounds.north]);
@@ -112,6 +115,8 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
     if (!intersection) {
       return callback(null, null);
     }
+    log.info('5: Pull the tile %d, %d, %d', x, y, z);
+    console.log('self.map', self.map.getTile);
 
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       callback(null, tileStream);
