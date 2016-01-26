@@ -21,7 +21,7 @@ module.exports = function(app, security) {
 
     req.roleParam = {name: name, description: description, permissions: permissions};
     next();
-  }
+  };
 
   // get all roles
   app.get(
@@ -95,4 +95,4 @@ module.exports = function(app, security) {
       });
     }
   );
-}
+};

@@ -2,13 +2,10 @@ var models = require('mapcache-models')
   , CacheModel = models.Cache
   , turf = require('turf')
   , fs = require('fs-extra')
-  , archiver = require('archiver')
   , log = require('mapcache-log')
   , config = require('mapcache-config')
-  , FeatureModel = models.Feature
   , async = require('async')
-  , CacheApi = require('../cache/cache')
-  , exec = require('child_process').exec;
+  , CacheApi = require('../cache/cache');
 
 function Cache(cacheModel) {
   this.cacheModel = cacheModel;
@@ -16,14 +13,14 @@ function Cache(cacheModel) {
 
 Cache.getAll = function(options, callback) {
   CacheModel.getCaches(options, callback);
-}
+};
 
 Cache.getById = function(id, callback) {
   console.log('get cache by id', id);
   CacheModel.getCacheById(id, function(err, cache) {
     callback(err, cache);
   });
-}
+};
 
 Cache.create = function(cache, callback, progressCallback) {
   callback = callback || function() {};
@@ -46,7 +43,7 @@ Cache.create = function(cache, callback, progressCallback) {
     var cleanDataSources = [];
     if (Array.isArray(ds)) {
       for (var i = 0; i < ds.length; i++) {
-        if (ds[i] != null) cleanDataSources.push(ds[i]);
+        if (ds[i] !== null) cleanDataSources.push(ds[i]);
       }
       cache.cacheCreationParams.dataSources = cleanDataSources;
     }
@@ -64,7 +61,7 @@ Cache.create = function(cache, callback, progressCallback) {
     progressCallback(null, newCache);
     createFormat(formats, newCache, callback, progressCallback);
   });
-}
+};
 
 function createFormat(formats, cache, callback, progressCallback) {
   callback = callback || function() {};
@@ -114,7 +111,7 @@ Cache.getCachesFromMapId = function(id, callback) {
 	  'sourceId': id
   };
   CacheModel.getCaches(query, callback);
-}
+};
 
 Cache.prototype.delete = function(callback) {
   var cacheModel = this.cacheModel;
@@ -124,7 +121,7 @@ Cache.prototype.delete = function(callback) {
       callback(err, cacheModel);
     });
   });
-}
+};
 
 Cache.prototype.deleteFormat = function(format, callback) {
   var cacheModel = this.cacheModel;
@@ -137,27 +134,27 @@ Cache.prototype.deleteFormat = function(format, callback) {
       callback(err, cacheModel);
     });
   });
-}
+};
 
 Cache.prototype.createFormat = function(formats, callback, progressCallback) {
   var cache = this.cacheModel;
   formats = Array.isArray(formats) ? formats : [formats];
   createFormat(formats, cache, callback, progressCallback);
-}
+};
 
-Cache.prototype.restart = function(format, callback) {
+// Cache.prototype.restart = function(format, callback) {
   // cacheProcessor.restartCacheFormat(this.cacheModel, format, function(err, cache) {
   //   console.log('format ' + format + ' restarted for cache ' + cache.name);
   //   callback(err, cache);
   // });
-}
+// };
 
-Cache.prototype.generateMoreZooms = function(format, newMinZoom, newMaxZoom, callback) {
+// Cache.prototype.generateMoreZooms = function(format, newMinZoom, newMaxZoom, callback) {
   // cacheProcessor.generateMoreZooms(this.cacheModel, format, newMinZoom, newMaxZoom, function(err, cache) {
   //   console.log('more zooms for ' + format + ' for cache ' + cache.name);
   //   callback(err, cache);
   // });
-}
+// };
 
 Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
   if (!this.cacheModel.formats || !this.cacheModel.formats[format] || !this.cacheModel.formats[format].complete) {
@@ -165,16 +162,16 @@ Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
     return callback(null, {creating: true});
   }
   var cacheApi = new CacheApi(this.cacheModel);
-  cacheApi.callbackWhenInitialized(function(err, cache) {
+  cacheApi.callbackWhenInitialized(function() {
     cacheApi.getData(format, minZoom, maxZoom, callback);
   });
-}
+};
 
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   var cacheApi = new CacheApi(this.cacheModel);
-  cacheApi.callbackWhenInitialized(function(err, cache) {
+  cacheApi.callbackWhenInitialized(function() {
     cacheApi.getTile(format, z, x, y, params, callback);
   });
-}
+};
 
 module.exports = Cache;

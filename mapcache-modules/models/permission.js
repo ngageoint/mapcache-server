@@ -51,4 +51,4 @@ var allPermissions = []
 
 exports.getPermissions = function() {
   return allPermissions;
-}
+};

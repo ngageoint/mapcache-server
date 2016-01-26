@@ -1,14 +1,8 @@
 module.exports = function(app, auth) {
   var access = require('../access')
-    , fs = require('fs-extra')
-    , path = require('path')
-    , log = require('mapcache-log')
-    , xyzTileUtils = require('xyz-tile-utils')
     , Map = require('../api/source')
     , Cache = require('../api/cache')
     , request = require('request')
-    , config = require('mapcache-config')
-    , DOMParser = global.DOMParser = require('xmldom').DOMParser
     , WMSCapabilities = require('wms-capabilities')
     , sourceXform = require('../transformers/source')
     , cacheXform = require('../transformers/cache');
@@ -31,7 +25,7 @@ module.exports = function(app, auth) {
       req.newSource.dataSources = source.dataSources;
     }
     next();
-  }
+  };
 
   var parseQueryParams = function(req, res, next) {
     var parameters = {};
@@ -40,7 +34,7 @@ module.exports = function(app, auth) {
     req.parameters = parameters;
 
     next();
-  }
+  };
 
   // get all sources
   app.get(
@@ -58,7 +52,7 @@ module.exports = function(app, auth) {
 
       Map.getAll(options, function(err, sources) {
         if (err) return next(err);
-        var sources = sourceXform.transform(sources);
+        sources = sourceXform.transform(sources);
         res.json(sources);
       });
     }
@@ -126,7 +120,7 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('CREATE_CACHE'),
     validateSource,
-    function(req, res, next) {
+    function(req, res) {
       Map.update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
         var response = sourceXform.transform(updatedSource);
         res.json(response);
@@ -178,13 +172,13 @@ module.exports = function(app, auth) {
     '/api/maps/:sourceId/dataSources/:dataSourceId',
     access.authorize('CREATE_CACHE'),
     parseQueryParams,
-    function(req, res, next) {
+    function(req, res) {
       new Map(req.source).deleteDataSource(req.param('dataSourceId'), function(err, source) {
         var sourceJson = sourceXform.transform(source);
         res.json(sourceJson);
       });
     }
-  )
+  );
 
   // get source
   app.get(
@@ -195,7 +189,7 @@ module.exports = function(app, auth) {
       Cache.getCachesFromMapId(req.param('sourceId'), function(err, caches) {
         if (err) return next(err);
 
-        var caches = cacheXform.transform(caches);
+        caches = cacheXform.transform(caches);
         res.json(caches);
       });
     }
@@ -205,11 +199,11 @@ module.exports = function(app, auth) {
   app.get(
     '/api/maps/wmsFeatureRequest',
     access.authorize('READ_CACHE'),
-    function (req, res, next) {
+    function (req, res) {
       console.log('wms feature request for ', req.param('wmsUrl'));
-      var DOMParser = global.DOMParser = require('xmldom').DOMParser;
+      global.DOMParser = require('xmldom').DOMParser;
       var WMSCapabilities = require('wms-capabilities');
-      var req = request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true}, function(error, response, body) {
+      request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true}, function(error, response, body) {
         var json = new WMSCapabilities(body).toJSON();
         res.json(json);
       });
@@ -220,7 +214,7 @@ module.exports = function(app, auth) {
   app.get(
     '/api/maps/discoverMap',
     access.authorize('READ_CACHE'),
-    function (req, res, next) {
+    function (req, res) {
       console.log('figure out what this URL is ', req.param('url'));
 
       var sourceInformation = {
@@ -228,16 +222,15 @@ module.exports = function(app, auth) {
         valid: false
       };
 
-      request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response, body) {
-        if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
+      request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response) {
+        if (!err && response && response.statusCode === 200 && response.headers['content-type'].indexOf('image')===0) {
           sourceInformation.valid = true;
           sourceInformation.format = 'xyz';
           res.json(sourceInformation);
         } else {
           request.get({url: req.param('url') + '?f=pjson', timeout: 5000}, function(err, response, body) {
             var parsable = false;
-            var body;
-            if (!err && response && response.statusCode == 200) {
+            if (!err && response && response.statusCode === 200) {
               try {
                 body = JSON.parse(body);
                 parsable = true;
@@ -251,8 +244,8 @@ module.exports = function(app, auth) {
               sourceInformation.wmsGetCapabilities = body;
               res.json(sourceInformation);
             } else {
-              request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response, body) {
-                if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
+              request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response) {
+                if (!err && response && response.statusCode === 200 && response.headers['content-type'].indexOf('image')===0) {
                   sourceInformation.valid = true;
                   sourceInformation.format = 'xyz';
                   sourceInformation.tilesLackExtensions = true;
@@ -260,19 +253,19 @@ module.exports = function(app, auth) {
                 } else {
 
                   request.get({url: req.param('url'), json: true, timeout: 5000}, function(err, response, body){
-                    if (!err && response && (response.statusCode == 200 || response.statusCode == 406)) {
+                    if (!err && response && (response.statusCode === 200 || response.statusCode === 406)) {
                       sourceInformation.valid = true;
                     }
-                    if (!err && response && response.statusCode == 200 && body && typeof body == "object") {
+                    if (!err && response && response.statusCode === 200 && body && typeof body === "object") {
                       sourceInformation.format = 'geojson';
                       res.json(sourceInformation);
                     } else {
                       console.log('err from json request was ', err);
                       request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: false, timeout: 5000}, function(error, response, body) {
                         console.log('error', error);
-                        if (!error && response && response.statusCode == 200) {
+                        if (!error && response && response.statusCode === 200) {
                           var json = new WMSCapabilities(body).toJSON();
-                          if (json && json.version && json.version != "") {
+                          if (json && json.version && json.version !== "") {
                             console.log('json.version', json.version);
                             sourceInformation.format = 'wms';
                             sourceInformation.wmsGetCapabilities = json;
@@ -283,9 +276,9 @@ module.exports = function(app, auth) {
                         } else {
                           request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
                             console.log('error', error);
-                            if (!error && response && response.statusCode == 200) {
+                            if (!error && response && response.statusCode === 200) {
                               var json = new WMSCapabilities(body).toJSON();
-                              if (json && json.version && json.version != "") {
+                              if (json && json.version && json.version !== "") {
                                 console.log('json.version', json.version);
                                 sourceInformation.format = 'wms';
                                 sourceInformation.wmsGetCapabilities = json;
@@ -315,7 +308,7 @@ module.exports = function(app, auth) {
     '/api/maps/:sourceId',
     access.authorize('READ_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
+    function (req, res) {
       var sourceJson = sourceXform.transform(req.source);
       res.json(sourceJson);
     }
@@ -334,4 +327,4 @@ module.exports = function(app, auth) {
       });
     }
   );
-}
+};

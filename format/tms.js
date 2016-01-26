@@ -13,12 +13,12 @@ var TMS = function(config) {
   this.config = config || {};
   this.source = config.source;
   this.cache = config.cache;
-}
+};
 
 TMS.prototype.initialize = function() {
-}
+};
 
-TMS.prototype.processSource = function(doneCallback, progressCallback) {
+TMS.prototype.processSource = function(doneCallback) {
   this.source.status = this.source.status || {};
   this.source.status.message = "Complete";
   this.source.status.complete = true;
@@ -37,12 +37,12 @@ TMS.prototype.processSource = function(doneCallback, progressCallback) {
     }
   };
   doneCallback(null, this.source);
-}
+};
 
 TMS.prototype.delete = function(callback) {
   if (!this.cache) return callback();
   fs.remove(path.join(this.config.outputDirectory, 'xyztiles'), callback);
-}
+};
 
 TMS.prototype.generateCache = function(callback, progressCallback) {
   log.info('Generating cache with id %s', this.cache.cache.id);
@@ -50,7 +50,7 @@ TMS.prototype.generateCache = function(callback, progressCallback) {
   callback = callback || function() {};
   progressCallback = progressCallback || function(cache, callback) {
     callback(null, cache);
-  }
+  };
   var cache = this.cache.cache;
   var cacheId = this.cache.cache.id;
   cache.formats = cache.formats || {};
@@ -154,7 +154,7 @@ TMS.prototype.generateCache = function(callback, progressCallback) {
       }
     );
   });
-}
+};
 
 TMS.prototype.getData = function(minZoom, maxZoom, callback) {
   var cp = require('child_process');
@@ -167,25 +167,25 @@ TMS.prototype.getData = function(minZoom, maxZoom, callback) {
 
   console.log('working dir',path.join(this.config.outputDirectory, this.cache.cache.id.toString() ));
   var zip = cp.spawn('zip', args, {cwd: path.join(this.config.outputDirectory, this.cache.cache.id.toString())}).on('close', function(code) {
-    console.log('close the zip');
+    console.log('close the zip with code', code);
   });
   callback(null, {stream: zip.stdout, extension: '.zip'});
-}
+};
 
 TMS.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   callback(null, null);
-}
+};
 
 TMS.prototype.getTile = function(format, z, x, y, params, callback) {
   format = format.toLowerCase();
-  if (format != 'png' && format != 'jpeg') return callback(null, null);
+  if (format !== 'png' && format !== 'jpeg') return callback(null, null);
   if (this.source) {
     getTileFromSource(this.source, z, x, y, format, callback);
   } else if (this.cache) {
     var map = this.cache.source;
     var sorted = map.dataSources.sort(zOrderDatasources);
     params = params || {};
-    if (!params.dataSources || params.dataSources.length == 0) {
+    if (!params.dataSources || params.dataSources.length === 0) {
       params.dataSources = [];
       for (var i = 0; i < sorted.length; i++) {
         params.dataSources.push(sorted[i].id);
@@ -199,18 +199,17 @@ TMS.prototype.getTile = function(format, z, x, y, params, callback) {
     ctx.clearRect(0, 0, height, height);
 
     async.eachSeries(sorted, function iterator(s, callback) {
-      if (params.dataSources.indexOf(s.id) == -1) return callback();
+      if (params.dataSources.indexOf(s.id) === -1) return callback();
       console.log('constructing the data source format %s', s.format);
       var DataSource = require('./' + s.format);
       var dataSource = new DataSource({source: s});
       dataSource.getTile(format, z, x, y, params, function(err, tileStream) {
         var buffer = new Buffer(0);
-        var chunk;
         tileStream.on('data', function(chunk) {
           buffer = Buffer.concat([buffer, chunk]);
         });
         tileStream.on('end', function() {
-          var img = new Image;
+          var img = new Image();
           img.onload = function() {
             ctx.drawImage(img, 0, 0, img.width, img.height);
             callback();
@@ -223,7 +222,7 @@ TMS.prototype.getTile = function(format, z, x, y, params, callback) {
       callback(null, canvas.pngStream());
     });
   }
-}
+};
 
 function zOrderDatasources(a, b) {
   if (a.zOrder < b.zOrder) {
@@ -236,21 +235,11 @@ function zOrderDatasources(a, b) {
   return 0;
 }
 
-function getTileForCache(callback) {
-  var dir = createDir(source._id, 'xyztiles/' + z + '/' + x + '/');
-  var filename = y + '.png';
-
-  if (fs.existsSync(dir + filename)) {
-    console.log('file already exists, skipping: %s', dir+filename);
-    return done(null, dir+filename);
-  }
-}
-
 function getTileFromSource(source, z, x, y, format, callback) {
   console.log('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
   var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
   var req = null;
-  if (format == 'jpg' || format == 'jpeg') {
+  if (format === 'jpg' || format === 'jpeg') {
     tileImage.pngRequestToJpegStream(callback);
   } else {
     req = request.get({url: url,
@@ -258,15 +247,6 @@ function getTileFromSource(source, z, x, y, format, callback) {
     });
     callback(null, req);
   }
-}
-
-function createDir(cacheName, filepath){
-	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
-    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
-       if (err) console.log(err);
-     });
-	}
-  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }
 
 module.exports = TMS;

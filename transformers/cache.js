@@ -1,13 +1,13 @@
 var util = require('util')
   , config = require('mapcache-config');
 
-var transformCaches = function(caches, options) {
+var transformCaches = function(caches) {
   return caches.map(function(cache) {
     var c = cache.toJSON({transform: true});
     updateCacheSource(c);
     return c;
   });
-}
+};
 
 exports.transform = function(caches, options) {
   options = options || {};
@@ -18,7 +18,7 @@ exports.transform = function(caches, options) {
   var cache = caches.toJSON({transform: true});
   updateCacheSource(cache);
   return cache;
-}
+};
 
 function updateCacheSource(cache) {
   if (!cache.source) return;
@@ -34,15 +34,15 @@ function updateCacheSource(cache) {
     }
   });
   if (addVectorSources) {
-    var ct = config.sourceCacheTypes["vector"];
-    ct.forEach(function(type) {
+    var vectorTypes = config.sourceCacheTypes.vector;
+    vectorTypes.forEach(function(type) {
       cache.source.cacheTypes.push(type);
     });
   }
   if (addRasterSources) {
-    var ct = config.sourceCacheTypes["raster"];
-    ct.forEach(function(type) {
+    var rasterTypes = config.sourceCacheTypes.raster;
+    rasterTypes.forEach(function(type) {
       cache.source.cacheTypes.push(type);
-    })
+    });
   }
 }

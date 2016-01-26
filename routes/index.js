@@ -2,14 +2,10 @@ module.exports = function(app, security) {
   var fs = require('fs-extra')
     , api = require('../api')
     , models = require('mapcache-models')
-    , User = models.User
     , Role = models.Role
     , Cache = models.Cache
     , Source = models.Source
     , log = require('winston');
-
-  var passport = security.authentication.passport
-    , authenticationStrategy = security.authentication.authenticationStrategy;
 
   app.get('/api', function(req, res) {
     log.info('get api info');
@@ -19,7 +15,7 @@ module.exports = function(app, security) {
 
   // Dynamically import all routes
   fs.readdirSync(__dirname).forEach(function(file) {
-    if (file[0] == '.' || file === 'index.js') return;
+    if (file[0] === '.' || file === 'index.js') return;
     var route = file.substr(0, file.indexOf('.'));
     require('./' + route)(app, security);
   });
@@ -35,7 +31,7 @@ module.exports = function(app, security) {
         } else {
           next('route');
         }
-      }
+      };
     }
   });
 
@@ -84,5 +80,4 @@ module.exports = function(app, security) {
         next();
       });
   });
-
-}
+};

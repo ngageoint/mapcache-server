@@ -72,7 +72,7 @@ var SourceSchema = new Schema({
   url: { type: String, required: false }
 });
 
-function transform(source, ret, options) {
+function transform(source, ret) {
 	ret.id = ret._id;
 	delete ret._id;
 	delete ret.__v;
@@ -92,16 +92,16 @@ function transform(source, ret, options) {
       }
     });
     if (addVectorSources) {
-      var ct = config.sourceCacheTypes["vector"];
-      ct.forEach(function(type) {
+      var vectorTypes = config.sourceCacheTypes.vector;
+      vectorTypes.forEach(function(type) {
         ret.cacheTypes.push(type);
       });
     }
     if (addRasterSources) {
-      var ct = config.sourceCacheTypes["raster"];
-      ct.forEach(function(type) {
+      var rasterTypes = config.sourceCacheTypes.raster;
+      rasterTypes.forEach(function(type) {
         ret.cacheTypes.push(type);
-      })
+      });
     }
   }
 }
@@ -121,22 +121,22 @@ exports.getSources = function(options, callback) {
   var query = options || {};
 	Source.find(query).exec(function(err, sources) {
     if (err) {
-      console.log("Error finding sources in mongo: " + id + ', error: ' + err);
+      console.log("Error finding sources in mongo, error: " + err);
     }
     callback(err, sources);
   });
-}
+};
 
 exports.updateSourceAverageSize = function(source, size, callback) {
   var update = {$inc: {}};
-  update.$inc['tileSizeCount'] = 1;
-  if (source.tileSize == 0){
+  update.$inc.tileSizeCount = 1;
+  if (source.tileSize === 0){
     update.tileSize = size;
   } else {
-    update.$inc['tileSize'] = size;
+    update.$inc.tileSize = size;
   }
   Source.findByIdAndUpdate(source.id, update, callback);
-}
+};
 
 exports.getSourceById = function(id, callback) {
   Source.findById(id).exec(function(err, source) {
@@ -155,7 +155,7 @@ exports.getSourceById = function(id, callback) {
 		  return callback(err, source);
 		});
   });
-}
+};
 
 exports.updateDatasource = function(datasource, callback) {
 
@@ -185,17 +185,17 @@ exports.updateDatasource = function(datasource, callback) {
     if (datasource.tilesLackExtensions) set['dataSources.$.tilesLackExtensions'] = datasource.tilesLackExtensions;
     if (datasource.zOrder) set['dataSources.$.zOrder'] = datasource.zOrder;
     if (datasource.status) {
-      for (var key in datasource.status) {
-        if (datasource.status[key]) {
-          set['dataSources.$.status.'+key] = datasource.status[key];
+      for (var statusKey in datasource.status) {
+        if (datasource.status[statusKey]) {
+          set['dataSources.$.status.'+statusKey] = datasource.status[statusKey];
         }
       }
     }
     if (datasource.properties) set['dataSources.$.properties'] = datasource.properties;
     if (datasource.style) {
-      for (var key in datasource.style) {
-        if (datasource.style[key]) {
-          set['dataSources.$.style.'+key] = datasource.style[key];
+      for (var styleKey in datasource.style) {
+        if (datasource.style[styleKey]) {
+          set['dataSources.$.style.'+styleKey] = datasource.style[styleKey];
         }
       }
     }
@@ -209,7 +209,7 @@ exports.updateDatasource = function(datasource, callback) {
         '$set': set,
         '$addToSet': addToSet
       },
-      function(err, source) {
+      function(err) {
         console.log('err saving the datasource', err);
         exports.getDataSourceById(datasource._id, function(err, datasource) {
           callback(err, datasource);
@@ -217,7 +217,7 @@ exports.updateDatasource = function(datasource, callback) {
       }
     );
   });
-}
+};
 
 exports.getSourceByDatasourceId = function(id, callback) {
   var dataSource = {"dataSources": {"$elemMatch": {_id: id}}};
@@ -225,7 +225,7 @@ exports.getSourceByDatasourceId = function(id, callback) {
     if (err) return callback(err);
     callback(err, source);
   });
-}
+};
 
 exports.getDataSourceById = function(id, callback) {
 
@@ -236,13 +236,13 @@ exports.getDataSourceById = function(id, callback) {
     if (!source.dataSources || !source.dataSources.length) return callback(err, null);
 
     for (var i = 0; i < source.dataSources.length; i++) {
-      if (source.dataSources[i]._id.toString() == id) {
+      if (source.dataSources[i]._id.toString() === id) {
         return callback(null, source.dataSources[i]);
       }
     }
     callback(err, null);
   });
-}
+};
 
 exports.getSourceNoProperties = function(id, callback) {
   Source.findById(id, {properties: 0}).exec(function(err, source) {
@@ -251,7 +251,7 @@ exports.getSourceNoProperties = function(id, callback) {
     }
     return callback(err, source);
   });
-}
+};
 
 exports.updateSource = function(id, update, callback) {
   update.styleTime = Date.now();
@@ -261,25 +261,25 @@ exports.updateSource = function(id, update, callback) {
   }
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);
-    callback(err, updatedSource)
+    callback(err, updatedSource);
   });
-}
+};
 
 exports.createSource = function(source, callback) {
 	source.humanReadableId = shortid.generate();
 	Source.create(source, callback);
-}
+};
 
 exports.deleteSource = function(source, callback) {
 	Source.remove({_id: source.id}, callback);
-}
+};
 
 exports.deleteDataSource = function(source, dataSourceId, callback) {
   var dataSource = {
     '_id': dataSourceId
   };
-  source.update({'$pull': {dataSources: dataSource}}, function(err, number, raw) {
+  source.update({'$pull': {dataSources: dataSource}}, function(err, number) {
     console.log('Removing the datasource %s number %d', dataSourceId, number);
     callback(err);
   });
-}
+};

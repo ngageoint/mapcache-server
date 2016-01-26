@@ -1,9 +1,7 @@
-var fs = require('fs-extra')
-  , path = require('path')
+var path = require('path')
   , find = require('findit')
   , async = require('async')
   , geojsonStream = require('geojson-stream')
-  , extend = require('util')._extend
   , decompress = require('decompress-zip')
   , ogr2ogr = require('ogr2ogr')
   , tile = require('mapcache-tile')
@@ -17,9 +15,9 @@ var KMZ = function(config) {
   if (this.config.cache) {
     throw new Error('Cannot create KMZ caches at this time');
   }
-}
+};
 
-KMZ.prototype.processSource = function(doneCallback, progressCallback) {
+KMZ.prototype.processSource = function(doneCallback) {
 
   this.source.vector = true;
   this.source.status = this.source.status || {};
@@ -48,7 +46,7 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
       var kmlFile;
       var finder = find(path.join(this.outDirectory, 'extract'));
 
-      finder.on('file', function(file, stat){
+      finder.on('file', function(file){
         console.log('file', file);
         if (/^\.(kml)$/i.test(path.extname(file))) {
           kmlFile = file;
@@ -59,7 +57,6 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
         console.log('kmlfile', kmlFile);
         var gdal = require("gdal");
         var ds = gdal.open(kmlFile);
-        var gdalType = require('./gdalType');
 
         var layer = ds.layers;
         console.log('DataSource Layer Count', layer.count());
@@ -88,7 +85,7 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
     });
   }.bind(this));
 
-}
+};
 
 KMZ.prototype._extractLayer = function(file, layer, layerId, callback) {
   console.log('this', this);
@@ -101,14 +98,15 @@ KMZ.prototype._extractLayer = function(file, layer, layerId, callback) {
     // console.log('feature', feature);
     var source = this.source.id;
     FeatureModel.createFeature(feature, {sourceId: this.source.id, layerId: layerId}, function(err) {
+      if (err) log.error('Error createing feature for sourceId %s and layerId %s', source, layerId, err);
       log.debug('Created feature for sourceId %s and layerId %s', source, layerId, feature);
     });
   }.bind(this));
   gjStream.on('end', function() {
     callback(null, layer);
-  })
+  });
   stream.pipe(gjStream);
-}
+};
 
 function isAlreadyProcessed(source, callback) {
   log.debug('is it already processed?', source);
@@ -117,7 +115,7 @@ function isAlreadyProcessed(source, callback) {
   }
   FeatureModel.getFeatureCount({sourceId: source.id}, function(resultArray){
     log.debug("The source already has features", resultArray);
-    if (resultArray[0].count != '0') {
+    if (resultArray[0].count !== '0') {
       return callback(true);
     } else {
       return callback(false);
@@ -192,21 +190,18 @@ function completeProcessing(source, callback) {
 
 KMZ.prototype.getTile = function(format, z, x, y, params, callback) {
   tile.getVectorTile(this.source, format, z, x, y, params, callback);
-}
+};
 
-KMZ.prototype.generateCache = function(doneCallback, progressCallback) {
+KMZ.prototype.generateCache = function(doneCallback) {
   doneCallback(null, null);
-}
+};
 
 KMZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   if (this.source) {
     FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
   } else {
-    var c = this.cache;
-    FeatureModel.getFeatureCount({cacheId: this.cache.cache.id, sourceId: this.cache.map.source.id}, function(count) {
-      FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
-    });
+    FeatureModel.findFeaturesByCacheIdWithin(this.cache.cache.id, west, south, east, north, projection, callback);
   }
-}
+};
 
 module.exports = KMZ;

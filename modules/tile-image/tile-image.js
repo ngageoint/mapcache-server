@@ -9,7 +9,7 @@ exports.pngRequestToJpegStream = function(url, callback) {
 
   ctx.clearRect(0, 0, height, height);
 
-  req = request.get({url: url,
+  request.get({url: url,
     headers: {'Content-Type': 'image/png'},
     encoding: null
   }, function(err, response, image) {
@@ -17,9 +17,9 @@ exports.pngRequestToJpegStream = function(url, callback) {
 			console.log('error retrieving image ' + url, err);
       return callback(err, null);
 		}
-    img = new Image;
+    var img = new Image();
     img.src = image;
     ctx.drawImage(img, 0, 0, img.width, img.height);
     callback(null, canvas.jpegStream());
   });
-}
+};

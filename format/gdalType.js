@@ -6,57 +6,55 @@ var gdal = require("gdal")
   , fs = require('fs-extra')
   , png = require('pngjs')
   , xyzTileUtils = require('xyz-tile-utils')
-  , async = require('async')
-  , log = require('mapcache-log')
-  , config = require('mapcache-config');
+  , log = require('mapcache-log');
 
-  exports.processSource = function(source, callback, progressCallback) {
-    callback = callback || function() {};
-    progressCallback = progressCallback || function(source, callback) { callback(null, source);};
-    source.status.message="Processing source";
-    source.status.complete = false;
-    progressCallback(source, function(err, newSource) {
+exports.processSource = function(source, callback, progressCallback) {
+  callback = callback || function() {};
+  progressCallback = progressCallback || function(source, callback) { callback(null, source);};
+  source.status.message="Processing source";
+  source.status.complete = false;
+  progressCallback(source, function(err, newSource) {
+    source = newSource;
+    var ds = gdal.open(source.file.path);
+    console.log(exports.gdalInfo(ds));
+
+    if (!ds.srs) {
+      source.status.message="There is no Spatial Reference System in the file";
+      source.status.complete = true;
+      source.status.failure = true;
+      return callback(null, source);
+    }
+
+    source.projection = ds.srs.getAuthorityCode("PROJCS");
+    if (!source.projection) {
+      source.projection = ds.srs.getAuthorityCode("GEOGCS");
+    }
+    var polygon = turf.polygon([sourceCorners(ds)]);
+    source.geometry = polygon;
+    expandColorsIfNecessary(ds, source, function(err, newSource) {
       source = newSource;
-      var ds = gdal.open(source.file.path);
-      console.log(exports.gdalInfo(ds));
-
-      if (!ds.srs) {
-        source.status.message="There is no Spatial Reference System in the file";
-        source.status.complete = true;
-        source.status.failure = true;
-        return callback(null, source);
-      }
-
-      source.projection = ds.srs.getAuthorityCode("PROJCS");
-      if (!source.projection) {
-        source.projection = ds.srs.getAuthorityCode("GEOGCS");
-      }
-      var polygon = turf.polygon([sourceCorners(ds)]);
-      source.geometry = polygon;
-      expandColorsIfNecessary(ds, source, function(err, newSource) {
+      progressCallback(source, function(err, newSource) {
         source = newSource;
-        progressCallback(source, function(err, newSource) {
+        createLowerResolution(ds, source, function(err, newSource) {
           source = newSource;
-          createLowerResolution(ds, source, function(err, newSource) {
-            source = newSource;
-            source.status.message = "Complete";
-            source.status.complete = true;
-            callback(null, source);
-          });
+          source.status.message = "Complete";
+          source.status.complete = true;
+          callback(null, source);
         });
       });
     });
-  }
+  });
+};
 
 function expandColorsIfNecessary(ds, source, callback) {
   console.log('ds.bands.get(1).colorInterpretation', ds.bands.get(1).colorInterpretation);
   var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
   var file = path.join(path.dirname(source.file.path), fileName);
-  if (ds.bands.get(1).colorInterpretation == 'Palette' && !fs.existsSync(file)) {
+  if (ds.bands.get(1).colorInterpretation === 'Palette' && !fs.existsSync(file)) {
     // node-gdal cannot currently return the palette so I need to translate it into a geotiff with bands
-    var python = exec(
+    exec(
       'gdal_translate -expand rgb ' + source.file.path + " " + file,
-    function(error, stdout, stderr) {
+    function() {
       source.file.path = file;
       callback(null, source);
     });
@@ -71,90 +69,37 @@ function createLowerResolution(ds, source, callback) {
   log.info('Creating lower resolution image at %s', file);
 
   if (fs.existsSync(file)) {
-    var in_ds = gdal.open(file);
+    var gdalFile = gdal.open(file);
 
     source.scaledFiles = source.scaledFiles || [];
     source.scaledFiles.push({
       path: file,
-      resolution: in_ds.geoTransform[1]
+      resolution: gdalFile.geoTransform[1]
     });
     return callback(null, source);
   }
 
+  var width = 0;
+  var height = 1024;
+
   if (ds.rasterSize.x < ds.rasterSize.y) {
     width = 1024;
     height = 0;
-  } else {
-    width = 0;
-    height = 1024;
   }
 
-  var python = exec(
+  exec(
     'gdalwarp -ts '+ width+' ' + height +' -dstalpha -t_srs \'EPSG:3857\' -co COMPRESS=LZW -co TILED=YES ' + source.file.path + " " + file,
   function(error, stdout, stderr) {
     console.log('stderr', stderr);
-    var in_ds = gdal.open(file);
+    var gdalFile = gdal.open(file);
 
     source.scaledFiles = source.scaledFiles || [];
     source.scaledFiles.push({
       path: file,
-      resolution: in_ds.geoTransform[1]
+      resolution: gdalFile.geoTransform[1]
     });
     callback(null, source);
   });
-}
-
-// direct port from gdal2tiles.py
-function tileRasterBounds(ds, ulx, uly, lrx, lry) {
-
-  console.log('ulx %d uly %d lrx %d lry %d', ulx, uly, lrx, lry);
-
-  var gt = ds.geoTransform;
-  var rx = Math.floor((ulx - gt[0]) / gt[1] + 0.001);
-  var ry = Math.floor((uly - gt[3]) / gt[5] + 0.001);
-  var rxsize = Math.floor((lrx - ulx) / gt[1] + 0.5);
-  var rysize = Math.floor((lry - uly) / gt[5] + 0.5);
-
-  var wxsize = rxsize;
-  var wysize = rysize;
-
-  console.log('rxsize %d rysize %d rx %d ry %d', rxsize, rysize, rx, ry);
-
-  var wx = 0;
-  if (rx < 0) {
-    var rxshift = Math.abs(rx);
-    wx = Math.floor(wxsize * (rxshift / rxsize));
-    wxsize = wxsize - wx;
-    rxsize = rxsize - Math.floor(rxsize * (rxshift / rxsize));
-    rx = 0;
-  }
-  if ((rx + rxsize) > ds.rasterSize.x) {
-    wxsize = Math.floor(wxsize * ((ds.rasterSize.x - rx) / rxsize));
-    rxsize = ds.rasterSize.x - rx;
-  }
-  var wy = 0;
-  if (ry < 0) {
-    var ryshift = Math.abs(ry);
-    wy = Math.floor(wysize * (ryshift / rysize));
-    wysize = wysize - wy;
-    rysize = rysize - Math.floor(rysize * (ryshift / rysize));
-    ry = 0;
-  }
-  if ((ry + rysize) > ds.rasterSize.y) {
-    wysize = Math.floor(wysize * ((ds.rasterSize.y - ry)/ rysize));
-    rysize = ds.rasterSize.y - ry;
-  }
-
-  return {
-    rx: rx,
-    ry: ry,
-    rxsize: rxsize,
-    rysize: rysize,
-    wx: wx,
-    wy: wy,
-    wxsize: wxsize,
-    wysize: wysize
-  };
 }
 
 function createCutlineInProjection(envelope, srs) {
@@ -177,17 +122,15 @@ function createPixelCoordinateCutline(envelope, ds) {
 
   var sourcePixels = new gdal.CoordinateTransformation(ds.srs, ds);
 
-  var cutlineCoords = createCutlineInProjection(envelope, ds.srs);
-
   var ul = sourceCoords.transformPoint(envelope.west, envelope.north);
 	var ur = sourceCoords.transformPoint(envelope.east, envelope.north);
 	var lr = sourceCoords.transformPoint(envelope.east, envelope.south);
 	var ll = sourceCoords.transformPoint(envelope.west, envelope.south);
 
-  var ul = sourcePixels.transformPoint(ul.x, ul.y);
-  var ur = sourcePixels.transformPoint(ur.x, ur.y);
-  var lr = sourcePixels.transformPoint(lr.x, lr.y);
-  var ll = sourcePixels.transformPoint(ll.x, ll.y);
+  ul = sourcePixels.transformPoint(ul.x, ul.y);
+  ur = sourcePixels.transformPoint(ur.x, ur.y);
+  lr = sourcePixels.transformPoint(lr.x, lr.y);
+  ll = sourcePixels.transformPoint(ll.x, ll.y);
 
 	var cutline = new gdal.Polygon();
 	var ring = new gdal.LinearRing();
@@ -196,21 +139,25 @@ function createPixelCoordinateCutline(envelope, ds) {
   return cutline;
 }
 
-exports.getTile = function(source, format, z, x, y, params, callback) {
-  format = format.toLowerCase();
-  if (format != 'png' && format != 'jpeg') return callback(null, null);
-  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
-
+function pickCorrectResolutionFile(source, zoom) {
   var filePath = source.file.path;
-  var zoomRes = xyzTileUtils.getZoomLevelResolution(z);
+  var zoomRes = xyzTileUtils.getZoomLevelResolution(zoom);
   var currentRes = 0;
-  for (var i = 0; source.scaledFiles && i < source.scaledFiles.length; i++) {
-    log.info('Zoom res: %d scaledFile res: %d current Res: %d', zoomRes, source.scaledFiles[i].resolution, currentRes);
-    if (zoomRes > source.scaledFiles[i].resolution && currentRes < source.scaledFiles[i].resolution) {
-      filePath = source.scaledFiles[i].path;
+  for (var scaleFileIndex = 0; source.scaledFiles && scaleFileIndex < source.scaledFiles.length; scaleFileIndex++) {
+    log.info('Zoom res: %d scaledFile res: %d current Res: %d', zoomRes, source.scaledFiles[scaleFileIndex].resolution, currentRes);
+    if (zoomRes > source.scaledFiles[scaleFileIndex].resolution && currentRes < source.scaledFiles[scaleFileIndex].resolution) {
+      filePath = source.scaledFiles[scaleFileIndex].path;
     }
   }
+  return filePath;
+}
 
+exports.getTile = function(source, format, z, x, y, params, callback) {
+  format = format.toLowerCase();
+  if (format !== 'png' && format !== 'jpeg') return callback(null, null);
+  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
+
+  var filePath = pickCorrectResolutionFile(source, z);
   console.log('using the source file', filePath);
 
   var tileEnvelope = xyzTileUtils.tileBboxCalculator(x, y, z);
@@ -221,40 +168,33 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     return callback();
   }
 
-  var in_ds = gdal.open(filePath);
-  // exports.gdalInfo(in_ds);
+  var gdalFile = gdal.open(filePath);
 
-  var in_srs = in_ds.srs;
-  console.log('in_ds.bands.get(1).colorInterpretation', in_ds.bands.get(1).colorInterpretation);
-  var grayscale = in_ds.bands.get(1).colorInterpretation == 'Gray';
+  console.log('in_ds.bands.get(1).colorInterpretation', gdalFile.bands.get(1).colorInterpretation);
+  var grayscale = gdalFile.bands.get(1).colorInterpretation === 'Gray';
 
-  var in_gt = in_ds.geoTransform;
+  var gt = gdalFile.geoTransform;
 
-  if (in_gt[2] != 0 || in_gt[4] != 0) {
+  if (gt[2] !== 0 || gt[4] !== 0) {
     console.log("error the geotiff is skewed, need to warp first");
     return callback();
   }
 
-  var w =  in_ds.rasterSize.x;
-  var h =  in_ds.rasterSize.y;
-
   var fullExtent = turf.extent(source.geometry);
 
   var cutline = createCutlineInProjection(tileEnvelope, gdal.SpatialReference.fromEPSG(3857));
-  var srcCutline = createPixelCoordinateCutline({west: fullExtent[0], south: fullExtent[1], east: fullExtent[2], north: fullExtent[3]}, in_ds);
+  var srcCutline = createPixelCoordinateCutline({west: fullExtent[0], south: fullExtent[1], east: fullExtent[2], north: fullExtent[3]}, gdalFile);
 
-  var extent = cutline.getEnvelope();
-
-  var out_ds = reproject(in_ds, 3857, cutline, srcCutline);
+  var reprojectedFile = reproject(gdalFile, 3857, cutline, srcCutline);
 
   var readOptions = {};
   if (grayscale) {
-    readOptions.pixel_space = 1;
+    readOptions.pixel_space = 1; // jshint ignore:line
   }
-  var pixelRegion1 = out_ds.bands.get(1).pixels.read(0, 0, 256, 256, null, readOptions);
-  var pixelRegion2 = out_ds.bands.get(2).pixels.read(0, 0, 256, 256, null, readOptions);
-  var pixelRegion3 = out_ds.bands.get(3).pixels.read(0, 0, 256, 256, null, readOptions);
-  var pixelRegion4 = out_ds.bands.get(4).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion1 = reprojectedFile.bands.get(1).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion2 = reprojectedFile.bands.get(2).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion3 = reprojectedFile.bands.get(3).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion4 = reprojectedFile.bands.get(4).pixels.read(0, 0, 256, 256, null, readOptions);
 
   if (grayscale) {
     pixelRegion2 = pixelRegion3 = pixelRegion1;
@@ -264,13 +204,13 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     return callback();
   }
   var options = {
-    buffer_width: 256,
-    buffer_height: 256
+    buffer_width: 256, // jshint ignore:line
+    buffer_height: 256 // jshint ignore:line
   };
 
   var img = new png.PNG({
-      width: options.buffer_width,
-      height: options.buffer_height,
+      width: options.buffer_width, // jshint ignore:line
+      height: options.buffer_height, // jshint ignore:line
       filterType: 0
   });
   for (var i = 0; i < pixelRegion1.length; i++) {
@@ -282,19 +222,11 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   console.log('got the image data');
 
-  var tileSize = 0;
   var stream = img.pack();
-  stream.on('data', function(chunk) {
-    tileSize += chunk.length;
-  });
-  stream.on('end', function() {
-    // SourceModel.updateSourceAverageSize(source, tileSize, function(err) {
-    // });
-  });
   callback(null, stream);
 
-  out_ds.close();
-}
+  reprojectedFile.close();
+};
 
 function reproject(ds, epsgCode, cutline, srcCutline) {
   var extent = cutline.getEnvelope();
@@ -315,8 +247,8 @@ function reproject(ds, epsgCode, cutline, srcCutline) {
   gdal.reprojectImage({
     src: ds,
     dst: destination,
-    s_srs: ds.srs,
-    t_srs: targetSrs,
+    s_srs: ds.srs, // jshint ignore:line
+    t_srs: targetSrs, // jshint ignore:line
     cutline: srcCutline,
     dstAlphaBand: 4
   });
@@ -337,22 +269,22 @@ function sourceCorners(ds) {
   };
 
   var wgs84 = gdal.SpatialReference.fromEPSG(4326);
-  var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
+  var coordTransform = new gdal.CoordinateTransformation(ds.srs, wgs84);
 
-  var corner_names = Object.keys(corners);
+  var cornerNames = Object.keys(corners);
 
   var coordinateCorners = [];
 
-  corner_names.forEach(function(corner_name) {
+  cornerNames.forEach(function(cornerName) {
   	// convert pixel x,y to the coordinate system of the raster
   	// then transform it to WGS84
-  	var corner      = corners[corner_name];
-  	var pt_orig     = {
+  	var corner      = corners[cornerName];
+  	var ptOrig     = {
   		x: geotransform[0] + corner.x * geotransform[1] + corner.y * geotransform[2],
   		y: geotransform[3] + corner.x * geotransform[4] + corner.y * geotransform[5]
-  	}
-  	var pt_wgs84    = coord_transform.transformPoint(pt_orig);
-    coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
+  	};
+  	var ptWgs84    = coordTransform.transformPoint(ptOrig);
+    coordinateCorners.push([ptWgs84.x, ptWgs84.y]);
   });
 
   coordinateCorners.push([coordinateCorners[0][0], coordinateCorners[0][1]]);
@@ -393,30 +325,30 @@ exports.gdalInfo = function(ds) {
   };
 
   var wgs84 = gdal.SpatialReference.fromEPSG(4326);
-  var coord_transform = new gdal.CoordinateTransformation(ds.srs, wgs84);
+  var coordTransform = new gdal.CoordinateTransformation(ds.srs, wgs84);
 
-  console.log("Corner Coordinates:")
-  var corner_names = Object.keys(corners);
+  console.log("Corner Coordinates:");
+  var cornerNames = Object.keys(corners);
 
   var coordinateCorners = [];
 
-  corner_names.forEach(function(corner_name) {
+  cornerNames.forEach(function(cornerName) {
   	// convert pixel x,y to the coordinate system of the raster
   	// then transform it to WGS84
-  	var corner      = corners[corner_name];
-  	var pt_orig     = {
+  	var corner      = corners[cornerName];
+  	var ptOrig     = {
   		x: geotransform[0] + corner.x * geotransform[1] + corner.y * geotransform[2],
   		y: geotransform[3] + corner.x * geotransform[4] + corner.y * geotransform[5]
-  	}
-  	var pt_wgs84    = coord_transform.transformPoint(pt_orig);
+  	};
+  	var ptWgs84    = coordTransform.transformPoint(ptOrig);
   	var description = util.format('%s (%d, %d) (%s, %s)',
-  		corner_name,
-  		Math.floor(pt_orig.x * 100) / 100,
-  		Math.floor(pt_orig.y * 100) / 100,
-  		gdal.decToDMS(pt_wgs84.x, 'Long'),
-  		gdal.decToDMS(pt_wgs84.y, 'Lat')
+  		cornerName,
+  		Math.floor(ptOrig.x * 100) / 100,
+  		Math.floor(ptOrig.y * 100) / 100,
+  		gdal.decToDMS(ptWgs84.x, 'Long'),
+  		gdal.decToDMS(ptWgs84.y, 'Lat')
   	);
-    coordinateCorners.push([pt_wgs84.x, pt_wgs84.y]);
+    coordinateCorners.push([ptWgs84.x, ptWgs84.y]);
   	console.log(description);
   });
-}
+};

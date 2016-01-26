@@ -38,7 +38,7 @@ exports.getToken = function(token, callback) {
       return callback(err, {user: user, token: token});
     });
   });
-}
+};
 
 exports.createToken = function(options, callback) {
   var seed = crypto.randomBytes(20);
@@ -51,24 +51,25 @@ exports.createToken = function(options, callback) {
     token: token,
     expirationDate: new Date(now + tokenExpiration)
   };
-  var options = {upsert: true};
+  options = {};
+  options.upsert = true;
   Token.findOneAndUpdate(query, update, options, function(err, newToken) {
     if (err) {
-      console.log('Could not create token for user: ' + user.username);
+      console.log('Could not create token for user: ' + query.userId);
     }
 
     callback(err, newToken);
   });
-}
+};
 
 exports.removeToken = function(token, callback) {
   Token.findByIdAndRemove(token._id, function(err) {
     callback(err);
   });
-}
+};
 
 exports.removeTokensForUser = function(user, callback) {
   Token.remove({user: user._id}, function(err, numberRemoved) {
     callback(err, numberRemoved);
   });
-}
+};

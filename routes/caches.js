@@ -1,10 +1,8 @@
 module.exports = function(app, auth) {
   var access = require('../access')
     , Cache = require('../api/cache')
-    , fs = require('fs-extra')
     , turf = require('turf')
     , xyzTileUtils = require('xyz-tile-utils')
-    , config = require('mapcache-config')
     , cacheXform = require('../transformers/cache');
 
   var passport = auth.authentication.passport
@@ -22,7 +20,7 @@ module.exports = function(app, auth) {
     }
     req.newCache = cache;
     next();
-  }
+  };
 
   var parseQueryParams = function(req, res, next) {
     var parameters = {};
@@ -31,7 +29,7 @@ module.exports = function(app, auth) {
     req.parameters = parameters;
 
     next();
-  }
+  };
 
   app.get(
     '/api/caches/:cacheId/generate',
@@ -40,7 +38,6 @@ module.exports = function(app, auth) {
     	var format = req.param('format');
       var sent = false;
     	console.log('create cache format ' + format + ' for cache ' + req.cache.name);
-      var cache = req.cache;
       req.cache.minZoom = req.param('minZoom') || req.cache.minZoom;
       req.cache.maxZoom = req.param('maxZoom') || req.cache.maxZoom;
       new Cache(req.cache).createFormat(format, function(err, newCache) {
@@ -70,7 +67,7 @@ module.exports = function(app, auth) {
       Cache.getAll(options, function(err, caches) {
         if (err) return next(err);
 
-        var caches = cacheXform.transform(caches);
+        caches = cacheXform.transform(caches);
         res.json(caches);
       });
 
@@ -82,10 +79,19 @@ module.exports = function(app, auth) {
     '/api/caches',
     access.authorize('CREATE_CACHE'),
     validateCache,
-    function(req, res, next) {
+    function(req, res) {
       var called = false;
       Cache.create(req.newCache, function(err, newCache) {
+        if (newCache._id && !called) {
+          called = true;
+          console.log('cache was posted', newCache);
+          if (err) return res.status(400).send(err.message);
 
+          if (!newCache) return res.status(400).send();
+
+          var response = cacheXform.transform(newCache);
+          res.location(newCache._id.toString()).json(response);
+        }
       }, function(err, newCache) {
         if (newCache._id && !called) {
           called = true;
@@ -105,7 +111,7 @@ module.exports = function(app, auth) {
   app.get(
     '/api/caches/:cacheId/restart',
     access.authorize('CREATE_CACHE'),
-    function(req, res, next) {
+    function(req, res) {
 
       new Cache(req.cache).restart(req.param('format'), function(err, newCache) {
         if (err) return res.status(400).send(err.message);
@@ -149,8 +155,7 @@ module.exports = function(app, auth) {
   app.get(
   	'/api/caches/:cacheId/:format',
   	access.authorize('EXPORT_CACHE'),
-  	function (req, res, next) {
-    	var id = req.params.cacheId;
+  	function (req, res) {
     	var minZoom = req.param('minZoom') ? parseInt(req.param('minZoom')) : req.cache.minZoom;
     	var maxZoom = req.param.maxZoom ? parseInt(req.param('maxZoom')) : req.cache.maxZoom;
     	var format = req.param('format');
@@ -163,11 +168,11 @@ module.exports = function(app, auth) {
           return res.sendStatus(202);
         }
         if (status.stream) {
-          console.log('streaming %s', req.cache.name + '_' + format + status.extension)
+          console.log('streaming %s', req.cache.name + '_' + format + status.extension);
           res.attachment(req.cache.name + '_' + format + status.extension);
           status.stream.pipe(res);
         }
-      })
+      });
   	}
   );
 
@@ -176,7 +181,7 @@ module.exports = function(app, auth) {
     '/api/caches/:cacheId',
     access.authorize('READ_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
+    function (req, res) {
       var cacheJson = cacheXform.transform(req.cache);
       res.json(cacheJson);
     }
@@ -209,5 +214,4 @@ module.exports = function(app, auth) {
       });
     }
   );
-
-}
+};

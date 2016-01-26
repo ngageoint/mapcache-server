@@ -18,7 +18,7 @@ var RoleSchema = new Schema({
 RoleSchema.pre('remove', function(next) {
   var role = this;
 
-  User.removeRoleFromUsers(role, function(err, number) {
+  User.removeRoleFromUsers(role, function(err) {
     next(err);
   });
 });
@@ -33,7 +33,7 @@ RoleSchema.pre('save', function(next) {
 
   var validPermissions = Permission.getPermissions();
   role.permissions.forEach(function(permission) {
-    if (validPermissions.indexOf(permission) == -1) {
+    if (validPermissions.indexOf(permission) === -1) {
       return next(new Error("Permission '" + permission + "' is not a valid permission"));
     }
   });
@@ -41,12 +41,12 @@ RoleSchema.pre('save', function(next) {
   next();
 });
 
-var transform = function(user, ret, options) {
-  if ('function' != typeof user.ownerDocument) {
+var transform = function(user, ret) {
+  if ('function' !== typeof user.ownerDocument) {
     ret.id = ret._id;
     delete ret._id;
   }
-}
+};
 
 RoleSchema.set("toJSON", {
   transform: transform
@@ -68,18 +68,18 @@ exports.getRoleById = function(id, callback) {
 
     callback(err, role);
   });
-}
+};
 
 exports.getRole = function(name, callback) {
-  query = {name: name};
+  var query = {name: name};
   Role.findOne(query, function(err, role) {
     if (err) {
-      console.log('error getting role ' + id + '. error: ' + err);
+      console.log('error getting role ' + name + '. error: ' + err);
     }
 
     callback(err, role);
   });
-}
+};
 
 exports.getRoles = function(callback) {
   var query = {};
@@ -90,14 +90,14 @@ exports.getRoles = function(callback) {
 
     callback(err, roles);
   });
-}
+};
 
 exports.createRole = function(role, callback) {
   var create = {
     name: role.name,
     description: role.description,
     permissions: role.permissions
-  }
+  };
 
   Role.create(create, function(err, role) {
     if (err) {
@@ -106,7 +106,7 @@ exports.createRole = function(role, callback) {
 
     callback(err, role);
   });
-}
+};
 
 exports.updateRole = function(id, update, callback) {
   Role.findByIdAndUpdate(id, update, function(err, role) {
@@ -116,7 +116,7 @@ exports.updateRole = function(id, update, callback) {
 
     callback(err, role);
   });
-}
+};
 
 exports.deleteRole = function(role, callback) {
   role.remove(function(err) {
@@ -126,4 +126,4 @@ exports.deleteRole = function(role, callback) {
 
     callback(err, role);
   });
-}
+};

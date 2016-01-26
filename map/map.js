@@ -1,5 +1,4 @@
-var models = require('mapcache-models')
-  , log = require('mapcache-log')
+var log = require('mapcache-log')
   , Canvas = require('canvas')
   , xyzTileUtils = require('xyz-tile-utils')
   , Image = Canvas.Image
@@ -16,13 +15,13 @@ var Map = function(map, config) {
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
   this.initialize();
-}
+};
 
 Map.prototype.callbackWhenInitialized = function(callback) {
   this.initPromise.then(function(self) {
     callback(null, self);
   });
-}
+};
 
 Map.prototype.initialize = function(callback) {
   log.info('Initializing the map with id %s', this.map.id);
@@ -45,7 +44,7 @@ Map.prototype.initialize = function(callback) {
     }
     self.initDefer.resolve(self);
   });
-}
+};
 
 Map.prototype.addDataSource = function(ds, callback) {
   log.debug('Adding a %s data source processor', ds.format);
@@ -60,7 +59,10 @@ Map.prototype.addDataSource = function(ds, callback) {
       callback(null, ds);
     } else {
       log.debug('Processing the datasource %s to add to the map %s', ds.source.id, this.map.id);
-      ds.processSource(function(err, source) {
+      ds.processSource(function(err) {
+        if (err) {
+          log.error('error processing the source', err);
+        }
         self.dataSources.push(ds);
         self.map.dataSources.push(ds.source);
         log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
@@ -92,17 +94,7 @@ Map.prototype.addDataSource = function(ds, callback) {
       }
     // }
   }
-}
-
-Map.prototype.getDataWithin = function(west, south, east, north, zoom, projection, query, sourceDataCallback, doneCallback) {
-  this.initPromise.then(function(self) {
-    async.eachSeries(self.map.dataSources, function iterator(s, callback) {
-      sourceDataCallback()
-    }, function done() {
-
-    });
-  });
-}
+};
 
 Map.prototype.getOverviewTile = function(callback) {
   var merged;
@@ -114,6 +106,7 @@ Map.prototype.getOverviewTile = function(callback) {
       merged = turf.merge(merged, ds.geometry);
     }
   }
+  var extent;
   if (merged) {
     extent = turf.extent(merged);
   } else {
@@ -121,7 +114,7 @@ Map.prototype.getOverviewTile = function(callback) {
   }
   var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(extent);
   this.getTile('png', xyz.z, xyz.x, xyz.y, {}, callback);
-}
+};
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
   log.info('get tile %d/%d/%d.%s for map %s', z, x, y, format, this.map.id);
@@ -143,7 +136,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
 
     var sorted = self.dataSources.sort(zOrderDatasources);
     params = params || {};
-    if (!params.dataSources || params.dataSources.length == 0) {
+    if (!params.dataSources || params.dataSources.length === 0) {
       params.dataSources = [];
       for (var i = 0; i < sorted.length; i++) {
         params.dataSources.push(sorted[i].source.id);
@@ -156,17 +149,16 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     ctx.clearRect(0, 0, height, height);
 
     async.eachSeries(sorted, function iterator(s, callback) {
-      if (params.dataSources.indexOf(s.source.id) == -1) return callback();
+      if (params.dataSources.indexOf(s.source.id) === -1) return callback();
       s.getTile(format, z, x, y, params, function(err, tileStream) {
         if (!tileStream) return callback();
 
         var buffer = new Buffer(0);
-        var chunk;
         tileStream.on('data', function(chunk) {
           buffer = Buffer.concat([buffer, chunk]);
         });
         tileStream.on('end', function() {
-          var img = new Image;
+          var img = new Image();
           img.onload = function() {
             ctx.drawImage(img, 0, 0, img.width, img.height);
             callback();
@@ -177,9 +169,6 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     }, function done() {
       if (dir) {
         var stream = fs.createOutputStream(path.join(dir, filename));
-        stream.on('close',function(status){
-        });
-
         canvas.pngStream().pipe(stream);
       }
 
@@ -187,7 +176,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
       callback(null, canvas.pngStream());
     });
   });
-}
+};
 
 function zOrderDatasources(a, b) {
   if (a.source.zOrder < b.source.zOrder) {

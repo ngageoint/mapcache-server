@@ -1,7 +1,6 @@
 var turf = require('turf')
   , async = require('async')
-  , xyzTileUtils = require('xyz-tile-utils')
-  , config = require('mapcache-config');
+  , xyzTileUtils = require('xyz-tile-utils');
 
 function pushNextTileTasks(q, xyzSource, zoom, x, yRange, numberOfTasks) {
   if (yRange.current > yRange.max) return false;
@@ -105,7 +104,7 @@ exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, sho
                 currentx++;
                 return currentx <= xRange.max && !stop;
               },
-              function (err) {
+              function () {
                 console.log("Zoom level " + zoom + " is complete.");
                 zoomLevelCompleteFunction(xyzSource, zoom, function() {
                   zoom++;

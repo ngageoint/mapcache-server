@@ -1,15 +1,12 @@
 var fs = require('fs-extra')
-  , path = require('path')
   , api = require('../api')
   , turf = require('turf')
   , models = require('mapcache-models')
-  , cacheModel = models.Cache
-  , caches = require('../api/caches');
+  , cacheModel = models.Cache;
 
 exports.getAllCaches = function(yargs) {
-  var argv = yargs.usage('Gets all caches')
-  .help('help')
-  .argv;
+  yargs.usage('Gets all caches')
+  .help('help');
 
 console.log('api.Cache', api.Cache);
   api.Cache.getAll({}, function(err, caches) {
@@ -28,7 +25,7 @@ console.log('api.Cache', api.Cache);
     }
     process.exit();
   });
-}
+};
 
 exports.getCache = function(yargs) {
   var argv = yargs.usage('Gets a cache by id.\nUsage: $0 getCache -i <cache id>')
@@ -48,7 +45,7 @@ exports.getCache = function(yargs) {
     console.log(cache);
     process.exit();
   });
-}
+};
 
 exports.createCache = function(yargs) {
   var argv = yargs.usage('Creates a cache.\nUsage: $0 createCache [options]')
@@ -123,7 +120,7 @@ exports.createCache = function(yargs) {
     cache.maxZoom = argv.x;
   }
 
-  if (argv.l != undefined) {
+  if (argv.l !== undefined) {
     cache.cacheCreationParams = {
       layer: argv.l
     };
@@ -142,7 +139,7 @@ exports.createCache = function(yargs) {
 
     setTimeout(cacheTimerFunction, 0, cache);
   });
-}
+};
 
 exports.generateFormat = function(yargs) {
   var argv = yargs.usage('Generates a cache format.\nUsage: $0 generateFormat [options]')
@@ -178,7 +175,7 @@ exports.generateFormat = function(yargs) {
       setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
     });
   });
-}
+};
 
 exports.restartFormat = function(yargs) {
   var argv = yargs.usage('Restarts a cache format generation.\nUsage: $0 restartFormat [options]')
@@ -215,7 +212,7 @@ exports.restartFormat = function(yargs) {
     setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
 
   });
-}
+};
 
 exports.generateMoreZooms = function(yargs) {
   var argv = yargs.usage('Adds more zooms to a cache format.\nUsage: $0 generateMoreZooms [options]')
@@ -260,7 +257,7 @@ exports.generateMoreZooms = function(yargs) {
     setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
 
   });
-}
+};
 
 exports.getCacheTile = function(yargs) {
   var argv = yargs.usage('Gets a cache tile.\nUsage: $0 getCacheTile [options]')
@@ -320,7 +317,7 @@ exports.getCacheTile = function(yargs) {
       }
     });
   });
-}
+};
 
 exports.exportCache = function(yargs) {
   var argv = yargs.usage('Exports a cache.\nUsage: $0 exportCache [options]')
@@ -376,7 +373,7 @@ exports.exportCache = function(yargs) {
       }
     });
   });
-}
+};
 
 exports.deleteFormat = function(yargs) {
   var argv = yargs.usage('Deletes a cache format.\nUsage: $0 deleteFormat [options]')
@@ -403,7 +400,7 @@ exports.deleteFormat = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 exports.deleteCache = function(yargs) {
   var argv = yargs.usage('Deletes a cache.\nUsage: $0 deleteFormat [options]')
@@ -425,7 +422,7 @@ exports.deleteCache = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 function cacheFormatTimerFunction(cache, format) {
   cacheModel.getCacheById(cache._id, function(err, cache) {

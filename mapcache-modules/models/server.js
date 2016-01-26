@@ -15,7 +15,7 @@ var ServerSchema = new Schema({
   serverFree: { type: Number, required: true}
 });
 
-function transform(cache, ret, options) {
+function transform(cache, ret) {
 	ret.id = ret._id;
 	delete ret._id;
 
@@ -50,18 +50,18 @@ exports.getInfo = function(callback) {
       });
     }
   });
-}
+};
 
 exports.getMaxCacheSize = function(callback) {
   Server.findOne().exec(function(err, server) {
 		var maxSize = {};
-		maxSize.maximumCacheSize = config.server.maximumCacheSize * 1024 * 1024;
+		maxSize.maximumCacheSize = server && server.maximumCacheSize ? server.maximumCacheSize : config.server.maximumCacheSize * 1024 * 1024;
 		callback(err, maxSize);
   });
-}
+};
 
 function updateServer(server, callback) {
-  diskspace.check('/', function(err, total, free, status) {
+  diskspace.check('/', function(err, total, free) {
     server.serverTotal = total;
     server.serverFree = free;
 		server.total = config.server.storageLimit * 1024 * 1024;

@@ -1,7 +1,4 @@
-var tileImage = require('tile-image')
-  , log = require('mapcache-log')
-  , Canvas = require('canvas')
-  , Image = Canvas.Image
+var log = require('mapcache-log')
   , tile = require('mapcache-tile')
   , FeatureModel = require('mapcache-models').Feature
   , config = require('mapcache-config')
@@ -21,7 +18,7 @@ var GeoJSON = function(config) {
   if (this.config.cache && !this.config.outputDirectory) {
     throw new Error('An output directory must be specified in config.outputDirectory');
   }
-}
+};
 
 GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
@@ -47,7 +44,7 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   }
 
   FeatureModel.getFeatureCount({sourceId: self.cache.map.map.id, cacheId: self.cache.id}, function(countResults) {
-    if (countResults[0].count != '0') {
+    if (countResults[0].count !== '0') {
       return self._writeCacheFile(dir, filename, doneCallback);
     }
     var extent = turf.extent(self.cache.cache.geometry);
@@ -63,20 +60,24 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     });
   });
 
-}
+};
 
 GeoJSON.prototype._writeCacheFile = function(dir, filename, callback) {
   var self = this;
   log.info('Generating cache with id %s', this.cache.cache.id);
   var cache = self.cache.cache;
-  FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err, result) {
+  FeatureModel.writeAllCacheFeatures(cache.id, path.join(dir, filename), 'geojson', function(err) {
+    if (err) {
+      log.error('There was an error writing cache file for cache %s', cache.id);
+      cache.formats.geojson.error = JSON.stringify(err);
+    }
     log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
     var stats = fs.statSync(path.join(dir, filename));
     cache.formats.geojson.complete = true;
     cache.formats.geojson.size = stats.size;
     return callback(null, self.cache);
   });
-}
+};
 
 GeoJSON.prototype.getData = function(minZoom, maxZoom, callback) {
   var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'geojson');
@@ -84,14 +85,14 @@ GeoJSON.prototype.getData = function(minZoom, maxZoom, callback) {
   var geojsonFile = path.join(dir, filename);
   var stream = fs.createReadStream(geojsonFile);
   callback(null, {stream: stream, extension: '.geojson'});
-}
+};
 
 GeoJSON.prototype.delete = function(callback) {
   if (!this.cache) return callback();
   var dir = path.join(this.config.outputDirectory, this.cache.cache.id, 'geojson');
   var filename = this.cache.cache.id + '.geojson';
   fs.remove(path.join(dir, filename), callback);
-}
+};
 
 GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
   doneCallback = doneCallback || function() {};
@@ -114,33 +115,26 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
       if (updatedSource.url) {
         var dir = path.join(config.server.sourceDirectory.path, updatedSource.id);
         fs.mkdirp(dir, function(err) {
-          if (err) return callback(err);
+          if (err) return doneCallback(err);
           var req = request.get({url: updatedSource.url})
           .on('error', function(err) {
             console.log(err+ updatedSource.url);
 
-            callback(err);
-          })
-          .on('response', function(response) {
-            var size = response.headers['content-length'];
-            SourceModel.updateSourceAverageSize(updatedSource, size, function(err) {
-            });
+            doneCallback(err);
           });
           if (req) {
             var stream = fs.createWriteStream(dir + '/' + updatedSource.id + '.geojson');
-        		stream.on('close',function(status) {
+        		stream.on('close',function() {
               fs.stat(dir + '/' + updatedSource.id + '.geojson', function(err, stat) {
                 updatedSource.filePath = dir + '/' + updatedSource.id + '.geojson';
                 updatedSource.size = stat.size;
-                updatedSource.status = {
-                  message: "Creating",
-                  complete: false,
-                  zoomLevelStatus: {}
-                };
-                SourceModel.updateDatasource(updatedSource, function(err, updatedSource) {
-                  parseGeoJSONFile(updatedSource, function(err, updatedSource) {
-                    callback();
-                  });
+                updatedSource.status.message = "Creating";
+                updatedSource.status.complete = false;
+                parseGeoJSONFile(updatedSource, function(err, updatedSource) {
+                  updatedSource.status.complete = true;
+                  updatedSource.status.message="Complete";
+                  source = updatedSource;
+                  doneCallback(err, source);
                 });
               });
         		});
@@ -161,13 +155,13 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
       }
     });
   });
-}
+};
 
 function isAlreadyProcessed(source, callback) {
   log.debug('Checking if the source %s is already processed', source.id);
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     log.debug("The source already has features", resultArray);
-    if (resultArray[0].count != '0') {
+    if (resultArray[0].count !== '0') {
       return callback(true);
     } else {
       return callback(false);
@@ -176,7 +170,6 @@ function isAlreadyProcessed(source, callback) {
 }
 
 function parseGeoJSONFile(source, callback, progressCallback) {
-  var stream = fs.createReadStream(source.file.path);
   log.info('reading in the file', source.file.path);
   fs.readFile(source.file.path, function(err, fileData) {
     log.debug('parsing file data', source.file.path);
@@ -188,13 +181,13 @@ function parseGeoJSONFile(source, callback, progressCallback) {
     var count = 0;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
       async.setImmediate(function() {
-        var fivePercent = Math.floor(gjData.features.length * .05);
+        var fivePercent = Math.floor(gjData.features.length * 0.05);
         // console.log('create feature', feature);
         FeatureModel.createFeature(feature, {sourceId:source.id}, function(err) {
+          if (err) log.error('err', err);
           count++;
-          // console.log('err', err);
           async.setImmediate(function() {
-            if (count % fivePercent == 0) {
+            if (count % fivePercent === 0) {
               source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
               progressCallback(source, function(err, updatedSource) {
                 source = updatedSource;
@@ -289,7 +282,7 @@ GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection,
     var c = this.cache;
     FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);
   }
-}
+};
 
 GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
   log.info('get the tile %d %d %d from GeoJSON', z, x, y);
@@ -298,14 +291,14 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
   } else if (this.cache) {
     var sorted = this.cache.map.dataSources.sort(zOrderDatasources);
     params = params || {};
-    if (!params.dataSources || params.dataSources.length == 0) {
+    if (!params.dataSources || params.dataSources.length === 0) {
       params.dataSources = [];
       for (var i = 0; i < sorted.length; i++) {
         params.dataSources.push(sorted[i].source.id);
       }
     }
 
-    if (format == 'png') {
+    if (format === 'png') {
       this.cache.getTile(format, z, x, y, params, callback);
     } else {
       var queue = new StreamQueue();
@@ -317,7 +310,7 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
       queue.queue(stream);
       async.eachSeries(sorted, function iterator(s, callback) {
         s = s.source;
-        if (params.dataSources.indexOf(s.id) == -1) return callback();
+        if (params.dataSources.indexOf(s.id) === -1) return callback();
         var DataSource = require('./' + s.format);
         var dataSource = new DataSource({source: s});
         dataSource.getTile(format, z, x, y, params, function(err, dataStream) {
@@ -348,7 +341,7 @@ GeoJSON.prototype.getTile = function(format, z, x, y, params, callback) {
       });
     }
   }
-}
+};
 
 function zOrderDatasources(a, b) {
   if (a.source.zOrder < b.source.zOrder) {
@@ -361,23 +354,10 @@ function zOrderDatasources(a, b) {
   return 0;
 }
 
-function getTileForCache(cache, z, x, y, format, params, callback) {
-  return tile.getVectorTile(cache, format, z, x, y, params, callback);
-}
-
 function getTileFromSource(source, z, x, y, format, params, callback) {
   log.info('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
 
   tile.getVectorTile(source, format, z, x, y, params, callback);
-}
-
-function createDir(cacheName, filepath){
-	if (!fs.existsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath)) {
-    fs.mkdirsSync(config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath, function(err){
-       if (err) console.log(err);
-     });
-	}
-  return config.server.cacheDirectory.path + '/' + cacheName +'/'+ filepath;
 }
 
 module.exports = GeoJSON;

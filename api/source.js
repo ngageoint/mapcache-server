@@ -14,18 +14,18 @@ function Source(sourceModel) {
 
 Source.getAll = function(options, callback) {
   SourceModel.getSources(options, callback);
-}
+};
 
 Source.getById = function(id, callback) {
   console.log('get source by id', id);
   SourceModel.getSourceById(id, function(err, source) {
     callback(err, source);
   });
-}
+};
 
 Source.update = function(id, update, callback) {
   SourceModel.updateSource(id, update, callback);
-}
+};
 
 Source.create = function(source, sourceFiles, callback) {
   if (!callback && typeof sourceFiles === 'function') {
@@ -46,10 +46,9 @@ Source.create = function(source, sourceFiles, callback) {
       async.each(sourceFiles, function(file, callback) {
         // find the data source for this file
         var ds = newSource.dataSources.filter(function(dataSource) {
-          return dataSource.file && dataSource.file.name == file.originalname;
+          return dataSource.file && dataSource.file.name === file.originalname;
         });
         if (ds) ds = ds[0];
-        var fileName = file.originalname;
         var newFilePath = path.join(dir, ds.id);
         fs.rename(file.path, newFilePath, function(err) {
           console.log('err', err);
@@ -79,21 +78,21 @@ Source.create = function(source, sourceFiles, callback) {
       });
     });
   });
-}
+};
 
 Source.getTile = function(source, format, z, x, y, params, callback) {
   var map = new Map(source);
   map.callbackWhenInitialized(function(err, map) {
     map.getTile(format, z, x, y, params, callback);
   });
-}
+};
 
 Source.getOverviewTile = function(source, callback) {
   var map = new Map(source);
   map.callbackWhenInitialized(function(err, map) {
     map.getOverviewTile(callback);
   });
-}
+};
 
 Source.prototype.delete = function(callback) {
   var source = this.sourceModel;
@@ -109,7 +108,7 @@ Source.prototype.delete = function(callback) {
       }
     });
   });
-}
+};
 
 Source.prototype.deleteDataSource = function(dataSourceId, callback) {
   var source = this.sourceModel;
@@ -118,12 +117,12 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
     if (err) return callback(err);
     var dataSource;
     for (var i = 0; i < source.dataSources.length && !dataSource; i++) {
-      if (source.dataSources[i]._id.toString() == dataSourceId) {
+      if (source.dataSources[i]._id.toString() === dataSourceId) {
         dataSource = source.dataSources[i];
       }
     }
     if (dataSource && dataSource.file && dataSource.file.path) {
-      fs.remove(dataSource.file.path, function(err) {
+      fs.remove(dataSource.file.path, function() {
         SourceModel.getSourceById(source.id, function(err, source) {
           callback(err, source);
         });
@@ -134,6 +133,6 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
       });
     }
   });
-}
+};
 
 module.exports = Source;

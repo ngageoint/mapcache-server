@@ -1,49 +1,61 @@
 var knex = require('./db/knex')
 	, turf = require('turf')
-	, proj4 = require('proj4')
-	, config = require('mapcache-config');
+	, proj4 = require('proj4');
 
 exports.createFeature = function(feature, featureOwnerProperties, callback) {
   var gj = JSON.stringify(feature.geometry);
 	var envelope = turf.envelope(feature.geometry);
   knex(function(knex) {
-		knex('features').insert({
-			source_id: featureOwnerProperties.sourceId,
-			cache_id: featureOwnerProperties.cacheId,
-			layer_id: featureOwnerProperties.layerId,
+		knex('features')
+		.insert({
+			source_id: featureOwnerProperties.sourceId, // jshint ignore:line
+			cache_id: featureOwnerProperties.cacheId, // jshint ignore:line
+			layer_id: featureOwnerProperties.layerId, // jshint ignore:line
 			properties: feature.properties,
 			geometry: knex.raw('ST_Transform(ST_Intersection(ST_SetSRID(ST_Force_2D(ST_MakeValid(ST_GeomFromGeoJSON(\''+gj+'\'))), 4326), ST_MakeEnvelope(-180, -85, 180, 85, 4326)), 3857)'),
 			box: knex.raw('ST_SetSRID(ST_Force_2D(ST_GeomFromGeoJSON(\''+JSON.stringify(envelope.geometry) +'\')), 4326)')
 		}).then(callback);
 	});
-}
+};
 
 exports.getExtentOfSource = function(query, callback) {
 	knex(function(knex) {
-		knex('features').select(knex.raw('ST_AsGeoJSON(ST_Transform(ST_SetSRID(ST_Extent(geometry), 3857), 4326)) as extent')).where({source_id: query.sourceId, cache_id:null}).then(callback);
+		knex('features')
+		.select(knex.raw('ST_AsGeoJSON(ST_Transform(ST_SetSRID(ST_Extent(geometry), 3857), 4326)) as extent'))
+		.where({source_id: query.sourceId, cache_id:null})  // jshint ignore:line
+		.then(callback);
 	});
-}
+};
 
 exports.getPropertyKeysFromSource = function(query, callback) {
 	if (!query.layerId) query.layerId = null;
 	knex(function(knex) {
-		knex('features').distinct(knex.raw('json_object_keys(properties) as property')).select().where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}).then(callback);
+		knex('features')
+		.distinct(knex.raw('json_object_keys(properties) as property'))
+		.select()
+		.where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}) // jshint ignore:line
+		.then(callback);
 	});
-}
+};
 
 exports.getValuesForKeyFromSource = function(key, query, callback) {
 	if (!query.sourceId) query.sourceId = null;
 	if (!query.layerId) query.layerId = null;
 	knex(function(knex) {
-		knex('features').distinct(knex.raw('properties::jsonb -> \''+key+'\' as value')).select().where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}).andWhere(knex.raw("properties::jsonb\\?|array[\'"+key+"\']")).then(callback);
+		knex('features')
+		.distinct(knex.raw('properties::jsonb -> \''+key+'\' as value'))
+		.select()
+		.where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}) // jshint ignore:line
+		.andWhere(knex.raw("properties::jsonb\\?|array[\'"+key+"\']"))
+		.then(callback);
 	});
-}
+};
 
 exports.deleteFeaturesByCacheId = function(id, callback) {
 	knex(function(knex) {
 		knex.where('cache_id', id).from('features').del().then(callback);
 	});
-}
+};
 
 exports.deleteFeaturesBySourceId = function(id, callback) {
 	knex(function(knex) {
@@ -51,19 +63,22 @@ exports.deleteFeaturesBySourceId = function(id, callback) {
 			callback(deleteResults);
 		});
 	});
-}
+};
 
 exports.getFeatureCount = function(query, callback) {
 	knex(function(knex) {
-		knex('features').count().where({cache_id: query.cacheId, source_id: query.sourceId}).then(callback);
+		knex('features')
+		.count()
+		.where({cache_id: query.cacheId, source_id: query.sourceId}) // jshint ignore:line
+		.then(callback);
 	});
-}
+};
 
 exports.findFeaturesWithin = function(query, west, south, east, north, projection, callback) {
 	var whereQuery = {};
-	if (query.cacheId) whereQuery.cache_id = query.cacheId;
-	if (query.layerId) whereQuery.layer_id = query.layerId;
-	if (query.sourceId) whereQuery.source_id = query.sourceId;
+	if (query.cacheId) whereQuery.cache_id = query.cacheId; // jshint ignore:line
+	if (query.layerId) whereQuery.layer_id = query.layerId; // jshint ignore:line
+	if (query.sourceId) whereQuery.source_id = query.sourceId; // jshint ignore:line
 	createGeometrySelect(projection, {west: west, south: south, east: east, north: north}, function(geometrySelect){
 		knex(function(knex) {
 				knex.select(geometrySelect, 'properties')
@@ -76,15 +91,15 @@ exports.findFeaturesWithin = function(query, west, south, east, north, projectio
 			});
 		});
 	});
-}
+};
 
 exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north, projection, callback) {
 	createGeometrySelect(projection, {west: west, south: south, east: east, north: north}, function(geometrySelect){
 		knex(function(knex) {
-			var kx = knex.select(geometrySelect, 'properties')
+			knex.select(geometrySelect, 'properties')
 			.from('features')
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
-			.andWhere({cache_id: cacheId})
+			.andWhere({cache_id: cacheId}) // jshint ignore:line
 			.then(function(collection){
 				console.log('returned ' + collection.length + ' features');
 		    callback(null, collection);
@@ -92,7 +107,7 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 		});
 
 	});
-}
+};
 
 exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, south, east, north, projection, callback) {
 	console.log('cacheid %s sourceId %s', cacheId, sourceId);
@@ -111,7 +126,7 @@ exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, s
 			});
 		});
 	});
-}
+};
 
 exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south, east, north, callback) {
 	knex(function(knex) {
@@ -120,7 +135,7 @@ exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south,
 			callback(null, collection);
 		});
 	});
-}
+};
 
 exports.createCacheFeaturesFromSourceAndLayer = function(sourceId, layerId, cacheId, west, south, east, north, callback) {
 	knex(function(knex) {
@@ -129,7 +144,7 @@ exports.createCacheFeaturesFromSourceAndLayer = function(sourceId, layerId, cach
 			callback(null, collection);
 		});
 	});
-}
+};
 
 exports.getAllSourceFeatures = function(sourceId, callback) {
 	knex(function(knex) {
@@ -138,7 +153,7 @@ exports.getAllSourceFeatures = function(sourceId, callback) {
 			callback(null, collection);
 		});
 	});
-}
+};
 
 exports.getAllCacheFeatures = function(cacheId, callback) {
 	knex(function(knex) {
@@ -147,14 +162,14 @@ exports.getAllCacheFeatures = function(cacheId, callback) {
 			callback(null, collection);
 		});
 	});
-}
+};
 
 exports.writeAllCacheFeatures = function(cacheId, filename, format, callback) {
 	if (!callback && typeof format === 'function') {
 		callback = format;
 		format = null;
 	}
-	if (!format || format == 'geojson') {
+	if (!format || format === 'geojson') {
 		knex(function(knex) {
 				knex.raw("copy(select row_to_json(fc) as geojson from (select 'FeatureCollection' as type, array_to_json(array_agg(f)) as features from (select 'Feature' as type, ST_AsGeoJSON(ST_Transform(lg.geometry, 4326))::json as geometry, properties from features as lg where cache_id = '"+cacheId+"') as f) as fc) to '"+filename+"'")
 			.then(function(collection) {
@@ -162,7 +177,7 @@ exports.writeAllCacheFeatures = function(cacheId, filename, format, callback) {
 			});
 		});
 	}
-}
+};
 
 exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {
 	if (!callback && typeof projection === 'function') {
@@ -172,10 +187,10 @@ exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {
 	console.time('fetching data');
 
 	var bufferedBox = {
-		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
-		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
-		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
-		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * 0.02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * 0.02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * 0.02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * 0.02))
 	};
 
 	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
@@ -188,7 +203,7 @@ exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {
 			knex.select(geometrySelect, 'properties')
 			.from('features')
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
-			.andWhere({cache_id: cacheId})
+			.andWhere({cache_id: cacheId}) // jshint ignore:line
 			.limit(100000)
 			.then(function(collection){
 				console.timeEnd('fetching data');
@@ -197,7 +212,7 @@ exports.fetchTileForCacheId = function(cacheId, bbox, z, projection, callback) {
 		  });
 		});
 	});
-}
+};
 
 function createGeometrySelect(projection, queryBox, transformationBox, callback) {
 	if (!callback && typeof transformationBox === 'function') {
@@ -205,14 +220,15 @@ function createGeometrySelect(projection, queryBox, transformationBox, callback)
 		transformationBox = null;
 	}
 	var geometrySelect;
-	if (!projection || projection == 'vector') {
+	if (!projection || projection === 'vector') {
 		knex(function(knex) {
 			geometrySelect = knex.raw(
-				'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+ queryBox.west+","+queryBox.south+","+queryBox.east+","+queryBox.north+', 4326),3857)), '+ (-transformationBox.west)+', '+ (-transformationBox.south)+', '+ (4096/(transformationBox.east-transformationBox.west))+', '+ (4096/(transformationBox.north-transformationBox.south)) + '), 16), 1) as geometry'
+				'ST_AsGeoJSON(ST_SimplifyPreserveTopology(ST_TransScale(ST_Intersection(geometry, ST_Transform(ST_MakeEnvelope('+
+				 queryBox.west+","+queryBox.south+","+queryBox.east+","+queryBox.north+', 4326),3857)), '+ (-transformationBox.west)+', '+ (-transformationBox.south)+', '+ (4096/(transformationBox.east-transformationBox.west))+', '+ (4096/(transformationBox.north-transformationBox.south)) + '), 16), 1) as geometry'
 			);
 			callback(geometrySelect);
 		});
-	} else if (projection == '3857') {
+	} else if (projection === '3857') {
 		knex(function(knex) {
 			geometrySelect = knex.raw(
 				'ST_AsGeoJSON('+
@@ -259,10 +275,10 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 	console.time('fetching data');
 
 	var bufferedBox = {
-		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
-		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
-		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
-		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * 0.02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * 0.02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * 0.02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * 0.02))
 	};
 
 	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
@@ -274,7 +290,7 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 			knex.select(geometrySelect,'properties')
 			.from('features')
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
-			.andWhere({source_id: sourceId, cache_id: null})
+			.andWhere({source_id: sourceId, cache_id: null}) // jshint ignore:line
 			// .limit(100000)
 			.then(function(collection){
 				console.timeEnd('fetching data');
@@ -283,7 +299,7 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 		  });
 		});
 	});
-}
+};
 
 exports.fetchTileForSourceIdAndLayerId = function(sourceId, layerId, bbox, z, projection, callback) {
 	if (!callback && typeof projection === 'function') {
@@ -293,10 +309,10 @@ exports.fetchTileForSourceIdAndLayerId = function(sourceId, layerId, bbox, z, pr
 	console.time('fetching data');
 
 	var bufferedBox = {
-		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * .02)),
-		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * .02)),
-		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * .02)),
-		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * .02))
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * 0.02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * 0.02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * 0.02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * 0.02))
 	};
 
 	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
@@ -308,7 +324,7 @@ exports.fetchTileForSourceIdAndLayerId = function(sourceId, layerId, bbox, z, pr
 			knex.select(geometrySelect,'properties')
 			.from('features')
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
-			.andWhere({source_id: sourceId, layer_id: layerId, cache_id: null})
+			.andWhere({source_id: sourceId, layer_id: layerId, cache_id: null}) // jshint ignore:line
 			// .limit(100000)
 			.then(function(collection){
 				console.timeEnd('fetching data');
@@ -317,4 +333,4 @@ exports.fetchTileForSourceIdAndLayerId = function(sourceId, layerId, bbox, z, pr
 		  });
 		});
 	});
-}
+};

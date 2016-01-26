@@ -9,10 +9,10 @@ var WMS = function(config) {
   if (config.cache) {
     throw new Error('cannot create a WMS cache at this time');
   }
-}
+};
 
 WMS.prototype.initialize = function() {
-}
+};
 
 WMS.prototype.processSource = function(doneCallback, progressCallback) {
   var self = this;
@@ -23,9 +23,9 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
   this.source.status.complete = false;
   progressCallback(this.source, function(err, updatedSource) {
     self.source = updatedSource;
-    var DOMParser = global.DOMParser = require('xmldom').DOMParser;
+    global.DOMParser = require('xmldom').DOMParser;
     var WMSCapabilities = require('wms-capabilities');
-    var req = request.get({url: updatedSource.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
+    request.get({url: updatedSource.url + '?SERVICE=WMS&REQUEST=GetCapabilities'}, function(error, response, body) {
       var json = new WMSCapabilities(body).toJSON();
       self.source.wmsGetCapabilities = json;
       self.source.status.message = "Complete";
@@ -35,7 +35,7 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
         var layer;
         console.log('json', json.Capability.Layer.Layer);
         for (var i = 0; i < layerArray.length && !layer; i++) {
-          if (layerArray[i].Name == self.source.wmsLayer.Name) {
+          if (layerArray[i].Name === self.source.wmsLayer.Name) {
             layer = layerArray[i];
           }
         }
@@ -48,40 +48,35 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
       }
     });
   });
-}
+};
 
 WMS.prototype.setSourceLayer = function(layer, callback) {
   this.source.wmsLayer = layer;
-  if (layer.EX_GeographicBoundingBox) {
-    var box = layer.EX_GeographicBoundingBox;
-    this.source.geometry = turf.polygon([[
-      [box[0], box[1]],
-      [box[0], box[3]],
-      [box[2], box[3]],
-      [box[2], box[1]],
-      [box[0], box[1]]
-    ]]);
+  var box;
+  if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
+    box = layer.EX_GeographicBoundingBox; // jshint ignore:line
   } else if (layer.BoundingBox && Array.isArray(layer.BoundingBox)) {
-    for (var i = 0; i < layer.BoundingBox.length; i++) {
-      if (layer.BoundingBox[i].crs == 'EPSG:4326') {
-        var box = layer.BoundingBox[i].extent;
-        this.source.geometry = turf.polygon([[
-          [box[0], box[1]],
-          [box[0], box[3]],
-          [box[2], box[3]],
-          [box[2], box[1]],
-          [box[0], box[1]]
-        ]]);
+    for (var i = 0; i < layer.BoundingBox.length && !box; i++) {
+      if (layer.BoundingBox[i].crs === 'EPSG:4326') {
+        box = layer.BoundingBox[i].extent;
       }
     }
   }
+  box = box || [-180, -85, 180, 85];
+  this.source.geometry = turf.polygon([[
+    [box[0], box[1]],
+    [box[0], box[3]],
+    [box[2], box[3]],
+    [box[2], box[1]],
+    [box[0], box[1]]
+  ]]);
   callback(null, this.source);
-}
+};
 
 WMS.prototype.getTile = function(format, z, x, y, params, callback) {
   format = format.toLowerCase();
-  if (format != 'png' && format != 'jpeg') return callback(null, null);
-  if (params.layer == undefined || params.layer == null) {
+  if (format !== 'png' && format !== 'jpeg') return callback(null, null);
+  if (params.layer === undefined || params.layer === null) {
     if (this.source.wmsLayer && this.source.wmsLayer.Name) {
       params.layer = this.source.wmsLayer.Name;
     } else {
@@ -102,21 +97,21 @@ WMS.prototype.getTile = function(format, z, x, y, params, callback) {
     console.log(err+ url);
 
     // callback(err, null);
-  })
+  });
   // .on('response', function(response) {
   //   var size = response.headers['content-length'];
   //   SourceModel.updateSourceAverageSize(source, size, function(err) {
   //   });
   // });
   callback(null, req);
-}
+};
 
-WMS.prototype.generateCache = function(doneCallback, progressCallback) {
+WMS.prototype.generateCache = function(doneCallback) {
   doneCallback(null, null);
-}
+};
 
 WMS.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   callback(null, []);
-}
+};
 
 module.exports = WMS;

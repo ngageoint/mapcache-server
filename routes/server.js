@@ -1,8 +1,6 @@
 module.exports = function(app, auth) {
   var access = require('../access')
     , api = require('../api')
-    , fs = require('fs-extra')
-    , config = require('mapcache-config')
     , serverXform = require('../transformers/server');
 
   var passport = auth.authentication.passport
@@ -18,7 +16,7 @@ module.exports = function(app, auth) {
       new api.Server().getInfo(function(err, server) {
         if (err) return next(err);
 
-        var server = serverXform.transform(server);
+        server = serverXform.transform(server);
         res.json(server);
       });
   	}
@@ -35,4 +33,4 @@ module.exports = function(app, auth) {
       });
   	}
   );
-}
+};

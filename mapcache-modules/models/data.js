@@ -1,5 +1,4 @@
-var mongoose = require('mongoose')
-  , config = require('mapcache-config');
+var mongoose = require('mongoose');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;

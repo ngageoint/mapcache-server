@@ -4,8 +4,7 @@ var mongoose = require('mongoose')
 	, turf = require('turf')
 	, log = require('mapcache-log')
 	, config = require('mapcache-config')
-	, shortid = require('shortid')
-	, SourceModel = require('./source');
+	, shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
@@ -49,7 +48,7 @@ var CacheSchema = new Schema({
 
 CacheSchema.index({'name': 1});
 
-function transform(cache, ret, options) {
+function transform(cache, ret) {
 	ret.id = ret._id;
 	delete ret._id;
 
@@ -83,28 +82,15 @@ if (mongoose.models.Cache) {
 
 exports.cacheModel = Cache;
 
-function getSourceByUrlAndFormat(url, format, callback) {
-  var query = {
-	  'format': format,
-		'url': url
-  };
-  SourceModel.findOne(query).exec(function(err, source) {
-    if (err) {
-      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
-    }
-    callback(err, source);
-  });
-}
-
 exports.getCaches = function(options, callback) {
 	var query = options || {};
 	Cache.find(query).populate('sourceId').exec(function(err, caches) {
     if (err) {
-      console.log("Error finding caches in mongo: " + id + ', error: ' + err);
+      console.log('Error finding caches in mongo error: ' + err);
     }
     callback(err, caches);
   });
-}
+};
 
 exports.getCacheById = function(id, callback) {
   Cache.findById(id).populate('sourceId').exec(function(err, cache) {
@@ -127,17 +113,17 @@ exports.getCacheById = function(id, callback) {
 		  return callback(err, cache);
 		});
   });
-}
+};
 
 exports.deleteFormat = function(cache, formatName, callback) {
 	delete cache.formats[formatName];
 	cache.markModified('formats');
 	cache.save(callback);
-}
+};
 
 exports.deleteCache = function(cache, callback) {
 	Cache.remove({_id: cache.id}, callback);
-}
+};
 
 exports.createCache = function(cache, callback) {
 	if (cache.source) {
@@ -148,7 +134,7 @@ exports.createCache = function(cache, callback) {
 		if(err) return callback(err);
 		Cache.findById(newCache._id).populate('sourceId').exec(function(err, cache) {
 	    if (err) {
-	      console.log("Error finding cache in mongo: " + id + ', error: ' + err);
+	      console.log("Error finding cache in mongo: " + newCache._id + ', error: ' + err);
 	    }
 			if (cache) {
 				cache.source = cache.sourceId;
@@ -158,7 +144,7 @@ exports.createCache = function(cache, callback) {
 
 				if (cache.source.vector) {
 					var extent = turf.extent(cache.geometry);
-					FeatureModel.createCacheFeaturesFromSource(cache.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+					FeatureModel.createCacheFeaturesFromSource(cache.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err) {
 						return callback(err, cache);
 					});
 				} else {
@@ -167,26 +153,26 @@ exports.createCache = function(cache, callback) {
 			}
 		});
 	});
-}
+};
 
 exports.updateZoomLevelStatus = function(cache, zoomLevel, callback) {
 	var update = {$set: {}};
 	update.$set['status.zoomLevelStatus.'+zoomLevel+'.complete'] = true;
 	Cache.findByIdAndUpdate(cache.id, update, callback);
-}
+};
 
 exports.updateTileDownloaded = function(cache, z, x, y, callback) {
 	console.log('tile downloaded to ' + config.server.cacheDirectory.path + "/" + cache.id + '/xyztiles/' + z + '/' + x + '/' + y + '.png');
 	fs.stat(config.server.cacheDirectory.path + "/" + cache.id + '/xyztiles/' + z + '/' + x + '/' + y + '.png', function(err, stat) {
 		if (err) return callback(err);
 		var update = {$inc: {}};
-		update.$inc['totalTileSize'] = stat.size;
+		update.$inc.totalTileSize = stat.size;
 		update.$inc['status.zoomLevelStatus.'+z+'.generatedTiles'] = 1;
 		update.$inc['status.generatedTiles'] = 1;
 		update.$inc['status.zoomLevelStatus.'+z+'.size'] = stat.size;
 		Cache.findByIdAndUpdate(cache.id, update, callback);
 	});
-}
+};
 
 exports.shouldContinueCaching = function(cache, callback) {
 	Cache.aggregate(
@@ -218,14 +204,14 @@ exports.shouldContinueCaching = function(cache, callback) {
 			return callback(null, false);
 		});
 	});
-}
+};
 
 exports.updateFormatCreated = function(cache, formatName, formatFile, callback) {
 	if( typeof formatFile === "function" && !callback) {
     callback = formatFile;
 		formatFile = null;
   }
-  callback = callback || function(){}
+  callback = callback || function(){};
 	// cache.formats = cache.formats || {};
 	var formatArray = formatName;
 	if (!Array.isArray(formatName)) {
@@ -254,7 +240,7 @@ exports.updateFormatCreated = function(cache, formatName, formatFile, callback) 
 		}
 		Cache.findByIdAndUpdate(cache.id, update, callback);
 	}
-}
+};
 
 exports.updateFormatGenerating = function(cache, format, callback) {
 	cache.formats = cache.formats || {};
@@ -262,7 +248,7 @@ exports.updateFormatGenerating = function(cache, format, callback) {
 		generating: true
 	};
 	cache.markModified('formats');
-	cache.save(function(err) {
+	cache.save(function() {
 		exports.getCacheById(cache.id, callback);
 	});
-}
+};

@@ -33,7 +33,7 @@ exports.createSource = function(yargs) {
     format: argv.t
   };
   if (argv.f) {
-    fs.copy(argv.f, '/tmp/' + path.basename(argv.f), function(err) {
+    fs.copy(argv.f, '/tmp/' + path.basename(argv.f), function() {
       new api.Source(source).import({path: '/tmp/' + path.basename(argv.f)}, function(err, source) {
         setTimeout(sourceTimerFunction, 0, source);
       });
@@ -48,7 +48,7 @@ exports.createSource = function(yargs) {
     console.log('One of -f or -u is required.');
     process.exit();
   }
-}
+};
 
 exports.getSource = function(yargs) {
   var argv = yargs.usage('Gets a source.\nUsage: $0 getSourceById -i <id>')
@@ -67,14 +67,13 @@ exports.getSource = function(yargs) {
     console.log('Source:\n\tName:%s\n\tFormat:%s\n\tID:%s\n\tStatus:%s', source.name, source.format, source._id, source.status.message);
     process.exit();
   });
-}
+};
 
 exports.getAllSources = function(yargs) {
-  var argv = yargs.usage('Gets all sources.')
-  .help('help')
-  .argv;
+  yargs.usage('Gets all sources.')
+  .help('help');
   api.Source.getAll({}, function(err, sources) {
-    if (sources.length ==0 ) {
+    if (sources.length === 0 ) {
       console.log("Found 0 sources.");
     }
     for (var i = 0; i < sources.length; i++) {
@@ -87,7 +86,7 @@ exports.getAllSources = function(yargs) {
     }
     process.exit();
   });
-}
+};
 
 exports.deleteSource = function(yargs) {
   var argv = yargs.usage('Deletes a source.\nUsage: $0 deleteSource -i <id>')
@@ -104,7 +103,7 @@ exports.deleteSource = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 exports.getSourceTile = function(yargs) {
   var argv = yargs.usage('Gets a source tile.\nUsage: $0 getSourceTile [options]')
@@ -164,7 +163,7 @@ exports.getSourceTile = function(yargs) {
       }
     });
   });
-}
+};
 
 exports.getSourceFeatures = function(yargs) {
   var argv = yargs.usage('Gets the features of the source in the given bounding box.\nUsage: $0 getSourceFeatures [options]')
@@ -220,7 +219,7 @@ exports.getSourceFeatures = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 exports.getSourceData = function(yargs) {
   var argv = yargs.usage('Gets the the source in the requested format.\nUsage: $0 getSourceData [options]')
@@ -261,7 +260,7 @@ exports.getSourceData = function(yargs) {
         });
         if (data.file) {
           console.log('streaming', data.file);
-          fs.copy(data.file, argv.o, function(err) {
+          fs.copy(data.file, argv.o, function() {
             process.exit();
           });
         } else if (data.stream) {
@@ -270,15 +269,14 @@ exports.getSourceData = function(yargs) {
       }
     });
   });
-}
+};
 
 exports.ingestMissingVectors = function(yargs) {
-  var argv = yargs.usage('Ingests the maps with vector data not in postgres.\nUsage: $0 ingestMissingVectors [options]')
-  .help('help')
-  .argv;
+  yargs.usage('Ingests the maps with vector data not in postgres.\nUsage: $0 ingestMissingVectors [options]')
+  .help('help');
 
   api.Source.getAll({}, function(err, mongoSources) {
-    if (mongoSources.length ==0 ) {
+    if (mongoSources.length === 0) {
       console.log("Found 0 sources.");
       return;
     }
@@ -288,8 +286,8 @@ exports.ingestMissingVectors = function(yargs) {
       if (source.vector) {
         knex.select().where('source_id', source.id).from('features').then(function(postgisSources) {
           console.log('found source', postgisSources);
-          if (postgisSources.length == 0) {
-            sources.process(source, function(err, source) {
+          if (postgisSources.length === 0) {
+            sources.process(source, function() {
               callback();
             });
           } else {
@@ -303,7 +301,7 @@ exports.ingestMissingVectors = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 exports.reingestVectors = function(yargs) {
   var argv = yargs.usage('Reingests the map specified with vector data.\nUsage: $0 reingestVectors [options]')
@@ -315,10 +313,10 @@ exports.reingestVectors = function(yargs) {
   .help('help')
   .argv;
 
-  api.Source.getById(argv.i, function(err, source) {
+  api.Source.getById(argv.i, function() {
 
   });
-}
+};
 
 function sourceTimerFunction(source) {
   api.Source.getById(source._id, function(err, source) {

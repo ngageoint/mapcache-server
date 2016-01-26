@@ -1,14 +1,11 @@
 var FeatureModel = require('mapcache-models').Feature
   , turf = require('turf')
-  , Canvas = require('canvas')
   , log = require('mapcache-log')
   , config = require('mapcache-config')
-  , Image = Canvas.Image
   , xyzTileUtils = require('xyz-tile-utils')
   , fs = require('fs-extra')
   , async = require('async')
   , Map = require('../map/map')
-  , util = require('util')
   , q = require('q');
 
 var Cache = function(cache) {
@@ -22,7 +19,7 @@ var Cache = function(cache) {
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
   this.initialize();
-}
+};
 
 Cache.prototype.initialize = function() {
   var self = this;
@@ -40,13 +37,13 @@ Cache.prototype.initialize = function() {
       self.initDefer.resolve(self);
     });
   }
-}
+};
 
 Cache.prototype._updateDataSourceParams = function(callback) {
   var self = this;
   var mapSources = this.map.dataSources;
   var params = this.cache.cacheCreationParams || {};
-  if (!params.dataSources || params.dataSources.length == 0) {
+  if (!params.dataSources || params.dataSources.length === 0) {
     params.dataSources = [];
     for (var i = 0; i < mapSources.length; i++) {
       params.dataSources.push(mapSources[i].source.id);
@@ -57,7 +54,7 @@ Cache.prototype._updateDataSourceParams = function(callback) {
     log.info('Checking source %s', s.source.id.toString());
     if (!s.source.vector) return sourceFinishedCallback();
     FeatureModel.getFeatureCount({sourceId: s.source.id, cacheId: self.cache.id}, function(countResults) {
-      if (countResults[0].count != '0') {
+      if (countResults[0].count !== '0') {
         self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
         return sourceFinishedCallback();
       }
@@ -72,39 +69,39 @@ Cache.prototype._updateDataSourceParams = function(callback) {
         return sourceFinishedCallback();
       });
     });
-  }, function(err) {
+  }, function() {
     // all sources have had their vector data generated
     self.cache.cacheCreationParams = self.cache.cacheCreationParams || {};
     self.cache.cacheCreationParams.dataSources = params.dataSources;
     callback();
   });
-}
+};
 
 Cache.prototype.callbackWhenInitialized = function(callback) {
   this.initPromise.then(function(self) {
     callback(null, self);
   });
-}
+};
 
 Cache.prototype.generateFormat = function(format, doneCallback, progressCallback) {
   log.info("Generate the format %s for cache %s", format, this.cache.id);
   this.callbackWhenInitialized(function(err, self) {
     self._generateFormat(format, doneCallback, progressCallback);
   });
-}
+};
 
 Cache.prototype._generateFormat = function(format, doneCallback, progressCallback) {
   var DataSource = require('../format/'+format);
   var ds = new DataSource({cache: this, outputDirectory: this.cache.outputDirectory});
   ds.generateCache(doneCallback, progressCallback);
-}
+};
 
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {
   if( typeof params === "function" && !callback) {
     callback = params;
 		params = {};
   }
-  callback = callback || function(){}
+  callback = callback || function(){};
 
   this.initPromise.then(function(self) {
 
@@ -120,21 +117,12 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
       callback(null, tileStream);
     });
   });
-}
+};
 
 Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
   var DataSource = require('../format/'+format);
   var ds = new DataSource({cache: this, outputDirectory: this.cache.outputDirectory});
   ds.getData(minZoom, maxZoom, callback);
-}
-
-function createDir(cacheName, filepath){
-	if (!fs.existsSync(cacheName +'/'+ filepath)) {
-    fs.mkdirsSync(cacheName +'/'+ filepath, function(err){
-       if (err) console.log(err);
-     });
-	}
-  return cacheName +'/'+ filepath;
-}
+};
 
 module.exports = Cache;

@@ -57,5 +57,5 @@ module.exports = function(passport) {
     passport: passport,
     loginStrategy: 'local',
     authenticationStrategy: 'bearer'
-  }
-}
+  };
+};

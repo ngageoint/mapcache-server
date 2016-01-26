@@ -1,13 +1,10 @@
 var tileImage = require('tile-image')
-  , Canvas = require('canvas')
-  , Image = Canvas.Image
   , fs = require('fs-extra')
   , request = require('request')
   , turf = require('turf')
   , path = require('path')
   , xyzTileUtils = require('xyz-tile-utils')
-  , log = require('mapcache-log')
-  , async = require('async');
+  , log = require('mapcache-log');
 
 var XYZ = function(config) {
   this.config = config || {};
@@ -16,9 +13,9 @@ var XYZ = function(config) {
   if (config.cache && !config.outputDirectory) {
     throw new Error('An output directory must be specified in config.outputDirectory');
   }
-}
+};
 
-XYZ.prototype.processSource = function(doneCallback, progressCallback) {
+XYZ.prototype.processSource = function(doneCallback) {
   this.source.status = this.source.status || {};
   this.source.status.message = "Complete";
   this.source.status.failure = false;
@@ -38,26 +35,26 @@ XYZ.prototype.processSource = function(doneCallback, progressCallback) {
     }
   };
   doneCallback(null, this.source);
-}
+};
 
 XYZ.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   callback(null, []);
-}
+};
 
 XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
   format = format.toLowerCase();
-  if (format != 'png' && format != 'jpeg') return callback(null, null);
+  if (format !== 'png' && format !== 'jpeg') return callback(null, null);
   if (this.source) {
     getTileFromSource(this.source, z, x, y, format, callback);
   } else if (this.cache) {
     getTileForCache(this.cache, z, x, y, format, params, this.config.outputDirectory, callback);
   }
-}
+};
 
 XYZ.prototype.delete = function(callback) {
   if (!this.cache) return callback();
   fs.remove(path.join(this.config.outputDirectory, 'xyztiles'), callback);
-}
+};
 
 XYZ.prototype.generateCache = function(callback, progressCallback) {
   log.info('Generating cache with id %s', this.cache.cache.id);
@@ -65,7 +62,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
   callback = callback || function() {};
   progressCallback = progressCallback || function(cache, callback) {
     callback(null, cache);
-  }
+  };
   var cache = this.cache.cache;
   var cacheId = this.cache.cache.id;
   cache.formats = cache.formats || {};
@@ -161,7 +158,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
       }
     );
   });
-}
+};
 
 XYZ.prototype.getData = function(minZoom, maxZoom, callback) {
   var cp = require('child_process');
@@ -174,10 +171,10 @@ XYZ.prototype.getData = function(minZoom, maxZoom, callback) {
 
   console.log('working dir',path.join(this.config.outputDirectory, this.cache.cache.id.toString() ));
   var zip = cp.spawn('zip', args, {cwd: path.join(this.config.outputDirectory, this.cache.cache.id.toString())}).on('close', function(code) {
-    console.log('close the zip');
+    console.log('close the zip with code', code);
   });
   callback(null, {stream: zip.stdout, extension: '.zip'});
-}
+};
 
 function getTileForCache(cache, z, x, y, format, params, outputDirectory, callback) {
   var dir = path.join(outputDirectory, cache.cache.id.toString(), 'xyztiles', z.toString(), x.toString());
@@ -204,7 +201,7 @@ function getTileFromSource(source, z, x, y, format, callback) {
   log.info('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
   var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
   var req = null;
-  if (format == 'jpg' || format == 'jpeg') {
+  if (format === 'jpg' || format === 'jpeg') {
     tileImage.pngRequestToJpegStream(callback);
   } else {
     req = request.get({url: url,

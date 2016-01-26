@@ -29,6 +29,15 @@ var UserSchema = new Schema({
   versionKey: false
 });
 
+// Creates the Model for the User Schema
+var User;
+if (mongoose.models.User) {
+  User = mongoose.model('User');
+} else {
+  User = mongoose.model('User', UserSchema);
+}
+exports.Model = User;
+
 UserSchema.method('validPassword', function(password, callback) {
   var user = this;
   hasher.validPassword(password, user.password, callback);
@@ -98,13 +107,13 @@ UserSchema.pre('remove', function(next) {
       });
     }
   },
-  function(err, results) {
+  function(err) {
     next(err);
   });
 });
 
-var transform = function(user, ret, options) {
-  if ('function' != typeof user.ownerDocument) {
+var transform = function(user, ret) {
+  if ('function' !== typeof user.ownerDocument) {
     ret.id = ret._id;
     delete ret._id;
 
@@ -115,7 +124,7 @@ var transform = function(user, ret, options) {
       delete ret.roleId;
     }
   }
-}
+};
 
 UserSchema.set("toJSON", {
   transform: transform
@@ -123,36 +132,17 @@ UserSchema.set("toJSON", {
 
 exports.transform = transform;
 
-// Creates the Model for the User Schema
-var User;
-if (mongoose.models.User) {
-  User = mongoose.model('User');
-} else {
-  User = mongoose.model('User', UserSchema);
-}
-exports.Model = User;
-
-var encryptPassword = function(password, done) {
-  if (!password) return done(null, null);
-
-  hasher.encryptPassword(password, function(err, encryptedPassword) {
-    if (err) return done(err);
-
-    done(null, encryptedPassword);
-  });
-}
-
 exports.getUserById = function(id, callback) {
   User.findById(id).populate('roleId').exec(function(err, user) {
     callback(err, user);
   });
-}
+};
 
 exports.getUserByUsername = function(username, callback) {
   User.findOne({username: username.toLowerCase()}).populate('roleId').exec(function(err, user) {
     callback(err, user);
   });
-}
+};
 
 exports.getUsers = function(callback) {
   var query = {};
@@ -163,7 +153,7 @@ exports.getUsers = function(callback) {
 
     callback(err, users);
   });
-}
+};
 
 exports.createUser = function(user, callback) {
   var create = {
@@ -175,29 +165,29 @@ exports.createUser = function(user, callback) {
     password: user.password,
     active: user.active,
     roleId: user.roleId
-  }
+  };
 
   User.create(create, function(err, user) {
     if (err) return callback(err);
 
     callback(null, user);
   });
-}
+};
 
 exports.updateUser = function(id, update, callback) {
   User.findByIdAndUpdate(id, update, function(err, updatedUser) {
     if (err) console.log('Could not update user', err);
 
-    callback(err, updatedUser)
+    callback(err, updatedUser);
   });
-}
+};
 
 exports.deleteUser = function(user, callback) {
   user.remove(function(err, removedUser) {
     if (err) console.log("Error removing user: " + err);
     callback(err, removedUser);
   });
-}
+};
 
 exports.setRoleForUser = function(user, role, callback) {
   var update = { role: role };
@@ -208,7 +198,7 @@ exports.setRoleForUser = function(user, role, callback) {
 
     callback(err, user);
   });
-}
+};
 
 exports.removeRolesForUser = function(user, callback) {
   var update = { roles: [] };
@@ -219,14 +209,14 @@ exports.removeRolesForUser = function(user, callback) {
 
     callback(err, user);
   });
-}
+};
 
 exports.removeRoleFromUsers = function(role, callback) {
-  User.update({role: role._id}, {roles: undefined}, function(err, number, raw) {
+  User.update({role: role._id}, {roles: undefined}, function(err, number) {
     if (err) {
       console.log('Error pulling role: ' + role.name + ' from all users', err);
     }
 
     callback(err, number);
   });
-}
+};

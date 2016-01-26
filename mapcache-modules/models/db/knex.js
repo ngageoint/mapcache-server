@@ -27,7 +27,7 @@ async.series([
   createPropertiesTable,
   createValuesTable
 ],
-function(err, results) {
+function() {
   initDefer.resolve(knex);
 });
 
@@ -47,7 +47,6 @@ function createFeaturesTable(callback) {
     } else {
       knex.schema.hasColumn('features', 'layer_id').then(function(exists) {
         console.log('does features have the layer_id column? ', exists);
-        console.log('exists == false', exists == false);
         if (!exists) {
           console.log('There is no layer_id column in the features table');
           knex.schema.table('features', function(featureTable) {
@@ -62,7 +61,7 @@ function createFeaturesTable(callback) {
         } else {
           callback();
         }
-      })
+      });
     }
   });
 }
