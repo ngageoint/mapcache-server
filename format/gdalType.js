@@ -15,6 +15,13 @@ exports.processSource = function(source, callback, progressCallback) {
   source.status.complete = false;
   progressCallback(source, function(err, newSource) {
     source = newSource;
+    try {
+      var stats = fs.statSync(source.file.path);
+      log.info('stats', stats);
+      if (!stats.isFile()) return callback(new Error('source file ' + source.file.path + ' does not exist'), source);
+    } catch (e) {
+      return callback(new Error('error reading source file ' + source.file.path), source);
+    }
     var ds = gdal.open(source.file.path);
     console.log(exports.gdalInfo(ds));
 

@@ -14,6 +14,7 @@ var Map = function(map, config) {
   this.config = config || {};
   this.initDefer = q.defer();
   this.initPromise = this.initDefer.promise;
+  this.dataSourceErrors = {};
   this.initialize();
 };
 
@@ -61,11 +62,13 @@ Map.prototype.addDataSource = function(ds, callback) {
       log.debug('Processing the datasource %s to add to the map %s', ds.source.id, this.map.id);
       ds.processSource(function(err) {
         if (err) {
+          self.dataSourceErrors[ds.source.id] = err;
           log.error('error processing the source', err);
+        } else {
+          self.dataSources.push(ds);
+          self.map.dataSources.push(ds.source);
+          log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
         }
-        self.dataSources.push(ds);
-        self.map.dataSources.push(ds.source);
-        log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
         callback(null, ds);
       });
     }
@@ -81,11 +84,15 @@ Map.prototype.addDataSource = function(ds, callback) {
       log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
       try {
         dsObj.processSource(function(err, source) {
-          if (err) { log.error('Error processing the datasource %s', ds.id, err); }
-          log.info('finished processing the source %s', source.id);
-          self.dataSources.push(dsObj);
-          self.map.dataSources.push(dsObj.source);
-          log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
+          if (err) {
+            self.dataSourceErrors[ds.id] = err;
+            log.error('Error processing the datasource %s', ds.id, err);
+          } else {
+            log.info('finished processing the source %s', source.id);
+            self.dataSources.push(dsObj);
+            self.map.dataSources.push(dsObj.source);
+            log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
+          }
           callback(err, dsObj);
         });
       } catch (e) {
@@ -147,9 +154,10 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     var height = canvas.height;
 
     ctx.clearRect(0, 0, height, height);
-
+    log.info('self.dataSourceErrors', self.dataSourceErrors);
     async.eachSeries(sorted, function iterator(s, callback) {
-      if (params.dataSources.indexOf(s.source.id) === -1) return callback();
+      log.info('self.dataSourceErrors[s.source.id]', self.dataSourceErrors[s.source.id]);
+      if (params.dataSources.indexOf(s.source.id) === -1 || self.dataSourceErrors[s.source.id]) return callback();
       s.getTile(format, z, x, y, params, function(err, tileStream) {
         if (!tileStream) return callback();
 
