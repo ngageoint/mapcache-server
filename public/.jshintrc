@@ -1,0 +1,13 @@
+{
+  "extends"   : "../.jshintrc",
+  "globals"   : {
+    "angular"   : false,
+    "_"         : false,
+    "FormData"  : false,
+    "$"         : false,
+    "moment"    : false,
+    "turf"      : false,
+    "L"         : false,
+    "proj4"     : false
+  }
+}

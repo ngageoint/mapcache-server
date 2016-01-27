@@ -33,7 +33,7 @@
     var interceptor = ['$rootScope', '$q', 'httpBuffer', 'LocalStorageService', function($rootScope, $q, httpBuffer, LocalStorageService) {
       return {
         'request': function(request) {
-          if (!request.ignoreAuthModule && request.url.lastIndexOf('.html') != request.url.length - 5) {
+          if (!request.ignoreAuthModule && request.url.lastIndexOf('.html') !== request.url.length - 5) {
             request.headers.authorization = "Bearer " + LocalStorageService.getToken();
           }
           return request;
@@ -53,7 +53,7 @@
           // otherwise, default behaviour
           return $q.reject(response);
         }
-      }
+      };
 
     }];
     $httpProvider.interceptors.push(interceptor);
@@ -109,7 +109,7 @@
        */
        retryAllGets: function(updater) {
         for (var i = 0; i < buffer.length; ++i) {
-          if (buffer[i].config.method == 'GET') {
+          if (buffer[i].config.method === 'GET') {
             retryHttpRequest(updater(buffer[i].config), buffer[i].deferred);
           } else {
             buffer[i].deferred.reject({});

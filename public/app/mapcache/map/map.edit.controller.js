@@ -18,7 +18,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .5,
+    opacity: 0.5,
     hideFilter: true
   };
 
@@ -44,7 +44,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   var initialLoadComplete = false;
 
-  $scope.$watch('map', function(map, oldMap) {
+  $scope.$watch('map', function(map) {
     console.log('map change unsavedChanges: ' + $scope.unsavedChanges + ' initialLoadComplete: ' + initialLoadComplete);
     if (map.name && !initialLoadComplete) {
       initialLoadComplete = true;
@@ -56,10 +56,10 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   }, true);
 
-  $scope.$watch('map.previewLayer', function(layer, oldLayer) {
+  $scope.$watch('map.previewLayer', function(layer) {
     if (layer) {
-      if (layer.EX_GeographicBoundingBox) {
-        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
+      if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
+        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox; // jshint ignore:line
       }
     }
   });
@@ -68,14 +68,14 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
     MapService.deleteDataSource($scope.map, id, function(newMap) {
       $scope.map = newMap;
     });
-  }
+  };
 
   $scope.setStyleTab = function(id) {
     $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
-      return ds._id == id;
+      return ds._id === id;
     });
     $scope.tab = id;
-  }
+  };
 
   $scope.applyStyle = function() {
     var tmp = angular.copy($scope.newRule);
@@ -86,7 +86,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
     $scope.styleTab.style.styles.push($scope.newRule);
     $scope.newRule = tmp;
     delete $scope.newRule.property;
-  }
+  };
 
   $scope.saveMap = function() {
     MapService.saveMap($scope.map, function(map) {
@@ -97,7 +97,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
     }, function(error) {
       console.log('error saving map', error);
     });
-  }
+  };
 
   $scope.$on('deleteStyle', function(event, style) {
     $scope.map.style.styles = _.without($scope.map.style.styles, style);
@@ -121,7 +121,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   $scope.isNotDefault = function(style) {
     return style.key;
-  }
+  };
 
   function getMap() {
     MapService.refreshMap($scope.map, function(map) {
@@ -135,7 +135,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
       console.log('unsaved is now false');
       $scope.unsavedChanges = false;
       initialLoadComplete = false;
-    }, function(data) {
+    }, function() {
       // error
     });
   }

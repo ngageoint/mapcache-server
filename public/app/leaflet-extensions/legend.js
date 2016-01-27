@@ -21,7 +21,7 @@ L.Control.Legend = L.Control.extend({
 
   update: function (map) {
 		$(this._div).empty();
-		if (this.styles.length == 0) return;
+		if (this.styles.length === 0) return;
 
     for (var i = 0; i < this.styles.length && this.showLegend; i++) {
 			var style = this.styles[i].style;
@@ -34,7 +34,7 @@ L.Control.Legend = L.Control.extend({
 	      var rgbFill = this.hexToRgb(style.fill);
 	      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+style['fill-opacity']+")";
 	      ctx.lineWidth = style['stroke-width'];
-	      var rgbStroke = this.hexToRgb(style['stroke']);
+	      var rgbStroke = this.hexToRgb(style.stroke);
 	      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+style['stroke-opacity']+")";
 
 	      ctx.beginPath();

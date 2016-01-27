@@ -31,19 +31,8 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .5
+    opacity: 0.5
   };
-
-  $scope.$on('location-url', function(e, location) {
-    console.log('location-url caught', location);
-    if (!location) {
-      $scope.mapDatasource = {};
-      return;
-    }
-    $scope.urlDiscovery = true;
-    $scope.mapDatasource.url = location;
-    urlChecker();
-  });
 
   var urlChecker = _.debounce(function() {
     $scope.$apply(function() {
@@ -70,7 +59,7 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
       if ($scope.mapDiscovery.valid && !$scope.mapDiscovery.format) {
         $scope.mapDatasource.valid = true;
         $scope.locationStatus = 'warning';
-        if (!$scope.mapDatasource.name || $scope.mapDatasource.name == "") {
+        if (!$scope.mapDatasource.name || $scope.mapDatasource.name === "") {
           $scope.mapDatasource.name = $scope.mapDatasource.url;
         }
       } else if (!$scope.mapDiscovery.valid) {
@@ -79,11 +68,11 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
       } else {
         $scope.mapDatasource.valid = true;
         $scope.locationStatus = 'success';
-        if (!$scope.mapDatasource.name || $scope.mapDatasource.name == "") {
+        if (!$scope.mapDatasource.name || $scope.mapDatasource.name === "") {
           $scope.mapDatasource.name = $scope.mapDatasource.url;
         }
       }
-    }).error(function(err) {
+    }).error(function() {
       $scope.urlDiscovery = false;
       $scope.mapDatasource = {};
       $scope.mapDatasource.valid = false;
@@ -91,17 +80,23 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
     });
   }, 500);
 
-  // $scope.$watch('mapDatasource.file', function(uploadFile) {
-  //   if (!uploadFile) return;
-  //   console.log('the file', file);
-  // });
-  //
+  $scope.$on('location-url', function(e, location) {
+    console.log('location-url caught', location);
+    if (!location) {
+      $scope.mapDatasource = {};
+      return;
+    }
+    $scope.urlDiscovery = true;
+    $scope.mapDatasource.url = location;
+    urlChecker();
+  });
+
   $scope.$on('location-file', function(e, uploadFile) {
   //   uploadFile = $scope.mapDatasource.file;
     console.log('location-file caught', uploadFile);
     $scope.locationStatus = 'success';
     $scope.mapDatasource.file = uploadFile;
-    if (!$scope.mapDatasource.name || $scope.mapDatasource.name == "") {
+    if (!$scope.mapDatasource.name || $scope.mapDatasource.name === "") {
       $scope.mapDatasource.name = uploadFile.name;
     }
 
@@ -141,10 +136,10 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
         break;
     }
 
-    console.log('map information')
+    console.log('map information');
   });
 
-  $scope.$watch('mapDatasource.wmsGetCapabilities', function(capabilities, oldCapabilities) {
+  $scope.$watch('mapDatasource.wmsGetCapabilities', function(capabilities) {
     if (capabilities && capabilities.Capability) {
       $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];
     } else {
@@ -152,7 +147,7 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
     }
   });
 
-  $scope.$watch('mapDatasource.format', function(format, oldFormat) {
+  $scope.$watch('mapDatasource.format', function() {
     console.log('format', $scope.mapDatasource.format);
     switch ($scope.mapDatasource.format) {
       case 'wms':
@@ -174,7 +169,7 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
         break;
       case 'arcgis':
         $scope.showMap = true;
-        if ($scope.mapDatasource.wmsGetCapabilities.fullExtent && $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference && $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid && ($scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid == 102100 || $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid == 102113 || $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid == 3857)) {
+        if ($scope.mapDatasource.wmsGetCapabilities.fullExtent && $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference && $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid && ($scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid === 102100 || $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid === 102113 || $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid === 3857)) {
           var ll = proj4('EPSG:3857', 'EPSG:4326', [$scope.mapDatasource.wmsGetCapabilities.fullExtent.xmin, $scope.mapDatasource.wmsGetCapabilities.fullExtent.ymin]);
           var ur = proj4('EPSG:3857', 'EPSG:4326', [$scope.mapDatasource.wmsGetCapabilities.fullExtent.xmax, $scope.mapDatasource.wmsGetCapabilities.fullExtent.ymax]);
           $scope.mapDatasource.extent = [ll[0], ll[1], ur[0], ur[1]];
@@ -188,5 +183,4 @@ function MapDatasourceController($scope, $timeout, $http, MapService) {
         $scope.showMap = false;
     }
   });
-
-};
+}

@@ -65,10 +65,6 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   var canvasTiles = L.tileLayer.canvas();
 
   canvasTiles.drawTile = function(canvas, tilePoint, zoom) {
-    var crs = this._map.options.crs,
-		    size = crs.getSize(this._map.getZoom());
-		var limit = size.divideBy(this._getTileSize())._floor();
-
 		var limit = this._getWrapTileNum();
 
 		tilePoint.x = ((tilePoint.x % limit.x) + limit.x) % limit.x;
@@ -80,7 +76,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
       ctx.fillStyle="rgba(128, 128, 128, .5)";
     }
     ctx.fillRect(0, 0, 256, 256);
-  }
+  };
 
   map.on('click', function(event) {
     if (!$scope.map.style) return;
@@ -109,7 +105,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
         }
         var popupContent = title + " " + description;
 
-        var popup = L.popup()
+        L.popup()
           .setLatLng(event.latlng)
           .setContent(popupContent)
           .openOn(map);
@@ -165,6 +161,8 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     hideCacheExtent(cache);
   });
 
+  var popupOpenId;
+
   function hideCacheExtent(cache) {
     if (!popupOpenId) {
       createRectangle(cache);
@@ -179,7 +177,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   function showCacheExtent(cache) {
     createRectangle(cache, "#0066A2");
     for (var cacheId in cacheFootprints) {
-      if (cacheId != cache.id && popupOpenId != cacheId) {
+      if (cacheId !== cache.id && popupOpenId !== cacheId) {
         cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
       }
     }
@@ -202,7 +200,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   }
 
   function hideCache(cache, moveMap) {
-    if (highlightedCache && highlightedCache.id == cache.id) {
+    if (highlightedCache && highlightedCache.id === cache.id) {
       if (moveMap) {
         map.setView(oldCenter, oldZoom);
       }
@@ -220,8 +218,6 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   $rootScope.$on('hideCacheTiles', function(event, cache) {
     removeCacheTiles(cache);
   });
-
-  var popupOpenId;
 
   function createRectangle(cache, color) {
     var rectangle = cacheFootprints[cache.id];
@@ -249,13 +245,13 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     var cacheCenter = L.marker([center.geometry.coordinates[1], center.geometry.coordinates[0]], {icon: cacheMarker});
 
     cacheCenter.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
-    cacheCenter.on('popupopen', function(e) {
+    cacheCenter.on('popupopen', function() {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
       popupOpenId = cache.id;
       showCacheExtent(cache);
       $scope.$apply();
     });
-    cacheCenter.on('popupclose', function(e) {
+    cacheCenter.on('popupclose', function() {
       $rootScope.$broadcast('cacheFootprintPopupClose', cache);
       popupOpenId = undefined;
       hideCacheExtent(cache);
@@ -272,7 +268,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
       map.removeLayer(mapLayer);
     }
     // removeCacheTiles(cache);
-    baseLayer.setOpacity(.5);
+    baseLayer.setOpacity(0.5);
     var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
     layers[cache.id] = layer;
     layer.addTo(map);
@@ -286,7 +282,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
       delete layers[cache.id];
     }
     console.log('new layers', layers);
-    if (Object.keys(layers).length == 0) {
+    if (Object.keys(layers).length === 0) {
       baseLayer.setOpacity(1);
     }
     if (mapLayer) {
@@ -313,13 +309,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     }
   });
 
-  var debounceUrl = _.debounce(function(url) {
-    $scope.$apply(function() {
-
-    });
-  }, 500);
-
-  $scope.$watch('map.mapcacheUrl', function(url, oldUrl) {
+  $scope.$watch('map.mapcacheUrl', function() {
     if ($scope.map.dataSources) {
       var merged = _.reduce($scope.map.dataSources, function(merge, dataSource) {
         if (dataSource.geometry) {
@@ -333,7 +323,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
     addMapLayer();
   });
 
-  var legend = undefined;
+  var legend;
 
   $scope.$watch('map.style', function(styles) {
     if (legend) {
@@ -345,40 +335,46 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   });
 
   $scope.$watch('map.format', function(format, oldFormat) {
-    if (format == oldFormat) return;
+    if (format === oldFormat) return;
 
-    mapLayerOptions.tms = 'tms' == format;
+    mapLayerOptions.tms = 'tms' === format;
     addMapLayer();
   });
 
   $scope.$watch('map.wmsLayer', function(format, oldFormat) {
-    if (format == oldFormat) return;
+    if (format === oldFormat) return;
     addMapLayer();
   });
 
   $scope.$watch('map.data', function(data, oldData) {
-    if (data == oldData) return;
+    if (data === oldData) return;
     addMapLayer();
   });
 
-  $scope.$watch('options.refreshMap', function(refresh, oldRefresh) {
+  $scope.$watch('options.refreshMap', function(refresh) {
     console.log('refresh map', refresh);
     if (refresh) {
       addMapLayer();
     }
   });
 
-  $scope.$watch('options.extent', function(extent, oldExtent) {
+  $scope.$watch('options.extent', function(extent) {
     if (extent) {
       updateMapExtent(extent);
     }
   });
 
-  $scope.$watch('map.extent', function(extent, oldExtent) {
+  $scope.$watch('map.extent', function(extent) {
     if (extent) {
       updateMapExtent(extent);
     }
   });
+
+  var debounceDataSources = _.debounce(function() {
+    $scope.$apply(function() {
+      addMapLayer();
+    });
+  }, 500);
 
   var currentDatasources = [];
   var layerControl = L.control.groupedLayers([], []);
@@ -396,12 +392,6 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   });
   var layerControlAdded = false;
   var layerControlLayers = [];
-
-  var debounceDataSources = _.debounce(function() {
-    $scope.$apply(function() {
-      addMapLayer();
-    });
-  }, 500);
 
   $scope.$watch('map.dataSources.length', function(length) {
     currentDatasources = $scope.map.dataSources;
@@ -446,7 +436,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
       var z = split[split.length-3];
       var x = split[split.length-2];
       var y = split[split.length-1].split('.')[0];
-      if ($scope.map.format == 'arcgis') {
+      if ($scope.map.format === 'arcgis') {
         z = split[split.length-3];
         x = split[split.length-1];
         y = split[split.length-2];
@@ -459,7 +449,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
       var z = split[split.length-3];
       var x = split[split.length-2];
       var y = split[split.length-1].split('.')[0];
-      if ($scope.map.format == 'arcgis') {
+      if ($scope.map.format === 'arcgis') {
         z = split[split.length-3];
         x = split[split.length-1];
         y = split[split.length-2];
@@ -475,7 +465,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   }
 
   function updateMapExtent(extent) {
-    var extent = extent || turf.extent($scope.map.geometry);
+    extent = extent || turf.extent($scope.map.geometry);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]

@@ -13,7 +13,7 @@ function NavController($rootScope, $scope, $q, $location, $modal, UserService) {
     $scope.myself = login.user;
     $scope.amAdmin = login.isAdmin;
 
-    if ($location.path() == '/signin') {
+    if ($location.path() === '/signin') {
       $location.path('/mapcache');
     }
   });
@@ -25,6 +25,6 @@ function NavController($rootScope, $scope, $q, $location, $modal, UserService) {
 
   $scope.logout = function() {
     UserService.logout();
-  }
+  };
 
 }

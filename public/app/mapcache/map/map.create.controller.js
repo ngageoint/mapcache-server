@@ -30,7 +30,7 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .5
+    opacity: 0.5
   };
 
   $scope.$watch('map.dataSources.length', function() {
@@ -55,13 +55,13 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
         console.log('uploadprogress ' + $scope.progress);
       });
     }
-  }
+  };
 
   $scope.addDataSource = function() {
     $scope.map.dataSources.push({
       zOrder: $scope.map.dataSources.length
     });
-  }
+  };
 
   $scope.createMap = function() {
     console.log($scope.cache);
@@ -73,18 +73,6 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
     }, function() {
       console.log("error");
     }, uploadProgress);
-  }
+  };
 
-  function getMapProgress() {
-    MapService.refreshMap($scope.map, function(map) {
-      // success
-      $scope.map = map;
-      if (!map.complete) {
-        $timeout(getMapProgress, 5000);
-      }
-    }, function(data) {
-      // error
-    });
-  }
-
-};
+}

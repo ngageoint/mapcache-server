@@ -4,7 +4,5 @@ angular
 
 AboutController.$inject = ['$scope'];
 
-function AboutController ($scope) {
-
-
+function AboutController () {
 }

@@ -11,7 +11,7 @@ function fileUpload() {
     },
     controller: FileUploadController,
     bindToController: true
-  }
+  };
 
   return directive;
 }

@@ -8,7 +8,7 @@ L.Control.ZoomIndicator = L.Control.extend({
 		var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-zoom-indicator');
     this._link = L.DomUtil.create('a', '', container);
     this._link.innerHTML = map.getZoom();
-    map.on('zoomend', function(event) {
+    map.on('zoomend', function() {
       this._link.innerHTML = map.getZoom();
     }, this);
 

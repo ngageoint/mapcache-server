@@ -47,12 +47,12 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     });
 
     return resolveAllMaps;
-  };
+  }
 
   function getCachesForMap(map, success, error) {
     $http.get('/api/maps/'+map.id+'/caches').success(function(caches) {
       if (success) {
-        success(caches, status);
+        success(caches);
       }
     }).error(function(data, status) {
       if (error) {
@@ -105,22 +105,22 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     if (format) {
       url += '/' + format;
     }
-    $http.delete(url).success(function(map, status, headers, config) {
+    $http.delete(url).success(function(map) {
       console.log('successfully deleted map', map);
       if (success) {
         success(map);
       }
-    }).error(function(map, status, headers, config) {
+    }).error(function(map) {
       console.log('error deleting map', map);
     });
   }
 
   function deleteDataSource(map, dataSourceId, success) {
-    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).success(function(map, status, headers, config) {
+    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).success(function(map) {
       if (success) {
         success(map);
       }
-    }).error(function(map, status, headers, config) {
+    }).error(function(map) {
       console.log('error deleting datasource', map);
     });
   }
@@ -128,7 +128,7 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
   function saveMap(map, success, error) {
     var newMap = {};
     for (var key in map) {
-      if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
+      if (map.hasOwnProperty(key) && key !== 'mapFile' && key !== 'data' ) {
         newMap[key] = map[key];
       }
     }
@@ -221,5 +221,5 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
       //     }
       //   }).error(error);
       // }
-  };
+  }
 }

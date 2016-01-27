@@ -34,7 +34,7 @@ function CacheService($q, $http) {
       });
   }
 
-  function downloadMissing(cache, success, error) {
+  function downloadMissing(cache) {
     return $http.get('/api/caches/'+cache.id+'/restart');
   }
 
@@ -43,12 +43,12 @@ function CacheService($q, $http) {
     if (format) {
       url += '/' + format;
     }
-    $http.delete(url).success(function(cache, status, headers, config) {
+    $http.delete(url).success(function(cache) {
       console.log('successfully deleted cache', cache);
       if (success) {
         success(cache);
       }
-    }).error(function(cache, status, headers, config) {
+    }).error(function(cache) {
       console.log('error deleting cache', cache);
     });
   }
@@ -66,28 +66,28 @@ function CacheService($q, $http) {
     });
 
     return resolveAllCaches;
-  };
+  }
 
   function createCacheFormat(cache, format, success) {
     return $http.get('/api/caches/'+cache.id+'/generate?minZoom='+cache.minZoom+'&maxZoom='+cache.maxZoom+'&format='+format)
-    .success(function(data, status, headers, config) {
+    .success(function() {
       if (success) {
         success(cache);
       }
     });
   }
 
-  function createCache(cache, success, error, progress) {
+  function createCache(cache, success, error) {
     var newCache = {};
     for (var key in cache) {
-      if (cache.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' && key != 'source') {
+      if (cache.hasOwnProperty(key) && key !== 'sourceFile' && key !== 'data' && key !== 'source') {
         newCache[key] = cache[key];
       }
     }
     var newSource = {};
-    for (var key in cache.source) {
-      if (cache.source.hasOwnProperty(key) && key != 'sourceFile' && key != 'data' ) {
-        newSource[key] = cache.source[key];
+    for (var sourceKey in cache.source) {
+      if (cache.source.hasOwnProperty(sourceKey) && sourceKey !== 'sourceFile' && sourceKey !== 'data' ) {
+        newSource[sourceKey] = cache.source[sourceKey];
       }
     }
     newCache.source = newSource;
@@ -95,12 +95,12 @@ function CacheService($q, $http) {
       '/api/caches',
       newCache,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(newCache, status, headers, config) {
+    ).success(function(newCache) {
       console.log("created a cache", newCache);
       if (success) {
         success(newCache);
       }
-    }).error(function(data, status, headers, config) {
+    }).error(function(data, status) {
       if (error) {
         error(data, status);
       }

@@ -8,17 +8,17 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
 
   $scope.formatName = function(name) {
     return FormatService[name];
-  }
+  };
 
   $scope.deleteCache = function(cache, format) {
-    CacheService.deleteCache(cache, format, function(deletedCache) {
+    CacheService.deleteCache(cache, format, function() {
       if (!format) {
         cache.deleted = true;
       } else {
         delete cache.formats[format];
       }
     });
-  }
+  };
 
   $scope.undeleteCache = function(cache) {
     CacheService.createCache(cache, function(cache) {
@@ -27,21 +27,21 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     }, function(error, status) {
       $scope.cacheCreationError = {error: error, status: status};
     });
-  }
+  };
 
   $scope.isCacheFormatDeletable = function(cache, format) {
     if (!cache.source) { return true; }
     for (var i = 0; i < cache.source.cacheTypes.length; i++) {
       var ct = cache.source.cacheTypes[i];
-      if (ct.type == format && ct.required) {
+      if (ct.type === format && ct.required) {
         return false;
       }
     }
     return true;
-  }
+  };
 
   $http.get('/api/server')
-  .success(function(data, status) {
+  .success(function(data) {
     $scope.storage = data;
   }).error(function(data, status) {
     console.log("error pulling server data", status);
@@ -56,10 +56,10 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
   });
 
   $scope.deleteMap = function(source, format) {
-    MapService.deleteMap(source, format, function(deletedMap) {
+    MapService.deleteMap(source, format, function() {
       source.deleted = true;
     });
-  }
+  };
 
   function cacheSize(cache) {
     var bytes = 0;
@@ -74,7 +74,7 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
   MapService.getAllMaps(true).success(function(sources) {
     $scope.sources = [];
     for (var i = 0; i < sources.length; i++) {
-      if (sources[i].size && sources[i].size != 0) {
+      if (sources[i].size && sources[i].size !== 0) {
         sources[i].totalSize = sources[i].size;
         for (var projection in sources[i].projections) {
           if (sources[i].projections.hasOwnProperty(projection) && sources[i].projections[projection] && sources[i].projections[projection].size) {
@@ -110,11 +110,11 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
       case 'active': return user.active;
       case 'inactive': return !user.active;
     }
-  }
+  };
 
   $scope.newUser = function() {
     $scope.user = {};
-  }
+  };
 
   $scope.editUser = function(user) {
     $scope.edit = false;
@@ -125,7 +125,7 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     }
 
     $scope.user = user;
-  }
+  };
 
   var debounceHideSave = _.debounce(function() {
     $scope.$apply(function() {
@@ -153,7 +153,7 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
         $scope.saving = false;
         $scope.error = response.responseText;
       });
-    }
+    };
 
     var progress = function(e) {
       if(e.lengthComputable){
@@ -162,10 +162,10 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
           $scope.uploadProgress = (e.loaded/e.total) * 100;
         });
       }
-    }
+    };
 
     if ($scope.user.id) {
-      UserService.updateUser($scope.user.id, user, function(response) {
+      UserService.updateUser($scope.user.id, user, function() {
         $scope.$apply(function() {
           $scope.saved = true;
           $scope.saving = false;
@@ -182,7 +182,7 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
         });
       }, failure, progress);
     }
-  }
+  };
 
   $scope.deleteUser = function(user) {
     var modalInstance = $injector.get('$modal').open({
@@ -195,11 +195,11 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
       controller: ['$scope', '$modalInstance', 'user', function ($scope, $modalInstance, user) {
         $scope.user = user;
 
-        $scope.deleteUser = function(user, force) {
+        $scope.deleteUser = function(user) {
           UserService.deleteUser(user).success(function() {
             $modalInstance.close(user);
           });
-        }
+        };
         $scope.cancel = function () {
           $modalInstance.dismiss('cancel');
         };
@@ -208,21 +208,21 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
 
     modalInstance.result.then(function(user) {
       $scope.user = null;
-      $scope.users = _.reject($scope.users, function(u) { return u.id == user.id});
+      $scope.users = _.reject($scope.users, function(u) { return u.id === user.id;});
     });
-  }
+  };
 
   $scope.refresh = function() {
     $scope.users = [];
     UserService.getAllUsers(true).success(function (users) {
       $scope.users = users;
     });
-  }
+  };
 
   /* shortcut for giving a user the USER_ROLE */
   $scope.activateUser = function (user) {
     user.active = true;
-    UserService.updateUser(user.id, user, function(response) {
+    UserService.updateUser(user.id, user, function() {
       $scope.$apply(function() {
         $scope.saved = true;
         debounceHideSave();
@@ -232,6 +232,6 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
         $scope.error = response.responseText;
       });
     });
-  }
+  };
 
 }

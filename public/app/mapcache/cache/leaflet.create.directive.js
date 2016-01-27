@@ -30,7 +30,6 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
 
   var baseLayer = L.tileLayer(defaultLayer, options);
   var sourceLayer;
-  var sourceBoundsLayer;
 
   var map = L.map($element[0], {
     center: [0,0],
@@ -78,7 +77,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
   var drawControl = new L.Control.Draw(drawOptions);
   map.addControl(drawControl);
 
-  map.on('draw:drawstart', function (e) {
+  map.on('draw:drawstart', function () {
     if (cacheFootprintLayer) {
       drawnItems.removeLayer(cacheFootprintLayer);
       cacheFootprintLayer = null;
@@ -108,23 +107,20 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     });
   });
 
-  $scope.$watch('options.currentDatasources', function() {
-    if ($scope.options.currentDatasources) {
-      debounceDataSources();
-    }
-  });
-
   var debounceDataSources = _.debounce(function() {
     $scope.$apply(function() {
       addMapLayer();
     });
   }, 500);
 
+  $scope.$watch('options.currentDatasources', function() {
+    if ($scope.options.currentDatasources) {
+      debounceDataSources();
+    }
+  });
+
   $scope.$watch('options.source.dataSources.length', function() {
     if ($scope.options.source.dataSources.length > 1) {
-      _.each(layerControlLayers, function(l) {
-        map.removeLayer(l);
-      });
 
       _.each($scope.options.source.dataSources, function(ds) {
         var marker = L.marker([0,0],
@@ -153,7 +149,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     }
   });
 
-  $scope.$watch('options.extent', function(extent, oldExtent) {
+  $scope.$watch('options.extent', function(extent) {
     if (extent) {
       updateMapExtent(extent);
     }
@@ -167,7 +163,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
   }
 
   $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
-    if (!$scope.options.useCurrentView || oldValue == newValue) return;
+    if (!$scope.options.useCurrentView || oldValue === newValue) return;
     drawnItems.removeLayer(cacheFootprintLayer);
     cacheFootprintLayer = null;
     var bounds = map.getBounds();
@@ -178,7 +174,7 @@ function LeafletCreateController($scope, $element, LocalStorageService, LeafletU
     drawnItems.addLayer(cacheFootprintLayer);
   });
 
-  $scope.$watch('options.source', function(source) {
+  $scope.$watch('options.source', function() {
     if ($scope.options.source.dataSources) {
       var merged = _.reduce($scope.options.source.dataSources, function(merge, dataSource) {
         if (dataSource.geometry) {

@@ -80,6 +80,8 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     hideCacheExtent(cache);
   });
 
+  var popupOpenId;
+
   function hideCacheExtent(cache) {
     if (!popupOpenId) {
       createRectangle(cache);
@@ -94,7 +96,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   function showCacheExtent(cache) {
     createRectangle(cache, "#0066A2");
     for (var cacheId in cacheFootprints) {
-      if (cacheId != cache.id && popupOpenId != cacheId) {
+      if (cacheId !== cache.id && popupOpenId !== cacheId) {
         cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
       }
     }
@@ -117,7 +119,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
   }
 
   function hideCache(cache, moveMap) {
-    if (highlightedCache && highlightedCache.id == cache.id) {
+    if (highlightedCache && highlightedCache.id === cache.id) {
       if (moveMap) {
         map.setView(oldCenter, oldZoom);
       }
@@ -141,8 +143,6 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
       $scope.caches = $filter('filter')($filter('filter')(caches, filter.cacheFilter), filter.mapFilter);
     });
   });
-
-  var popupOpenId;
 
   function createRectangle(cache, color) {
     console.log('what is color', color);
@@ -170,13 +170,13 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
     var cacheCenter = L.marker([center.geometry.coordinates[1], center.geometry.coordinates[0]], {icon: cacheMarker});
 
     cacheCenter.bindPopup('<h5><a href="/#/cache/' + cache.id + '">' + cache.name + '</a></h5>');
-    cacheCenter.on('popupopen', function(e) {
+    cacheCenter.on('popupopen', function() {
       $rootScope.$broadcast('cacheFootprintPopupOpen', cache);
       popupOpenId = cache.id;
       showCacheExtent(cache);
       $scope.$apply();
     });
-    cacheCenter.on('popupclose', function(e) {
+    cacheCenter.on('popupclose', function() {
       $rootScope.$broadcast('cacheFootprintPopupClose', cache);
       popupOpenId = undefined;
       hideCacheExtent(cache);
@@ -189,7 +189,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
 
   function showCacheTiles(cache) {
     removeCacheTiles(cache);
-    baseLayer.setOpacity(.5);
+    baseLayer.setOpacity(0.5);
     var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
     layers[cache.id] = layer;
     layer.addTo(map);
@@ -203,7 +203,7 @@ function LeafletController($rootScope, $scope, $interval, $filter, $element, Cac
       delete layers[cache.id];
     }
     console.log('new layers', layers);
-    if (Object.keys(layers).length == 0) {
+    if (Object.keys(layers).length === 0) {
       baseLayer.setOpacity(1);
     }
   }

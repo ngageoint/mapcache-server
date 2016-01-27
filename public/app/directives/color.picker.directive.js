@@ -28,7 +28,7 @@ function ColorPickerController($scope, $element) {
       $element.colorpicker('setValue', $scope.colorPicker);
     } else {
       $element.colorpicker({color: $scope.colorPicker}).on('changeColor.colorpicker', function(event){
-        if ($scope.colorPicker.toUpperCase() != event.color.toHex().toUpperCase()) {
+        if ($scope.colorPicker.toUpperCase() !== event.color.toHex().toUpperCase()) {
           $scope.$apply(function() {
             $scope.colorPicker = event.color.toHex();
           });

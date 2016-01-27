@@ -1,6 +1,3 @@
-/* Fix for IE */
-if (!Date.now) { Date.now = function() { return +(new Date); }; }
-
 angular
   .module("userManagement", [
     "ui.bootstrap",
@@ -30,7 +27,7 @@ function config($routeProvider, $locationProvider, $httpProvider) {
       user: ['UserService', function(UserService) {
        return UserService.getMyself(roles);
      }]
-    }
+   };
   }
 
   function checkLogin(roles) {
@@ -38,7 +35,7 @@ function config($routeProvider, $locationProvider, $httpProvider) {
       user: ['UserService', function(UserService) {
         return UserService.checkLoggedInUser(roles);
       }]
-    }
+    };
   }
 
   $routeProvider.when('/signin', {
@@ -102,11 +99,11 @@ function config($routeProvider, $locationProvider, $httpProvider) {
   });
 }
 
-run.$inject = ['$rootScope', '$modal', 'UserService', '$location', 'authService'];
+run.$inject = ['$rootScope', '$modal', 'UserService', '$location'];
 
-function run($rootScope, $modal, UserService, $location, authService) {
+function run($rootScope, $modal, UserService, $location) {
   $rootScope.$on('event:auth-loginRequired', function() {
-    if (!$rootScope.loginDialogPresented && $location.path() != '/' && $location.path() != '/signin' && $location.path() != '/signup') {
+    if (!$rootScope.loginDialogPresented && $location.path() !== '/' && $location.path() !== '/signin' && $location.path() !== '/signup') {
       $rootScope.loginDialogPresented = true;
       var modalInstance = $modal.open({
         backdrop: 'static',
@@ -116,7 +113,7 @@ function run($rootScope, $modal, UserService, $location, authService) {
           $scope.signin = function () {
             var data = {username: this.username, password: this.password};
             UserService.login(data).then(function (data) {
-              if (data.username != oldUsername) {
+              if (data.username !== oldUsername) {
                 data.newUser = true;
               }
               authService.loginConfirmed(data);

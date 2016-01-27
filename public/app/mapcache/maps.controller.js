@@ -16,7 +16,7 @@ function MapsController($scope, $rootScope, LocalStorageService, CacheService, M
 
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .5
+    opacity: 0.5
   };
 
   MapService.getAllMaps(true).success(function(maps) {

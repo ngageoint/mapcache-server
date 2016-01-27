@@ -21,7 +21,6 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
 
   $scope.mapId = $routeParams.mapId;
 
-  var seenCorners;
   var boundsSet = false;
 
   var defaultStyle = {
@@ -37,7 +36,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   };
 
   $http.get('/api/server/maxCacheSize')
-  .success(function(data, status) {
+  .success(function(data) {
     $scope.storage = data;
   }).error(function(data, status) {
     console.log("error pulling server data", status);
@@ -70,19 +69,19 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     MapService.getAllMaps(true).success(function(maps) {
       $scope.loadingMaps = false;
       $scope.maps = maps;
-    }).error(function(error) {
+    }).error(function() {
       $scope.loadingMaps = false;
     });
   }
 
   $scope.useCurrentView = function() {
     $scope.cache.useCurrentView = Date.now();
-  }
+  };
 
   $scope.dmsChange = function(direction, dms) {
     $scope.bb[direction] = (!isNaN(dms.degrees) ? Number(dms.degrees) : 0) + (!isNaN(dms.minutes) ? dms.minutes/60 : 0) + (!isNaN(dms.seconds) ? dms.seconds/(60*60) : 0);
     $scope.manualEntry();
-  }
+  };
 
   $scope.manualEntry = function() {
     console.log('manual entry', $scope.bb);
@@ -90,10 +89,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     setDirectionDMS($scope.bb.south, $scope.south);
     setDirectionDMS($scope.bb.east, $scope.east);
     setDirectionDMS($scope.bb.west, $scope.west);
-    if (isNaN($scope.bb.north) || !$scope.bb.north || $scope.bb.north.toString().endsWith('.')
-    || isNaN($scope.bb.south) || !$scope.bb.south || $scope.bb.south.toString().endsWith('.')
-    || isNaN($scope.bb.west) || !$scope.bb.west || $scope.bb.west.toString().endsWith('.')
-    || isNaN($scope.bb.east) || !$scope.bb.east || $scope.bb.east.toString().endsWith('.')) {
+    if (isNaN($scope.bb.north) || !$scope.bb.north || $scope.bb.north.toString().endsWith('.') ||
+    isNaN($scope.bb.south) || !$scope.bb.south || $scope.bb.south.toString().endsWith('.') ||
+    isNaN($scope.bb.west) || !$scope.bb.west || $scope.bb.west.toString().endsWith('.') ||
+    isNaN($scope.bb.east) || !$scope.bb.east || $scope.bb.east.toString().endsWith('.')) {
       boundsSet = false;
       $scope.$broadcast('extentChanged', null);
       return true;
@@ -108,7 +107,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     };
 
     $scope.$broadcast('extentChanged', envelope);
-  }
+  };
 
   function setDirectionDMS (deg, direction) {
     if (!deg) return;
@@ -155,7 +154,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     } else {
       $scope.cache.currentDatasources = _.without($scope.cache.currentDatasources, ds);
     }
-  }
+  };
 
   $scope.$watch('cache.source', function(map) {
     if (!map) return;
@@ -187,10 +186,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     });
   });
 
-  $scope.$watch('cache.source.previewLayer', function(layer, oldLayer) {
+  $scope.$watch('cache.source.previewLayer', function(layer) {
     if (layer) {
-      if (layer.EX_GeographicBoundingBox) {
-        $scope.cache.extent = layer.EX_GeographicBoundingBox;
+      if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
+        $scope.cache.extent = layer.EX_GeographicBoundingBox; // jshint ignore:line
       }
     }
   });
@@ -199,10 +198,10 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     if (!$scope.cache.create) return;
     var tileCacheRequested = false;
     for (var key in $scope.cache.create) {
-      if ($scope.cache.create[key] == true) {
+      if ($scope.cache.create[key] === true) {
         console.log('create', key);
         for (var i = 0; i < $scope.cache.source.cacheTypes.length && !tileCacheRequested; i++) {
-          if ($scope.cache.source.cacheTypes[i].type == key && !$scope.cache.source.cacheTypes[i].vector) {
+          if ($scope.cache.source.cacheTypes[i].type === key && !$scope.cache.source.cacheTypes[i].vector) {
             tileCacheRequested = true;
           }
         }
@@ -244,7 +243,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     var cacheTypeSet = false;
     console.log('scope.cache.create', $scope.cache.create);
     for (var type in $scope.cache.create) {
-      if ($scope.cache.create[type] == true) {
+      if ($scope.cache.create[type] === true) {
         cacheTypeSet = true;
       }
     }
@@ -254,7 +253,7 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     }
 
     if (!zoomValidated) {
-      $scope.unsetFields.push('zoom levels')
+      $scope.unsetFields.push('zoom levels');
     }
     if (!boundsSet) {
       $scope.unsetFields.push('cache boundaries');
@@ -266,13 +265,13 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.unsetFields.push('at least one data source');
     }
 
-    if ($scope.cache.source.format == 'wms' && !$scope.cache.source.previewLayer) {
+    if ($scope.cache.source.format === 'wms' && !$scope.cache.source.previewLayer) {
       $scope.unsetFields.push('WMS layer');
       return false;
     }
 
     return $scope.cache.geometry && boundsSet && $scope.cache.name && $scope.cache.source && zoomValidated;
-  }
+  };
 
   $scope.createCache = function() {
     if ($scope.cache.rawTileSizeLimit) {
@@ -301,11 +300,11 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
       $scope.creatingCache = false;
       $scope.cacheCreationError = {error: error, status: status};
     });
-  }
+  };
 
   $scope.createMap = function() {
     $location.path('/map');
-  }
+  };
 
   function calculateCacheSize() {
     if (!$scope.tileCacheRequested || !$scope.cache.source || ((isNaN($scope.cache.minZoom) || isNaN($scope.cache.maxZoom)) && !$scope.cache.source.vector) || !$scope.cache.geometry) {
@@ -316,9 +315,9 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     $scope.totalCacheSize = 0;
     $scope.totalCacheTiles = 0;
     var extent = turf.extent($scope.cache.geometry);
-    for (var i = $scope.cache.minZoom; i <= $scope.cache.maxZoom; i++) {
-      var xtiles = xCalculator(extent, i);
-      var ytiles = yCalculator(extent, i);
+    for (var zoom = $scope.cache.minZoom; zoom <= $scope.cache.maxZoom; zoom++) {
+      var xtiles = xCalculator(extent, zoom);
+      var ytiles = yCalculator(extent, zoom);
       $scope.totalCacheTiles += (1 + (ytiles.max - ytiles.min)) * (1 + (xtiles.max - xtiles.min));
     }
     $scope.totalCacheSize = $scope.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
@@ -345,36 +344,13 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
     return radians * 180 / Math.PI;
   };
 
-  function tile2lon(x,z) {
-    return (x/Math.pow(2,z)*360-180);
-  }
-
-  function tile2lat(y,z) {
-    var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
-    return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
-  }
-
-  function tileBboxCalculator(x, y, z) {
-    console.log('tile box calculator for ' + x + ' ' + y + ' ' + z);
-    x = Number(x);
-    y = Number(y);
-    var tileBounds = {
-      north: tile2lat(y, z),
-      east: tile2lon(x+1, z),
-      south: tile2lat(y+1, z),
-      west: tile2lon(x, z)
-    };
-
-    return tileBounds;
-  }
-
    function xCalculator(bbox,z) {
   	var x = [];
   	var x1 = getX(Number(bbox[0]), z);
   	var x2 = getX(Number(bbox[2]), z);
   	x.max = Math.max(x1, x2);
   	x.min = Math.min(x1, x2);
-  	if (z == 0){
+  	if (z === 0){
   		x.current = Math.min(x1, x2);
   	}
   	return x;
@@ -400,4 +376,4 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   	return ytile;
   }
 
-};
+}

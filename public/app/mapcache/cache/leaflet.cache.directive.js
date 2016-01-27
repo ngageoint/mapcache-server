@@ -39,7 +39,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, LeafletUt
   var baseLayer = L.tileLayer(defaultLayer, baseLayerOptions);
   var cacheLayer = null;
 
-  $scope.$watch('cache', function(cache, oldCache) {
+  $scope.$watch('cache', function(cache) {
     if (map) return;
     map = L.map($element[0], {
       center: [45,0],
@@ -53,7 +53,7 @@ function LeafletCacheController($scope, $element, LocalStorageService, LeafletUt
     }
 
     baseLayer.addTo(map);
-    cacheLayerOptions.tms = 'tms' == cache.source.format;
+    cacheLayerOptions.tms = 'tms' === cache.source.format;
     cacheLayerOptions.maxZoom = cache.source.vector ? 18 : cache.maxZoom;
     cacheLayerOptions.minZoom = cache.source.vector ? 0 : cache.minZoom;
     if (cacheLayer) {

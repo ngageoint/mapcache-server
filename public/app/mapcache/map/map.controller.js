@@ -19,7 +19,7 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .14
+    opacity: 0.14
   };
 
   $rootScope.title = 'Map';
@@ -36,7 +36,7 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
     cacheHighlightPromise = $timeout(function() {
       $rootScope.$broadcast('showCache', cache);
     }, 500);
-  }
+  };
 
   $scope.mouseOut = function(cache) {
     $rootScope.$broadcast('hideCacheExtent', cache);
@@ -46,7 +46,7 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
       cacheHighlightPromise = undefined;
     }
     $rootScope.$broadcast('hideCache', cache);
-  }
+  };
 
   var allCaches;
 
@@ -56,7 +56,7 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
 
   $scope.createCacheFromMap = function() {
     $location.path('/create/'+$routeParams.mapId);
-  }
+  };
 
   $scope.$on('cacheFilterChange', function(event, filter) {
     $scope.caches = $filter('filter')($filter('filter')(allCaches, filter.cacheFilter), filter.mapFilter);
@@ -106,21 +106,20 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
       // success
       $scope.map = map;
       $rootScope.title = map.name;
-      if (_.some(map.dataSources, function(value) { return !value.status.complete; }) && $location.path().indexOf('/map') == 0) {
+      if (_.some(map.dataSources, function(value) { return !value.status.complete; }) && $location.path().indexOf('/map') === 0) {
         $scope.mapComplete = false;
         $timeout(getMap, 5000);
       } else {
         $scope.mapComplete = true;
         if (map.vector) {
           $scope.mapOptions.opacity = 1;
-          $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
+          $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: {}}};
         }
       }
-    }, function(data) {
+    }, function() {
       // error
     });
   }
 
   getMap();
-
-};
+}

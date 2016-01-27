@@ -19,22 +19,22 @@ function styleRow() {
 
 StyleRowController.$inject = ['$scope', '$element'];
 
-function StyleRowController($scope, $element) {
+function StyleRowController($scope) {
 
   $scope.deleteStyle = function(style) {
     $scope.$emit('deleteStyle', style);
-  }
+  };
 
   $scope.promoteStyle = function(style) {
     $scope.$emit('promoteStyle', style);
-  }
+  };
 
   $scope.demoteStyle = function(style) {
     $scope.$emit('demoteStyle', style);
-  }
+  };
 
   $scope.addStyle = function(style) {
     $scope.$emit('addStyle', style);
-  }
+  };
 
 }

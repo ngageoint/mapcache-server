@@ -2,9 +2,9 @@ angular
   .module('mapcache')
   .factory('LeafletUtilities', LeafletUtilities);
 
-LeafletUtilities.$inject = ['LocalStorageService', 'MapService'];
+LeafletUtilities.$inject = ['LocalStorageService'];
 
-function LeafletUtilities(LocalStorageService, MapService) {
+function LeafletUtilities(LocalStorageService) {
 
   return {
     styleFunction: styleFunction,
@@ -22,13 +22,13 @@ function LeafletUtilities(LocalStorageService, MapService) {
         var styleProperty = sorted[i];
         var key = styleProperty.key;
         if (feature.properties && feature.properties[key]) {
-          if (feature.properties[key] == styleProperty.value) {
+          if (feature.properties[key] === styleProperty.value) {
             return {
-              color: styleProperty.style['stroke'],
+              color: styleProperty.style.stroke,
               fillOpacity: styleProperty.style['fill-opacity'],
               opacity: styleProperty.style['stroke-opacity'],
               weight: styleProperty.style['stroke-width'],
-              fillColor: styleProperty.style['fill']
+              fillColor: styleProperty.style.fill
             };
           }
         }
@@ -40,25 +40,12 @@ function LeafletUtilities(LocalStorageService, MapService) {
     }
 
     return {
-      color: defaultStyle.style['stroke'],
+      color: defaultStyle.style.stroke,
       fillOpacity: 0,//defaultStyle.style['fill-opacity'],
       opacity: defaultStyle.style['stroke-opacity'],
       weight: defaultStyle.style['stroke-width'],
-      fillColor: defaultStyle.style['fill']
-    }
-  }
-
-  function pointToLayer(feature, latlng) {
-    return L.circleMarker(latlng, {radius: 3});
-  }
-
-  function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : null;
+      fillColor: defaultStyle.style.fill
+    };
   }
 
   function popupFunction(feature, layer, style) {
@@ -84,22 +71,22 @@ function LeafletUtilities(LocalStorageService, MapService) {
     });
   }
 
-
   function tileLayer(layerSource, defaultLayer, layerOptions, style, styleFunction, dataSources) {
     console.log('layerSource', layerSource);
-    if (layerSource == null) {
+    var url;
+    if (!layerSource) {
       return L.tileLayer(defaultLayer, layerOptions);
     } else if (layerSource.vector) {
-      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
+      url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
       if (layerSource.wmsLayer) {
         url += '&layer=' + layerSource.wmsLayer.Name;
       }
       var layer = L.tileLayer(url, layerOptions);
       return layer;
-    } else if (typeof layerSource == "string") {
+    } else if (typeof layerSource === "string") {
       return L.tileLayer(layerSource + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png"), layerOptions);
     } else if (layerSource.mapcacheUrl) {
-      var url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
+      url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
       if (dataSources && dataSources.length) {
         _.each(dataSources, function(ds) {
           console.log('ds', ds);
@@ -114,7 +101,7 @@ function LeafletUtilities(LocalStorageService, MapService) {
         url += '&layer=' + layerSource.wmsLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
-    } else if (layerSource.format == 'wms') {
+    } else if (layerSource.format === 'wms') {
       if (layerSource.wmsGetCapabilities && layerSource.wmsLayer) {
         return L.tileLayer.wms(layerSource.url, {
           layers: layerSource.wmsLayer.Name,
@@ -123,15 +110,15 @@ function LeafletUtilities(LocalStorageService, MapService) {
           format: layerSource.wmsLayer.opaque ? 'image/jpeg' : 'image/png'
         });
       }
-    } else if (layerSource.format == 'arcgis') {
+    } else if (layerSource.format === 'arcgis') {
       return L.tileLayer(layerSource.wmsGetCapabilities.tileServers[0] + "/tile/{z}/{y}/{x}", layerOptions);
     } else if (layerSource.url) {
       console.log('layersource.url', layerSource.url);
-      var url = layerSource.url + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png");
+      url = layerSource.url + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png");
       if (layerSource.wmsLayer) {
-        url += '&layer=' + source.wmsLayer.Name;
+        url += '&layer=' + layerSource.wmsLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
     }
   }
-};
+}

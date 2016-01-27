@@ -12,7 +12,7 @@ function locationChooser() {
     },
     controller: LocationChooserController,
     bindToController: true
-  }
+  };
 
   return directive;
 }
@@ -45,7 +45,7 @@ function LocationChooserController($scope, $element) {
     }
   }
 
-  $scope.$watch('location', function(location, oldLocation) {
+  $scope.$watch('location', function(location) {
     if (location && isValidURL(location)) {
       $scope.$emit('location-url', location, isValidURL(location));
       $scope.file = {};
