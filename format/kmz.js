@@ -97,8 +97,7 @@ KMZ.prototype._extractLayer = function(file, layer, layerId, callback) {
   gjStream.on('data', function(feature) {
     // console.log('feature', feature);
     var source = this.source.id;
-    FeatureModel.createFeature(feature, {sourceId: this.source.id, layerId: layerId}, function(err) {
-      if (err) log.error('Error createing feature for sourceId %s and layerId %s', source, layerId, err);
+    FeatureModel.createFeature(feature, {sourceId: this.source.id, layerId: layerId}, function() {
       log.debug('Created feature for sourceId %s and layerId %s', source, layerId, feature);
     });
   }.bind(this));

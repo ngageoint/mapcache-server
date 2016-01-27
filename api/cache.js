@@ -49,11 +49,13 @@ Cache.create = function(cache, callback, progressCallback) {
     }
   }
 
-  cache.geometry = turf.intersect({
+  var cachePoly = cache.geometry.type === 'Feature' ? cache.geometry : {
     type: "Feature",
     properties: {},
     geometry: cache.geometry
-  }, turf.bboxPolygon([-180, -85, 180, 85]));
+  };
+
+  cache.geometry = turf.intersect(cachePoly, turf.bboxPolygon([-180, -85, 180, 85]));
 
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);

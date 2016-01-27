@@ -27,16 +27,19 @@ Source.update = function(id, update, callback) {
   SourceModel.updateSource(id, update, callback);
 };
 
-Source.create = function(source, sourceFiles, callback) {
-  if (!callback && typeof sourceFiles === 'function') {
+Source.create = function(source, sourceFiles, callback, progressCallback) {
+  if (typeof sourceFiles === 'function') {
+    if (callback) {
+      progressCallback = callback;
+    }
 		callback = sourceFiles;
 		sourceFiles = [];
 	}
   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
 
   SourceModel.createSource(source, function(err, newSource) {
-    console.log('new source', JSON.stringify(newSource, null, 2));
-    callback(err, newSource);
+    // console.log('new source', JSON.stringify(newSource, null, 2));
+    if (progressCallback) progressCallback(err, newSource);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
     fs.mkdirp(dir, function(err) {
       console.log('error creating directory? ', err);
@@ -65,7 +68,7 @@ Source.create = function(source, sourceFiles, callback) {
           var map = new Map(newSource);
           map.callbackWhenInitialized(function(err, map) {
             newSource = map.map;
-            console.log('map.map', JSON.stringify(map.map, null, 2));
+            // console.log('map.map', JSON.stringify(map.map, null, 2));
             newSource.status = newSource.status || {};
             newSource.status.complete = true;
             console.log('about to save', newSource);

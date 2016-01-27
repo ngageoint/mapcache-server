@@ -1,10 +1,7 @@
 var should = require('should')
   , mongoose = require('mongoose')
   , expect = require('chai').expect
-  , async = require('async')
-  , FeatureModel = require('mapcache-models').Feature
   , CacheModel = require('mapcache-models').Cache
-  , MapModel = require('mapcache-models').Map
   , fs = require('fs-extra')
   , path = require('path')
   , turf = require('turf')
@@ -24,10 +21,9 @@ describe('Cache API', function() {
         console.log('Error connecting to mongo database, please make sure mongodb is running...');
         throw err;
       }
+      done();
     });
     mongoose.set('debug', true);
-
-    done();
   });
 
   after(function(done) {
@@ -52,7 +48,8 @@ describe('Cache API', function() {
     var createdCache;
     var createdMap;
     after(function(done) {
-      new Cache(createdCache).delete(function(err, cache) {
+      if (!createdCache) return done();
+      new Cache(createdCache).delete(function() {
         Map.getById(createdMap.id, function(err, map) {
           new Map(map).delete(done);
         });
@@ -87,11 +84,11 @@ describe('Cache API', function() {
       };
 
       Map.create(map, function(err, map) {
+        log.error('CREATED THE MAP');
         createdMap = map;
         log.info('Created a map %s with id %s', map.name, map.id);
         cache.source = map;
         cache.create = ['xyz'];
-
         Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
           console.log('Created Cache', cache);
@@ -99,10 +96,7 @@ describe('Cache API', function() {
           expect(cache.formats.xyz).to.have.property('complete', true);
           expect(cache.formats.xyz).to.have.property('generatedTiles', 85);
           expect(cache.formats.xyz).to.have.property('totalTiles', 85);
-          CacheModel.getCacheById(cache.id, function(err, cache) {
-            log.info('cache was created', JSON.stringify(cache, null, 2));
-            done();
-          });
+          done();
         }, function(err, cache) {
           console.log('Cache progress', cache);
         });
@@ -114,7 +108,7 @@ describe('Cache API', function() {
     var createdCache;
     var createdMap;
     after(function(done) {
-      new Cache(createdCache).delete(function(err, cache) {
+      new Cache(createdCache).delete(function() {
         Map.getById(createdMap.id, function(err, map) {
           new Map(map).delete(done);
         });
@@ -176,7 +170,7 @@ describe('Cache API', function() {
     var createdCache;
     var createdMap;
     after(function(done) {
-      new Cache(createdCache).delete(function(err, cache) {
+      new Cache(createdCache).delete(function() {
         Map.getById(createdMap.id, function(err, map) {
           new Map(map).delete(done);
         });
@@ -212,6 +206,7 @@ describe('Cache API', function() {
 
       Map.create(map, function(err, map) {
         createdMap = map;
+        var doneCalled = false;
         log.info('Created a map %s with id %s', map.name, map.id);
         cache.source = map;
         cache.create = ['geopackage'];
@@ -219,8 +214,12 @@ describe('Cache API', function() {
         Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache;
-          log.info('cache was created', JSON.stringify(cache, null, 2));
-          done();
+          if (!doneCalled) {
+            doneCalled = true;
+            done();
+          }
+        }, function(err, cache) {
+          console.log('Cache progress', cache);
         });
       });
     });
@@ -262,7 +261,7 @@ describe('Cache API', function() {
     var createdMap;
 
     after(function(done) {
-      new Cache(createdCache).delete(function(err, cache) {
+      new Cache(createdCache).delete(function() {
         Map.getById(createdMap.id, function(err, map) {
           new Map(map).delete(done);
         });
@@ -275,7 +274,6 @@ describe('Cache API', function() {
         log.info('Created a map %s with id %s', map.name, map.id);
         cache.source = map;
         cache.create = ['xyz'];
-
         Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache;

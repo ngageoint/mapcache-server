@@ -116,7 +116,6 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
       return callback(null, null);
     }
     log.info('5: Pull the tile %d, %d, %d', x, y, z);
-    console.log('self.map', self.map.getTile);
 
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       callback(null, tileStream);

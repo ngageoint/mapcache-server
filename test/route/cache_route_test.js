@@ -2,9 +2,10 @@ var request = require('supertest')
   , mongoose = require('mongoose')
   , config = require('mapcache-config')
   , async = require('async')
-  , Token = require('mapcache-models').Token
   , turf = require('turf')
   , fs = require('fs-extra')
+  // this initializes the mongo models
+  , models = require('mapcache-models') // jshint ignore:line
   , TokenModel = mongoose.model('Token')
   , sinon = require('sinon')
   , Map = require('../../api/source')
@@ -52,7 +53,7 @@ describe("Cache Route Tests", function() {
           });
         }
       }
-    }
+    };
 
     sandbox.mock(TokenModel)
       .expects('findOne')
@@ -97,7 +98,7 @@ describe("Cache Route Tests", function() {
           map = res.body;
           mapId = map.id;
         })
-        .end(done)
+        .end(done);
     });
 
     afterEach(function(done) {
@@ -220,6 +221,7 @@ describe("Cache Route Tests", function() {
   describe("tests on existing cache", function() {
     var mapId;
     var map;
+    var cacheId;
 
     beforeEach(function(done) {
       request(app)
@@ -268,7 +270,7 @@ describe("Cache Route Tests", function() {
               console.log('cache', cache);
             })
             .end(done);
-        })
+        });
     });
 
     afterEach(function(done) {

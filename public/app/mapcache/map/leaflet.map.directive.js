@@ -310,6 +310,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   });
 
   $scope.$watch('map.mapcacheUrl', function() {
+    if (!$scope.map) return;
     if ($scope.map.dataSources) {
       var merged = _.reduce($scope.map.dataSources, function(merge, dataSource) {
         if (dataSource.geometry) {
@@ -394,6 +395,7 @@ function LeafletMapController($scope, $element, $rootScope, LocalStorageService,
   var layerControlLayers = [];
 
   $scope.$watch('map.dataSources.length', function(length) {
+    if (!$scope.map) return;
     currentDatasources = $scope.map.dataSources;
     if (length && $scope.map.dataSources.length > 1) {
       _.each(layerControlLayers, function(l) {

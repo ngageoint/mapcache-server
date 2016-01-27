@@ -12,7 +12,7 @@ function getRandomInt(min, max) {
 }
 
 function toHex(d) {
-    return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
+    return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase();
 }
 
 function getRandomColor() {
@@ -26,7 +26,7 @@ function getRandomStyle() {
     'stroke': getRandomColor(),
     'stroke-opacity': 0.5,
     'stroke-width': 1
-  }
+  };
 }
 
 describe('Cache Tests', function() {
@@ -107,7 +107,7 @@ describe('Cache Tests', function() {
         callback();
       });
     }, function() {
-      fs.remove(cacheDir, function(err) {
+      fs.remove(cacheDir, function() {
         done();
       });
     });
@@ -120,7 +120,7 @@ describe('Cache Tests', function() {
         callback();
       });
     }, function() {
-      fs.remove(cacheDir, function(err) {
+      fs.remove(cacheDir, function() {
         done();
       });
     });
@@ -129,8 +129,8 @@ describe('Cache Tests', function() {
   it('should construct a cache from all the sources', function (done) {
     // this.timeout(0);
     cache = new Cache(cacheModel);
-    cache.callbackWhenInitialized(function(err, newCache) {
-      console.log('called back in construct a cache from all the sources')
+    cache.callbackWhenInitialized(function(err) {
+      console.log('called back in construct a cache from all the sources');
       console.log(err);
       // log.info('Cache was initialized', JSON.stringify(newCache.cache.source.source.properties, null, 2));
       // newCache.cache.getTile.should.be.a.Function;
@@ -186,6 +186,7 @@ describe('Cache Tests', function() {
         },
         function(progress, callback) {
           console.log('cache progress', progress);
+          progress.formats.geopackage.percentComplete.should.not.be.above(100);
           callback(null, progress);
         }
       );
