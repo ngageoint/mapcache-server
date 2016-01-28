@@ -8,7 +8,7 @@ var FeatureModel = require('mapcache-models').Feature
   , q = require('q');
 
 var Cache = function(cache) {
-  this.cache = cache || {};
+  this.cache = cache;
   this.cache.outputDirectory = this.cache.outputDirectory || config.server.cacheDirectory.path;
   this.map = {};
   if (this.cache && !this.cache.status) {

@@ -512,10 +512,7 @@ GeoPackage.prototype._insertVectorLayers = function(callback) {
         var featureTable = featureTables[count];
         log.info('feature table', featureTable);
         gp.iterateFeaturesFromTable(featureTable, function(err, feature, callback) {
-          FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function(err) {
-            if (err) {
-              log.error('error creating feature for geopackage', err);
-            }
+          FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function() {
             log.debug('Created feature for sourceId %s and layerId %s', self.source.id, count);
             callback();
           });

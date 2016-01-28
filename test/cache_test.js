@@ -1,6 +1,7 @@
 var log = require('mapcache-log')
   , fs = require('fs-extra')
   , Cache = require('../cache/cache')
+  , Map = require('../map/map')
   , path = require('path')
   , FeatureModel = require('mapcache-models').Feature
   , turf = require('turf')
@@ -126,6 +127,58 @@ describe('Cache Tests', function() {
     });
   });
 
+  it ('should construct a cache with an error because there is no map', function(done) {
+    var c = new Cache({
+      outputDirectory: cacheDir,
+      id: 'cache-test',
+      name: 'cache-test',
+      minZoom: 0,
+      maxZoom: 1,
+      geometry: turf.polygon([[
+        [-180, -85],
+        [-180, 85],
+        [180, 85],
+        [180, -85],
+        [-180, -85]
+      ]]),
+      cacheCreationParams: {
+        noGeoPackageIndex: true
+      }
+    });
+    c.callbackWhenInitialized(function() {
+      should.exist(c.error);
+      done();
+    });
+  });
+
+  it ('should construct a cache from a map that has already been initialized', function(done) {
+    var mapObj = new Map(map);
+    mapObj.callbackWhenInitialized(function() {
+      cache = new Cache({
+        source: mapObj,
+        outputDirectory: cacheDir,
+        id: 'cache-test',
+        name: 'cache-test',
+        minZoom: 0,
+        maxZoom: 1,
+        geometry: turf.polygon([[
+          [-180, -85],
+          [-180, 85],
+          [180, 85],
+          [180, -85],
+          [-180, -85]
+        ]]),
+        cacheCreationParams: {
+          noGeoPackageIndex: true
+        }
+      });
+      cache.callbackWhenInitialized(function() {
+        should.not.exist(cache.error);
+        done();
+      });
+    });
+  });
+
   it('should construct a cache from all the sources', function (done) {
     // this.timeout(0);
     cache = new Cache(cacheModel);
@@ -147,6 +200,48 @@ describe('Cache Tests', function() {
       ws.on('finish', function() {
         done(err);
       });
+    });
+  });
+
+  it('should pull the 0/0/0 tile from the cache with no callback', function (done) {
+    // this.timeout(0);
+    cache.getTile('png', 0, 0, 0);
+    done();
+  });
+
+  it ('should fail to pull a tile because the cache had an error', function(done) {
+    var c = new Cache({
+      outputDirectory: cacheDir,
+      id: 'cache-test',
+      name: 'cache-test',
+      minZoom: 0,
+      maxZoom: 1,
+      geometry: turf.polygon([[
+        [-180, -85],
+        [-180, 85],
+        [180, 85],
+        [180, -85],
+        [-180, -85]
+      ]]),
+      cacheCreationParams: {
+        noGeoPackageIndex: true
+      }
+    });
+    c.callbackWhenInitialized(function() {
+      should.exist(c.error);
+      c.getTile('png', 0, 0, 0, function(err, tileStream) {
+        should.exist(err);
+        should.not.exist(tileStream);
+        done();
+      });
+    });
+  });
+
+  it ('should create a duplicate cache to test features already being in postgis', function(done) {
+    var c = new Cache(cacheModel);
+    c.callbackWhenInitialized(function() {
+      should.not.exist(cache.error);
+      done();
     });
   });
 
