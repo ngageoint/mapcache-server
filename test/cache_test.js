@@ -259,7 +259,6 @@ describe('Cache Tests', function() {
     });
 
     it('should generate the XYZ format for the cache', function (done) {
-      // this.timeout(0);
       cache.generateFormat('xyz', function(err, cache) {
           console.log('cache finished with err?', err);
           console.log('cache completed', cache);
