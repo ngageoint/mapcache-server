@@ -1,10 +1,6 @@
-angular
-  .module('mapcache')
-  .factory('LeafletUtilities', LeafletUtilities);
-
-LeafletUtilities.$inject = ['LocalStorageService'];
-
-function LeafletUtilities(LocalStorageService) {
+var _ = require('underscore');
+var L = require('leaflet');
+module.exports = function LeafletUtilities(LocalStorageService) {
 
   return {
     styleFunction: styleFunction,
@@ -121,4 +117,4 @@ function LeafletUtilities(LocalStorageService) {
       return L.tileLayer(url, layerOptions);
     }
   }
-}
+};

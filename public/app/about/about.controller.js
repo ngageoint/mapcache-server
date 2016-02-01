@@ -4,5 +4,6 @@ angular
 
 AboutController.$inject = ['$scope'];
 
-function AboutController () {
+function AboutController ($scope) {
+  $scope.about = 'About';
 }

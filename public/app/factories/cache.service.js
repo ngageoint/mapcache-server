@@ -1,10 +1,4 @@
-angular
-  .module('mapcache')
-  .factory('CacheService', CacheService);
-
-CacheService.$inject = ['$q', '$http'];
-
-function CacheService($q, $http) {
+module.exports = function CacheService($q, $http) {
 
   var resolvedCaches = {};
   var resolveAllCaches = null;

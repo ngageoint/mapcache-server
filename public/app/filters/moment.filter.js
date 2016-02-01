@@ -1,8 +1,6 @@
-angular
-  .module('userManagement')
-  .filter('moment', momentFilter);
+var moment = require('moment');
 
-function momentFilter() {
+module.exports = function momentFilter() {
   return function(input, format) {
     if (!input) return null;
 
@@ -13,4 +11,4 @@ function momentFilter() {
   	}
     return input;
   };
-}
+};

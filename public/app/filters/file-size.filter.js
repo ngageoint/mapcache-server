@@ -1,8 +1,4 @@
-angular
-  .module('mapcache')
-  .filter('fileSize', fileSizeFilter);
-
-function fileSizeFilter() {
+module.exports = function fileSizeFilter() {
   return function(input) {
     if (!input) return null;
 
@@ -12,4 +8,4 @@ function fileSizeFilter() {
     return (input / Math.pow(1024, Math.floor(number))).toFixed(3) +  ' ' + units[number];
 
   };
-}
+};

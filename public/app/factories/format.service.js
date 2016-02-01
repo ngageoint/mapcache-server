@@ -1,8 +1,4 @@
-angular
-  .module('mapcache')
-  .factory('FormatService', FormatService);
-
-function FormatService() {
+module.exports = function FormatService() {
 
   return {
     geopackage: "Geo Package",

@@ -23,10 +23,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-
       'public/bower_components/jquery/jquery.min.js',
       'public/bower_components/underscore/underscore-min.js',
       'public/bower_components/angular/angular.js',
+      'public/bower_components/angular-mocks/angular-mocks.js',
       'public/bower_components/angular-resource/angular-resource.min.js',
       'public/bower_components/angular-sanitize/angular-sanitize.min.js',
       'public/bower_components/angular-route/angular-route.min.js',

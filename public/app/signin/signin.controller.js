@@ -1,10 +1,4 @@
-angular
-  .module('userManagement')
-  .controller('SigninController', SigninController);
-
-SigninController.$inject = ['$scope', '$rootScope', '$location', 'UserService'];
-
-function SigninController($scope, $rootScope, $location, UserService) {
+module.exports = function($scope, $rootScope, $location, UserService) {
   $scope.status = 0;
 
   $scope.signin = function () {
@@ -64,4 +58,4 @@ function SigninController($scope, $rootScope, $location, UserService) {
     $scope.statusLevel = statusLevel;
     $scope.showStatus = true;
   };
-}
+};

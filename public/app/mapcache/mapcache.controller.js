@@ -1,19 +1,4 @@
-angular
-  .module('mapcache')
-  .controller('MapcacheController', MapcacheController);
-
-MapcacheController.$inject = [
-  '$scope',
-  '$rootScope',
-  '$compile',
-  '$timeout',
-  '$location',
-  'LocalStorageService',
-  'CacheService',
-  'MapService'
-];
-
-function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, MapService) {
+module.exports = function MapcacheController($scope, $rootScope, $compile, $timeout, $location, LocalStorageService, CacheService, MapService) {
   $scope.token = LocalStorageService.getToken();
   $scope.view = {showingTiles: {}, showingDetails: {}};
 

@@ -1,10 +1,6 @@
-angular
-  .module('userManagement')
-  .filter('user', userFilter);
+var _ = require('underscore');
 
-userFilter.$inject = [];
-
-function userFilter() {
+module.exports = function userFilter() {
   return function(collection, properties, search) {
     if (!search) return collection;
 
@@ -21,4 +17,4 @@ function userFilter() {
       });
     });
   };
-}
+};

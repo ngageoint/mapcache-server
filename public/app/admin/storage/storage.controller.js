@@ -6,6 +6,8 @@ StorageController.$inject = ['$scope', '$http', '$location', '$injector', '$filt
 
 function StorageController($scope, $http, $location, $injector, $filter, CacheService, MapService, FormatService, LocalStorageService, UserService) {
 
+  console.log('In the storage controller');
+
   $scope.formatName = function(name) {
     return FormatService[name];
   };
@@ -43,11 +45,13 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
   $http.get('/api/server')
   .success(function(data) {
     $scope.storage = data;
+    console.log('data', data);
   }).error(function(data, status) {
     console.log("error pulling server data", status);
   });
 
   CacheService.getAllCaches(true).success(function(caches) {
+    console.log('got all the caches', caches);
     for (var i = 0; i < caches.length; i++) {
       var size = cacheSize(caches[i]);
       caches[i].totalSize = size;

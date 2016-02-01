@@ -1,12 +1,6 @@
-angular
-  .module('userManagement')
-  .filter('offset', offsetFilter);
-
-offsetFilter.$inject = [];
-
-function offsetFilter() {
+module.exports = function offsetFilter() {
   return function(input, start) {
     start = parseInt(start, 10);
     return input.slice(start);
   };
-}
+};

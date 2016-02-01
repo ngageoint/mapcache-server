@@ -1,3 +1,7 @@
+/*global L*/
+
+(function (window, document, undefined) {
+
 L.Control.ZoomIndicator = L.Control.extend({
 	options: {
 		position: 'topleft',
@@ -15,3 +19,5 @@ L.Control.ZoomIndicator = L.Control.extend({
     return container;
   }
 });
+
+}(this, document));

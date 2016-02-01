@@ -2,6 +2,7 @@ module.exports = function(app, auth) {
   var access = require('../access')
     , Cache = require('../api/cache')
     , turf = require('turf')
+    , log = require('mapcache-log')
     , xyzTileUtils = require('xyz-tile-utils')
     , cacheXform = require('../transformers/cache');
 
@@ -141,10 +142,14 @@ module.exports = function(app, auth) {
     '/api/caches/:cacheId/overviewTile',
     access.authorize('READ_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
+    function (req, res) {
+      if (!req.cache.geometry) return res.status(404).send();
       var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry));
       new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
-        if (err) return next(err);
+        if (err) {
+          log.error('Error getting overview tile for cache %s', req.cache.id, err);
+          return res.status(404).send();
+        }
         if (!tileStream) return res.status(404).send();
         console.log('bloop');
         tileStream.pipe(res);

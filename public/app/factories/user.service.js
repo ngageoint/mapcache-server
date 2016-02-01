@@ -1,10 +1,7 @@
-angular
-  .module('userManagement')
-  .factory('UserService', UserService);
+var $ = require('jquery');
+var _ = require('underscore');
 
-UserService.$inject = ['$rootScope', '$q', '$http', '$location', '$timeout', 'LocalStorageService'];
-
-function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
+module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
   var userDeferred = $q.defer();
   var resolvedUsers = {};
   var resolveAllUsers = null;
@@ -89,7 +86,7 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
     .error(function() {
       theDeferred.resolve({});
     });
-
+    console.log('returning the deferred.promise', theDeferred.promise);
     return theDeferred.promise;
   }
 
@@ -127,7 +124,7 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
     .error(function() {
       userDeferred.resolve({});
     });
-
+    console.log('returning user promise', userDeferred.promise);
     return userDeferred.promise;
   }
 
@@ -218,4 +215,4 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
         processData: false
     });
   }
-}
+};

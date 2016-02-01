@@ -1,10 +1,4 @@
-angular
-  .module('mapcache')
-  .factory('MapService', MapService);
-
-MapService.$inject = ['$q', '$http', '$rootScope', 'LocalStorageService'];
-
-function MapService($q, $http, $rootScope, LocalStorageService) {
+module.exports = function MapService($q, $http, $rootScope, LocalStorageService) {
 
   var resolvedMaps = {};
   var resolveAllMaps = null;
