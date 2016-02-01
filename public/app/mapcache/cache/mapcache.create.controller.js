@@ -1,20 +1,8 @@
-angular
-  .module('mapcache')
-  .controller('MapcacheCreateController', MapcacheCreateController);
+var angular = require('angular');
+var turf = require('turf');
+var _ = require('underscore');
 
-MapcacheCreateController.$inject = [
-  '$scope',
-  '$location',
-  '$http',
-  '$routeParams',
-  '$modal',
-  '$rootScope',
-  'CacheService',
-  'MapService',
-  'LocalStorageService'
-];
-
-function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, $rootScope, CacheService, MapService, LocalStorageService) {
+module.exports = function MapcacheCreateController($scope, $location, $http, $routeParams, $modal, $rootScope, CacheService, MapService, LocalStorageService) {
 
   $rootScope.title = 'Create A Cache';
   $scope.token = LocalStorageService.getToken();
@@ -376,4 +364,4 @@ function MapcacheCreateController($scope, $location, $http, $routeParams, $modal
   	return ytile;
   }
 
-}
+};

@@ -1,4 +1,4 @@
-var turf = require('turf-extent');
+var turf = require('turf');
 
 module.exports = function turfFilter() {
   return function(input, operation, option) {

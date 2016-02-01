@@ -1,19 +1,7 @@
-angular
-  .module('mapcache')
-  .controller('MapEditController', MapEditController);
+var angular = require('angular');
+var _ = require('underscore');
 
-MapEditController.$inject = [
-  '$scope',
-  '$rootScope',
-  '$routeParams',
-  '$location',
-  '$timeout',
-  '$http',
-  'MapService',
-  'LocalStorageService'
-];
-
-function MapEditController($scope, $rootScope, $routeParams, $location, $timeout, $http, MapService, LocalStorageService) {
+module.exports = function MapEditController($scope, $rootScope, $routeParams, $location, $timeout, $http, MapService, LocalStorageService) {
   $scope.tab='general';
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
@@ -142,4 +130,4 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   getMap();
 
-}
+};

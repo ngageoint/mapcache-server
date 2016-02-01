@@ -1,18 +1,7 @@
-angular
-  .module('mapcache')
-  .controller('MapcacheCacheController', MapcacheCacheController);
+var turf = require('turf');
+var _ = require('underscore');
 
-MapcacheCacheController.$inject = [
-  '$scope',
-  '$location',
-  '$timeout',
-  '$routeParams',
-  '$rootScope',
-  'CacheService',
-  'LocalStorageService'
-];
-
-function MapcacheCacheController($scope, $location, $timeout, $routeParams, $rootScope, CacheService, LocalStorageService) {
+module.exports = function MapcacheCacheController($scope, $location, $timeout, $routeParams, $rootScope, CacheService, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
 
@@ -143,4 +132,4 @@ function MapcacheCacheController($scope, $location, $timeout, $routeParams, $roo
     return ytile;
   }
 
-}
+};

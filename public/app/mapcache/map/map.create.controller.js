@@ -1,18 +1,6 @@
-angular
-  .module('mapcache')
-  .controller('MapCreateController', MapCreateController);
+var _ = require('underscore');
 
-MapCreateController.$inject = [
-  '$scope',
-  '$rootScope',
-  '$location',
-  '$timeout',
-  '$http',
-  'CacheService',
-  'MapService'
-];
-
-function MapCreateController($scope, $rootScope, $location, $timeout, $http, CacheService, MapService) {
+module.exports = function MapCreateController($scope, $rootScope, $location, $timeout, $http, CacheService, MapService) {
   $rootScope.title = 'Create A Map';
 
   $scope.validUrlFormats = MapService.validUrlFormats;
@@ -75,4 +63,4 @@ function MapCreateController($scope, $rootScope, $location, $timeout, $http, Cac
     }, uploadProgress);
   };
 
-}
+};

@@ -1,16 +1,5 @@
-angular
-  .module('mapcache')
-  .controller('MapsController', MapsController);
-
-MapsController.$inject = [
-  '$scope',
-  '$rootScope',
-  'LocalStorageService',
-  'CacheService',
-  'MapService'
-];
-
-function MapsController($scope, $rootScope, LocalStorageService, CacheService, MapService) {
+var _ = require('underscore');
+module.exports = function MapsController($scope, $rootScope, LocalStorageService, CacheService, MapService) {
   $scope.token = LocalStorageService.getToken();
   $rootScope.title = 'Maps';
 
@@ -32,4 +21,4 @@ function MapsController($scope, $rootScope, LocalStorageService, CacheService, M
 
   });
 
-}
+};

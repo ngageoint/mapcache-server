@@ -1,20 +1,6 @@
-angular
-  .module('mapcache')
-  .controller('MapController', MapController);
+var _ = require('underscore');
 
-MapController.$inject = [
-  '$scope',
-  '$location',
-  '$timeout',
-  '$routeParams',
-  '$rootScope',
-  '$filter',
-  'CacheService',
-  'MapService',
-  'LocalStorageService'
-];
-
-function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, LocalStorageService) {
+module.exports = function MapController($scope, $location, $timeout, $routeParams, $rootScope, $filter, CacheService, MapService, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
@@ -122,4 +108,4 @@ function MapController($scope, $location, $timeout, $routeParams, $rootScope, $f
   }
 
   getMap();
-}
+};
