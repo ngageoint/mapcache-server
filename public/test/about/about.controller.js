@@ -3,7 +3,7 @@ describe('AboutController', function() {
   var scope;
   var ctrl;
 
-  beforeEach(module('userManagement'));
+  beforeEach(module('mapcache'));
 
   beforeEach(inject(function($rootScope, $controller) {
     scope = $rootScope.$new();
