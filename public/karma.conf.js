@@ -9,7 +9,8 @@ module.exports = function(config) {
       'karma-mocha',
       'karma-chai',
       'karma-sinon',
-      'karma-phantomjs-launcher'
+      'karma-phantomjs-launcher',
+      'karma-browserify'
     ],
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -18,13 +19,11 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai', 'sinon'],
+    frameworks: ['mocha', 'chai', 'sinon', 'browserify'],
 
 
     // list of files / patterns to load in the browser
     files: [
-      'static/mapcache.js',
-      'node_modules/angular-mocks/angular-mocks.js',
       'test/**/*.js'
     ],
 
@@ -34,13 +33,17 @@ module.exports = function(config) {
       'node_modules'
     ],
 
+    browserify: {
+      watch: true,
+      debug: true
+    },
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'app/**/*.js': ['coverage']
+      'app/**/*.js': ['coverage'],
+      'test/**/*.js': ['browserify']
     },
-
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

@@ -46,7 +46,7 @@ module.exports = function StorageController($scope, $http, $location, $injector,
     console.log("error pulling server data", status);
   });
 
-  CacheService.getAllCaches(true).success(function(caches) {
+  CacheService.getAllCaches(true).then(function(caches) {
     console.log('got all the caches', caches);
     for (var i = 0; i < caches.length; i++) {
       var size = cacheSize(caches[i]);

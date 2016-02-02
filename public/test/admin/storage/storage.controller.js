@@ -1,29 +1,39 @@
 
+var angular = require('angular');
+require('angular-mocks');
+
 describe('StorageController', function() {
 
   var scope;
   var ctrl;
-  var CacheServiceMock;
+  var CacheServiceMock = {};
   var $httpBackend;
 
-  beforeEach(module('mapcache'));
+  before(function() {
+    angular.module('mapcache', [  ]);
 
-  // beforeEach(function() {
-  //   CacheServiceMock = {
-  //       getAllCaches: function() {
-  //         return {
-  //           success: function() {
-  //             return [{
-  //               name: 'nuts'
-  //             }];
-  //           }
-  //         };
-  //       }
-  //   };
-  //   module(function($provide) {
-  //     $provide.value('CacheService', CacheServiceMock);
-  //   });
-  // });
+    require('../../../app/admin/storage');
+  });
+
+  beforeEach(angular.mock.module('mapcache'));
+
+  beforeEach(function() {
+    angular.mock.module(function($provide) {
+      $provide.value('CacheService', CacheServiceMock);
+    });
+  });
+
+  beforeEach(inject(function($q) {
+    CacheServiceMock.getAllCaches = function() {
+      var deferred = $q.defer();
+      deferred.resolve([{
+        name: 'nuts'
+      }]);
+      return deferred.promise;
+    };
+  }));
+
+
 
   beforeEach(inject(function($rootScope, $controller, $injector){
 
@@ -41,9 +51,9 @@ describe('StorageController', function() {
       woo: 'oop'
     });
 
-    $httpBackend.when('GET', '/api/caches').respond([{
-      woo: 'oop'
-    }]);
+    // $httpBackend.when('GET', '/api/caches').respond([{
+    //   woo: 'oop'
+    // }]);
 
     scope = $rootScope.$new();
     ctrl = $controller('StorageController', {$scope: scope});
