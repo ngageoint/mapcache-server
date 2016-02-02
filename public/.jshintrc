@@ -1,5 +1,6 @@
 {
   "extends"   : "../.jshintrc",
   "globals"   : {
+    "window": false
   }
 }

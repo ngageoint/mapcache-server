@@ -1,10 +1,6 @@
-angular
-  .module('mapcache')
-  .controller('StorageController', StorageController);
+var _ = require('underscore');
 
-StorageController.$inject = ['$scope', '$http', '$location', '$injector', '$filter', 'CacheService', 'MapService', 'FormatService', 'LocalStorageService', 'UserService'];
-
-function StorageController($scope, $http, $location, $injector, $filter, CacheService, MapService, FormatService, LocalStorageService, UserService) {
+module.exports = function StorageController($scope, $http, $location, $injector, $filter, CacheService, MapService, FormatService, LocalStorageService, UserService) {
 
   console.log('In the storage controller');
 
@@ -238,4 +234,4 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     });
   };
 
-}
+};

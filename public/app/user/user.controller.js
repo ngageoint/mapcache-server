@@ -1,10 +1,5 @@
-angular
-  .module('userManagement')
-  .controller('UserController', UserController);
-
-UserController.$inject =  ['$scope', '$location', '$timeout', 'UserService', 'user'];
-
-function UserController($scope, $location, $timeout, UserService, user) {
+var angular = require('angular');
+module.exports = function UserController($scope, $location, $timeout, UserService, user) {
   $scope.user = user;
   $scope.originalUser = angular.copy(user);
   $scope.passwordStatus = {};
@@ -76,4 +71,4 @@ function UserController($scope, $location, $timeout, UserService, user) {
     $scope.showUserStatus = true;
   };
 
-}
+};

@@ -1,14 +1,26 @@
+window.jQuery = require("jquery");
 var angular = require('angular');
 require('angular-route');
 require('./app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
+// putting this  because you have to build it before you can use it
+require('./vendor/angular-ui-select');
 
-var app = angular.module('mapcache', [ 'ngRoute', 'http-auth-interceptor', 'ui.bootstrap' ]);
+// fix the image path
+var L = require('leaflet');
+L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
+
+var app = angular.module('mapcache', [ 'ngRoute', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select' ]);
 
 require('./app/signin');
 require('./app/factories');
 require('./app/filters');
 require('./app/mapcache');
+require('./app/admin/storage');
+require('./app/user');
+require('./app/about');
+require('./app/directives');
+require('./app/file-upload');
 
 app.config(function($routeProvider, $httpProvider) {
 
