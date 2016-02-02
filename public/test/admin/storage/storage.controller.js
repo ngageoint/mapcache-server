@@ -2,6 +2,9 @@
 var angular = require('angular');
 require('angular-mocks');
 
+var sinon  = require('sinon');
+var sinonAsPromised = require('sinon-as-promised');
+
 describe('StorageController', function() {
 
   var scope;
@@ -23,17 +26,15 @@ describe('StorageController', function() {
     });
   });
 
-  beforeEach(inject(function($q) {
-    CacheServiceMock.getAllCaches = function() {
-      var deferred = $q.defer();
-      deferred.resolve([{
-        name: 'nuts'
-      }]);
-      return deferred.promise;
-    };
+  beforeEach(angular.mock.inject(function ($q) {
+    sinonAsPromised($q);
   }));
 
-
+  beforeEach(function() {
+    CacheServiceMock.getAllCaches = sinon.stub().resolves([{
+      name: 'Test Cache'
+    }]);
+  });
 
   beforeEach(inject(function($rootScope, $controller, $injector){
 
