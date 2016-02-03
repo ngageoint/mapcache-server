@@ -1,5 +1,8 @@
 // Karma configuration
 // Generated on Thu Jan 28 2016 08:02:07 GMT-0700 (MST)
+//
+//
+var istanbul = require('browserify-istanbul');
 
 module.exports = function(config) {
   config.set({
@@ -35,7 +38,10 @@ module.exports = function(config) {
 
     browserify: {
       watch: true,
-      debug: true
+      debug: true,
+      transform: [istanbul({
+        ignore: ['node_modules/**/*', 'test/**/*']
+      })]
     },
 
     // preprocess matching files before serving them to the browser

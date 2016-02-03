@@ -71,7 +71,7 @@ module.exports = function StorageController($scope, $http, $location, $injector,
     return bytes;
   }
 
-  MapService.getAllMaps(true).success(function(sources) {
+  MapService.getAllMaps(true).then(function(sources) {
     $scope.sources = [];
     for (var i = 0; i < sources.length; i++) {
       if (sources[i].size && sources[i].size !== 0) {
@@ -96,11 +96,11 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   $scope.page = 0;
   $scope.itemsPerPage = 10;
 
-  UserService.getRoles().success(function (roles) {
+  UserService.getRoles().then(function (roles) {
     $scope.roles = roles;
   });
 
-  UserService.getAllUsers(true).success(function(users) {
+  UserService.getAllUsers(true).then(function(users) {
     $scope.users = users;
   });
 

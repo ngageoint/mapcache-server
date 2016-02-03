@@ -7,22 +7,55 @@ var sinonAsPromised = require('sinon-as-promised');
 
 describe('StorageController', function() {
 
+  var mockCaches = [{
+    name: 'Test 1',
+    id: '5'
+  }, {
+    name: 'Test 2',
+    id: '6'
+  }];
+
+  var mockMaps = [{
+    name: 'Test Map 1',
+    id: '5'
+  }, {
+    name: 'Test Map 2',
+    id: '6'
+  }];
+
+  var mockRoles = [
+
+  ];
+
+  var mockUsers = [
+
+  ];
+
   var scope;
   var ctrl;
-  var CacheServiceMock = {};
+  var CacheServiceMock;
+  var MapServiceMock = {};
+  var UserServiceMock = {};
   var $httpBackend;
+  var CacheService;
 
   before(function() {
     angular.module('mapcache', [  ]);
 
     require('../../../app/admin/storage');
+
+    CacheService = require('../../../app/factories/cache.service')();
+
+    CacheServiceMock = sinon.mock(CacheService);
   });
 
   beforeEach(angular.mock.module('mapcache'));
 
   beforeEach(function() {
     angular.mock.module(function($provide) {
-      $provide.value('CacheService', CacheServiceMock);
+      $provide.value('CacheService', CacheService);
+      $provide.value('MapService', MapServiceMock);
+      $provide.value('UserService', UserServiceMock);
     });
   });
 
@@ -31,9 +64,10 @@ describe('StorageController', function() {
   }));
 
   beforeEach(function() {
-    CacheServiceMock.getAllCaches = sinon.stub().resolves([{
-      name: 'Test Cache'
-    }]);
+    CacheService.getAllCaches = sinon.stub().resolves(mockCaches);
+    MapServiceMock.getAllMaps = sinon.stub().resolves(mockMaps);
+    UserServiceMock.getRoles = sinon.stub().resolves(mockRoles);
+    UserServiceMock.getAllUsers = sinon.stub().resolves(mockUsers);
   });
 
   beforeEach(inject(function($rootScope, $controller, $injector){
@@ -42,19 +76,6 @@ describe('StorageController', function() {
     $httpBackend.when('GET', '/api/server').respond({
       woo: 'oop'
     });
-    $httpBackend.when('GET', '/api/maps').respond({
-      woo: 'oop'
-    });
-    $httpBackend.when('GET', '/api/roles').respond({
-      woo: 'oop'
-    });
-    $httpBackend.when('GET', '/api/users').respond({
-      woo: 'oop'
-    });
-
-    // $httpBackend.when('GET', '/api/caches').respond([{
-    //   woo: 'oop'
-    // }]);
 
     scope = $rootScope.$new();
     ctrl = $controller('StorageController', {$scope: scope});
@@ -71,17 +92,29 @@ describe('StorageController', function() {
     scope.$watch('caches', function(caches) {
       console.log('caches', caches);
       if (caches) {
+        caches.length.should.be.equal(2);
         done();
       }
     });
-    scope.$apply();
-
-    var caches = scope.caches;
-
-    console.log('caches', caches);
-    var name = scope.formatName('xyz');
-    console.log('name', name);
-    name.should.be.equal('XYZ');
     $httpBackend.flush();
+  });
+
+  it('should delete a cache', function(done) {
+    var mockReturn = JSON.parse(JSON.stringify(mockCaches[0]));
+    var mock = CacheServiceMock
+      .expects('deleteCache')
+      .withArgs(mockReturn, null)
+      .once()
+      .yields(mockReturn);
+
+      scope.$watch('caches', function(caches) {
+        if (caches) {
+          scope.deleteCache(mockReturn, null);
+          mock.verify();
+          mockReturn.deleted.should.be.equal(true);
+          done();
+        }
+      });
+      $httpBackend.flush();
   });
 });

@@ -38,7 +38,9 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "browserify-istanbul": "^0.2.1",
     "chai": "^3.4.1",
+    "istanbul": "^0.4.2",
     "karma": "^0.13.19",
     "karma-browserify": "^5.0.1",
     "karma-chai": "^0.1.0",
