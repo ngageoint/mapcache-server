@@ -8,6 +8,5 @@ app.controller('MapCreateController', require('./map.create.controller'));
 app.controller('MapDatasourceController', require('./map.datasource.controller'));
 app.directive('mapDatasource', require('./map.datasource.directive'));
 
-
 app.controller('LeafletMapController', require('./leaflet.map.controller'));
 app.directive('leafletMap', require('./leaflet.map.directive'));

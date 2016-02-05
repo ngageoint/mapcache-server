@@ -13,27 +13,6 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
     id: $routeParams.mapId
   };
 
-  var cacheHighlightPromise;
-  $scope.mouseOver = function(cache) {
-    $rootScope.$broadcast('showCacheExtent', cache);
-    if (cacheHighlightPromise) {
-      $timeout.cancel(cacheHighlightPromise);
-    }
-    cacheHighlightPromise = $timeout(function() {
-      $rootScope.$broadcast('showCache', cache);
-    }, 500);
-  };
-
-  $scope.mouseOut = function(cache) {
-    $rootScope.$broadcast('hideCacheExtent', cache);
-
-    if (cacheHighlightPromise) {
-      $timeout.cancel(cacheHighlightPromise);
-      cacheHighlightPromise = undefined;
-    }
-    $rootScope.$broadcast('hideCache', cache);
-  };
-
   var allCaches;
 
   $scope.createCacheFromMap = function() {
@@ -61,14 +40,9 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
       var currentlyGenerating = false;
       for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
         var cache = caches[i];
-        if (!cache.status.complete) {
-          currentlyGenerating = true;
-        }
         for (var format in cache.formats) {
-          if(cache.formats.hasOwnProperty(format)){
-            if (!cache.formats[format].complete) {
-              currentlyGenerating = true;
-            }
+          if (!cache.formats[format].complete) {
+            currentlyGenerating = true;
           }
         }
       }
@@ -92,7 +66,8 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
       } else {
         $scope.mapComplete = true;
         getCaches();
-        if (map.vector) {
+        if (_.some(map.dataSources, function(value) {
+          return value.vector; })) {
           $scope.mapOptions.opacity = 1;
           $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: {}}};
         }

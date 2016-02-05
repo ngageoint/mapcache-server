@@ -2,6 +2,7 @@ var L = require('leaflet');
 require('drmonty-leaflet-awesome-markers');
 require('leaflet-groupedlayercontrol');
 require('../../leaflet-extensions');
+require('../leaflet');
 var turf = require('turf');
 var _ = require('underscore');
 
@@ -41,7 +42,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   console.log('map options', mapOptions);
 
   var map = L.map($element[0], mapOptions);
-  if (!$scope.options.hideZoomIndicator) {
+  if ($scope.options && !$scope.options.hideZoomIndicator) {
     map.addControl(new L.Control.ZoomIndicator());
   }
 

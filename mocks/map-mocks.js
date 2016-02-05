@@ -37,7 +37,7 @@ exports.xyzMap = {
     "scaledFiles":[],
     "layers":[],
     "vector":false,
-    "id":"56a92d006a4c0e8d43c40195"
+    "id":"56a92d006a4c0e8d43c40195a"
   },{
     "geometry":{
       "type":"Feature",
@@ -65,7 +65,35 @@ exports.xyzMap = {
     "scaledFiles":[],
     "layers":[],
     "vector":false,
-    "id":"56a92d006a4c0e8d43c40195"
+    "id":"56a92d006a4c0e8d43c40195b"
+  },{
+    "geometry":{
+      "type":"Feature",
+      "geometry":{
+        "type":"Polygon",
+        "coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]
+      }
+    },
+    "name":"osm",
+    "file":{
+      "path":"path/to/geojson.geojson",
+      "name":"geojson.geojson"
+    },
+    "size":108,
+    "format":"geojson",
+    "styleTime":1,
+    "status":{
+      "message":"Complete",
+      "failure":false,
+      "totalFeatures":0,
+      "complete":true
+    },
+    "zOrder":0,
+    "tilesLackExtensions":false,
+    "scaledFiles":[],
+    "layers":[],
+    "vector":true,
+    "id":"56a92d006a4c0e8d43c40195c"
   }],
   "id":"56a92d006a4c0e8d43c40194",
   "mapcacheUrl":"/api/sources/56a92d006a4c0e8d43c40194",
