@@ -1,3 +1,6 @@
+require('../../filters');
+require('../../../vendor/angular-ui-select');
+
 module.exports = function mapDatasource() {
   var directive = {
     restrict: "A",

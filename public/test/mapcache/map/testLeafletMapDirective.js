@@ -27,7 +27,6 @@ describe('leaflet map directive tests', function() {
 
   it('should have returned a directive', function() {
     var leafletMapDirective = require('../../../app/mapcache/map/leaflet.map.directive')();
-    console.log('leafletMapDirective', leafletMapDirective);
     leafletMapDirective.controller.should.be.equal('LeafletMapController');
     leafletMapDirective.template.should.be.equal('<div class="leaflet-map"></div>');
     leafletMapDirective.scope.should.deep.equal({

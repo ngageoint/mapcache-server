@@ -15,11 +15,12 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   var urlChecker = _.debounce(function() {
     $scope.$apply(function() {
       $scope.urlDiscovery = true;
-      delete $scope.mapDatasource.file;
+      if ($scope.mapDatasource.file) {
+        delete $scope.mapDatasource.file;
+      }
       $scope.$broadcast('clearFile');
     });
 
-    console.log('url is valid, what is it?');
     $http.get('/api/maps/discoverMap',
     {
       params: {
@@ -59,7 +60,6 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   }, 500);
 
   $scope.$on('location-url', function(e, location) {
-    console.log('location-url caught', location);
     if (!location) {
       $scope.mapDatasource = {};
       return;
@@ -70,8 +70,6 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   });
 
   $scope.$on('location-file', function(e, uploadFile) {
-  //   uploadFile = $scope.mapDatasource.file;
-    console.log('location-file caught', uploadFile);
     $scope.locationStatus = 'success';
     $scope.mapDatasource.file = uploadFile;
     if (!$scope.mapDatasource.name || $scope.mapDatasource.name === "") {
@@ -113,8 +111,6 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
         $scope.format = 'geojson';
         break;
     }
-
-    console.log('map information');
   });
 
   $scope.$watch('mapDatasource.wmsGetCapabilities', function(capabilities) {
@@ -126,7 +122,6 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   });
 
   $scope.$watch('mapDatasource.format', function() {
-    console.log('format', $scope.mapDatasource.format);
     switch ($scope.mapDatasource.format) {
       case 'wms':
         if (!$scope.mapDatasource.wmsGetCapabilities) {

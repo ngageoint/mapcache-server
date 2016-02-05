@@ -39,7 +39,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   mapOptions.zoom = mapOptions.zoom || 4;
   mapOptions.minZoom = mapOptions.minZoom || 0;
   mapOptions.maxZoom = mapOptions.maxZoom || 18;
-  console.log('map options', mapOptions);
 
   var map = L.map($element[0], mapOptions);
   if ($scope.options && !$scope.options.hideZoomIndicator) {
@@ -78,7 +77,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
 
       MapService.getFeatures($scope.map, event.latlng.lng - latLngDelta.lng, event.latlng.lat - latLngDelta.lat, event.latlng.lng + latLngDelta.lng, event.latlng.lat + latLngDelta.lat, map.getZoom(), function(features) {
         if (!features) return;
-        console.log("found some features", features);
 
         var title = "";
         if ($scope.map.style.title && features[0].properties && features[0].properties[$scope.map.style.title]) {
@@ -116,9 +114,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
 
     if (!centered) {
       if (cacheCenters && cacheCenters.length > 0) {
-        console.log('cache centers', cacheCenters);
         var fc = turf.featurecollection(cacheCenters);
-        console.log('fc', fc);
         var extent = turf.extent(turf.featurecollection(cacheCenters));
         map.fitBounds([
           [extent[1],extent[0]],
@@ -176,7 +172,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     highlightedCache = cache;
 
     var extent = turf.extent(cache.geometry);
-    console.log('extent', extent);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]
@@ -250,7 +245,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   }
 
   function showCacheTiles(cache) {
-    console.log('show cache tiles');
     if (mapLayer) {
       map.removeLayer(mapLayer);
     }
@@ -262,13 +256,11 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   }
 
   function removeCacheTiles(cache) {
-    console.log('removeCache tiles');
     var layer = layers[cache.id];
     if (layer) {
       map.removeLayer(layer);
       delete layers[cache.id];
     }
-    console.log('new layers', layers);
     if (Object.keys(layers).length === 0) {
       baseLayer.setOpacity(1);
     }
@@ -278,7 +270,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   }
 
   $scope.$watch('options', function(options) {
-    console.log('options', options);
     var newOptions = options || {
       maxZoom: 18,
       tms: false,
@@ -305,7 +296,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
         }
         return merge;
       }, $scope.map.dataSources[0].geometry);
-      console.log('merged is', merged);
       updateMapExtent(turf.extent(merged));
     }
     addMapLayer();
@@ -340,7 +330,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   });
 
   $scope.$watch('options.refreshMap', function(refresh) {
-    console.log('refresh map', refresh);
     if (refresh) {
       addMapLayer();
     }
@@ -398,13 +387,11 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
           keyboard: false
         });
         marker.dataSource = ds;
-        console.log('add marker to map');
         marker.addTo(map);
         layerControlLayers.push(marker);
         layerControl.addOverlay(marker, ds.name, "Data Sources");
       });
       if (!layerControlAdded) {
-        console.log('add the layer control');
         layerControlAdded = true;
         layerControl.addTo(map);
       }

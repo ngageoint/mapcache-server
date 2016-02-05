@@ -14,7 +14,8 @@ module.exports = function(config) {
       'karma-sinon',
       'karma-phantomjs-launcher',
       'karma-browserify',
-      'karma-spec-reporter'
+      'karma-spec-reporter',
+      'karma-ng-html2js-preprocessor'
     ],
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -28,7 +29,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'test/**/*.js'
+      'test/**/*.js',
+      '**/*.html'
     ],
 
 
@@ -49,7 +51,8 @@ module.exports = function(config) {
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
       'app/**/*.js': ['coverage'],
-      'test/**/*.js': ['browserify']
+      'test/**/*.js': ['browserify'],
+      '**/*.html': ['ng-html2js']
     },
 
     // test results reporter to use
@@ -65,6 +68,10 @@ module.exports = function(config) {
         // reporters not supporting the `file` property
         { type: 'html', subdir: 'html' }
       ]
+    },
+
+    ngHtml2JsPreprocessor: {
+      stripPrefix: 'public/'
     },
 
 
