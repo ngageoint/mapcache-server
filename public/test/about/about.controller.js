@@ -1,4 +1,5 @@
-var angular = require('angular');
+var angular = require('angular')
+  , should = require('chai').should();
 require('angular-mocks');
 
 describe('AboutController', function() {
@@ -19,7 +20,6 @@ describe('AboutController', function() {
   }));
 
   it('should create the AboutController', function() {
-    console.log('done');
     should.exist(ctrl);
     scope.about.should.be.equal('About');
   });

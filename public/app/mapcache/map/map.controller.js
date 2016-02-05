@@ -36,10 +36,6 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
 
   var allCaches;
 
-  if ($routeParams.mapId) {
-    getCaches();
-  }
-
   $scope.createCacheFromMap = function() {
     $location.path('/create/'+$routeParams.mapId);
   };
@@ -66,19 +62,16 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
       for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
         var cache = caches[i];
         if (!cache.status.complete) {
-          console.log('cache is generating', cache);
           currentlyGenerating = true;
         }
         for (var format in cache.formats) {
           if(cache.formats.hasOwnProperty(format)){
-            if (cache.formats[format].generating) {
-              console.log('cache format is generating ' + format, cache);
+            if (!cache.formats[format].complete) {
               currentlyGenerating = true;
             }
           }
         }
       }
-      console.log("is a cache generating?", currentlyGenerating);
       var delay = currentlyGenerating ? 30000 : 300000;
       $timeout(getCaches, delay);
 
@@ -92,11 +85,13 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
       // success
       $scope.map = map;
       $rootScope.title = map.name;
-      if (_.some(map.dataSources, function(value) { return !value.status.complete; }) && $location.path().indexOf('/map') === 0) {
+      if (_.some(map.dataSources, function(value) {
+        return !value.status.complete; })) {
         $scope.mapComplete = false;
         $timeout(getMap, 5000);
       } else {
         $scope.mapComplete = true;
+        getCaches();
         if (map.vector) {
           $scope.mapOptions.opacity = 1;
           $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: {}}};

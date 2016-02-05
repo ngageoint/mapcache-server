@@ -1,5 +1,6 @@
 var angular = require('angular');
 var app = angular.module('mapcache');
+require('../../factories');
 
 app.controller('MapController', require('./map.controller'));
 app.controller('MapEditController', require('./map.edit.controller'));

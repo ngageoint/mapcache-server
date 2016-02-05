@@ -13,7 +13,8 @@ module.exports = function(config) {
       'karma-chai',
       'karma-sinon',
       'karma-phantomjs-launcher',
-      'karma-browserify'
+      'karma-browserify',
+      'karma-spec-reporter'
     ],
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -54,7 +55,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress', 'coverage'],
+    reporters: ['spec', 'coverage'],
 
     coverageReporter: {
       // specify a common output directory

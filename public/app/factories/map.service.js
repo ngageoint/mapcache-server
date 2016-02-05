@@ -94,11 +94,8 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
       });
   }
 
-  function deleteMap(map, format, success) {
+  function deleteMap(map, success) {
     var url = '/api/maps/' + map.id;
-    if (format) {
-      url += '/' + format;
-    }
     $http.delete(url).success(function(map) {
       console.log('successfully deleted map', map);
       if (success) {
@@ -216,4 +213,4 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
       //   }).error(error);
       // }
   }
-}
+};

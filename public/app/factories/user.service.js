@@ -2,7 +2,7 @@ var $ = require('jquery');
 var _ = require('underscore');
 
 module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
-  var userDeferred = $q.defer();
+  var userDeferred;
   var resolvedUsers = {};
   var resolveAllUsers = null;
 
@@ -203,12 +203,24 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
         xhr: function() {
             var myXhr = $.ajaxSettings.xhr();
             if(myXhr.upload){
-                myXhr.upload.addEventListener('progress', progress, false);
+                myXhr.upload.addEventListener('progress', function(e) {
+                  $rootScope.$apply(function() {
+                    progress(e);
+                  });
+                }, false);
             }
             return myXhr;
         },
-        success: success,
-        error: error,
+        success: function(response){
+          $rootScope.$apply(function() {
+            success(response);
+          });
+        },
+        error: function(response) {
+          $rootScope.$apply(function() {
+            error(response);
+          });
+        },
         data: formData,
         cache: false,
         contentType: false,

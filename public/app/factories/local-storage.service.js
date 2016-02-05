@@ -23,12 +23,8 @@ module.exports = function ($window) {
   }
 
   function getLocalItem(key) {
-    console.log('get key %s', key);
-    console.log('$window.localStorage', $window.localStorage);
-    console.log('$window.localStorage !== null', $window.localStorage !== null);
     try {
       if ($window.localStorage !== null) {
-        console.log('returning %s', $window.localStorage.getItem(key));
         return $window.localStorage.getItem(key);
       }
     } catch (e) {
@@ -37,7 +33,6 @@ module.exports = function ($window) {
   }
 
   function setLocalItem(key, value) {
-    console.log('set key %s to value %s', key, value);
     try {
       if ($window.localStorage !== null) {
         return $window.localStorage.setItem(key, value);
