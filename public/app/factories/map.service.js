@@ -13,6 +13,8 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
     createMap: createMap,
     saveMap: saveMap,
     getMap: getMap,
+    discoverMap: discoverMap,
+    getWmsGetCapabilities: getWmsGetCapabilities,
     getMapVectorTile: getMapVectorTile,
     getMapData: getMapData,
     deleteDataSource: deleteDataSource,
@@ -146,6 +148,24 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
           error(data, status);
         }
       });
+  }
+
+  function discoverMap(url, success, error) {
+    $http.get('/api/maps/discoverMap',
+    {
+      params: {
+        url: url
+      }
+    }).success(success).error(error);
+  }
+
+  function getWmsGetCapabilities(url, success, error) {
+    $http.get('/api/maps/wmsFeatureRequest',
+    {
+      params: {
+        wmsUrl: url
+      }
+    }).success(success).error(error);
   }
 
   function createMap(map, success, error, progress) {

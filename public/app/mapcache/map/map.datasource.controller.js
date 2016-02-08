@@ -21,13 +21,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
       $scope.$broadcast('clearFile');
     });
 
-    $http.get('/api/maps/discoverMap',
-    {
-      params: {
-        url: $scope.mapDatasource.url
-      }
-    }).success(function (data) {
-      console.log('data', data);
+    MapService.discoverMap($scope.mapDatasource.url, function (data) {
       $scope.urlDiscovery = false;
       $scope.mapDiscovery = data;
       if (data.format) {
@@ -51,7 +45,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
           $scope.mapDatasource.name = $scope.mapDatasource.url;
         }
       }
-    }).error(function() {
+    }, function() {
       $scope.urlDiscovery = false;
       $scope.mapDatasource = {};
       $scope.mapDatasource.valid = false;
@@ -126,12 +120,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
       case 'wms':
         if (!$scope.mapDatasource.wmsGetCapabilities) {
           $scope.fetchingCapabilities = true;
-          $http.get('/api/maps/wmsFeatureRequest',
-          {
-            params: {
-              wmsUrl: $scope.mapDatasource.url
-            }
-          }).success(function (data) {
+          MapService.getWmsGetCapabilities($scope.mapDatasource.url, function (data) {
             $scope.fetchingCapabilities = false;
             $scope.mapDatasource.wmsGetCapabilities = data;
             $scope.showMap = true;

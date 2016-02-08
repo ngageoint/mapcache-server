@@ -178,61 +178,134 @@ describe('MapDatasourceController tests', function() {
     done();
   });
 
-  // continue to verify this test
-  it('should add an xyz url', function(done) {
+  it('should discover an xyz url', function(done) {
+    var url = 'http://osm.geointapps.org/osm';
+
+    MapServiceMock.expects('discoverMap').withArgs(url).yields(mocks.mapDiscoveryMocks.xyzMapDiscovery);
     underscoreExpectation.once();
     scope.mapDatasource = {};
-    var url = 'http://osm.geointapps.org/osm';
     scope.$emit('location-url', url);
-    scope.urlDiscovery.should.be.equal(true);
+    scope.urlDiscovery.should.be.equal(false);
+    scope.mapDatasource.format.should.be.equal('xyz');
     scope.mapDatasource.url.should.be.equal(url);
+    scope.mapDatasource.valid.should.be.equal(true);
+    scope.locationStatus.should.be.equal('success');
     UnderscoreMock.verify();
+    MapServiceMock.verify();
     done();
   });
 
-  // it('should have loaded the map', function(done) {
-  //   getCachesExpectation.once();
+  it('should discover a valid url but return no format', function(done) {
+    var url = 'http://osm.geointapps.org/osm';
+
+    MapServiceMock.expects('discoverMap').withArgs(url).yields(mocks.mapDiscoveryMocks.validNoFormatMapDiscovery);
+    underscoreExpectation.once();
+    scope.mapDatasource = {};
+    scope.$emit('location-url', url);
+    scope.urlDiscovery.should.be.equal(false);
+    scope.mapDatasource.valid.should.be.equal(true);
+    scope.mapDatasource.url.should.be.equal(url);
+    scope.locationStatus.should.be.equal('warning');
+    UnderscoreMock.verify();
+    MapServiceMock.verify();
+    done();
+  });
+
+  it('should discover an invalid url', function(done) {
+    var url = 'http://osm.geointapps.org/osm';
+
+    MapServiceMock.expects('discoverMap').withArgs(url).yields(mocks.mapDiscoveryMocks.invalidXyzMapDiscovery);
+    underscoreExpectation.once();
+    scope.mapDatasource = {};
+    scope.$emit('location-url', url);
+    scope.urlDiscovery.should.be.equal(false);
+    scope.mapDatasource.valid.should.be.equal(false);
+    scope.mapDatasource.url.should.be.equal(url);
+    scope.locationStatus.should.be.equal('error');
+    UnderscoreMock.verify();
+    MapServiceMock.verify();
+    done();
+  });
+
+  it('should discover an invalid url', function(done) {
+    var url = 'http://osm.geointapps.org/osm';
+
+    MapServiceMock.expects('discoverMap').withArgs(url).yields(mocks.mapDiscoveryMocks.invalidXyzMapDiscovery);
+    underscoreExpectation.once();
+    scope.mapDatasource = {};
+    scope.$emit('location-url', url);
+    scope.urlDiscovery.should.be.equal(false);
+    scope.mapDatasource.valid.should.be.equal(false);
+    scope.mapDatasource.url.should.be.equal(url);
+    scope.locationStatus.should.be.equal('error');
+    UnderscoreMock.verify();
+    MapServiceMock.verify();
+    done();
+  });
+
+  it('should fail to discover the url', function(done) {
+    var url = 'http://osm.geointapps.org/osm';
+
+    MapServiceMock.expects('discoverMap').withArgs(url).callsArg(2);
+    underscoreExpectation.once();
+    scope.mapDatasource = {};
+    scope.$emit('location-url', url);
+    scope.urlDiscovery.should.be.equal(false);
+    scope.mapDatasource.valid.should.be.equal(false);
+    should.not.exist(scope.locationStatus);
+    UnderscoreMock.verify();
+    MapServiceMock.verify();
+    done();
+  });
+
+  it('should show the map if there is an xyz url', function() {
+    scope.mapDatasource = {
+      format: 'xyz'
+    };
+    scope.$apply();
+    scope.showMap.should.be.equal(true);
+  });
+
+  it('should show the map if there is a tms url', function() {
+    scope.mapDatasource = {
+      format: 'tms'
+    };
+    scope.$apply();
+    scope.showMap.should.be.equal(true);
+  });
+
+  it('should show the map if there is an wms url and wmsGetCapabilities', function() {
+    scope.mapDatasource = {
+      format: 'wms',
+      wmsGetCapabilities: mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities
+    };
+    scope.$apply();
+    scope.showMap.should.be.equal(true);
+  });
+
+  it('should get the wmsGetCapabilities and then show the map if there is an wms url', function() {
+    var url = 'http://watzmann.geog.uni-heidelberg.de/cached/osm';
+    MapServiceMock.expects('getWmsGetCapabilities')
+      .withArgs(url)
+      .once()
+      .yields(mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities);
+    scope.mapDatasource = {
+      url: url,
+      format: 'wms'
+    };
+    scope.$apply();
+    scope.showMap.should.be.equal(true);
+    MapServiceMock.verify();
+    scope.mapDatasource.wmsGetCapabilities.should.be.deep.equal(mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities);
+  });
+
+  // TODO get an ArcGIS url to test with
+  // it('should show the map if there is an arcgis url', function() {
+  //   scope.mapDatasource = {
+  //     format: 'arcgis'
+  //   };
   //   scope.$apply();
-  //   scope.map.should.be.equal(mocks.mapMocks.xyzMap);
-  //   scope.mapComplete.should.be.equal(true);
-  //   MapServiceMock.verify();
-  //   done();
-  // });
-  //
-  // it('should have loaded the caches for the map', function(done) {
-  //   getCachesExpectation.twice();
-  //   scope.$apply();
-  //   scope.caches.should.be.equal(mocks.cacheMocks.completeCaches);
-  //   $timeout.flush(300000);
-  //   MapServiceMock.verify();
-  //   done();
-  // });
-  //
-  // it('should generate a cache format', function(done) {
-  //   CacheServiceMock.expects('createCacheFormat')
-  //     .once()
-  //     .withArgs(mocks.cacheMocks.xyzCache, 'xyz')
-  //     .callsArg(2);
-  //   getCachesExpectation.twice();
-  //   scope.$emit('generateFormat', mocks.cacheMocks.xyzCache, 'xyz');
-  //   scope.$apply();
-  //   scope.caches.should.be.equal(mocks.cacheMocks.completeCaches);
-  //   MapServiceMock.verify();
-  //   done();
-  // });
-  //
-  // it('should filter the caches', function(done) {
-  //   scope.$emit('cacheFilterChange', {cacheFilter: 'XYZ'});
-  //   scope.caches.length.should.be.equal(1);
-  //   done();
-  // });
-  //
-  // it('should redirect to the create page with the mapid', function(done) {
-  //   var spy = sinon.spy($location, 'path');
-  //   scope.createCacheFromMap();
-  //   spy.alwaysCalledWithExactly('/create/'+mocks.mapMocks.xyzMap.id).should.be.equal(true);
-  //   spy.calledOnce.should.be.equal(true);
-  //   done();
+  //   scope.showMap.should.be.equal(true);
   // });
 
 });

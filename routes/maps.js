@@ -264,6 +264,7 @@ module.exports = function(app, auth) {
                       request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: false, timeout: 5000}, function(error, response, body) {
                         console.log('error', error);
                         if (!error && response && response.statusCode === 200) {
+                          global.DOMParser = require('xmldom').DOMParser;
                           var json = new WMSCapabilities(body).toJSON();
                           if (json && json.version && json.version !== "") {
                             console.log('json.version', json.version);
@@ -277,6 +278,7 @@ module.exports = function(app, auth) {
                           request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
                             console.log('error', error);
                             if (!error && response && response.statusCode === 200) {
+                              global.DOMParser = require('xmldom').DOMParser;
                               var json = new WMSCapabilities(body).toJSON();
                               if (json && json.version && json.version !== "") {
                                 console.log('json.version', json.version);

@@ -1,6 +1,6 @@
 var _ = require('underscore');
 
-module.exports = function MapCreateController($scope, $rootScope, $location, $timeout, $http, CacheService, MapService) {
+module.exports = function MapCreateController($scope, $rootScope, $location, MapService) {
   $rootScope.title = 'Create A Map';
 
   $scope.validUrlFormats = MapService.validUrlFormats;
@@ -28,12 +28,14 @@ module.exports = function MapCreateController($scope, $rootScope, $location, $ti
   function validateSources() {
     console.log('validate sources');
     $scope.dataSourceTotalFileSize = 0;
-    if (!$scope.map.dataSources) $scope.dataSourcesValidated = false;
-
-    else $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) {
-      $scope.dataSourceTotalFileSize += value.file ? value.file.size : 0;
-      return value.valid;
-    });
+    if (!$scope.map.dataSources) {
+      $scope.dataSourcesValidated = false;
+    } else {
+        $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) {
+          $scope.dataSourceTotalFileSize += value.file ? value.file.size : 0;
+          return value.valid;
+        });
+    }
   }
 
   var uploadProgress = function(e) {
