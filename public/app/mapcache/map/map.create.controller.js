@@ -26,23 +26,17 @@ module.exports = function MapCreateController($scope, $rootScope, $location, Map
   });
 
   function validateSources() {
-    console.log('validate sources');
     $scope.dataSourceTotalFileSize = 0;
-    if (!$scope.map.dataSources) {
-      $scope.dataSourcesValidated = false;
-    } else {
-        $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) {
-          $scope.dataSourceTotalFileSize += value.file ? value.file.size : 0;
-          return value.valid;
-        });
-    }
+    $scope.dataSourcesValidated = _.every($scope.map.dataSources, function(value) {
+      $scope.dataSourceTotalFileSize += value.file ? value.file.size : 0;
+      return value.valid;
+    });
   }
 
   var uploadProgress = function(e) {
     if(e.lengthComputable){
       $scope.$apply(function() {
         $scope.progress = (e.loaded/e.total) * 100;
-        console.log('uploadprogress ' + $scope.progress);
       });
     }
   };
@@ -54,15 +48,11 @@ module.exports = function MapCreateController($scope, $rootScope, $location, Map
   };
 
   $scope.createMap = function() {
-    console.log($scope.cache);
     $scope.mapSubmitted = true;
     MapService.createMap($scope.map, function(map) {
-      console.log('map created', map);
       // now start a timer to watch the map be created
       $location.path('/map/'+map.id);
-    }, function() {
-      console.log("error");
-    }, uploadProgress);
+    }, function() { }, uploadProgress);
   };
 
 };
