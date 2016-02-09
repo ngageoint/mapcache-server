@@ -7,7 +7,6 @@ describe('leaflet map directive tests', function() {
       $rootScope;
 
   before(function() {
-    angular.mock.module('mapcache', [  ]);
     require('../../../app/mapcache/map');
   });
 

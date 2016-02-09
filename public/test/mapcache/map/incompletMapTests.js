@@ -22,7 +22,6 @@ describe('MapController incomplete map tests', function() {
   var sandbox;
 
   before(function() {
-    angular.mock.module('mapcache', [  ]);
     require('../../../app/mapcache/map');
   });
 

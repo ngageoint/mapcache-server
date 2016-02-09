@@ -45,19 +45,19 @@
       <p class="lead"><i class="fa fa-spinner fa-pulse"></i> Fetching server capabilities</p>
     </div>
   </div>
-  <div class="row" ng-show="(!fetchingCapabilities && !urlDiscovery) && format == 'wms' && !mapDatasource.wmsGetCapabilities.Capability">
+  <div class="row" ng-show="(!fetchingCapabilities && !urlDiscovery) && format == 'wms' && !mapDatasource.metadata.wmsGetCapabilities.Capability">
     <div class="col-md-12">
       <p class="lead"><i class="fa fa-warning"></i> This does not appear to be a valid WMS server.</p>
     </div>
   </div>
 
-  <div ng-if="mapDatasource.wmsGetCapabilities.Capability">
+  <div ng-if="mapDatasource.metadata.wmsGetCapabilities.Capability">
     <div class="row">
       <div class="col-md-12">
         <div class="form-group">
           <label>Available layers on this WMS server.  Choose a layer to create your map with:</label>
-          <ui-select ng-model="wmsLayer" theme="bootstrap">
-            <ui-select-match placeholder="Select a layer">{{$select.selected.Title}} {{$selec.selected.Abstract}}</ui-select-match>
+          <ui-select ng-model="mapDatasource.metadata.wmsLayer" theme="bootstrap">
+            <ui-select-match placeholder="Select a layer">{{$select.selected.Title}} {{$select.selected.Abstract}}</ui-select-match>
             <ui-select-choices repeat="layer in wmsLayers | orderBy: 'Title' | filter: $select.search">
               <div ng-bind-html="layer.Title | highlight: $select.search"></div>
               <small class="muted">

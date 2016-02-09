@@ -29,6 +29,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'test/test.js',
       'test/**/*.js',
       '**/*.html'
     ],
@@ -71,7 +72,8 @@ module.exports = function(config) {
     },
 
     ngHtml2JsPreprocessor: {
-      stripPrefix: 'public/'
+      stripPrefix: 'public/',
+      moduleName: 'ngTemplates'
     },
 
 

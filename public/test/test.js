@@ -2,19 +2,26 @@ window.jQuery = require("jquery");
 var angular = require('angular');
 require('angular-mocks');
 require('angular-route');
-// require('../app/auth/http-auth-interceptor');
+require('../app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
 // putting this  because you have to build it before you can use it
 require('../vendor/angular-ui-select');
+require('angular-sanitize');
+
+angular.module('ngTemplates',[]);
+
 
 // fix the image path
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
+angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select', 'ngTemplates' ]);
+
 describe('mapcache browser tests', function() {
 
+  beforeEach(angular.mock.module('mapcache'));
+
   before(function(){
-    angular.mock.module('mapcache', [  ]);
 
     require('../app/signin');
     require('../app/factories');

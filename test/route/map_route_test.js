@@ -2,9 +2,11 @@ var request = require('supertest')
   , mongoose = require('mongoose')
   , config = require('mapcache-config')
   , path = require('path')
+  , models = require('mapcache-models')
   , TokenModel = mongoose.model('Token')
   , sinon = require('sinon')
   , Map = require('../../api/source')
+  , mocks = require('../../mocks')
   , app = require('../../express');
 
 require('sinon-mongoose');
@@ -101,6 +103,28 @@ describe("map route tests", function() {
           }],
           name: 'OSM' }
         )
+        .expect(function(res) {
+          var source = res.body;
+          mapId = source.id;
+          source.should.have.property('id');
+          source.should.have.property('name');
+          source.should.have.property('dataSources');
+          source.dataSources[0].should.have.property('id');
+        })
+        .end(done);
+    });
+
+    it.only('should create a map with a wms source', function(done) {
+      request(app)
+        .post('/api/maps')
+        .set('Accept', 'application/json')
+        .set('Authorization', 'Bearer 12345')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .send({
+          "dataSources":[mocks.mapMocks.wmsDatasource],
+          "name": "wms"
+        })
         .expect(function(res) {
           var source = res.body;
           mapId = source.id;

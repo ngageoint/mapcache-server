@@ -8,7 +8,6 @@ describe('AboutController', function() {
   var ctrl;
 
   before(function() {
-    angular.module('mapcache', [  ]);
     require('../../app/about');
   });
 

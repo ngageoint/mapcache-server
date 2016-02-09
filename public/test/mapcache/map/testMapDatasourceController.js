@@ -20,7 +20,6 @@ describe('MapDatasourceController tests', function() {
   var sandbox;
 
   before(function() {
-    angular.mock.module('mapcache', [  ]);
     require('../../../app/mapcache/map');
   });
 
@@ -277,7 +276,9 @@ describe('MapDatasourceController tests', function() {
   it('should show the map if there is an wms url and wmsGetCapabilities', function() {
     scope.mapDatasource = {
       format: 'wms',
-      wmsGetCapabilities: mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities
+      metadata: {
+        wmsGetCapabilities: mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities
+      }
     };
     scope.$apply();
     scope.showMap.should.be.equal(true);
@@ -291,12 +292,13 @@ describe('MapDatasourceController tests', function() {
       .yields(mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities);
     scope.mapDatasource = {
       url: url,
-      format: 'wms'
+      format: 'wms',
+      metadata: {}
     };
     scope.$apply();
     scope.showMap.should.be.equal(true);
     MapServiceMock.verify();
-    scope.mapDatasource.wmsGetCapabilities.should.be.deep.equal(mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities);
+    scope.mapDatasource.metadata.wmsGetCapabilities.should.be.deep.equal(mocks.wmsGetCapabilitiesMocks.wmsGetCapabilities);
   });
 
   // TODO get an ArcGIS url to test with

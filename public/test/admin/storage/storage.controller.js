@@ -42,7 +42,6 @@ describe('StorageController', function() {
   });
 
   before(function() {
-    angular.mock.module('mapcache', [  ]);
     require('../../../app/admin/storage');
   });
 

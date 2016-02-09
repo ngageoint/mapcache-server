@@ -1,6 +1,7 @@
-window.jQuery = require("jquery");
+window.jQuery = window.$ = require("jquery");
 var angular = require('angular');
 require('angular-route');
+require('angular-sanitize');
 require('./app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
 // putting this  because you have to build it before you can use it
@@ -10,7 +11,7 @@ require('./vendor/angular-ui-select');
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
-var app = angular.module('mapcache', [ 'ngRoute', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select' ]);
+var app = angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select' ]);
 
 require('./app/signin');
 require('./app/factories');

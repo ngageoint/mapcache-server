@@ -1,7 +1,7 @@
 var angular = require('angular');
 var _ = require('underscore');
 
-module.exports = function MapEditController($scope, $rootScope, $routeParams, $location, $timeout, $http, MapService, LocalStorageService) {
+module.exports = function MapEditController($scope, $rootScope, $routeParams, MapService, LocalStorageService) {
   $scope.tab='general';
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
@@ -33,18 +33,14 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, $l
   var initialLoadComplete = false;
 
   $scope.$watch('map', function(map) {
-    console.log('map change unsavedChanges: ' + $scope.unsavedChanges + ' initialLoadComplete: ' + initialLoadComplete);
     if (map.name && !initialLoadComplete) {
       initialLoadComplete = true;
     } else if (initialLoadComplete) {
-      console.log('setting unsaved to true');
       $scope.unsavedChanges = true;
     }
-    console.log('now it is map change unsavedChanges: ' + $scope.unsavedChanges + ' initialLoadComplete: ' + initialLoadComplete);
-
   }, true);
 
-  $scope.$watch('map.previewLayer', function(layer) {
+  $scope.$watch('map.wmsLayer', function(layer) {
     if (layer) {
       if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
         $scope.mapOptions.extent = layer.EX_GeographicBoundingBox; // jshint ignore:line
@@ -120,7 +116,6 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, $l
         $scope.mapOptions.opacity = 1;
         $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
       }
-      console.log('unsaved is now false');
       $scope.unsavedChanges = false;
       initialLoadComplete = false;
     }, function() {

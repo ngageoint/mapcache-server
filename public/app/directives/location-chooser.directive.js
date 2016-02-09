@@ -1,7 +1,7 @@
 module.exports = function locationChooser() {
   var directive = {
     restrict: "A",
-    templateUrl: '/app/directives/location-chooser.directive.html',
+    templateUrl: 'app/directives/location-chooser.directive.html',
     scope: {
       accept: '=',
       locationStatus: '='

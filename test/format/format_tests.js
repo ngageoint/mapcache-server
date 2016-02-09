@@ -8,6 +8,7 @@ var assert = require('assert')
   , FeatureModel = require('mapcache-models').Feature
   , path = require('path')
   , Cache = require('../../cache/cache')
+  , mocks = require('../../mocks')
   , should = require('should');
 
 function startTest(test) {
@@ -89,7 +90,9 @@ var formatDataSources = [{
   wmsLayer: {
     Name: 'osm_auto:all'
   }
-},{
+},
+mocks.mapMocks.wmsDatasource,
+{
   id: 'test-arcgis',
   name: 'arcgis',
   format: 'arcgis',
@@ -143,7 +146,7 @@ var formatDataSources = [{
   testParams: {
     featureCount: 3807
   }
-}];
+}*/];
 
 describe('Format Tests', function() {
 

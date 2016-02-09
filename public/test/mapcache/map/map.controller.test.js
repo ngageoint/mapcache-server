@@ -24,7 +24,6 @@ describe('MapController completed map tests', function() {
   var getCachesExpectation;
 
   before(function() {
-    angular.mock.module('mapcache', [  ]);
     require('../../../app/mapcache/map');
   });
 

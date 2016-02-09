@@ -14,7 +14,6 @@ module.exports = function(app, auth) {
 
   var validateSource = function(req, res, next) {
     var source = req.body;
-    console.log('req.files is', req.files);
     if (req.files && source.map) {
       source = JSON.parse(source.map);
     }
@@ -63,13 +62,9 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
-      console.log('req.files', req.files);
-      console.log('req.newSource', req.newSource);
-      console.log('is multipart/form', req.is('multipart/form-data'));
       if (!req.files || !req.files.mapFile) return next();
       if (!req.is('multipart/form-data')) return next();
       if (!req.newSource.dataSources) {
-        console.log('no data sources');
         return res.sendStatus(400);
       }
 

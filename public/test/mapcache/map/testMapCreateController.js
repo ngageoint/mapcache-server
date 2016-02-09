@@ -17,7 +17,6 @@ describe('MapCreateController tests', function() {
   var $location;
 
   before(function() {
-    angular.mock.module('mapcache', [  ]);
     require('../../../app/mapcache/map');
   });
 

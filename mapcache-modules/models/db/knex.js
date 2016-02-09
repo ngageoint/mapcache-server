@@ -46,11 +46,8 @@ function createFeaturesTable(callback) {
       });
     } else {
       knex.schema.hasColumn('features', 'layer_id').then(function(exists) {
-        console.log('does features have the layer_id column? ', exists);
         if (!exists) {
-          console.log('There is no layer_id column in the features table');
           knex.schema.table('features', function(featureTable) {
-            console.log('featuretable add the column');
             featureTable.integer('layer_id').index();
             callback();
           })

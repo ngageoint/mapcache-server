@@ -2,7 +2,7 @@ var _ = require('underscore');
 var proj4 = require('proj4');
 
 module.exports = function MapDatasourceController($scope, $timeout, $http, MapService) {
-
+console.log('MAP DATA SOURCE CONTROLLER');
   $scope.showMap = false;
   $scope.validUrlFormats = MapService.validUrlFormats;
   $scope.validFileFormats = MapService.validFileFormats;
@@ -13,6 +13,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   };
 
   var urlChecker = _.debounce(function() {
+    console.log('debounce checker');
     $scope.$apply(function() {
       $scope.urlDiscovery = true;
       if ($scope.mapDatasource.file) {
@@ -54,12 +55,14 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   }, 500);
 
   $scope.$on('location-url', function(e, location) {
+    console.log('location url hit');
     if (!location) {
       $scope.mapDatasource = {};
       return;
     }
     $scope.urlDiscovery = true;
     $scope.mapDatasource.url = location;
+    console.log('go check url');
     urlChecker();
   });
 
@@ -107,22 +110,28 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
     }
   });
 
-  $scope.$watch('mapDatasource.wmsGetCapabilities', function(capabilities) {
+  $scope.$watch('mapDatasource.metadata.wmsGetCapabilities', function(capabilities) {
     if (capabilities && capabilities.Capability) {
+      console.log('setting layers', capabilities.Capability);
       $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];
     } else {
       $scope.wmsLayers = [];
     }
+    console.log('scope layers', $scope.wmsLayers);
   });
 
-  $scope.$watch('mapDatasource.format', function() {
+  $scope.$watch('mapDatasource.format', function(f) {
+    console.log('mapdatasource.format', f);
+    $scope.mapDatasource.metadata = $scope.mapDatasource.metadata || {};
     switch ($scope.mapDatasource.format) {
       case 'wms':
-        if (!$scope.mapDatasource.wmsGetCapabilities) {
+        if (!$scope.mapDatasource.metadata.wmsGetCapabilities) {
           $scope.fetchingCapabilities = true;
+          console.log('go get the capabilities');
           MapService.getWmsGetCapabilities($scope.mapDatasource.url, function (data) {
+            console.log('got em', data);
             $scope.fetchingCapabilities = false;
-            $scope.mapDatasource.wmsGetCapabilities = data;
+            $scope.mapDatasource.metadata.wmsGetCapabilities = data;
             $scope.showMap = true;
           });
         } else {
@@ -131,9 +140,9 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
         break;
       case 'arcgis':
         $scope.showMap = true;
-        if ($scope.mapDatasource.wmsGetCapabilities.fullExtent && $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference && $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid && ($scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid === 102100 || $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid === 102113 || $scope.mapDatasource.wmsGetCapabilities.fullExtent.spatialReference.wkid === 3857)) {
-          var ll = proj4('EPSG:3857', 'EPSG:4326', [$scope.mapDatasource.wmsGetCapabilities.fullExtent.xmin, $scope.mapDatasource.wmsGetCapabilities.fullExtent.ymin]);
-          var ur = proj4('EPSG:3857', 'EPSG:4326', [$scope.mapDatasource.wmsGetCapabilities.fullExtent.xmax, $scope.mapDatasource.wmsGetCapabilities.fullExtent.ymax]);
+        if ($scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent && $scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.spatialReference && $scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.spatialReference.wkid && ($scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.spatialReference.wkid === 102100 || $scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.spatialReference.wkid === 102113 || $scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.spatialReference.wkid === 3857)) {
+          var ll = proj4('EPSG:3857', 'EPSG:4326', [$scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.xmin, $scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.ymin]);
+          var ur = proj4('EPSG:3857', 'EPSG:4326', [$scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.xmax, $scope.mapDatasource.metadata.wmsGetCapabilities.fullExtent.ymax]);
           $scope.mapDatasource.extent = [ll[0], ll[1], ur[0], ur[1]];
         }
         break;
