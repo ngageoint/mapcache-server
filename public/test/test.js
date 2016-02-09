@@ -1,3 +1,38 @@
+window.jQuery = require("jquery");
+var angular = require('angular');
+require('angular-mocks');
+require('angular-route');
+// require('../app/auth/http-auth-interceptor');
+require('angular-ui-bootstrap');
+// putting this  because you have to build it before you can use it
+require('../vendor/angular-ui-select');
+
+// fix the image path
+var L = require('leaflet');
+L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
+
+describe('mapcache browser tests', function() {
+
+  before(function(){
+    angular.mock.module('mapcache', [  ]);
+
+    require('../app/signin');
+    require('../app/factories');
+    require('../app/filters');
+    require('../app/mapcache');
+    require('../app/admin/storage');
+    require('../app/user');
+    require('../app/about');
+    require('../app/directives');
+    require('../app/file-upload');
+  });
+
+  it('should have created the module', function(){
+
+  });
+});
+
+
 describe('Array', function() {
   describe('#indexOf()', function() {
     it('should return -1 when the value is not present', function() {
