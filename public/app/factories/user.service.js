@@ -2,7 +2,7 @@ var $ = require('jquery');
 var _ = require('underscore');
 
 module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
-  var userDeferred;
+  var userDeferred = $q.defer();
   var resolvedUsers = {};
   var resolveAllUsers = null;
 
