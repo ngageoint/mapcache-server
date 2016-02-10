@@ -146,7 +146,7 @@ mocks.mapMocks.wmsDatasource,
   testParams: {
     featureCount: 3807
   }
-}*/];
+}];
 
 describe('Format Tests', function() {
 

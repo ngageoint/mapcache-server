@@ -6,7 +6,7 @@ var request = require('request')
 var WMS = function(config) {
   config = config || {};
   this.source = config.source;
-  console.log('setting this as the source', this.source);
+  this.source.metadata = this.source.metadata || {};
   if (config.cache) {
     throw new Error('cannot create a WMS cache at this time');
   }
@@ -55,8 +55,7 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
 
 WMS.prototype._getWmsGetCapabilities = function(callback) {
   var self = this;
-  console.log('self.source.wmsGetCapabilities', !!self.source.metadata.wmsGetCapabilities);
-  if (self.source.metadata.wmsGetCapabilities) {
+  if (self.source.metadata && self.source.metadata.wmsGetCapabilities) {
     return callback();
   } else {
     global.DOMParser = require('xmldom').DOMParser;

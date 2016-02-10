@@ -114,7 +114,7 @@ describe("map route tests", function() {
         .end(done);
     });
 
-    it.only('should create a map with a wms source', function(done) {
+    it('should create a map with a wms source', function(done) {
       request(app)
         .post('/api/maps')
         .set('Accept', 'application/json')

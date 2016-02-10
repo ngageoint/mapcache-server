@@ -29,15 +29,6 @@ var UserSchema = new Schema({
   versionKey: false
 });
 
-// Creates the Model for the User Schema
-var User;
-if (mongoose.models.User) {
-  User = mongoose.model('User');
-} else {
-  User = mongoose.model('User', UserSchema);
-}
-exports.Model = User;
-
 UserSchema.method('validPassword', function(password, callback) {
   var user = this;
   hasher.validPassword(password, user.password, callback);
@@ -48,7 +39,7 @@ UserSchema.method('validPassword', function(password, callback) {
 UserSchema.pre('save', function(next) {
   var user = this;
   user.username = user.username.toLowerCase();
-  User.findOne({username: user.username}, function(err, possibleDuplicate) {
+  this.model('User').findOne({username: user.username}, function(err, possibleDuplicate) {
     if (err) return next(err);
 
     if (possibleDuplicate && !possibleDuplicate._id.equals(user._id)) {
@@ -129,6 +120,10 @@ var transform = function(user, ret) {
 UserSchema.set("toJSON", {
   transform: transform
 });
+
+// Creates the Model for the User Schema
+var User = mongoose.model('User', UserSchema);
+exports.Model = User;
 
 exports.transform = transform;
 
