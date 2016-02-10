@@ -144,6 +144,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res) {
       if (!req.cache.geometry) return res.status(404).send();
+      console.log('req.cache.geometry', req.cache.geometry);
       var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry));
       new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) {

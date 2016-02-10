@@ -34,7 +34,12 @@ exports.getPropertyKeysFromSource = function(query, callback) {
 		.distinct(knex.raw('json_object_keys(properties) as property'))
 		.select()
 		.where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}) // jshint ignore:line
-		.then(callback);
+		.then(callback)
+    .catch(function() {
+      callback([]);
+    }).error(function() {
+      callback([]);
+    });
 	});
 };
 

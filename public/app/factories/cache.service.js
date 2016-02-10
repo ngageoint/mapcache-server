@@ -53,7 +53,9 @@ module.exports = function CacheService($q, $http) {
         resolveAllCaches = undefined;
     }
 
-    resolveAllCaches = resolveAllCaches || $http.get('/api/caches').success(function(caches) {
+    resolveAllCaches = resolveAllCaches || $http.get('/api/caches');
+    resolveAllCaches.then(function(caches) {
+      console.log('caches', caches);
       for (var i = 0; i < caches.length; i++) {
         resolvedCaches[caches[i]._id] = $q.when(caches[i]);
       }

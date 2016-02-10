@@ -54,12 +54,12 @@ function migrateCaches(done) {
         cache.formats.xyz = JSON.parse(JSON.stringify(cache.status));
         cache.formats.xyz.size = size;
         cache.formats.xyz.percentComplete = 100;
-        cache.geometry = {
-          "type":"Feature",
-          "geometry": cache.geometry
-        };
+        // cache.geometry = {
+        //   "type":"Feature",
+        //   "geometry": cache.geometry
+        // };
         cache.markModified('formats');
-        cache.markModified('geometry');
+        // cache.markModified('geometry');
         cache.save(function(err) {
           console.log('err is', err);
           callback();

@@ -172,7 +172,7 @@ Install posgres and postgis
 sudo su -
 adduser postgres
 
-yum install postgresql postgresql-server postgresql-devel postgresql-contrib postgresql-docs
+yum install postgresql93 postgresql93-server postgresql93-devel postgresql93-contrib postgresql93-docs
 
 
 
@@ -199,8 +199,8 @@ echo /usr/local/lib >> /etc/ld.so.conf
 exit
 sudo ldconfig
 
-service postgresql initdb
-service postgresql start
+service postgresql93 initdb
+service postgresql93 start
 
 su postgres -
 
@@ -209,6 +209,9 @@ psql
 CREATE DATABASE mapcache;
 
 CREATE SCHEMA mapcache;
+
+
+#THESE HAVE TO BE DONE IN THE mapcache DATABASE
 CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
 CREATE EXTENSION fuzzystrmatch;
