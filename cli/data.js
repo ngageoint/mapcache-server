@@ -1,6 +1,9 @@
 var api = require('../api')
   , mapcacheModels = require('mapcache-models')
   , cacheModel = mapcacheModels.Cache
+  , config = require('mapcache-config')
+  , fs = require('fs-extra')
+  , path = require('path')
   , async = require('async');
 
 exports.testGeoPackage = function() {
@@ -30,7 +33,8 @@ exports.fixData = function(yargs) {
 
   async.series([
     dropIndex,
-    migrateCaches
+    migrateCaches,
+    migrateMaps
   ], function() {
     process.exit();
   });
@@ -61,6 +65,31 @@ function migrateCaches(done) {
           callback();
         });
       }
+    }, function() {
+      done();
+    });
+  });
+}
+
+function migrateMaps(done) {
+  var sourceDirectory = config.server.sourceDirectory.path;
+  api.Source.getAll({}, function(err, maps) {
+    async.eachSeries(maps, function iterator(map, callback) {
+      console.log('migrating map %s', map._id);
+      async.eachSeries(map.dataSources, function(dataSource, dsDone) {
+
+        // console.log('datasource', dataSource);
+        if (dataSource.file) {
+          var srcFile = dataSource.file.path;
+          var destFile = path.join(sourceDirectory, dataSource._id.toString());
+          console.log('moving file %s to %s', srcFile, destFile);
+          fs.move(srcFile, destFile, function() {
+            dsDone();
+          });
+        }
+      }, function() {
+        callback();
+      });
     }, function() {
       done();
     });
