@@ -84,13 +84,17 @@ function migrateMaps(done) {
           var destFile = path.join(sourceDirectory, dataSource._id.toString());
           console.log('moving file %s to %s', srcFile, destFile);
           fs.move(srcFile, destFile, function() {
+            dataSource.file.path = destFile;
             dsDone();
           });
         } else {
           dsDone();
         }
       }, function() {
-        callback();
+        map.markModified('dataSources');
+        map.save(function() {
+          callback();
+        });
       });
     }, function() {
       done();
