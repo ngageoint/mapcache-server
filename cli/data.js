@@ -83,10 +83,10 @@ function migrateMaps(done) {
           var srcFile = dataSource.file.path;
           var destFile = path.join(sourceDirectory, dataSource._id.toString());
           console.log('moving file %s to %s', srcFile, destFile);
-          fs.move(srcFile, destFile, function() {
-            dataSource.file.path = destFile;
+          // fs.move(srcFile, destFile, function() {
+            dataSource.file.path = path.join(destFile, dataSource._id);
             dsDone();
-          });
+          // });
         } else {
           dsDone();
         }
