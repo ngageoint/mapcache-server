@@ -86,6 +86,8 @@ function migrateMaps(done) {
           fs.move(srcFile, destFile, function() {
             dsDone();
           });
+        } else {
+          dsDone();
         }
       }, function() {
         callback();
