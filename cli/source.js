@@ -3,7 +3,7 @@ var fs = require('fs-extra')
   , api = require('../api')
   , knex = require('../mapcache-modules/models/db/knex')
   , async = require('async')
-  , sources = require('../api/sources');
+  , sources = require('../api/source');
 
 exports.createSource = function(yargs) {
   var argv = yargs.usage('Creates a source.\nUsage: $0 createSource (-f <file> | -u <url>) -n <name> -t <type>')
