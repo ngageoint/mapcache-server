@@ -2,7 +2,6 @@ var _ = require('underscore');
 var proj4 = require('proj4');
 
 module.exports = function MapDatasourceController($scope, $timeout, $http, MapService) {
-console.log('MAP DATA SOURCE CONTROLLER');
   $scope.showMap = false;
   $scope.validUrlFormats = MapService.validUrlFormats;
   $scope.validFileFormats = MapService.validFileFormats;
@@ -13,7 +12,6 @@ console.log('MAP DATA SOURCE CONTROLLER');
   };
 
   var urlChecker = _.debounce(function() {
-    console.log('debounce checker');
     $scope.$apply(function() {
       $scope.urlDiscovery = true;
       if ($scope.mapDatasource.file) {
@@ -55,14 +53,12 @@ console.log('MAP DATA SOURCE CONTROLLER');
   }, 500);
 
   $scope.$on('location-url', function(e, location) {
-    console.log('location url hit');
     if (!location) {
       $scope.mapDatasource = {};
       return;
     }
     $scope.urlDiscovery = true;
     $scope.mapDatasource.url = location;
-    console.log('go check url');
     urlChecker();
   });
 
@@ -112,24 +108,19 @@ console.log('MAP DATA SOURCE CONTROLLER');
 
   $scope.$watch('mapDatasource.metadata.wmsGetCapabilities', function(capabilities) {
     if (capabilities && capabilities.Capability) {
-      console.log('setting layers', capabilities.Capability);
       $scope.wmsLayers = capabilities.Capability.Layer.Layer || [capabilities.Capability.Layer];
     } else {
       $scope.wmsLayers = [];
     }
-    console.log('scope layers', $scope.wmsLayers);
   });
 
   $scope.$watch('mapDatasource.format', function(f) {
-    console.log('mapdatasource.format', f);
     $scope.mapDatasource.metadata = $scope.mapDatasource.metadata || {};
     switch ($scope.mapDatasource.format) {
       case 'wms':
         if (!$scope.mapDatasource.metadata.wmsGetCapabilities) {
           $scope.fetchingCapabilities = true;
-          console.log('go get the capabilities');
           MapService.getWmsGetCapabilities($scope.mapDatasource.url, function (data) {
-            console.log('got em', data);
             $scope.fetchingCapabilities = false;
             $scope.mapDatasource.metadata.wmsGetCapabilities = data;
             $scope.showMap = true;
