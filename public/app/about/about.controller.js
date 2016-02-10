@@ -1,10 +1,3 @@
-angular
-  .module('userManagement')
-  .controller('AboutController', AboutController);
-
-AboutController.$inject = ['$scope'];
-
-function AboutController ($scope) {
-
-
-}
+module.exports = function AboutController ($scope) {
+  $scope.about = 'About';
+};

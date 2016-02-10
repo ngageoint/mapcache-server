@@ -1,71 +1,104 @@
-var SourceModel = require('../models/source')
+var models = require('mapcache-models')
+  , SourceModel = models.Source
   , fs = require('fs-extra')
   , path = require('path')
-  , Feature = require('../models/feature')
-  , sourceProcessor = require('./sources')
-  , config = require('../config.json');
+  , async = require('async')
+  , Feature = models.Feature
+  , log = require('mapcache-log')
+  , Map = require('../map/map')
+  , config = require('mapcache-config');
 
-function Source() {
+function Source(sourceModel) {
+  this.sourceModel = sourceModel;
 }
 
-Source.prototype.getAll = function(options, callback) {
+Source.getAll = function(options, callback) {
   SourceModel.getSources(options, callback);
-}
+};
 
-Source.prototype.create = function(source, callback) {
-  SourceModel.createSource(source, function(err, newSource) {
-    if (err) return callback(err);
-    newSource.complete = false;
-    newSource.status = {
-      message: "Creating",
-      complete: false,
-      zoomLevelStatus: {}
-    };
-    newSource.save(function(err){
-      sourceProcessor.process(newSource, callback);
-    });
+Source.getById = function(id, callback) {
+  console.log('get source by id', id);
+  SourceModel.getSourceById(id, function(err, source) {
+    callback(err, source);
   });
-}
+};
 
-Source.prototype.import = function(source, sourceFile, callback) {
-  console.log('import the source', source);
+Source.update = function(id, update, callback) {
+  SourceModel.updateSource(id, update, callback);
+};
+
+Source.create = function(source, sourceFiles, callback, progressCallback) {
+  if (typeof sourceFiles === 'function') {
+    if (callback) {
+      progressCallback = callback;
+    }
+		callback = sourceFiles;
+		sourceFiles = [];
+	}
+  sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
+
   SourceModel.createSource(source, function(err, newSource) {
-    console.log('created the source', newSource);
-    if (err) return callback(err);
+    // console.log('new source', JSON.stringify(newSource, null, 2));
+    if (progressCallback) progressCallback(err, newSource);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
     fs.mkdirp(dir, function(err) {
+      console.log('error creating directory? ', err);
       if (err) return callback(err);
 
-      var fileName = path.basename(sourceFile.path);
-      var file = path.join(dir, fileName);
-
-      fs.rename(sourceFile.path, file, function(err) {
-        if (err) return callback(err);
-        fs.stat(file, function(err, stat) {
-          newSource.filePath = file;
-          newSource.size = stat.size;
-          newSource.status = {
-            message: "Creating",
-            complete: false,
-            zoomLevelStatus: {}
-          };
-          SourceModel.updateSource(newSource.id, newSource, function(err, updatedSource) {
-            console.log('saved the source', updatedSource);
-            sourceProcessor.process(updatedSource, callback);
+      // move all of the files into the source directory then process the map
+      async.each(sourceFiles, function(file, callback) {
+        // find the data source for this file
+        var ds = newSource.dataSources.filter(function(dataSource) {
+          return dataSource.file && dataSource.file.name === file.originalname;
+        });
+        if (ds) ds = ds[0];
+        var newFilePath = path.join(dir, ds.id);
+        fs.rename(file.path, newFilePath, function(err) {
+          console.log('err', err);
+          if (err) return callback(err);
+          fs.stat(newFilePath, function(err, stat) {
+            ds.file.path = newFilePath;
+            ds.size = stat.size;
+            newSource.markModified('datasources');
+            callback();
+          });
+        });
+      }, function() {
+        newSource.save(function() {
+          var map = new Map(newSource);
+          map.callbackWhenInitialized(function(err, map) {
+            newSource = map.map;
+            // console.log('map.map', JSON.stringify(map.map, null, 2));
+            newSource.status = newSource.status || {};
+            newSource.status.complete = true;
+            console.log('about to save', newSource);
+            newSource.save(function(err) {
+              console.log('err from save', err);
+              callback(err, map.map);
+            });
           });
         });
       });
     });
   });
-}
+};
 
-Source.prototype.getById = function(id, callback) {
-  SourceModel.getSourceById(id, function(err, source) {
-    callback(err, source);
+Source.getTile = function(source, format, z, x, y, params, callback) {
+  var map = new Map(source);
+  map.callbackWhenInitialized(function(err, map) {
+    map.getTile(format, z, x, y, params, callback);
   });
-}
+};
 
-Source.prototype.delete = function(source, callback) {
+Source.getOverviewTile = function(source, callback) {
+  var map = new Map(source);
+  map.callbackWhenInitialized(function(err, map) {
+    map.getOverviewTile(callback);
+  });
+};
+
+Source.prototype.delete = function(callback) {
+  var source = this.sourceModel;
   SourceModel.deleteSource(source, function(err) {
     if (err) return callback(err);
     fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
@@ -78,10 +111,31 @@ Source.prototype.delete = function(source, callback) {
       }
     });
   });
-}
+};
 
-Source.prototype.update = function(id, update, callback) {
-  SourceModel.updateSource(id, update, callback);
-}
+Source.prototype.deleteDataSource = function(dataSourceId, callback) {
+  var source = this.sourceModel;
+  log.info('Deleting the datasource %s from source %s', dataSourceId, this.sourceModel.id);
+  SourceModel.deleteDataSource(source, dataSourceId, function(err) {
+    if (err) return callback(err);
+    var dataSource;
+    for (var i = 0; i < source.dataSources.length && !dataSource; i++) {
+      if (source.dataSources[i]._id.toString() === dataSourceId) {
+        dataSource = source.dataSources[i];
+      }
+    }
+    if (dataSource && dataSource.file && dataSource.file.path) {
+      fs.remove(dataSource.file.path, function() {
+        SourceModel.getSourceById(source.id, function(err, source) {
+          callback(err, source);
+        });
+      });
+    } else {
+      SourceModel.getSourceById(source.id, function(err, source) {
+        callback(err, source);
+      });
+    }
+  });
+};
 
 module.exports = Source;

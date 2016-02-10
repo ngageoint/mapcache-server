@@ -39,7 +39,7 @@ function StylePreviewController($scope, $element) {
       var rgbFill = hexToRgb($scope.stylePreview.fill);
       ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+$scope.stylePreview['fill-opacity']+")";
       ctx.lineWidth = $scope.stylePreview['stroke-width'];
-      var rgbStroke = hexToRgb($scope.stylePreview['stroke']);
+      var rgbStroke = hexToRgb($scope.stylePreview.stroke);
       ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+$scope.stylePreview['stroke-opacity']+")";
 
       ctx.beginPath();

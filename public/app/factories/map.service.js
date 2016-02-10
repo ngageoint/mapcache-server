@@ -1,13 +1,10 @@
-angular
-  .module('mapcache')
-  .factory('MapService', MapService);
-
-MapService.$inject = ['$q', '$http', '$rootScope', 'LocalStorageService'];
-
-function MapService($q, $http, $rootScope, LocalStorageService) {
+module.exports = function MapService($q, $http, $rootScope, LocalStorageService) {
 
   var resolvedMaps = {};
   var resolveAllMaps = null;
+
+  var validUrlFormats = [{format:'geojson'}, {format:'xyz'}, {format:'tms'}, {format:'wms'}, {format:'arcgis'}];
+  var validFileFormats = [{format:'geotiff'}, {format:'mbtiles'}, {format:'geojson'}, {format:'shapefile'}, {format:'kmz'}, {format: 'mrsid'}];
 
   var service = {
     getAllMaps: getAllMaps,
@@ -15,13 +12,23 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     deleteMap: deleteMap,
     createMap: createMap,
     saveMap: saveMap,
+    getMap: getMap,
+    discoverMap: discoverMap,
+    getWmsGetCapabilities: getWmsGetCapabilities,
     getMapVectorTile: getMapVectorTile,
     getMapData: getMapData,
+    deleteDataSource: deleteDataSource,
     getCachesForMap: getCachesForMap,
-    getFeatures: getFeatures
+    getFeatures: getFeatures,
+    validUrlFormats: validUrlFormats,
+    validFileFormats: validFileFormats
   };
 
   return service;
+
+  function getMap(mapId) {
+    return $http.get('/api/maps/'+mapId);
+  }
 
   function getAllMaps(forceRefresh) {
     if (forceRefresh) {
@@ -36,12 +43,12 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
     });
 
     return resolveAllMaps;
-  };
+  }
 
   function getCachesForMap(map, success, error) {
     $http.get('/api/maps/'+map.id+'/caches').success(function(caches) {
       if (success) {
-        success(caches, status);
+        success(caches);
       }
     }).error(function(data, status) {
       if (error) {
@@ -89,25 +96,32 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
       });
   }
 
-  function deleteMap(map, format, success) {
+  function deleteMap(map, success) {
     var url = '/api/maps/' + map.id;
-    if (format) {
-      url += '/' + format;
-    }
-    $http.delete(url).success(function(map, status, headers, config) {
+    $http.delete(url).success(function(map) {
       console.log('successfully deleted map', map);
       if (success) {
         success(map);
       }
-    }).error(function(map, status, headers, config) {
+    }).error(function(map) {
       console.log('error deleting map', map);
+    });
+  }
+
+  function deleteDataSource(map, dataSourceId, success) {
+    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).success(function(map) {
+      if (success) {
+        success(map);
+      }
+    }).error(function(map) {
+      console.log('error deleting datasource', map);
     });
   }
 
   function saveMap(map, success, error) {
     var newMap = {};
     for (var key in map) {
-      if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
+      if (map.hasOwnProperty(key) && key !== 'mapFile' && key !== 'data' ) {
         newMap[key] = map[key];
       }
     }
@@ -136,16 +150,51 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
       });
   }
 
+  function discoverMap(url, success, error) {
+    $http.get('/api/maps/discoverMap',
+    {
+      params: {
+        url: url
+      }
+    }).success(success).error(error);
+  }
+
+  function getWmsGetCapabilities(url, success, error) {
+    $http.get('/api/maps/wmsFeatureRequest',
+    {
+      params: {
+        wmsUrl: url
+      }
+    }).success(success).error(error);
+  }
+
   function createMap(map, success, error, progress) {
 
-    if (map.mapFile) {
+    // if (map.mapFile) {
         var formData = new FormData();
-        formData.append('mapFile', map.mapFile);
-        for (var key in map) {
-          if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
-            formData.append(key, map[key]);
+        for (var i = 0; i < map.dataSources.length; i++) {
+          if (map.dataSources[i].file) {
+            console.log('file', map.dataSources[i].file);
+            formData.append('mapFile', map.dataSources[i].file);
+            map.dataSources[i].file = {name: map.dataSources[i].file.name};
           }
         }
+
+        var sendMap = map;
+        delete sendMap.mapFile;
+        delete sendMap.data;
+
+        formData.append('map', JSON.stringify(sendMap));
+
+        // for (var key in map) {
+        //   if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
+        //     if (typeof map[key] === 'string' || map[key] instanceof String) {
+        //       formData.append(key, map[key]);
+        //     } else {
+        //       formData.append(key, angular.toJson(map[key]));
+        //     }
+        //   }
+        // }
 
         $.ajax({
           url: '/api/maps',
@@ -164,12 +213,6 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
             $rootScope.$apply(function() {
               success(response);
             });
-
-            // delete self.formArchiveFile;
-            // _.extend(self, response);
-            // $rootScope.$apply(function() {
-            //   success(self);
-            // });
           },
           error: error,
           data: formData,
@@ -177,17 +220,17 @@ function MapService($q, $http, $rootScope, LocalStorageService) {
           contentType: false,
           processData: false
         });
-      } else {
-        $http.post(
-          '/api/maps',
-          map,
-          {headers: {"Content-Type": "application/json"}}
-        ).success(function(map) {
-          console.log("created a map", map);
-          if (success) {
-            success(map);
-          }
-        }).error(error);
-      }
-  };
-}
+      // } else {
+      //   $http.post(
+      //     '/api/maps',
+      //     map,
+      //     {headers: {"Content-Type": "application/json"}}
+      //   ).success(function(map) {
+      //     console.log("created a map", map);
+      //     if (success) {
+      //       success(map);
+      //     }
+      //   }).error(error);
+      // }
+  }
+};

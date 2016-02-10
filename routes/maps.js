@@ -1,15 +1,10 @@
 module.exports = function(app, auth) {
   var access = require('../access')
-    , api = require('../api')
-    , fs = require('fs-extra')
-    , path = require('path')
-    , tileUtilities = require('../api/tileUtilities')
+    , Map = require('../api/source')
+    , Cache = require('../api/cache')
     , request = require('request')
-    , config = require('../config.json')
-    , DOMParser = global.DOMParser = require('xmldom').DOMParser
     , WMSCapabilities = require('wms-capabilities')
     , sourceXform = require('../transformers/source')
-    , sourceProcessor = require('../api/sources')
     , cacheXform = require('../transformers/cache');
 
   var passport = auth.authentication.passport
@@ -19,10 +14,17 @@ module.exports = function(app, auth) {
 
   var validateSource = function(req, res, next) {
     var source = req.body;
-
+    if (req.files && source.map) {
+      source = JSON.parse(source.map);
+    }
     req.newSource = source;
+    if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
+      req.newSource.dataSources = JSON.parse(source.dataSources);
+    } else {
+      req.newSource.dataSources = source.dataSources;
+    }
     next();
-  }
+  };
 
   var parseQueryParams = function(req, res, next) {
     var parameters = {};
@@ -31,7 +33,7 @@ module.exports = function(app, auth) {
     req.parameters = parameters;
 
     next();
-  }
+  };
 
   // get all sources
   app.get(
@@ -47,9 +49,9 @@ module.exports = function(app, auth) {
         options.format = req.param('format');
       }
 
-      new api.Source().getAll(options, function(err, sources) {
+      Map.getAll(options, function(err, sources) {
         if (err) return next(err);
-        //var sources = sourceXform.transform({}, sources);
+        sources = sourceXform.transform(sources);
         res.json(sources);
       });
     }
@@ -60,21 +62,26 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
+      if (!req.files || !req.files.mapFile) return next();
       if (!req.is('multipart/form-data')) return next();
-      console.log('req.files', req.files);
-      if (!req.files.mapFile) {
-        console.log('no files');
+      if (!req.newSource.dataSources) {
         return res.sendStatus(400);
       }
-      new api.Source().import(req.newSource, req.files.mapFile, function(err, newSource) {
-        if (err) return next(err);
 
-        if (!newSource) return res.status(400).send();
-        // console.log('new source is', newSource);
+      var sent = false;
 
-        var response = sourceXform.transform(newSource);
-        // console.log('response is', response);
-        res.location(newSource._id.toString()).json(response);
+      Map.create(req.newSource, req.files.mapFile, function(err, map) {
+        if (sent) return;
+        sent = true;
+        // Map.getById(map.id, function(err, newMap) {
+          if (err) return next(err);
+
+          if (!map) return res.status(400).send();
+          console.log('transformting the source in create', map);
+
+          var response = sourceXform.transform(map);
+          res.location(map._id.toString()).json(response);
+        // });
       });
     }
   );
@@ -85,13 +92,19 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
-
-      new api.Source().create(req.newSource, function(err, newSource) {
+      var sent = false;
+      Map.create(req.newSource, function(err, map) {
+        if (sent) return;
+        sent = true;
+        // Map.getById(map.id, function(err, newMap) {
         if (err) return next(err);
 
-        if (!newSource) return res.status(400).send();
-        var response = sourceXform.transform(newSource);
-        res.location(newSource._id.toString()).json(response);
+        if (!map) return res.status(400).send();
+        console.log('transformting the source in create', map);
+
+        var response = sourceXform.transform(map);
+        res.location(map._id.toString()).json(response);
+        // });
       });
     }
   );
@@ -102,8 +115,8 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('CREATE_CACHE'),
     validateSource,
-    function(req, res, next) {
-      new api.Source().update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
+    function(req, res) {
+      Map.update(req.param('sourceId'), req.newSource, function(err, updatedSource) {
         var response = sourceXform.transform(updatedSource);
         res.json(response);
       });
@@ -113,9 +126,11 @@ module.exports = function(app, auth) {
   app.get(
     '/api/maps/:sourceId/overviewTile',
     access.authorize('READ_CACHE'),
+    validateSource,
     parseQueryParams,
     function (req, res, next) {
-      tileUtilities.getOverviewMapTile(req.source, function(err, tileStream) {
+      var map = req.source;
+      Map.getOverviewTile(map, function(err, tileStream) {
         if (err) return next(err);
         if (!tileStream) return res.status(404).send();
 
@@ -124,49 +139,38 @@ module.exports = function(app, auth) {
     }
   );
 
+  function pullTile(req, res, next) {
+    var source = req.source;
+    Map.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
+      if (err) return next(err);
+      if (!tileStream) return res.status(404).send();
+      res.setHeader('Cache-Control', 'max-age=86400');
+      tileStream.pipe(res);
+    });
+  }
+
   app.get(
     '/api/sources/:sourceIdNoProperties/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
-      var source = req.source;
-
-      sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
-        if (err) return next(err);
-        if (!tileStream) return res.status(404).send();
-        res.setHeader('Cache-Control', 'max-age=86400');
-        tileStream.pipe(res);
-      });
-    }
+    pullTile
   );
 
   app.get(
     '/api/maps/:sourceIdNoProperties/:z/:x/:y.:format',
     access.authorize('READ_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
-      var source = req.source;
-
-      sourceProcessor.getTile(source, req.param('format'), req.param('z'), req.param('x'), req.param('y'), req.query, function(err, tileStream) {
-        if (err) return next(err);
-        if (!tileStream) return res.status(404).send();
-
-        tileStream.pipe(res);
-      });
-    }
+    pullTile
   );
 
-  app.get(
-    '/api/maps/:sourceId/features',
-    access.authorize('READ_CACHE'),
+  app.delete(
+    '/api/maps/:sourceId/dataSources/:dataSourceId',
+    access.authorize('CREATE_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
-      var source = req.source;
-
-      sourceProcessor.getFeatures(source, req.param('west'), req.param('south'), req.param('east'), req.param('north'), req.param('zoom'), function(err, features) {
-        if (err) return next(err);
-        if (!features) return res.status(200).send();
-        res.json(features);
+    function(req, res) {
+      new Map(req.source).deleteDataSource(req.param('dataSourceId'), function(err, source) {
+        var sourceJson = sourceXform.transform(source);
+        res.json(sourceJson);
       });
     }
   );
@@ -177,29 +181,11 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      new api.Cache().getCachesFromMapId(req.param('sourceId'), function(err, caches) {
+      Cache.getCachesFromMapId(req.param('sourceId'), function(err, caches) {
         if (err) return next(err);
 
-        var caches = cacheXform.transform(caches);
+        caches = cacheXform.transform(caches);
         res.json(caches);
-      });
-    }
-  );
-
-  app.get(
-    '/api/maps/:sourceId/:format',
-    access.authorize('READ_CACHE'),
-    parseQueryParams,
-    function (req, res, next) {
-      var source = req.source;
-      sourceProcessor.getData(source, req.param('format'), -180, -85, 180, 85, function(err, data) {
-        if (data.file) {
-          console.log('streaming', data.file);
-          var stream = fs.createReadStream(data.file);
-          stream.pipe(res);
-        } else if (data.stream) {
-          data.stream.pipe(res);
-        }
       });
     }
   );
@@ -208,11 +194,11 @@ module.exports = function(app, auth) {
   app.get(
     '/api/maps/wmsFeatureRequest',
     access.authorize('READ_CACHE'),
-    function (req, res, next) {
+    function (req, res) {
       console.log('wms feature request for ', req.param('wmsUrl'));
-      var DOMParser = global.DOMParser = require('xmldom').DOMParser;
+      global.DOMParser = require('xmldom').DOMParser;
       var WMSCapabilities = require('wms-capabilities');
-      var req = request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true}, function(error, response, body) {
+      request.get({url: req.param('wmsUrl') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true}, function(error, response, body) {
         var json = new WMSCapabilities(body).toJSON();
         res.json(json);
       });
@@ -223,7 +209,7 @@ module.exports = function(app, auth) {
   app.get(
     '/api/maps/discoverMap',
     access.authorize('READ_CACHE'),
-    function (req, res, next) {
+    function (req, res) {
       console.log('figure out what this URL is ', req.param('url'));
 
       var sourceInformation = {
@@ -231,16 +217,15 @@ module.exports = function(app, auth) {
         valid: false
       };
 
-      request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response, body) {
-        if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
+      request.head({url: req.param('url') + '/0/0/0.png', timeout: 5000}, function(err, response) {
+        if (!err && response && response.statusCode === 200 && response.headers['content-type'].indexOf('image')===0) {
           sourceInformation.valid = true;
           sourceInformation.format = 'xyz';
           res.json(sourceInformation);
         } else {
           request.get({url: req.param('url') + '?f=pjson', timeout: 5000}, function(err, response, body) {
             var parsable = false;
-            var body;
-            if (!err && response && response.statusCode == 200) {
+            if (!err && response && response.statusCode === 200) {
               try {
                 body = JSON.parse(body);
                 parsable = true;
@@ -254,8 +239,8 @@ module.exports = function(app, auth) {
               sourceInformation.wmsGetCapabilities = body;
               res.json(sourceInformation);
             } else {
-              request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response, body) {
-                if (!err && response && response.statusCode == 200 && response.headers['content-type'].indexOf('image')==0) {
+              request.head({url: req.param('url') + '/0/0/0', timeout: 5000}, function(err, response) {
+                if (!err && response && response.statusCode === 200 && response.headers['content-type'].indexOf('image')===0) {
                   sourceInformation.valid = true;
                   sourceInformation.format = 'xyz';
                   sourceInformation.tilesLackExtensions = true;
@@ -263,19 +248,20 @@ module.exports = function(app, auth) {
                 } else {
 
                   request.get({url: req.param('url'), json: true, timeout: 5000}, function(err, response, body){
-                    if (!err && response && (response.statusCode == 200 || response.statusCode == 406)) {
+                    if (!err && response && (response.statusCode === 200 || response.statusCode === 406)) {
                       sourceInformation.valid = true;
                     }
-                    if (!err && response && response.statusCode == 200 && body && typeof body == "object") {
+                    if (!err && response && response.statusCode === 200 && body && typeof body === "object") {
                       sourceInformation.format = 'geojson';
                       res.json(sourceInformation);
                     } else {
                       console.log('err from json request was ', err);
                       request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: false, timeout: 5000}, function(error, response, body) {
                         console.log('error', error);
-                        if (!error && response && response.statusCode == 200) {
+                        if (!error && response && response.statusCode === 200) {
+                          global.DOMParser = require('xmldom').DOMParser;
                           var json = new WMSCapabilities(body).toJSON();
-                          if (json && json.version && json.version != "") {
+                          if (json && json.version && json.version !== "") {
                             console.log('json.version', json.version);
                             sourceInformation.format = 'wms';
                             sourceInformation.wmsGetCapabilities = json;
@@ -286,9 +272,10 @@ module.exports = function(app, auth) {
                         } else {
                           request.get({url: req.param('url') + '?SERVICE=WMS&REQUEST=GetCapabilities', gzip: true, timeout: 5000}, function(error, response, body) {
                             console.log('error', error);
-                            if (!error && response && response.statusCode == 200) {
+                            if (!error && response && response.statusCode === 200) {
+                              global.DOMParser = require('xmldom').DOMParser;
                               var json = new WMSCapabilities(body).toJSON();
-                              if (json && json.version && json.version != "") {
+                              if (json && json.version && json.version !== "") {
                                 console.log('json.version', json.version);
                                 sourceInformation.format = 'wms';
                                 sourceInformation.wmsGetCapabilities = json;
@@ -318,7 +305,7 @@ module.exports = function(app, auth) {
     '/api/maps/:sourceId',
     access.authorize('READ_CACHE'),
     parseQueryParams,
-    function (req, res, next) {
+    function (req, res) {
       var sourceJson = sourceXform.transform(req.source);
       res.json(sourceJson);
     }
@@ -330,11 +317,11 @@ module.exports = function(app, auth) {
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
-      new api.Source().delete(req.source, function(err) {
+      new Map(req.source).delete(function(err) {
         if (err) return next(err);
         res.status(200);
         res.json(req.source);
       });
     }
   );
-}
+};

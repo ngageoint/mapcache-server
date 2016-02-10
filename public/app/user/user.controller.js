@@ -1,10 +1,5 @@
-angular
-  .module('userManagement')
-  .controller('UserController', UserController);
-
-UserController.$inject =  ['$scope', '$location', '$timeout', 'UserService', 'user'];
-
-function UserController($scope, $location, $timeout, UserService, user) {
+var angular = require('angular');
+module.exports = function UserController($scope, $location, $timeout, UserService, user) {
   $scope.user = user;
   $scope.originalUser = angular.copy(user);
   $scope.passwordStatus = {};
@@ -17,26 +12,26 @@ function UserController($scope, $location, $timeout, UserService, user) {
       lastname: this.user.lastname,
       email: this.user.email,
       phone: this.user.phone
-    }
+    };
 
-    var complete = function(response) {
+    var complete = function() {
       $scope.$apply(function() {
         $scope.status("Success", "Your account information has been updated.", "alert-success");
       });
-    }
+    };
 
     var failed = function(data) {
       $scope.$apply(function() {
         $scope.status("Error", data, "alert-danger");
       });
-    }
+    };
 
-    UserService.updateMyself(user, complete, failed, progress);
-  }
+    UserService.updateMyself(user, complete, failed);
+  };
 
   $scope.cancel = function() {
     $scope.user = angular.copy($scope.originalUser);
-  }
+  };
 
   $scope.updatePassword = function() {
     if (!this.user.password) {
@@ -44,7 +39,7 @@ function UserController($scope, $location, $timeout, UserService, user) {
       return;
     }
 
-    if (this.user.password != this.user.passwordconfirm) {
+    if (this.user.password !== this.user.passwordconfirm) {
       $scope.passwordStatus = {status: "error", msg: "passwords do not match"};
       return;
     }
@@ -52,10 +47,10 @@ function UserController($scope, $location, $timeout, UserService, user) {
     var user = {
       password: this.user.password,
       passwordconfirm: this.user.passwordconfirm
-    }
+    };
 
     UserService.updateMyPassword(user)
-      .success(function(user) {
+      .success(function() {
         $scope.user.password = "";
         $scope.user.passwordconfirm = "";
         $scope.passwordStatus = {status: "success", msg: "password successfully updated, redirecting to the login page"};
@@ -64,16 +59,16 @@ function UserController($scope, $location, $timeout, UserService, user) {
           $location.path('/signin');
         }, 5000);
       })
-      .error(function(data, status) {
+      .error(function(data) {
         $scope.passwordStatus = {status: "error", msg: data};
       });
-  }
+  };
 
   $scope.status = function (statusTitle, statusMessage, statusLevel) {
     $scope.statusTitle = statusTitle;
     $scope.statusMessage = statusMessage;
     $scope.statusLevel = statusLevel;
     $scope.showUserStatus = true;
-  }
+  };
 
-}
+};

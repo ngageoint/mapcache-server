@@ -1,5 +1,5 @@
 var util = require('util')
-  , User = require('../models/user');
+  , User = require('mapcache-models').User;
 
 var transformUser = function(user, options) {
   if (!user) return null;
@@ -7,7 +7,7 @@ var transformUser = function(user, options) {
   user = user.toObject ? user.toObject({path: options.path, transform: User.transform}) : user;
 
   return user;
-}
+};
 
 var transformUsers = function(users, options) {
   users = users.map(function(user) {
@@ -15,10 +15,10 @@ var transformUsers = function(users, options) {
   });
 
   return users;
-}
+};
 
 exports.transform = function(users, options) {
   options = options || {};
 
   return util.isArray(users) ? transformUsers(users, options) : transformUser(users, options);
-}
+};

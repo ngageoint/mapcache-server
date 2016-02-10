@@ -1,16 +1,15 @@
 var fs = require('fs-extra')
-  , path = require('path')
   , api = require('../api')
   , turf = require('turf')
-  , cacheModel = require('../models/cache')
-  , caches = require('../api/caches');
+  , models = require('mapcache-models')
+  , cacheModel = models.Cache;
 
 exports.getAllCaches = function(yargs) {
-  var argv = yargs.usage('Gets all caches')
-  .help('help')
-  .argv;
+  yargs.usage('Gets all caches')
+  .help('help');
 
-  new api.Cache().getAll({}, function(err, caches) {
+console.log('api.Cache', api.Cache);
+  api.Cache.getAll({}, function(err, caches) {
     if (err) {
       console.log('There was an error retrieving caches.');
       process.exit();
@@ -26,7 +25,7 @@ exports.getAllCaches = function(yargs) {
     }
     process.exit();
   });
-}
+};
 
 exports.getCache = function(yargs) {
   var argv = yargs.usage('Gets a cache by id.\nUsage: $0 getCache -i <cache id>')
@@ -46,7 +45,7 @@ exports.getCache = function(yargs) {
     console.log(cache);
     process.exit();
   });
-}
+};
 
 exports.createCache = function(yargs) {
   var argv = yargs.usage('Creates a cache.\nUsage: $0 createCache [options]')
@@ -121,13 +120,13 @@ exports.createCache = function(yargs) {
     cache.maxZoom = argv.x;
   }
 
-  if (argv.l != undefined) {
+  if (argv.l !== undefined) {
     cache.cacheCreationParams = {
       layer: argv.l
     };
   }
 
-  new api.Cache().create(cache, argv.f, function(err, cache) {
+  api.Cache.create(cache, argv.f, function(err, cache) {
     if (err) {
       console.log('Error creating the cache ', err);
       process.exit();
@@ -140,7 +139,7 @@ exports.createCache = function(yargs) {
 
     setTimeout(cacheTimerFunction, 0, cache);
   });
-}
+};
 
 exports.generateFormat = function(yargs) {
   var argv = yargs.usage('Generates a cache format.\nUsage: $0 generateFormat [options]')
@@ -162,7 +161,7 @@ exports.generateFormat = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().create(cache, argv.f, function(err, cache) {
+    new api.Cache(cache).createFormat(argv.f, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -176,7 +175,7 @@ exports.generateFormat = function(yargs) {
       setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
     });
   });
-}
+};
 
 exports.restartFormat = function(yargs) {
   var argv = yargs.usage('Restarts a cache format generation.\nUsage: $0 restartFormat [options]')
@@ -198,7 +197,7 @@ exports.restartFormat = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().restart(cache, argv.f, function(err, cache) {
+    new api.Cache(cache).restart(argv.f, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -213,7 +212,7 @@ exports.restartFormat = function(yargs) {
     setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
 
   });
-}
+};
 
 exports.generateMoreZooms = function(yargs) {
   var argv = yargs.usage('Adds more zooms to a cache format.\nUsage: $0 generateMoreZooms [options]')
@@ -243,7 +242,7 @@ exports.generateMoreZooms = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache().generateMoreZooms(cache, argv.f, argv.m, argv.x, function(err, cache) {
+    new api.Cache(cache).generateMoreZooms(argv.f, argv.m, argv.x, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -258,7 +257,7 @@ exports.generateMoreZooms = function(yargs) {
     setTimeout(cacheFormatTimerFunction, 0, cache, argv.f);
 
   });
-}
+};
 
 exports.getCacheTile = function(yargs) {
   var argv = yargs.usage('Gets a cache tile.\nUsage: $0 getCacheTile [options]')
@@ -292,7 +291,7 @@ exports.getCacheTile = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().getTile(cache, argv.f, argv.z, argv.x, argv.y, function(err, tileStream) {
+    new api.Cache(cache).getTile(argv.f, argv.z, argv.x, argv.y, function(err, tileStream) {
       if (err) {
         console.log('Error getting tile');
         process.exit();
@@ -318,7 +317,7 @@ exports.getCacheTile = function(yargs) {
       }
     });
   });
-}
+};
 
 exports.exportCache = function(yargs) {
   var argv = yargs.usage('Exports a cache.\nUsage: $0 exportCache [options]')
@@ -348,7 +347,7 @@ exports.exportCache = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().getData(cache, argv.f, argv.m, argv.x, function(err, status) {
+    new api.Cache(cache).getData(argv.f, argv.m, argv.x, function(err, status) {
       if (err) {
         console.log('Error getting cache');
         process.exit();
@@ -374,7 +373,7 @@ exports.exportCache = function(yargs) {
       }
     });
   });
-}
+};
 
 exports.deleteFormat = function(yargs) {
   var argv = yargs.usage('Deletes a cache format.\nUsage: $0 deleteFormat [options]')
@@ -392,7 +391,7 @@ exports.deleteFormat = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().deleteFormat(cache, argv.f, function(err) {
+    new api.Cache(cache).deleteFormat(argv.f, function(err) {
       if (err) {
         console.log('Error deleting format');
         process.exit();
@@ -401,7 +400,7 @@ exports.deleteFormat = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 exports.deleteCache = function(yargs) {
   var argv = yargs.usage('Deletes a cache.\nUsage: $0 deleteFormat [options]')
@@ -414,7 +413,7 @@ exports.deleteCache = function(yargs) {
   .argv;
 
   cacheModel.getCacheById(argv.i, function(err, cache) {
-    new api.Cache().delete(cache, function(err) {
+    new api.Cache(cache).delete(function(err) {
       if (err) {
         console.log('Error deleting cache');
         process.exit();
@@ -423,7 +422,7 @@ exports.deleteCache = function(yargs) {
       process.exit();
     });
   });
-}
+};
 
 function cacheFormatTimerFunction(cache, format) {
   cacheModel.getCacheById(cache._id, function(err, cache) {

@@ -1,10 +1,7 @@
-angular
-  .module('userManagement')
-  .factory('UserService', UserService);
+var $ = require('jquery');
+var _ = require('underscore');
 
-UserService.$inject = ['$rootScope', '$q', '$http', '$location', '$timeout', 'LocalStorageService'];
-
-function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
+module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStorageService) {
   var userDeferred = $q.defer();
   var resolvedUsers = {};
   var resolveAllUsers = null;
@@ -42,7 +39,7 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
 
     var loginDeferred = $q.defer();
     data.appVersion = 'Web Client';
-    var promise = $http.post(
+    $http.post(
      '/api/login',
       $.param(data),
       {headers: {"Content-Type": "application/x-www-form-urlencoded"}, ignoreAuthModule:true})
@@ -51,7 +48,7 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
         setUser(data.user);
 
         loginDeferred.resolve({user: data.user, token: data.token, isAdmin: service.amAdmin});
-      }).error(function(data, status, headers, config) {
+      }).error(function(data, status) {
         loginDeferred.reject({data:data, status:status});
       });
 
@@ -86,10 +83,10 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
 
       theDeferred.resolve(user);
     })
-    .error(function(data, status) {
+    .error(function() {
       theDeferred.resolve({});
     });
-
+    console.log('returning the deferred.promise', theDeferred.promise);
     return theDeferred.promise;
   }
 
@@ -107,14 +104,14 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
       {headers: {"Content-Type": "application/x-www-form-urlencoded"}}
     );
 
-    promise.success(function(user) {
+    promise.success(function() {
       clearUser();
     });
 
     return promise;
   }
 
-  function checkLoggedInUser(roles) {
+  function checkLoggedInUser() {
     console.info('check login');
     $http.get(
       '/api/users/myself',
@@ -124,10 +121,10 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
       setUser(user);
       userDeferred.resolve(user);
     })
-    .error(function(data, status) {
+    .error(function() {
       userDeferred.resolve({});
     });
-
+    console.log('returning user promise', userDeferred.promise);
     return userDeferred.promise;
   }
 
@@ -151,27 +148,27 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
     });
 
     return resolveAllUsers;
-  };
+  }
 
   function createUser(user, success, error, progress) {
     saveUser(user, {
       url: '/api/users?access_token=' + LocalStorageService.getToken(),
       type: 'POST'
     }, success, error, progress);
-  };
+  }
 
   function updateUser(id, user, success, error, progress) {
     saveUser(user, {
       url: '/api/users/' + id + '?access_token=' + LocalStorageService.getToken(),
       type: 'PUT'
     }, success, error, progress);
-  };
+  }
 
   function deleteUser(user) {
     return $http.delete(
       '/api/users/' + user.id
     );
-  };
+  }
 
   // TODO is this really used in this service or just internal
   function clearUser() {
@@ -180,23 +177,23 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
     LocalStorageService.removeToken();
 
     $rootScope.$broadcast('logout');
-  };
+  }
 
   // TODO should this go in Roles service/resource
   function getRoles() {
     return $http.get('/api/roles');
-  };
+  }
 
 
   function setUser(user) {
     service.myself = user;
-    service.amAdmin = service.myself && service.myself.role && (service.myself.role.name == "ADMIN_ROLE");
-  };
+    service.amAdmin = service.myself && service.myself.role && (service.myself.role.name === "ADMIN_ROLE");
+  }
 
   function saveUser(user, options, success, error, progress) {
     var formData = new FormData();
     for (var property in user) {
-      if (user[property] != null)
+      if (user[property] !== null)
         formData.append(property, user[property]);
     }
 
@@ -206,16 +203,28 @@ function UserService($rootScope, $q, $http, $location, $timeout, LocalStorageSer
         xhr: function() {
             var myXhr = $.ajaxSettings.xhr();
             if(myXhr.upload){
-                myXhr.upload.addEventListener('progress', progress, false);
+                myXhr.upload.addEventListener('progress', function(e) {
+                  $rootScope.$apply(function() {
+                    progress(e);
+                  });
+                }, false);
             }
             return myXhr;
         },
-        success: success,
-        error: error,
+        success: function(response){
+          $rootScope.$apply(function() {
+            success(response);
+          });
+        },
+        error: function(response) {
+          $rootScope.$apply(function() {
+            error(response);
+          });
+        },
         data: formData,
         cache: false,
         contentType: false,
         processData: false
     });
   }
-}
+};

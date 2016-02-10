@@ -1,13 +1,7 @@
-angular
-  .module('mapcache')
-  .filter('cacheFormat', cacheFormatFilter);
-
-  cacheFormatFilter.$inject = ['FormatService'];
-
-function cacheFormatFilter(FormatService) {
+module.exports = function cacheFormatFilter(FormatService) {
   return function(input) {
     if (!input) return null;
 
     return FormatService[input];
   };
-}
+};

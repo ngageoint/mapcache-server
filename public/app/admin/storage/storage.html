@@ -131,7 +131,7 @@
                 </div>
               </div>
               <div ng-repeat="(format, info) in cache.formats" ng-show="info.size">
-                <span><span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}} </span></span><a ng-show="isCacheFormatDeletable(cache, format)" href="" ng-click="deleteCache(cache, format)"><i class="fa fa-trash"></i></a></span>
+                <span><span class="page-sub-entity-label">{{formatName(format)}} <span class="page-sub-entity-title">{{info.size | fileSize}} </span></span><a ng-click="deleteCache(cache, format)"><i class="fa fa-trash"></i></a></span>
               </div>
             </div>
             <div>
@@ -148,8 +148,8 @@
             <span class="page-entity-heading">Maps Disk Usage</span>
           </div>
         </div>
-        <div class="row bottom-gap" ng-repeat="source in sources | orderBy: 'totalSize': true">
-          <div class="col-md-12" ng-hide="source.deleted">
+        <div class="row bottom-gap" ng-hide="source.deleted" ng-repeat="source in sources | orderBy: 'totalSize': true">
+          <div class="col-md-12" >
             <span class="page-entity-label"><a ng-href="/#/map/{{source.id}}">{{source.name}} : {{formatName(source.format)}}</a> <span class="page-entity-title">{{source.totalSize | fileSize}}</span></span><a ng-hide="source.deleted" href="" ng-click="deleteMap(source)"><i class="pull-right fa fa-trash"></i></a>
             <div class="progress usage-progress">
               <div class="progress-bar" ng-class="{'progress-bar-success': (source.totalSize/storage.serverTotal) < .75, 'progress-bar-warning': (source.totalSize/storage.serverTotal) > .75 && (source.totalSize/storage.serverTotal) < .90, 'progress-bar-danger': (source.totalSize/storage.serverTotal) > .90}"

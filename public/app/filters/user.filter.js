@@ -1,10 +1,6 @@
-angular
-  .module('userManagement')
-  .filter('user', userFilter);
+var _ = require('underscore');
 
-userFilter.$inject = ['$parse'];
-
-function userFilter($parse) {
+module.exports = function userFilter() {
   return function(collection, properties, search) {
     if (!search) return collection;
 
@@ -17,8 +13,8 @@ function userFilter($parse) {
     var match = new RegExp(search, 'i');
     return collection.filter(function(element) {
       return properties.some(function(property) {
-        return match.test(element[property])
+        return match.test(element[property]);
       });
     });
-  }
-}
+  };
+};

@@ -1,53 +1,34 @@
-angular
-  .module('mapcache')
-  .controller('StorageController', StorageController);
+var _ = require('underscore');
 
-StorageController.$inject = ['$scope', '$http', '$location', '$injector', '$filter', 'CacheService', 'MapService', 'FormatService', 'LocalStorageService', 'UserService'];
-
-function StorageController($scope, $http, $location, $injector, $filter, CacheService, MapService, FormatService, LocalStorageService, UserService) {
+module.exports = function StorageController($scope, $http, $location, $injector, CacheService, MapService, FormatService, LocalStorageService, UserService, ServerService) {
 
   $scope.formatName = function(name) {
     return FormatService[name];
-  }
+  };
 
   $scope.deleteCache = function(cache, format) {
-    CacheService.deleteCache(cache, format, function(deletedCache) {
+    CacheService.deleteCache(cache, format, function() {
       if (!format) {
         cache.deleted = true;
       } else {
         delete cache.formats[format];
       }
     });
-  }
+  };
 
   $scope.undeleteCache = function(cache) {
     CacheService.createCache(cache, function(cache) {
-      $scope.creatingCache = false;
       $location.path('/cache/'+cache.id);
     }, function(error, status) {
       $scope.cacheCreationError = {error: error, status: status};
     });
-  }
+  };
 
-  $scope.isCacheFormatDeletable = function(cache, format) {
-    if (!cache.source) { return true; }
-    for (var i = 0; i < cache.source.cacheTypes.length; i++) {
-      var ct = cache.source.cacheTypes[i];
-      if (ct.type == format && ct.required) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  $http.get('/api/server')
-  .success(function(data, status) {
+  ServerService.getServerInfo(function(data) {
     $scope.storage = data;
-  }).error(function(data, status) {
-    console.log("error pulling server data", status);
   });
 
-  CacheService.getAllCaches(true).success(function(caches) {
+  CacheService.getAllCaches(true).then(function(caches) {
     for (var i = 0; i < caches.length; i++) {
       var size = cacheSize(caches[i]);
       caches[i].totalSize = size;
@@ -55,11 +36,11 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     $scope.caches = caches;
   });
 
-  $scope.deleteMap = function(source, format) {
-    MapService.deleteMap(source, format, function(deletedMap) {
+  $scope.deleteMap = function(source) {
+    MapService.deleteMap(source, function() {
       source.deleted = true;
     });
-  }
+  };
 
   function cacheSize(cache) {
     var bytes = 0;
@@ -71,21 +52,17 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     return bytes;
   }
 
-  MapService.getAllMaps(true).success(function(sources) {
+  MapService.getAllMaps(true).then(function(sources) {
     $scope.sources = [];
     for (var i = 0; i < sources.length; i++) {
-      if (sources[i].size && sources[i].size != 0) {
-        sources[i].totalSize = sources[i].size;
-        for (var projection in sources[i].projections) {
-          if (sources[i].projections.hasOwnProperty(projection) && sources[i].projections[projection] && sources[i].projections[projection].size) {
-            sources[i].totalSize += sources[i].projections[projection].size;
-          }
+      var totalSize = 0;
+      for (var dsIdx = 0; dsIdx < sources[i].dataSources.length; dsIdx++) {
+        if (sources[i].dataSources[dsIdx].size) {
+          totalSize+= sources[i].dataSources[dsIdx].size;
         }
-      } else {
-        sources[i].totalSize = 0;
       }
+      sources[i].totalSize = totalSize;
       $scope.sources.push(sources[i]);
-
     }
   });
 
@@ -96,11 +73,11 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
   $scope.page = 0;
   $scope.itemsPerPage = 10;
 
-  UserService.getRoles().success(function (roles) {
+  UserService.getRoles().then(function (roles) {
     $scope.roles = roles;
   });
 
-  UserService.getAllUsers(true).success(function(users) {
+  UserService.getAllUsers(true).then(function(users) {
     $scope.users = users;
   });
 
@@ -110,22 +87,20 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
       case 'active': return user.active;
       case 'inactive': return !user.active;
     }
-  }
+  };
 
   $scope.newUser = function() {
     $scope.user = {};
-  }
+  };
 
   $scope.editUser = function(user) {
-    $scope.edit = false;
-
     // TODO temp code to convert array of phones to one phone
     if (user.phones && user.phones.length > 0) {
       user.phone = user.phones[0].number;
     }
 
     $scope.user = user;
-  }
+  };
 
   var debounceHideSave = _.debounce(function() {
     $scope.$apply(function() {
@@ -149,40 +124,32 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
     };
 
     var failure = function(response) {
-      $scope.$apply(function() {
-        $scope.saving = false;
-        $scope.error = response.responseText;
-      });
-    }
+      $scope.saving = false;
+      $scope.error = response.responseText;
+    };
 
     var progress = function(e) {
       if(e.lengthComputable){
-        $scope.$apply(function() {
-          $scope.uploading = true;
-          $scope.uploadProgress = (e.loaded/e.total) * 100;
-        });
+        $scope.uploading = true;
+        $scope.uploadProgress = (e.loaded/e.total) * 100;
       }
-    }
+    };
 
     if ($scope.user.id) {
-      UserService.updateUser($scope.user.id, user, function(response) {
-        $scope.$apply(function() {
-          $scope.saved = true;
-          $scope.saving = false;
-          debounceHideSave();
-        });
+      UserService.updateUser($scope.user.id, user, function() {
+        $scope.saved = true;
+        $scope.saving = false;
+        debounceHideSave();
       }, failure, progress);
     } else {
       UserService.createUser(user, function(response) {
-        $scope.$apply(function() {
-          $scope.saved = true;
-          $scope.saving = false;
-          debounceHideSave();
-          $scope.users.push(response);
-        });
+        $scope.saved = true;
+        $scope.saving = false;
+        debounceHideSave();
+        $scope.users.push(response);
       }, failure, progress);
     }
-  }
+  };
 
   $scope.deleteUser = function(user) {
     var modalInstance = $injector.get('$modal').open({
@@ -195,11 +162,11 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
       controller: ['$scope', '$modalInstance', 'user', function ($scope, $modalInstance, user) {
         $scope.user = user;
 
-        $scope.deleteUser = function(user, force) {
+        $scope.deleteUser = function(user) {
           UserService.deleteUser(user).success(function() {
             $modalInstance.close(user);
           });
-        }
+        };
         $scope.cancel = function () {
           $modalInstance.dismiss('cancel');
         };
@@ -208,30 +175,27 @@ function StorageController($scope, $http, $location, $injector, $filter, CacheSe
 
     modalInstance.result.then(function(user) {
       $scope.user = null;
-      $scope.users = _.reject($scope.users, function(u) { return u.id == user.id});
+      $scope.users = _.reject($scope.users, function(u) { return u.id === user.id;});
     });
-  }
+  };
 
   $scope.refresh = function() {
     $scope.users = [];
-    UserService.getAllUsers(true).success(function (users) {
+    UserService.getAllUsers(true).then(function (users) {
       $scope.users = users;
     });
-  }
+  };
 
   /* shortcut for giving a user the USER_ROLE */
   $scope.activateUser = function (user) {
-    user.active = true;
-    UserService.updateUser(user.id, user, function(response) {
-      $scope.$apply(function() {
-        $scope.saved = true;
-        debounceHideSave();
-      });
+    UserService.updateUser(user.id, user, function() {
+      $scope.saved = true;
+      user.active = true;
+      debounceHideSave();
     }, function(response) {
-      $scope.$apply(function() {
-        $scope.error = response.responseText;
-      });
+      user.active = false;
+      $scope.error = response.responseText;
     });
-  }
+  };
 
-}
+};

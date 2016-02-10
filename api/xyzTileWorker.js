@@ -1,7 +1,6 @@
 var turf = require('turf')
   , async = require('async')
-  , tileUtilities = require('./tileUtilities')
-  , config = require('../config.json');
+  , xyzTileUtils = require('xyz-tile-utils');
 
 function pushNextTileTasks(q, xyzSource, zoom, x, yRange, numberOfTasks) {
   if (yRange.current > yRange.max) return false;
@@ -57,8 +56,8 @@ exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, sho
     var totalXYZTiles = 0;
 
     for (var zoom = minZoom; zoom <= maxZoom; zoom++) {
-      var yRange = tileUtilities.yCalculator(extent, zoom);
-      var xRange = tileUtilities.xCalculator(extent, zoom);
+      var yRange = xyzTileUtils.yCalculator(extent, zoom);
+      var xRange = xyzTileUtils.xCalculator(extent, zoom);
       console.log('zoom level %d yRange', zoom, yRange);
       console.log('zoom level %d xRange', zoom, xRange);
 
@@ -91,8 +90,8 @@ exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, sho
               return zoomLevelDone();
             }
             console.log("Continuing to create zoom level " + zoom);
-            var yRange = tileUtilities.yCalculator(extent, zoom);
-            var xRange = tileUtilities.xCalculator(extent, zoom);
+            var yRange = xyzTileUtils.yCalculator(extent, zoom);
+            var xRange = xyzTileUtils.xCalculator(extent, zoom);
 
             var currentx = xRange.min;
 
@@ -105,7 +104,7 @@ exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, sho
                 currentx++;
                 return currentx <= xRange.max && !stop;
               },
-              function (err) {
+              function () {
                 console.log("Zoom level " + zoom + " is complete.");
                 zoomLevelCompleteFunction(xyzSource, zoom, function() {
                   zoom++;

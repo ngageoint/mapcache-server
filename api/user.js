@@ -1,23 +1,11 @@
-var UserModel = require('../models/user')
-  , TokenModel = require('../models/token')
-  , LoginModel = require('../models/login')
-  , path = require('path')
-  , async = require('async')
-  , config = require('../config.json');
-
-var userBase = config.server.userBaseDirectory;
-
-function contentPath(id, user, content, type) {
-  var relativePath = path.join(id.toString(), type + path.extname(content.path));
-  var absolutePath = path.join(userBase, relativePath);
-  return {
-    relativePath: relativePath,
-    absolutePath: absolutePath
-  };
-}
+var models = require('mapcache-models')
+  , UserModel = models.User
+  , TokenModel = models.Token
+  , LoginModel = models.Login
+  , async = require('async');
 
 function User() {
-};
+}
 
 User.prototype.login = function(user, options, callback) {
   TokenModel.createToken({userId: user._id}, function(err, token) {
@@ -25,7 +13,7 @@ User.prototype.login = function(user, options, callback) {
 
     callback(null, token);
 
-    LoginModel.createLogin(user, function(err, login) {
+    LoginModel.createLogin(user, function(err) {
       if (err) console.log('could not add login', err);
     });
 
@@ -35,27 +23,27 @@ User.prototype.login = function(user, options, callback) {
     if (options.userAgent) update.userAgent = options.userAgent;
     if (options.appVersion) update.appVersion = options.appVersion;
   });
-}
+};
 
 User.prototype.logout = function(token, callback) {
   if (!token) return callback();
 
-  TokenModel.removeToken(token, function(err, token){
+  TokenModel.removeToken(token, function(err){
     callback(err);
   });
-}
+};
 
 User.prototype.getAll = function(callback) {
   UserModel.getUsers(function (err, users) {
     callback(err, users);
   });
-}
+};
 
 User.prototype.getById = function(id, callback) {
   UserModel.getUserById(id, function(err, user) {
     callback(err, user);
   });
-}
+};
 
 User.prototype.create = function(user, callback) {
   var operations = [];
@@ -70,10 +58,10 @@ User.prototype.create = function(user, callback) {
 
     return callback(null, newUser);
   });
-}
+};
 
 User.prototype.update = function(id, update, options, callback) {
-  if (typeof options == 'function') {
+  if (typeof options === 'function') {
     callback = options;
     options = {};
   }
@@ -88,12 +76,12 @@ User.prototype.update = function(id, update, options, callback) {
 
     UserModel.updateUser(id, updatedUser, callback);
   });
-}
+};
 
 User.prototype.delete = function(user, callback) {
   UserModel.deleteUser(user, function(err) {
     callback(err);
   });
-}
+};
 
 module.exports = User;

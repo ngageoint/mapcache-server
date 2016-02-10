@@ -2,7 +2,7 @@
 
 var mongoose = require('mongoose')
   , cli = require('./cli')
-  , config = require('./config.json');
+  , config = require('mapcache-config');
 
 var operations = cli.operations;
 

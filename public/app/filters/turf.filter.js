@@ -1,12 +1,10 @@
-angular
-  .module('mapcache')
-  .filter('turf', turfFilter);
+var turf = require('turf');
 
-function turfFilter() {
+module.exports = function turfFilter() {
   return function(input, operation, option) {
     if (!input) return null;
 
-  	if (operation == 'extent') {
+  	if (operation === 'extent') {
       var e = turf.extent(input);
       if (option) {
         switch(option) {
@@ -24,4 +22,4 @@ function turfFilter() {
   	}
     return input;
   };
-}
+};

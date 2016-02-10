@@ -1,24 +1,12 @@
-angular
-  .module('mapcache')
-  .controller('MapEditController', MapEditController);
+var angular = require('angular');
+var _ = require('underscore');
 
-MapEditController.$inject = [
-  '$scope',
-  '$rootScope',
-  '$routeParams',
-  '$location',
-  '$timeout',
-  '$http',
-  'MapService',
-  'LocalStorageService'
-];
-
-function MapEditController($scope, $rootScope, $routeParams, $location, $timeout, $http, MapService, LocalStorageService) {
+module.exports = function MapEditController($scope, $rootScope, $routeParams, MapService, LocalStorageService) {
   $scope.tab='general';
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
     baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
-    opacity: .5,
+    opacity: 0.5,
     hideFilter: true
   };
 
@@ -44,47 +32,56 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   var initialLoadComplete = false;
 
-  $scope.$watch('map', function(map, oldMap) {
-    console.log('map change unsavedChanges: ' + $scope.unsavedChanges + ' initialLoadComplete: ' + initialLoadComplete);
+  $scope.$watch('map', function(map) {
     if (map.name && !initialLoadComplete) {
       initialLoadComplete = true;
     } else if (initialLoadComplete) {
-      console.log('setting unsaved to true');
       $scope.unsavedChanges = true;
     }
-    console.log('now it is map change unsavedChanges: ' + $scope.unsavedChanges + ' initialLoadComplete: ' + initialLoadComplete);
-
   }, true);
 
-  $scope.$watch('map.previewLayer', function(layer, oldLayer) {
+  $scope.$watch('map.wmsLayer', function(layer) {
     if (layer) {
-      if (layer.EX_GeographicBoundingBox) {
-        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox;
+      if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
+        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox; // jshint ignore:line
       }
     }
   });
+
+  $scope.deleteDataSource = function(id) {
+    MapService.deleteDataSource($scope.map, id, function(newMap) {
+      $scope.map = newMap;
+    });
+  };
+
+  $scope.setStyleTab = function(id) {
+    $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
+      return ds._id === id;
+    });
+    $scope.tab = id;
+  };
 
   $scope.applyStyle = function() {
     var tmp = angular.copy($scope.newRule);
     $scope.newRule.key = $scope.newRule.property.key;
     $scope.newRule.value = $scope.newRule.property.value;
-    $scope.newRule.priority = $scope.map.style.length;
+    $scope.newRule.priority = $scope.styleTab.style.styles.length;
     delete $scope.newRule.property;
-    $scope.map.style.styles.push($scope.newRule);
+    $scope.styleTab.style.styles.push($scope.newRule);
     $scope.newRule = tmp;
     delete $scope.newRule.property;
-  }
+  };
 
   $scope.saveMap = function() {
     MapService.saveMap($scope.map, function(map) {
-      console.log('saved successfully', map);
       $scope.map = map;
+      $scope.setStyleTab($scope.tab);
       $scope.mapOptions.refreshMap = Date.now();
       $scope.unsavedChanges = false;
     }, function(error) {
       console.log('error saving map', error);
     });
-  }
+  };
 
   $scope.$on('deleteStyle', function(event, style) {
     $scope.map.style.styles = _.without($scope.map.style.styles, style);
@@ -108,7 +105,7 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
 
   $scope.isNotDefault = function(style) {
     return style.key;
-  }
+  };
 
   function getMap() {
     MapService.refreshMap($scope.map, function(map) {
@@ -119,14 +116,13 @@ function MapEditController($scope, $rootScope, $routeParams, $location, $timeout
         $scope.mapOptions.opacity = 1;
         $scope.map.style = $scope.map.style || {styles:[], defaultStyle: {style: angular.copy(defaultStyle)}};
       }
-      console.log('unsaved is now false');
       $scope.unsavedChanges = false;
       initialLoadComplete = false;
-    }, function(data) {
+    }, function() {
       // error
     });
   }
 
   getMap();
 
-}
+};

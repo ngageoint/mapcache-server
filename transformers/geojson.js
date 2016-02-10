@@ -11,7 +11,7 @@ var transformFeature = function(feature, options) {
   delete feature._id;
 
   return feature;
-}
+};
 
 var transformFeatures = function(features, options) {
   features = features.map(function(feature) {
@@ -19,10 +19,10 @@ var transformFeatures = function(features, options) {
   });
 
   return features;
-}
+};
 
 exports.transform = function(features, options) {
   options = options || {};
 
   return util.isArray(features) ? transformFeatures(features, options) : transformFeature(features, options);
-}
+};

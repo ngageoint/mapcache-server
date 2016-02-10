@@ -1,10 +1,5 @@
-angular
-  .module('userManagement')
-  .factory('LocalStorageService', LocalStorageService);
 
-LocalStorageService.$inject = [];
-
-function LocalStorageService() {
+module.exports = function ($window) {
   var tokenKey = 'token';
 
   var service = {
@@ -17,7 +12,7 @@ function LocalStorageService() {
 
   function getToken() {
     return getLocalItem(tokenKey);
-  };
+  }
 
   function setToken(token) {
     return setLocalItem(tokenKey, token);
@@ -29,8 +24,8 @@ function LocalStorageService() {
 
   function getLocalItem(key) {
     try {
-      if ('localStorage' in window && window['localStorage'] !== null) {
-        return localStorage.getItem(key);
+      if ($window.localStorage !== null) {
+        return $window.localStorage.getItem(key);
       }
     } catch (e) {
       return false;
@@ -39,8 +34,8 @@ function LocalStorageService() {
 
   function setLocalItem(key, value) {
     try {
-      if ('localStorage' in window && window.localStorage !== null) {
-        return localStorage.setItem(key, value);
+      if ($window.localStorage !== null) {
+        return $window.localStorage.setItem(key, value);
       }
     } catch (e) {
       return false;
@@ -49,11 +44,11 @@ function LocalStorageService() {
 
   function removeLocalItem(key) {
     try {
-      if ('localStorage' in window && window.localStorage !== null) {
-        return localStorage.removeItem(key);
+      if ($window.localStorage !== null) {
+        return $window.localStorage.removeItem(key);
       }
     } catch (e) {
       return false;
     }
   }
-}
+};

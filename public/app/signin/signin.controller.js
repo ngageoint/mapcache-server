@@ -1,10 +1,4 @@
-angular
-  .module('userManagement')
-  .controller('SigninController', SigninController);
-
-SigninController.$inject = ['$scope', '$rootScope', '$location', 'UserService'];
-
-function SigninController($scope, $rootScope, $location, UserService) {
+module.exports = function($scope, $rootScope, $location, UserService) {
   $scope.status = 0;
 
   $scope.signin = function () {
@@ -15,7 +9,7 @@ function SigninController($scope, $rootScope, $location, UserService) {
       function (data) {
         $scope.status = data.status;
       });
-  }
+  };
 
   $scope.user = {};
   $scope.showStatus = false;
@@ -31,7 +25,7 @@ function SigninController($scope, $rootScope, $location, UserService) {
       phone: this.user.phone,
       password: this.user.password,
       passwordconfirm: this.user.passwordconfirm
-    }
+    };
 
     // TODO throw in progress
     var progress = function(e) {
@@ -41,27 +35,27 @@ function SigninController($scope, $rootScope, $location, UserService) {
           $scope.uploadProgress = (e.loaded/e.total) * 100;
         });
       }
-    }
+    };
 
-    var complete = function(response) {
+    var complete = function() {
       $scope.$apply(function() {
-        $scope.showStatusMessage("Success", "Account created, contact an administrator to activate your account.", "alert-success")
+        $scope.showStatusMessage("Success", "Account created, contact an administrator to activate your account.", "alert-success");
       });
-    }
+    };
 
     var failed = function(data) {
       $scope.$apply(function() {
-        $scope.showStatusMessage("There was a problem creating your account", data.responseText, "alert-danger")
+        $scope.showStatusMessage("There was a problem creating your account", data.responseText, "alert-danger");
       });
-    }
+    };
 
     UserService.signup(user, complete, failed, progress);
-  }
+  };
 
   $scope.showStatusMessage = function (title, message, statusLevel) {
     $scope.statusTitle = title;
     $scope.statusMessage = message;
     $scope.statusLevel = statusLevel;
     $scope.showStatus = true;
-  }
-}
+  };
+};

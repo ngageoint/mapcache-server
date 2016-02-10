@@ -1,9 +1,8 @@
 module.exports = function(app, security) {
   var api = require('../api')
-    , Role = require('../models/role')
+    , Role = require('mapcache-models').Role
     , access = require('../access')
-    , config = require('../config.json')
-    , fs = require('fs-extra')
+    , config = require('mapcache-config')
     , userTransformer = require('../transformers/user')
     , passport = security.authentication.passport
     , loginStrategy = security.authentication.loginStrategy
@@ -14,7 +13,7 @@ module.exports = function(app, security) {
 
   var isAuthenticated = function(strategy) {
     return function(req, res, next) {
-      passport.authenticate(strategy, function(err, user, info) {
+      passport.authenticate(strategy, function(err, user) {
         if (err) return next(err);
 
         if (user) req.user = user;
@@ -22,20 +21,20 @@ module.exports = function(app, security) {
         next();
 
       })(req, res, next);
-    }
-  }
+    };
+  };
 
   var getDefaultRole = function(req, res, next) {
     Role.getRole('USER_ROLE', function(err, role) {
       req.role = role;
       next();
     });
-  }
+  };
 
   var validateUser = function(req, res, next) {
     var invalidResponse = function(param) {
       return "Cannot create user, invalid parameters.  '" + param + "' parameter is required";
-    }
+    };
 
     var user = {};
 
@@ -85,7 +84,7 @@ module.exports = function(app, security) {
       return res.status(400).send(invalidResponse('passwordconfirm'));
     }
 
-    if (password != passwordconfirm) {
+    if (password !== passwordconfirm) {
       return res.status(400).send('passwords do not match');
     }
 
@@ -98,7 +97,7 @@ module.exports = function(app, security) {
     req.newUser = user;
 
     next();
-  }
+  };
 
   var validateRoleParams = function(req, res, next) {
     var roleId = req.param('roleId');
@@ -114,7 +113,7 @@ module.exports = function(app, security) {
       req.role = role;
       next();
     });
-  }
+  };
 
   app.post(
     '/api/login',
@@ -172,7 +171,7 @@ module.exports = function(app, security) {
     passport.authenticate(authenticationStrategy),
     access.authorize('READ_USER'),
     function(req, res) {
-      user = userTransformer.transform(req.userParam, {path: req.getRoot()});
+      var user = userTransformer.transform(req.userParam, {path: req.getRoot()});
       res.json(user);
     }
   );
@@ -181,7 +180,7 @@ module.exports = function(app, security) {
   app.put(
     '/api/users/myself',
     passport.authenticate(authenticationStrategy),
-    function(req, res, next) {
+    function(req, res) {
 
       var update = {};
       if (req.param('username')) update.username = req.param('username');
@@ -200,7 +199,7 @@ module.exports = function(app, security) {
       var password = req.param('password');
       var passwordconfirm = req.param('passwordconfirm');
       if (password && passwordconfirm) {
-        if (password != passwordconfirm) {
+        if (password !== passwordconfirm) {
           return res.status(400).send('passwords do not match');
         }
 
@@ -293,7 +292,7 @@ module.exports = function(app, security) {
       var password = req.param('password');
       var passwordconfirm = req.param('passwordconfirm');
       if (password && passwordconfirm) {
-        if (password != passwordconfirm) {
+        if (password !== passwordconfirm) {
           return res.status(400).send('passwords do not match');
         }
 
@@ -334,9 +333,7 @@ module.exports = function(app, security) {
     passport.authenticate(authenticationStrategy),
     access.authorize('UPDATE_USER'),
     validateRoleParams,
-    function(req, res) {
-      req.userParm.role = role;
-
+    function(req, res, next) {
       new api.User().update(req.userParam, function(err, updatedUser) {
         if (err) return next(err);
 
@@ -345,5 +342,4 @@ module.exports = function(app, security) {
       });
     }
   );
-
-}
+};
