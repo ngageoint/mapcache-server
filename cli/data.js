@@ -1,4 +1,6 @@
 var api = require('../api')
+  , mapcacheModels = require('mapcache-models')
+  , cacheModel = mapcacheModels.Cache
   , async = require('async');
 
 exports.testGeoPackage = function() {
@@ -22,48 +24,45 @@ exports.testGeoPackage = function() {
   });
 };
 
-exports.ensureDataIntegrity = function(yargs) {
+exports.fixData = function(yargs) {
   yargs.usage('Ensures that the data in the database is correct as far as we can tell.')
   .help('help');
 
   async.series([
-    createDataSources,
+    dropIndex,
+    migrateCaches
   ], function() {
     process.exit();
   });
 };
 
-function createDataSources(finished) {
-  api.Source.getAll({}, function(err, sources) {
-    if (err) {
-      console.log("There was an error retrieving sources.");
-      finished();
-    }
-    if (sources.length === 0) {
-      console.log("Found 0 sources.");
-      finished();
-    }
+function dropIndex(done) {
+  cacheModel.cacheModel.collection.dropIndex('geometry_2dsphere');
+  done();
+}
 
-    async.eachSeries(sources, function iterator(source, callback) {
-      console.log('fixing source ' + source.name);
-      var dataSource = {
-        name: source.name + ' ' + source.format,
-        metadata: source.wmsGetCapabilities,
-        url: source.url,
-        filePath: source.filePath,
-        vector: source.vector,
-        layer: source.wmsLayer,
-        geometry: source.geometry,
-        format: source.format,
-        tilesLackExtensions: source.tilesLackExtensions
-      };
-      source.dataSources = [dataSource];
-      source.save(function(err) {
-        console.log('err fixing source', err);
-        callback(err);
-      });
-    }, function done() {
-      finished();
+function migrateCaches(done) {
+  api.Cache.getAll({}, function(err, caches) {
+    async.eachSeries(caches, function iterator(cache, callback) {
+      console.log('migrating cache %s', cache._id);
+      if (cache.formats.xyz) {
+        var size = cache.formats.xyz.size;
+        cache.formats.xyz = JSON.parse(JSON.stringify(cache.status));
+        cache.formats.xyz.size = size;
+        cache.formats.xyz.percentComplete = 100;
+        cache.geometry = {
+          "type":"Feature",
+          "geometry": cache.geometry
+        };
+        cache.markModified('formats');
+        cache.markModified('geometry');
+        cache.save(function(err) {
+          console.log('err is', err);
+          callback();
+        });
+      }
+    }, function() {
+      done();
     });
   });
 }
