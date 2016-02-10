@@ -23,9 +23,7 @@ function getKnex(callback) {
 }
 
 async.series([
-  createFeaturesTable,
-  createPropertiesTable,
-  createValuesTable
+  createFeaturesTable
 ],
 function() {
   initDefer.resolve(knex);
@@ -62,35 +60,35 @@ function createFeaturesTable(callback) {
     }
   });
 }
-
-function createPropertiesTable(callback) {
-  knex.schema.hasTable('properties').then(function(exists) {
-    if (!exists) {
-      return knex.schema.createTable('properties', function(propertyTable) {
-        propertyTable.increments('id').primary();
-        propertyTable.string('source_id');
-        propertyTable.string('key');
-        callback();
-      });
-    } else {
-      callback();
-    }
-  });
-}
-
-function createValuesTable(callback) {
-  knex.schema.hasTable('values').then(function(exists) {
-    if (!exists) {
-      return knex.schema.createTable('values', function(valuesTable) {
-        valuesTable.increments('id').primary();
-        valuesTable.string('property_id').references('id').inTable('properties').onDelete('CASCADE');
-        valuesTable.string('value').unique();
-        callback();
-      });
-    } else {
-      callback();
-    }
-  });
-}
+//
+// function createPropertiesTable(callback) {
+//   knex.schema.hasTable('properties').then(function(exists) {
+//     if (!exists) {
+//       return knex.schema.createTable('properties', function(propertyTable) {
+//         propertyTable.increments('id').primary();
+//         propertyTable.string('source_id');
+//         propertyTable.string('key');
+//         callback();
+//       });
+//     } else {
+//       callback();
+//     }
+//   });
+// }
+//
+// function createValuesTable(callback) {
+//   knex.schema.hasTable('values').then(function(exists) {
+//     if (!exists) {
+//       return knex.schema.createTable('values', function(valuesTable) {
+//         valuesTable.increments('id').primary();
+//         valuesTable.string('property_id').references('id').inTable('properties').onDelete('CASCADE');
+//         valuesTable.string('value').unique();
+//         callback();
+//       });
+//     } else {
+//       callback();
+//     }
+//   });
+// }
 
 module.exports = getKnex;
