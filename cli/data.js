@@ -79,7 +79,7 @@ function migrateMaps(done) {
       async.eachSeries(map.dataSources, function(dataSource, dsDone) {
 
         // console.log('datasource', dataSource);
-        if (dataSource.file) {
+        if (dataSource.file && dataSource.file.path) {
           var srcFile = dataSource.file.path;
           var destFile = path.join(sourceDirectory, dataSource._id.toString());
           console.log('moving file %s to %s', srcFile, destFile);
