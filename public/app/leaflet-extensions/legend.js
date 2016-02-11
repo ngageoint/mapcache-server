@@ -1,3 +1,9 @@
+var $ = require('jquery');
+/*global L*/
+
+(function (window, document, undefined) {
+
+
 L.Control.Legend = L.Control.extend({
 	options: {
 		position: 'bottomright',
@@ -73,3 +79,5 @@ L.Control.Legend = L.Control.extend({
     } : null;
   }
 });
+
+}(this, document));

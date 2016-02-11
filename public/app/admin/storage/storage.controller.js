@@ -29,15 +29,11 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   });
 
   CacheService.getAllCaches(true).then(function(caches) {
-    if (caches.data) caches = caches.data;
-    console.log('caches server.length', caches.length);
-
     for (var i = 0; i < caches.length; i++) {
       var size = cacheSize(caches[i]);
       caches[i].totalSize = size;
     }
     $scope.caches = caches;
-    console.log('caches.length', $scope.caches.length);
   });
 
   $scope.deleteMap = function(source) {
@@ -57,7 +53,6 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   }
 
   MapService.getAllMaps(true).then(function(sources) {
-    if (sources.data) sources = sources.data;
     $scope.sources = [];
     for (var i = 0; i < sources.length; i++) {
       var totalSize = 0;
@@ -83,7 +78,6 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   });
 
   UserService.getAllUsers(true).then(function(users) {
-    if (users.data) users = users.data;
     $scope.users = users;
   });
 

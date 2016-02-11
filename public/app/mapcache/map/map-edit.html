@@ -30,9 +30,9 @@
     </div>
   </div>
 
-  <ul class="nav nav-tabs">
+  <ul class="nav nav-tabs datasource-tabs">
     <li role="presentation" ng-class="{active: tab=='general'}"><a ng-click="tab='general'">General</a></li>
-    <li ng-repeat="dataSource in map.dataSources | filter: {vector:true} | orderBy : 'zOrder' : true" ng-class="{active: tab==dataSource._id}"><a ng-click="setStyleTab(dataSource._id)">{{dataSource.name}}</a></li>
+    <li ng-repeat="dataSource in map.dataSources | filter: {vector:true} | orderBy : 'zOrder' : true" ng-class="{active: tab==dataSource.id}"><a ng-click="setStyleTab(dataSource.id)">{{dataSource.name}}</a></li>
   </ul>
   <div ng-show="tab == 'general'">
     <div class="row top-gap">

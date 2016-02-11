@@ -19,10 +19,7 @@ describe('StorageController', function() {
   var MapServiceMock;
   var UserServiceMock;
   var ServerServiceMock;
-  var CacheService;
-  var MapService;
   var UserService;
-  var ServerService;
   var $location;
   var httpBackend;
   var getAllCachesExpectation;
@@ -45,36 +42,24 @@ describe('StorageController', function() {
     require('../../../app/admin/storage');
   });
 
-  beforeEach(function() {
-    CacheService = require('../../../app/factories/cache.service')();
-    CacheServiceMock = sandbox.mock(CacheService);
-  });
-
-  beforeEach(function() {
-    MapService = require('../../../app/factories/map.service')();
-    MapServiceMock = sandbox.mock(MapService);
-  });
-
-  beforeEach(function() {
-    UserService = require('../../../app/factories/user.service')();
-    UserServiceMock = sandbox.mock(UserService);
-  });
-
-  beforeEach(function() {
-    ServerService = require('../../../app/factories/server.service')();
-    ServerServiceMock = sandbox.mock(ServerService);
-  });
-
   beforeEach(angular.mock.module('mapcache'));
 
-  beforeEach(function() {
-    angular.mock.module(function($provide) {
-      $provide.value('CacheService', CacheService);
-      $provide.value('MapService', MapService);
-      $provide.value('UserService', UserService);
-      $provide.value('ServerService', ServerService);
-    });
-  });
+  beforeEach(angular.mock.inject(function (MapService) {
+    MapServiceMock = sandbox.mock(MapService);
+  }));
+
+  beforeEach(angular.mock.inject(function (_UserService_) {
+    UserService = _UserService_;
+    UserServiceMock = sandbox.mock(_UserService_);
+  }));
+
+  beforeEach(angular.mock.inject(function (ServerService) {
+    ServerServiceMock = sandbox.mock(ServerService);
+  }));
+
+  beforeEach(angular.mock.inject(function (CacheService) {
+    CacheServiceMock = sandbox.mock(CacheService);
+  }));
 
   beforeEach(angular.mock.inject(function ($q) {
     sinonAsPromised($q);

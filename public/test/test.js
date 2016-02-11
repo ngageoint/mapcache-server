@@ -15,7 +15,14 @@ angular.module('ngTemplates',[]);
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
-angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select', 'ngTemplates' ]);
+angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select', 'ngTemplates']).config(function($routeProvider) {
+
+  $routeProvider.when('/map/:mapId/edit', {
+    templateUrl:    'app/mapcache/map/map-edit.html',
+    // template : 'welcome to {{ title }}',
+    controller:     "MapEditController"
+  });
+});
 
 describe('mapcache browser tests', function() {
 

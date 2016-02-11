@@ -141,7 +141,9 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
         resolveAllUsers = undefined;
     }
 
-    resolveAllUsers = resolveAllUsers || $http.get('/api/users').success(function(users) {
+    resolveAllUsers = resolveAllUsers || $http.get('/api/users').then(function(data) { return data.data; });
+
+    resolveAllUsers.then(function(users) {
       for (var i = 0; i < users.length; i++) {
         resolvedUsers[users[i]._id] = $q.when(users[i]);
       }

@@ -74,7 +74,7 @@ exports.xyzMap = {
         "coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]
       }
     },
-    "name":"osm",
+    "name":"geojson",
     "file":{
       "path":"path/to/geojson.geojson",
       "name":"geojson.geojson"
@@ -488,6 +488,41 @@ exports.wmsDatasource = {
   }
 };
 
+exports.wmsMap = {
+  "name":"Cache Route Test",
+  "humanReadableId":"4JbQ3GMte",
+  "tilesLackExtensions":false,
+  "status":{
+    "message":"Completed map processing",
+    "generatedFeatures":0,
+    "totalFeatures":0,
+    "generatedTiles":0,
+    "totalTiles":0,
+    "complete":true
+  },
+  "styleTime":1,
+  "tileSize":0,
+  "dataSources":[exports.wmsDatasource],
+  "id":"56a92d006a4c0e8d43c40194",
+  "mapcacheUrl":"/api/sources/56a92d006a4c0e8d43c40194",
+  "cacheTypes":[{
+    "type":"xyz",
+    "required":false
+  },{
+    "type":"tms",
+    "required":false,
+    "depends":"xyz"
+  },{
+    "type":"geopackage",
+    "required":false,
+    "depends":"xyz"
+  },{
+    "type":"mbtiles",
+    "required":false,
+    "depends":"xyz"
+  }]
+};
 
-exports.maps = [exports.xyzMap, exports.incompleteMap];
+
+exports.maps = [exports.xyzMap, exports.incompleteMap, exports.wmsMap];
 exports.completeMaps = [exports.xyzMap];

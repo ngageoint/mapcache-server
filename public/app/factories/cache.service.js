@@ -53,7 +53,9 @@ module.exports = function CacheService($q, $http) {
         resolveAllCaches = undefined;
     }
 
-    resolveAllCaches = resolveAllCaches || $http.get('/api/caches');
+    resolveAllCaches = resolveAllCaches || $http.get('/api/caches').then(function(data) {
+      return data.data;
+    });
     resolveAllCaches.then(function(caches) {
       console.log('caches', caches);
       for (var i = 0; i < caches.length; i++) {

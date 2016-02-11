@@ -54,6 +54,7 @@
     "karma-sinon": "^1.0.4",
     "karma-sinon-chai": "^1.1.0",
     "karma-spec-reporter": "0.0.23",
+    "ng-midway-tester": "^2.0.5",
     "sinon-chai": "^2.8.0"
   }
 }

@@ -40,14 +40,6 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
     }
   }, true);
 
-  $scope.$watch('map.wmsLayer', function(layer) {
-    if (layer) {
-      if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
-        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox; // jshint ignore:line
-      }
-    }
-  });
-
   $scope.deleteDataSource = function(id) {
     MapService.deleteDataSource($scope.map, id, function(newMap) {
       $scope.map = newMap;
@@ -55,8 +47,9 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   };
 
   $scope.setStyleTab = function(id) {
+    console.log('style tab', id);
     $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
-      return ds._id === id;
+      return ds.id === id;
     });
     $scope.tab = id;
   };

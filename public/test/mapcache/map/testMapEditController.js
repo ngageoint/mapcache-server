@@ -36,7 +36,7 @@ describe('MapEditController tests', function() {
   beforeEach(function() {
     MapServiceMock.expects('refreshMap')
       .once()
-      .yields(mocks.mapMocks.xyzMap);
+      .yields(JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap)));
   });
 
   beforeEach(angular.mock.module('mapcache'));
@@ -55,15 +55,14 @@ describe('MapEditController tests', function() {
     }});
   }));
 
-  it('should create the MapEditController', function(done) {
+  it('should create the MapEditController', function() {
     should.exist(ctrl);
     MapServiceMock.verify();
     scope.$apply();
     scope.map.should.be.deep.equal(mocks.mapMocks.xyzMap);
-    done();
   });
 
-  it('should set unsaved changes to true', function(done) {
+  it('should set unsaved changes to true', function() {
     should.exist(ctrl);
     MapServiceMock.verify();
     scope.$apply();
@@ -71,7 +70,29 @@ describe('MapEditController tests', function() {
     scope.map.name = 'new name';
     scope.$apply();
     scope.unsavedChanges.should.be.equal(true);
-    done();
+  });
+
+  it('should delete a data source', function() {
+    var deletedDataSourceMap = JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap));
+    deletedDataSourceMap.dataSources = deletedDataSourceMap.dataSources.slice(1);
+    MapServiceMock.expects('deleteDataSource')
+      .once()
+      .withArgs(scope.map, scope.map.dataSources[0].id)
+      .yields(deletedDataSourceMap);
+
+    var dataSourceCount = scope.map.dataSources.length;
+
+    scope.deleteDataSource(scope.map.dataSources[0].id);
+    scope.$apply();
+    MapServiceMock.verify();
+    scope.map.dataSources.length.should.be.equal(dataSourceCount-1);
+  });
+
+  it('should set the style tab', function() {
+    scope.setStyleTab(scope.map.dataSources[0].id);
+    scope.$apply();
+    scope.tab.should.be.equal(scope.map.dataSources[0].id);
+    scope.styleTab.should.be.equal(scope.map.dataSources[0]);
   });
 
 });
