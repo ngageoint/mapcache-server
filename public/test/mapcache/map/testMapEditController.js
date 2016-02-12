@@ -89,10 +89,38 @@ describe('MapEditController tests', function() {
   });
 
   it('should set the style tab', function() {
-    scope.setStyleTab(scope.map.dataSources[0].id);
+    var vectorSource;
+    for (var i = 0; i < scope.map.dataSources.length && !vectorSource; i++) {
+      if (scope.map.dataSources[i].vector) {
+        vectorSource = scope.map.dataSources[i];
+      }
+    }
+    scope.setStyleTab(vectorSource.id);
     scope.$apply();
-    scope.tab.should.be.equal(scope.map.dataSources[0].id);
-    scope.styleTab.should.be.equal(scope.map.dataSources[0]);
+    scope.tab.should.be.equal(vectorSource.id);
+    scope.styleTab.should.be.equal(vectorSource);
+  });
+
+  it('should add the new style rule', function() {
+    var vectorSource;
+    for (var i = 0; i < scope.map.dataSources.length && !vectorSource; i++) {
+      if (scope.map.dataSources[i].vector) {
+        vectorSource = scope.map.dataSources[i];
+      }
+    }
+    scope.setStyleTab(vectorSource.id);
+    var newRule = {
+      property: {
+        key: 'key',
+        value: 'value'
+      }
+    };
+    scope.newRule = JSON.parse(JSON.stringify(newRule));
+
+    scope.applyStyle();
+
+    scope.newRule.should.containEql(newRule);
+
   });
 
 });

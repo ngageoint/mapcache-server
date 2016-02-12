@@ -126,6 +126,7 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
             var stream = fs.createWriteStream(dir + '/' + updatedSource.id + '.geojson');
         		stream.on('close',function() {
               fs.stat(dir + '/' + updatedSource.id + '.geojson', function(err, stat) {
+                console.log('stat.size', stat);
                 updatedSource.filePath = dir + '/' + updatedSource.id + '.geojson';
                 updatedSource.size = stat.size;
                 updatedSource.status.message = "Creating";
@@ -145,10 +146,16 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
 
       } else if (fs.existsSync(updatedSource.file.path)) {
         parseGeoJSONFile(updatedSource, function(err, updatedSource) {
-          updatedSource.status.complete = true;
-          updatedSource.status.message="Complete";
-          source = updatedSource;
-          doneCallback(err, source);
+          fs.stat(updatedSource.file.path, function(err, stat) {
+            console.log('stat.size', stat);
+            updatedSource.size = stat.size;
+            updatedSource.status.complete = true;
+            updatedSource.status.message="Complete";
+            source = updatedSource;
+            return completeProcessing(source, function(err, source) {
+              doneCallback(null, source);
+            });
+          });
         }, progressCallback);
       } else {
         doneCallback(new Error('file does not exist and URL is not specified'));
@@ -226,8 +233,11 @@ function setSourceExtent(source, callback) {
 }
 
 function setSourceStyle(source, callback) {
-  source.style = source.style || {
-    defaultStyle: {
+  console.log('current style', source.style);
+
+  source.style = source.style || { };
+  if (!source.style.defaultStyle || !source.style.defaultStyle.style || !source.style.defaultStyle.style.fill) {
+    source.style.defaultStyle = {
       style: {
         'fill': "#000000",
         'fill-opacity': 0.5,
@@ -235,9 +245,11 @@ function setSourceStyle(source, callback) {
         'stroke-opacity': 1.0,
         'stroke-width': 1
       }
-    }
-  };
+    };
+  }
+
   source.style.styles = source.style.styles || [];
+  console.log('setting the style', source.style);
   callback(null, source);
 }
 
@@ -248,6 +260,7 @@ function setSourceProperties(source, callback) {
     log.info('property array', propertyArray);
     async.eachSeries(propertyArray, function(key, propertyDone) {
       FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {
+        console.log('value array for key %s', key.property, valuesArray);
         source.properties.push({key: key.property, values: valuesArray.map(function(current) {
           return current.value;
         })});

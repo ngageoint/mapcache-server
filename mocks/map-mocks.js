@@ -39,56 +39,93 @@ exports.xyzMap = {
     "vector":false,
     "id":"56a92d006a4c0e8d43c40195a"
   },{
-    "geometry":{
-      "type":"Feature",
-      "geometry":{
-        "type":"Polygon",
-        "coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]
-      }
-    },
-    "name":"osm",
-    "file":{
-      "path":"path/to/geotiff.tiff",
-      "name":"geotiff.tiff"
-    },
-    "size":108,
-    "format":"geotiff",
-    "styleTime":1,
-    "status":{
-      "message":"Complete",
-      "failure":false,
-      "totalFeatures":0,
-      "complete":true
-    },
-    "zOrder":0,
-    "tilesLackExtensions":false,
-    "scaledFiles":[],
-    "layers":[],
-    "vector":false,
-    "id":"56a92d006a4c0e8d43c40195b"
-  },{
-    "geometry":{
-      "type":"Feature",
-      "geometry":{
-        "type":"Polygon",
-        "coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]
+    "geometry": {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -115.525899779486,
+              -31.1403304199038
+            ],
+            [
+              -115.525899779486,
+              73.1048807777633
+            ],
+            [
+              123.377109149484,
+              73.1048807777633
+            ],
+            [
+              123.377109149484,
+              -31.1403304199038
+            ],
+            [
+              -115.525899779486,
+              -31.1403304199038
+            ]
+          ]
+        ]
       }
     },
     "name":"geojson",
-    "file":{
-      "path":"path/to/geojson.geojson",
-      "name":"geojson.geojson"
+    "file": {
+      "path": 'path/to/maptest.geojson',
+      "name": 'maptest.geojson'
     },
-    "size":108,
+    "size":345727,
     "format":"geojson",
     "styleTime":1,
+    "style": {
+      "defaultStyle": {
+        "style": {
+  				'fill': "#000000",
+  				'fill-opacity': 0.5,
+  				'stroke': "#0000FF",
+  				'stroke-opacity': 1.0,
+  				'stroke-width': 1
+  			}
+      },
+      "styles": []
+    },
+    properties: [
+      { key: 'Scalerank', values: [ 4, 1, 5, 6, 2, 3 ] },
+      {
+        key: 'Name',
+        values: [
+          'Gan',
+          'Orange',
+          'Arkansas',
+          'Ganale Doria',
+          'Niagra',
+          'Olenëk',
+          'Garonne',
+          'Ohio',
+          'Niger',
+          'Madeira',
+          'Missouri',
+          'Ayeyarwady',
+          'Omo',
+          'Meta',
+          'Oder',
+          'Mississippi',
+          'Athabasca',
+          'Atbara',
+          'Nile',
+          'Godävari',
+          'Ganges'
+        ]
+      },
+      { key: 'Name_alt', values: [ null ] }
+    ],
     "status":{
       "message":"Complete",
       "failure":false,
-      "totalFeatures":0,
+      "totalFeatures":38,
       "complete":true
     },
-    "zOrder":0,
+    "zOrder":1,
     "tilesLackExtensions":false,
     "scaledFiles":[],
     "layers":[],
@@ -97,22 +134,14 @@ exports.xyzMap = {
   }],
   "id":"56a92d006a4c0e8d43c40194",
   "mapcacheUrl":"/api/sources/56a92d006a4c0e8d43c40194",
-  "cacheTypes":[{
-    "type":"xyz",
-    "required":false
-  },{
-    "type":"tms",
-    "required":false,
-    "depends":"xyz"
-  },{
-    "type":"geopackage",
-    "required":false,
-    "depends":"xyz"
-  },{
-    "type":"mbtiles",
-    "required":false,
-    "depends":"xyz"
-  }]
+  "cacheTypes":[
+    { required: false, type: 'geojson', vector: true },
+    { required: false, type: 'shapefile', vector: true },
+    { required: false, type: 'kml', vector: true },
+    { required: false, type: 'xyz' },
+    { depends: 'xyz', required: false, type: 'tms' },
+    { depends: 'xyz', required: false, type: 'geopackage' }
+  ]
 };
 
 exports.incompleteMap = {

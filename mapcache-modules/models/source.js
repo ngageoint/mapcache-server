@@ -5,6 +5,14 @@ var mongoose = require('mongoose')
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
 
+var StyleSchema = new Schema({
+  fill: { type: String, required: false },
+  'fill-opacity': { type: Number, required: false },
+  stroke: { type: String, required: false},
+  'stroke-opacity': { type: Number, required: false},
+  'stroke-width': { type: Number, required: false}
+});
+
 var DatasourceSchema = new Schema({
   name: { type: String, required: false },
   url: { type: String, required: false },
@@ -37,7 +45,18 @@ var DatasourceSchema = new Schema({
     failure: { type: Boolean, required: false, default: false}
   },
   properties: Schema.Types.Mixed,
-  style: Schema.Types.Mixed,
+  style: {required: false, type: {
+    defaultStyle: {
+      style: {
+        fill: { type: String, required: false },
+        'fill-opacity': { type: Number, required: false },
+        stroke: { type: String, required: false},
+        'stroke-opacity': { type: Number, required: false},
+        'stroke-width': { type: Number, required: false}
+      }
+    },
+    styles: {type: [StyleSchema], required: false }
+  }},
   styleTime: { type: Number, required: false, default: 1 }
 });
 
@@ -106,15 +125,21 @@ function transform(source, ret) {
   }
 }
 
+function transformDatasource(source, ret) {
+	ret.id = ret._id;
+	delete ret._id;
+	delete ret.__v;
+}
+
+DatasourceSchema.set("toJSON", {
+  transform: transformDatasource
+});
+
 SourceSchema.set("toJSON", {
   transform: transform
 });
-var Source;
-if (mongoose.models.Source) {
-  Source = mongoose.model('Source');
-} else {
-  Source = mongoose.model('Source', SourceSchema);
-}
+var Source = mongoose.model('Source', SourceSchema);
+
 exports.sourceModel = Source;
 
 exports.getSources = function(options, callback) {

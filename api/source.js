@@ -59,7 +59,7 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
           fs.stat(newFilePath, function(err, stat) {
             ds.file.path = newFilePath;
             ds.size = stat.size;
-            newSource.markModified('datasources');
+            newSource.markModified('dataSources');
             callback();
           });
         });
@@ -71,10 +71,10 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
             // console.log('map.map', JSON.stringify(map.map, null, 2));
             newSource.status = newSource.status || {};
             newSource.status.complete = true;
-            console.log('about to save', newSource);
+            newSource.markModified('dataSources');
             newSource.save(function(err) {
               console.log('err from save', err);
-              callback(err, map.map);
+              callback(err, newSource);
             });
           });
         });
