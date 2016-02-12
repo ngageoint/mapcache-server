@@ -107,7 +107,7 @@ describe('StorageController', function() {
     scope.$watch('sources', function(maps) {
       if (maps) {
         maps.length.should.be.equal(mockMaps.length);
-        maps[0].totalSize.should.be.equal(216);
+        maps[0].totalSize.should.be.equal(345727);
         done();
       }
     });

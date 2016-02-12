@@ -76,11 +76,11 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   };
 
   $scope.$on('deleteStyle', function(event, style) {
-    $scope.map.style.styles = _.without($scope.map.style.styles, style);
+    $scope.styleTab.style.styles = _.without($scope.styleTab.style.styles, style);
   });
 
   $scope.$on('promoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.map.style.styles, {priority: style.priority-1});
+    var toMove = _.findWhere($scope.styleTab.style.styles, {priority: style.priority-1});
     style.priority = style.priority - 1;
     if (toMove) {
       toMove.priority = toMove.priority + 1;
@@ -88,16 +88,12 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   });
 
   $scope.$on('demoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.map.style.styles, {priority: style.priority+1});
+    var toMove = _.findWhere($scope.styleTab.style.styles, {priority: style.priority+1});
     style.priority = style.priority + 1;
     if (toMove) {
       toMove.priority = toMove.priority - 1;
     }
   });
-
-  $scope.isNotDefault = function(style) {
-    return style.key;
-  };
 
   function getMap() {
     MapService.refreshMap($scope.map, function(map) {

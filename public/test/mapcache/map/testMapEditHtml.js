@@ -88,7 +88,7 @@ describe('map edit page tests', function() {
     var tab = $(element).find('.datasource-tabs li a:eq(1)');
     tab.click();
 
-    styleSpy.withArgs(mocks.mapMocks.xyzMap.dataSources[2].id).calledOnce.should.be.equal(true);
+    styleSpy.withArgs(mocks.mapMocks.xyzMap.dataSources[1].id).calledOnce.should.be.equal(true);
 
     done();
   });

@@ -119,8 +119,114 @@ describe('MapEditController tests', function() {
 
     scope.applyStyle();
 
-    scope.newRule.should.containEql(newRule);
+    newRule.property.priority = 0;
+    scope.styleTab.style.styles.should.include(newRule.property);
+
+    scope.newRule.should.be.deep.equal({});
 
   });
+
+  it('should delete the style', function(done) {
+    var vectorSource;
+    for (var i = 0; i < scope.map.dataSources.length && !vectorSource; i++) {
+      if (scope.map.dataSources[i].vector) {
+        vectorSource = scope.map.dataSources[i];
+      }
+    }
+    scope.setStyleTab(vectorSource.id);
+    var newRule = {
+      property: {
+        key: 'key',
+        value: 'value'
+      }
+    };
+    scope.newRule = JSON.parse(JSON.stringify(newRule));
+    scope.applyStyle();
+    scope.styleTab.style.styles.length.should.be.equal(1);
+    scope.$emit('deleteStyle', scope.styleTab.style.styles[0]);
+    scope.$apply();
+    scope.styleTab.style.styles.length.should.be.equal(0);
+    done();
+  });
+
+  it('should promote the style', function(done) {
+    var vectorSource;
+    for (var i = 0; i < scope.map.dataSources.length && !vectorSource; i++) {
+      if (scope.map.dataSources[i].vector) {
+        vectorSource = scope.map.dataSources[i];
+      }
+    }
+    scope.setStyleTab(vectorSource.id);
+    scope.newRule = {
+      property: {
+        key: 'key',
+        value: 'value'
+      }
+    };
+    var newRule2 = {
+      property: {
+        key: 'key2',
+        value: 'value2'
+      }
+    };
+    scope.applyStyle();
+    scope.newRule = newRule2;
+    scope.applyStyle();
+    scope.styleTab.style.styles.length.should.be.equal(2);
+    scope.styleTab.style.styles[1].priority.should.be.equal(1);
+    scope.styleTab.style.styles[0].priority.should.be.equal(0);
+    scope.$emit('promoteStyle', scope.styleTab.style.styles[1]);
+    scope.$apply();
+    scope.styleTab.style.styles[1].key.should.be.equal('key2');
+    scope.styleTab.style.styles[1].priority.should.be.equal(0);
+    scope.styleTab.style.styles[0].priority.should.be.equal(1);
+    done();
+  });
+
+  it('should demote the style', function(done) {
+    var vectorSource;
+    for (var i = 0; i < scope.map.dataSources.length && !vectorSource; i++) {
+      if (scope.map.dataSources[i].vector) {
+        vectorSource = scope.map.dataSources[i];
+      }
+    }
+    scope.setStyleTab(vectorSource.id);
+    scope.newRule = {
+      property: {
+        key: 'key',
+        value: 'value'
+      }
+    };
+    var newRule2 = {
+      property: {
+        key: 'key2',
+        value: 'value2'
+      }
+    };
+    scope.applyStyle();
+    scope.newRule = newRule2;
+    scope.applyStyle();
+    scope.styleTab.style.styles.length.should.be.equal(2);
+    scope.styleTab.style.styles[0].priority.should.be.equal(0);
+    scope.styleTab.style.styles[1].priority.should.be.equal(1);
+    scope.$emit('demoteStyle', scope.styleTab.style.styles[0]);
+    scope.$apply();
+    scope.styleTab.style.styles[0].key.should.be.equal('key');
+    scope.styleTab.style.styles[0].priority.should.be.equal(1);
+    scope.styleTab.style.styles[1].priority.should.be.equal(0);
+    done();
+  });
+
+  it('should save the map', function(done){
+    MapServiceMock.expects('saveMap')
+      .withArgs(mocks.mapMocks.xyzMap)
+      .once()
+      .yields(JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap)));
+
+    scope.saveMap();
+    MapServiceMock.verify();
+    done();
+  });
+
 
 });
