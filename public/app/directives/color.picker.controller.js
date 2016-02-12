@@ -7,7 +7,6 @@ module.exports = function ColorPickerController($scope, $element) {
   var initialized = false;
 
   function initialize() {
-    console.log('color picker', $scope.colorPicker);
     if (!$scope.colorPicker) return;
     if (initialized) {
       $element.colorpicker('setValue', $scope.colorPicker);

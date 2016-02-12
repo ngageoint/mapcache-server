@@ -71,9 +71,7 @@ describe('map edit page tests', function() {
     sandbox.restore();
   });
 
-  it('test', function(done) {
-    // styleSpy = sinon.spy();
-    // styleSpy.withArgs(mocks.mapMocks.xyzMap.dataSources[2].id);
+  it('should call the set style tab with the id', function(done) {
 
     $scope.map = {
       id: mocks.mapMocks.xyzMap.id

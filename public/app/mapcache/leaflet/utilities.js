@@ -68,7 +68,6 @@ module.exports = function LeafletUtilities(LocalStorageService) {
   }
 
   function tileLayer(layerSource, defaultLayer, layerOptions, style, styleFunction, dataSources) {
-    console.log('layerSource', layerSource);
     var url;
     if (!layerSource) {
       return L.tileLayer(defaultLayer, layerOptions);

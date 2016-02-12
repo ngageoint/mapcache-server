@@ -10,7 +10,7 @@ module.exports = function MapcacheController($scope, $rootScope, $compile, $time
 
   function getCaches() {
     console.log("pull the caches");
-    CacheService.getAllCaches(true).success(function(caches) {
+    CacheService.getAllCaches(true).then(function(caches) {
       $scope.caches = caches;
       var currentlyGenerating = false;
       for (var i = 0; i < caches.length && !currentlyGenerating; i++) {
@@ -38,7 +38,7 @@ module.exports = function MapcacheController($scope, $rootScope, $compile, $time
 
   getCaches();
 
-  MapService.getAllMaps(true).success(function(sources) {
+  MapService.getAllMaps(true).then(function(sources) {
     $scope.sources = sources;
   });
 

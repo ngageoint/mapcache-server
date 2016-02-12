@@ -47,7 +47,6 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   };
 
   $scope.setStyleTab = function(id) {
-    console.log('style tab', id);
     $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
       return ds.id === id;
     });
