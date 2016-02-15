@@ -173,7 +173,7 @@ exports.getSourceById = function(id, callback) {
 		if (source) {
       async.eachSeries(source.dataSources, function(ds, dsDone) {
         if (ds.vector) {
-          Feature.getAllPropertiesFromSource({sourceId: id}, function(properties) {
+          Feature.getAllPropertiesFromSource({sourceId: ds.id}, function(properties) {
             if (properties.length) {
               ds.properties = properties;
             }
@@ -192,7 +192,7 @@ exports.getSourceById = function(id, callback) {
         if (source) {
           async.eachSeries(source.dataSources, function(ds, dsDone) {
             if (ds.vector) {
-              Feature.getAllPropertiesFromSource({sourceId: id}, function(properties) {
+              Feature.getAllPropertiesFromSource({sourceId: ds.id}, function(properties) {
                 if (properties.length) {
                   ds.properties = properties;
                 }
