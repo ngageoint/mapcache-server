@@ -1,5 +1,6 @@
 var knex = require('./db/knex')
 	, turf = require('turf')
+  , async = require('async')
 	, proj4 = require('proj4');
 
 exports.createFeature = function(feature, featureOwnerProperties, callback) {
@@ -25,6 +26,20 @@ exports.getExtentOfSource = function(query, callback) {
 		.where({source_id: query.sourceId, cache_id:null})  // jshint ignore:line
 		.then(callback);
 	});
+};
+
+exports.getAllPropertiesFromSource = function(query, callback) {
+  var properties = [];
+  exports.getPropertyKeysFromSource(query, function(propertyKeys) {
+    async.eachSeries(propertyKeys, function(key, keyComplete) {
+      exports.getValuesForKeyFromSource(key, query, function(values) {
+        properties.push({key: key, values: values});
+        keyComplete();
+      });
+    }, function done() {
+      callback(properties);
+    });
+  });
 };
 
 exports.getPropertyKeysFromSource = function(query, callback) {

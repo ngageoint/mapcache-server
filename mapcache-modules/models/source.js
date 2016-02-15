@@ -1,5 +1,7 @@
 var mongoose = require('mongoose')
   , config = require('mapcache-config')
+  , Feature = require('./feature')
+  , async = require('async')
   , shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
@@ -169,15 +171,43 @@ exports.getSourceById = function(id, callback) {
       console.log("Error finding source in mongo: " + id + ', error: ' + err);
     }
 		if (source) {
-      source.cacheTypes = config.sourceCacheTypes[source.format];
-	    return callback(err, source);
+      async.eachSeries(source.dataSources, function(ds, dsDone) {
+        if (ds.vector) {
+          Feature.getAllPropertiesFromSource({sourceId: id}, function(properties) {
+            if (properties.length) {
+              ds.properties = properties;
+            }
+            dsDone();
+          });
+        } else {
+          dsDone();
+        }
+      }, function() {
+        source.cacheTypes = config.sourceCacheTypes[source.format];
+  	    return callback(err, source);
+      });
 		}
 		// try to find by human readable
 		Source.findOne({humanReadableId: id}, function(err, source) {
       if (source) {
-        source.cacheTypes = config.sourceCacheTypes[source.format];
+        async.eachSeries(source.dataSources, function(ds, dsDone) {
+          if (ds.vector) {
+            Feature.getAllPropertiesFromSource({sourceId: id}, function(properties) {
+              if (properties.length) {
+                ds.properties = properties;
+              }
+              dsDone();
+            });
+          } else {
+            dsDone();
+          }
+        }, function() {
+          source.cacheTypes = config.sourceCacheTypes[source.format];
+    	    return callback(err, source);
+        });
+      } else {
+  		  return callback(err, source);
       }
-		  return callback(err, source);
 		});
   });
 };
