@@ -46,7 +46,6 @@ var DatasourceSchema = new Schema({
     totalFeatures: {type: Number, required: false, default: 0},
     failure: { type: Boolean, required: false, default: false}
   },
-  properties: Schema.Types.Mixed,
   style: {required: false, type: {
     defaultStyle: {
       style: {
@@ -57,6 +56,8 @@ var DatasourceSchema = new Schema({
         'stroke-width': { type: Number, required: false}
       }
     },
+    title: { type: String, required: false },
+    description: { type: String, required: false},
     styles: {type: [StyleSchema], required: false }
   }},
   styleTime: { type: Number, required: false, default: 1 }
@@ -313,6 +314,7 @@ exports.updateSource = function(id, update, callback) {
   // for now just update all of the datasource style times when the source is saved
   for (var i = 0; i < update.dataSources.length; i++) {
     update.dataSources[i].styleTime = update.styleTime;
+    if (update.dataSources[i].id) update.dataSources[i]._id = update.dataSources[i].id;
   }
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);

@@ -34,7 +34,7 @@ describe('MapEditController tests', function() {
   });
 
   beforeEach(function() {
-    MapServiceMock.expects('refreshMap')
+    MapServiceMock.expects('getMap')
       .once()
       .yields(JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap)));
   });

@@ -107,7 +107,13 @@ exports.findFeaturesWithin = function(query, west, south, east, north, projectio
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
 			.andWhere(whereQuery)
 			.then(function(collection){
-				console.log('returned ' + collection.length + ' features');
+        collection = collection.map(function(feature) {
+          feature.geometry = JSON.parse(feature.geometry);
+          if (query.sourceId) {
+            feature.properties.mapcache_source_id = query.sourceId;
+          }
+          return feature;
+        });
 			  callback(null, collection);
 			});
 		});
@@ -122,7 +128,10 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
 			.andWhere({cache_id: cacheId}) // jshint ignore:line
 			.then(function(collection){
-				console.log('returned ' + collection.length + ' features');
+        collection = collection.map(function(feature) {
+          feature.geometry = JSON.parse(feature.geometry);
+          return feature;
+        });
 		    callback(null, collection);
 		  });
 		});
@@ -142,8 +151,11 @@ exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, s
 			.andWhere('cache_id', cacheId)
 			.andWhere('source_id', sourceId)
 			.then(function(collection){
-				console.log('returned ' + collection.length + ' features');
-				callback(null, collection);
+        collection = collection.map(function(feature) {
+          feature.geometry = JSON.parse(feature.geometry);
+          return feature;
+        });
+			  callback(null, collection);
 			});
 		});
 	});

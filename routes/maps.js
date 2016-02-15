@@ -163,6 +163,19 @@ module.exports = function(app, auth) {
     pullTile
   );
 
+  app.get(
+    '/api/maps/:sourceId/features',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      new Map(req.source).getFeatures(req.param('west'), req.param('south'), req.param('east'), req.param('north'), req.param('zoom'), function(err, features) {
+        if (err) return next(err);
+        if (!features) return res.status(200).send();
+        res.json(features);
+      });
+    }
+  );
+
   app.delete(
     '/api/maps/:sourceId/dataSources/:dataSourceId',
     access.authorize('CREATE_CACHE'),
@@ -324,4 +337,6 @@ module.exports = function(app, auth) {
       });
     }
   );
+
+
 };

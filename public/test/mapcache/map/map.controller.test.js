@@ -61,7 +61,7 @@ describe('MapController completed map tests', function() {
   beforeEach(inject(function($rootScope, $controller, $injector){
     $timeout = $injector.get('$timeout');
     $location = $injector.get('$location');
-    MapServiceMock.expects('refreshMap')
+    MapServiceMock.expects('getMap')
       .once()
       .withArgs({id:mocks.mapMocks.xyzMap.id})
       .yields(mocks.mapMocks.xyzMap);

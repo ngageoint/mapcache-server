@@ -138,4 +138,11 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
   });
 };
 
+Source.prototype.getFeatures = function(west, south, east, north, zoom, callback) {
+  var map = new Map(this.sourceModel);
+  map.callbackWhenInitialized(function(err, map) {
+    map.getFeatures(west, south, east, north, zoom, callback);
+  });
+};
+
 module.exports = Source;

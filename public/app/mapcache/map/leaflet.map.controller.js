@@ -63,8 +63,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   };
 
   map.on('click', function(event) {
-    if (!$scope.map.style) return;
-    if ($scope.map.style.title || $scope.map.style.description) {
+    // if (!$scope.map.style) return;
+    // if ($scope.map.style.title || $scope.map.style.description) {
 
       var pixelPoint = event.layerPoint;
       pixelPoint.y = pixelPoint.y + 5;
@@ -78,13 +78,21 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       MapService.getFeatures($scope.map, event.latlng.lng - latLngDelta.lng, event.latlng.lat - latLngDelta.lat, event.latlng.lng + latLngDelta.lng, event.latlng.lat + latLngDelta.lat, map.getZoom(), function(features) {
         if (!features) return;
 
+        var feature = features[0];
+        var dataSource;
+        for (var i = 0; i < $scope.map.dataSources.length && !dataSource; i++) {
+          if ($scope.map.dataSources[i].id === feature.properties.mapcache_source_id) {
+            dataSource = $scope.map.dataSources[i];
+          }
+        }
+
         var title = "";
-        if ($scope.map.style.title && features[0].properties && features[0].properties[$scope.map.style.title]) {
-          title = features[0].properties[$scope.map.style.title];
+        if (dataSource.style.title && features[0].properties && features[0].properties[dataSource.style.title]) {
+          title = features[0].properties[dataSource.style.title];
         }
         var description = "";
-        if ($scope.map.style.description && features[0].properties && features[0].properties[$scope.map.style.description]) {
-          description = features[0].properties[$scope.map.style.description];
+        if (dataSource.style.description && features[0].properties && features[0].properties[dataSource.style.description]) {
+          description = features[0].properties[dataSource.style.description];
         }
         var popupContent = title + " " + description;
 
@@ -93,7 +101,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
           .setContent(popupContent)
           .openOn(map);
       });
-    }
+    // }
   });
 
   var cacheFootprints = {};

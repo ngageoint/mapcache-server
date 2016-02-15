@@ -49,8 +49,8 @@ describe('Map Service tests', function() {
     $httpBackend.expect('GET', '/api/maps/'+mocks.mapMocks.xyzMap.id)
       .respond(mocks.mapMocks.xyzMap);
 
-    MapService.getMap(mocks.mapMocks.xyzMap.id).then(function(success) {
-      success.data.should.be.deep.equal(mocks.mapMocks.xyzMap);
+    MapService.getMap({id:mocks.mapMocks.xyzMap.id}, function(success) {
+      success.should.be.deep.equal(mocks.mapMocks.xyzMap);
       done();
     });
 
@@ -93,7 +93,81 @@ describe('Map Service tests', function() {
     $httpBackend.expect('DELETE', '/api/maps/'+mocks.mapMocks.xyzMap.id)
       .respond(mocks.mapMocks.xyzMap);
 
+    MapService.deleteMap(mocks.mapMocks.xyzMap, function(map) {
+      map.should.be.deep.equal(mocks.mapMocks.xyzMap);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should fail to delete the map', function(done) {
+    $httpBackend.expect('DELETE', '/api/maps/'+mocks.mapMocks.xyzMap.id)
+      .respond(503, 'failure');
+
     MapService.deleteMap(mocks.mapMocks.xyzMap, function() {
+    }, function(failure) {
+      failure.status.should.be.equal(503);
+      failure.data.should.be.equal('failure');
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should delete a datasource', function(done) {
+    $httpBackend.expect('DELETE', '/api/maps/'+mocks.mapMocks.xyzMap.id+'/dataSources/'+mocks.mapMocks.xyzMap.dataSources[0].id)
+      .respond(mocks.mapMocks.xyzMap);
+
+    MapService.deleteDataSource(mocks.mapMocks.xyzMap, mocks.mapMocks.xyzMap.dataSources[0].id, function(map) {
+      map.should.be.deep.equal(mocks.mapMocks.xyzMap);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should fail to delete the map', function(done) {
+    $httpBackend.expect('DELETE', '/api/maps/'+mocks.mapMocks.xyzMap.id+'/dataSources/'+mocks.mapMocks.xyzMap.dataSources[0].id)
+      .respond(503, 'failure');
+
+    MapService.deleteDataSource(mocks.mapMocks.xyzMap, mocks.mapMocks.xyzMap.dataSources[0].id, function() {
+    }, function(failure) {
+      failure.status.should.be.equal(503);
+      failure.data.should.be.equal('failure');
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should save the map', function(done) {
+    $httpBackend.expect('PUT', '/api/maps/'+mocks.mapMocks.xyzMap.id, mocks.mapMocks.xyzMap)
+      .respond(mocks.mapMocks.xyzMap);
+
+    MapService.saveMap(mocks.mapMocks.xyzMap, function(map) {
+      map.should.be.deep.equal(mocks.mapMocks.xyzMap);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should fail to save the map', function(done) {
+    $httpBackend.expect('PUT', '/api/maps/'+mocks.mapMocks.xyzMap.id, mocks.mapMocks.xyzMap)
+      .respond(503, 'failure');
+
+    MapService.saveMap(mocks.mapMocks.xyzMap, function() {
     }, function(failure) {
       failure.status.should.be.equal(503);
       failure.data.should.be.equal('failure');

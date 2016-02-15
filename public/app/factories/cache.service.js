@@ -72,7 +72,11 @@ module.exports = function CacheService($q, $http) {
   }
 
   function createCacheFormat(cache, format, success) {
-    return $http.get('/api/caches/'+cache.id+'/generate?minZoom='+cache.minZoom+'&maxZoom='+cache.maxZoom+'&format='+format)
+    return $http.get('/api/caches/'+cache.id+'/generate', { params: {
+      minZoom: cache.minZoom,
+      maxZoom: cache.maxZoom,
+      format: format
+    }})
     .then(function() {
       if (success) {
         success(cache);

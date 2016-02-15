@@ -55,31 +55,30 @@
     </div>
   </div>
   <div ng-show="tab != 'general'">
-    <!-- <div class="row top-gap bottom-gap">
+    <div class="row top-gap bottom-gap">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Title and Description Properties</span>
       </div>
     </div>
     <div class="row">
       <div class="col-md-6">
-        <ui-select ng-model="map.style.title" theme="bootstrap">
+        <ui-select ng-model="styleTab.style.title" theme="bootstrap">
           <ui-select-match placeholder="Title property" allow-clear>Title property: {{$select.selected.key}}</ui-select-match>
-          <ui-select-choices repeat="property.key as property in map.properties | filter: $select.search">
+          <ui-select-choices repeat="property.key as property in styleTab.properties | filter: $select.search">
             <div ng-bind-html="property.key | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
       </div>
       <div class="col-md-6">
-        <ui-select ng-model="map.style.description" theme="bootstrap">
+        <ui-select ng-model="styleTab.style.description" theme="bootstrap">
           <ui-select-match placeholder="Description property" allow-clear>Description property: {{$select.selected.key}}</ui-select-match>
-          <ui-select-choices repeat="property.key as property in map.properties | filter: $select.search">
+          <ui-select-choices repeat="property.key as property in styleTab.properties | filter: $select.search">
             <div ng-bind-html="property.key | highlight: $select.search"></div>
           </ui-select-choices>
         </ui-select>
       </div>
     </div>
   </div>
-  <div ng-show="tab == 'style'"> -->
     <div class="row top-gap bottom-gap">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Add New Style</span>

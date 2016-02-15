@@ -66,53 +66,24 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
     });
   }
 
-  function deleteMap(map, success) {
+  function deleteMap(map, success, error) {
     var url = '/api/maps/' + map.id;
     $http.delete(url).then(function(map) {
-      console.log('successfully deleted map', map.data);
       if (success) {
         success(map.data);
       }
-    }, function(map) {
-      console.log('error deleting map', map);
+    }, function(failure) {
+      if (error) error(failure);
     });
   }
 
-  /**
-   *  907  yum search postgresql
-  908  yum uninstall postgres
-  909  yum --help
-  910  yum upgrade postgresql
-  911  yum erase postgresql
-  912  yum install postgresql postgresql-server postgresql-devel postgresql-contrib postgresql-docs
-  913  yum --showduplicates list postgresql | expand
-  914  yum --showduplicates list postgresql
-  915  yum search postgresql
-  916  yum install postgresql93 postgresql93-server postgresql93-devel postgresql93-contrib postgresql93-docs
-  917  ls
-  918  cd postgis
-  919  ls
-  920  yum install geos-devel
-  921  yum install libxml2-devel
-  922  yum install json-c-devel
-  923  ls
-  924  cd postgis-2.1.7
-  925  ls
-  926  ./config  --with-geosconfig=/usr/local/bin/geos-config
-  927  ./configure --with-geosconfig=/usr/local/bin/geos-config
-  928  make
-  929  make install
-  930  service postgresql initdb
-
-   */
-
-  function deleteDataSource(map, dataSourceId, success) {
-    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).success(function(map) {
+  function deleteDataSource(map, dataSourceId, success, error) {
+    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).then(function(map) {
       if (success) {
-        success(map);
+        success(map.data);
       }
-    }).error(function(map) {
-      console.log('error deleting datasource', map);
+    }, function(failure) {
+      if (error) error(failure);
     });
   }
 
@@ -127,12 +98,13 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
       '/api/maps/'+newMap.id,
       newMap,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(newMap) {
-      console.log("updated a map", newMap);
+    ).then(function(newMap) {
       if (success) {
-        success(newMap);
+        success(newMap.data);
       }
-    }).error(error);
+    }, function(failure) {
+      if(error) error(failure);
+    });
   }
 
   function getFeatures(map, west, south, east, north, zoom, success, error) {

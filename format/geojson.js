@@ -288,7 +288,7 @@ function completeProcessing(source, callback) {
 
 GeoJSON.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
   if (this.source) {
-    FeatureModel.findFeaturesWithin({sourceId: this.source.id}, west, south, east, north, projection, callback);
+    FeatureModel.findFeaturesWithin({sourceId: this.source.id, cacheId: null}, west, south, east, north, projection, callback);
   } else {
     var c = this.cache;
     FeatureModel.findFeaturesByCacheIdWithin(c.cache.id, west, south, east, north, projection, callback);

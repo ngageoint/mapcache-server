@@ -38,7 +38,7 @@ describe('map edit page tests', function() {
   });
 
   beforeEach(function() {
-    MapServiceMock.expects('refreshMap')
+    MapServiceMock.expects('getMap')
       .once()
       .yields(JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap)));
   });
