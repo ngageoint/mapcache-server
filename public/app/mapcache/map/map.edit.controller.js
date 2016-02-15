@@ -96,7 +96,7 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   });
 
   function getMap() {
-    MapService.refreshMap($scope.map, function(map) {
+    MapService.getMap($scope.map, function(map) {
       // success
       $scope.map = map;
       $rootScope.title = 'Edit - ' +map.name;

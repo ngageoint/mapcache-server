@@ -257,10 +257,8 @@ function setSourceProperties(source, callback) {
   source.properties = [];
   log.info('looking for properties for source %s: %s', source.name, source.id);
   FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
-    log.info('property array', propertyArray);
     async.eachSeries(propertyArray, function(key, propertyDone) {
       FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {
-        console.log('value array for key %s', key.property, valuesArray);
         source.properties.push({key: key.property, values: valuesArray.map(function(current) {
           return current.value;
         })});

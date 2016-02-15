@@ -55,7 +55,7 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
   $scope.mapComplete = false;
 
   function getMap() {
-    MapService.refreshMap($scope.map, function(map) {
+    MapService.getMap($scope.map, function(map) {
       // success
       $scope.map = map;
       $rootScope.title = map.name;

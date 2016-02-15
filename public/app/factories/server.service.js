@@ -8,7 +8,9 @@ module.exports = function ServerService($http) {
 
   function getServerInfo(success, error) {
     $http.get('/api/server')
-    .success(success).error(error);
+    .then(function(data) {
+      success(data.data);
+    }, error);
   }
 
 };

@@ -8,15 +8,12 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
 
   var service = {
     getAllMaps: getAllMaps,
-    refreshMap: refreshMap,
     deleteMap: deleteMap,
     createMap: createMap,
     saveMap: saveMap,
     getMap: getMap,
     discoverMap: discoverMap,
     getWmsGetCapabilities: getWmsGetCapabilities,
-    getMapVectorTile: getMapVectorTile,
-    getMapData: getMapData,
     deleteDataSource: deleteDataSource,
     getCachesForMap: getCachesForMap,
     getFeatures: getFeatures,
@@ -25,10 +22,6 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
   };
 
   return service;
-
-  function getMap(mapId) {
-    return $http.get('/api/maps/'+mapId);
-  }
 
   function getAllMaps(forceRefresh) {
     if (forceRefresh) {
@@ -50,67 +43,68 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
   }
 
   function getCachesForMap(map, success, error) {
-    $http.get('/api/maps/'+map.id+'/caches').success(function(caches) {
+    $http.get('/api/maps/'+map.id+'/caches').then(function(caches) {
       if (success) {
-        success(caches);
+        success(caches.data);
       }
-    }).error(function(data, status) {
+    }, function(data) {
       if (error) {
-        error(data, status);
+        error(data);
       }
     });
   }
 
-  function refreshMap(map, success, error) {
-    $http.get('/api/maps/'+map.id)
-      .success(function(data, status) {
-        if (success) {
-          success(data, status);
-        }
-      }).error(function(data, status) {
-        if (error) {
-          error(data, status);
-        }
-      });
-  }
-
-  function getMapData(map, success, error) {
-    $http.get('/api/maps/'+map.id+'/geojson')
-      .success(function(data, status) {
-        if (success) {
-          success(data, status);
-        }
-      }).error(function(data, status) {
-        if (error) {
-          error(data, status);
-        }
-      });
-  }
-
-  function getMapVectorTile(map, z, x, y, success, error) {
-    $http.get('/api/maps/'+map.id+'/' + z + '/' + x + '/' + y + '.png')
-      .success(function(data, status) {
-        if (success) {
-          success(data, status);
-        }
-      }).error(function(data, status) {
-        if (error) {
-          error(data, status);
-        }
-      });
+  function getMap(map, success, error) {
+    $http.get('/api/maps/'+map.id).then(function(data) {
+      if (success) {
+        success(data.data);
+      }
+    }, function(data) {
+      if (error) {
+        error(data);
+      }
+    });
   }
 
   function deleteMap(map, success) {
     var url = '/api/maps/' + map.id;
-    $http.delete(url).success(function(map) {
-      console.log('successfully deleted map', map);
+    $http.delete(url).then(function(map) {
+      console.log('successfully deleted map', map.data);
       if (success) {
-        success(map);
+        success(map.data);
       }
-    }).error(function(map) {
+    }, function(map) {
       console.log('error deleting map', map);
     });
   }
+
+  /**
+   *  907  yum search postgresql
+  908  yum uninstall postgres
+  909  yum --help
+  910  yum upgrade postgresql
+  911  yum erase postgresql
+  912  yum install postgresql postgresql-server postgresql-devel postgresql-contrib postgresql-docs
+  913  yum --showduplicates list postgresql | expand
+  914  yum --showduplicates list postgresql
+  915  yum search postgresql
+  916  yum install postgresql93 postgresql93-server postgresql93-devel postgresql93-contrib postgresql93-docs
+  917  ls
+  918  cd postgis
+  919  ls
+  920  yum install geos-devel
+  921  yum install libxml2-devel
+  922  yum install json-c-devel
+  923  ls
+  924  cd postgis-2.1.7
+  925  ls
+  926  ./config  --with-geosconfig=/usr/local/bin/geos-config
+  927  ./configure --with-geosconfig=/usr/local/bin/geos-config
+  928  make
+  929  make install
+  930  service postgresql initdb
+
+   */
 
   function deleteDataSource(map, dataSourceId, success) {
     $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).success(function(map) {

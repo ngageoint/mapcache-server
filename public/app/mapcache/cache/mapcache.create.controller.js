@@ -49,7 +49,7 @@ module.exports = function MapcacheCreateController($scope, $location, $http, $ro
   $scope.loadingMaps = true;
 
   if ($scope.mapId) {
-    MapService.getMap($scope.mapId).success(function(map) {
+    MapService.getMap($scope.mapId, function(map) {
       $scope.cache.source = map;
       $scope.loadingMaps = false;
     });

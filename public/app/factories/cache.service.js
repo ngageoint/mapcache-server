@@ -17,33 +17,39 @@ module.exports = function CacheService($q, $http) {
 
   function getCache(cache, success, error) {
     $http.get('/api/caches/'+cache.id)
-      .success(function(data, status) {
-        if (success) {
-          success(data, status);
-        }
-      }).error(function(data, status) {
-        if (error) {
-          error(data, status);
-        }
-      });
+      .then(function(data, status) {
+          if (success) {
+            success(data.data, status);
+          }
+        }, function(data, status) {
+          if (error) {
+            error(data.data, status);
+          }
+        });
   }
 
   function downloadMissing(cache) {
     return $http.get('/api/caches/'+cache.id+'/restart');
   }
 
-  function deleteCache(cache, format, success) {
+  function deleteCache(cache, format, success, error) {
+    if (!success && typeof format === 'function') {
+      success = format;
+      format = undefined;
+    }
     var url = '/api/caches/' + cache.id;
     if (format) {
       url += '/' + format;
     }
-    $http.delete(url).success(function(cache) {
-      console.log('successfully deleted cache', cache);
+    $http.delete(url).then(function(cache) {
       if (success) {
-        success(cache);
+        success(cache.data);
       }
-    }).error(function(cache) {
+    }, function(failure) {
       console.log('error deleting cache', cache);
+      if (error) {
+        error(failure);
+      }
     });
   }
 
@@ -57,7 +63,6 @@ module.exports = function CacheService($q, $http) {
       return data.data;
     });
     resolveAllCaches.then(function(caches) {
-      console.log('caches', caches);
       for (var i = 0; i < caches.length; i++) {
         resolvedCaches[caches[i]._id] = $q.when(caches[i]);
       }
@@ -68,7 +73,7 @@ module.exports = function CacheService($q, $http) {
 
   function createCacheFormat(cache, format, success) {
     return $http.get('/api/caches/'+cache.id+'/generate?minZoom='+cache.minZoom+'&maxZoom='+cache.maxZoom+'&format='+format)
-    .success(function() {
+    .then(function() {
       if (success) {
         success(cache);
       }
@@ -93,27 +98,26 @@ module.exports = function CacheService($q, $http) {
       '/api/caches',
       newCache,
       {headers: {"Content-Type": "application/json"}}
-    ).success(function(newCache) {
-      console.log("created a cache", newCache);
+    ).then(function(newCache) {
       if (success) {
-        success(newCache);
+        success(newCache.data);
       }
-    }).error(function(data, status) {
+    },function(data) {
       if (error) {
-        error(data, status);
+        error(data);
       }
     });
   }
 
   function getCacheData(cache, format, success, error) {
     $http.get('/api/caches/'+cache.id+'/' + format + '?minZoom=0&maxZoom=18')
-      .success(function(data, status) {
+      .then(function(data) {
         if (success) {
-          success(data, status);
+          success(data.data);
         }
-      }).error(function(data, status) {
+      }, function(data) {
         if (error) {
-          error(data, status);
+          error(data.data, data.status);
         }
       });
   }
