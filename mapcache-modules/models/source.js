@@ -186,29 +186,30 @@ exports.getSourceById = function(id, callback) {
         source.cacheTypes = config.sourceCacheTypes[source.format];
   	    return callback(err, source);
       });
-		}
-		// try to find by human readable
-		Source.findOne({humanReadableId: id}, function(err, source) {
-      if (source) {
-        async.eachSeries(source.dataSources, function(ds, dsDone) {
-          if (ds.vector) {
-            Feature.getAllPropertiesFromSource({sourceId: id}, function(properties) {
-              if (properties.length) {
-                ds.properties = properties;
-              }
+		} else {
+  		// try to find by human readable
+  		Source.findOne({humanReadableId: id}, function(err, source) {
+        if (source) {
+          async.eachSeries(source.dataSources, function(ds, dsDone) {
+            if (ds.vector) {
+              Feature.getAllPropertiesFromSource({sourceId: id}, function(properties) {
+                if (properties.length) {
+                  ds.properties = properties;
+                }
+                dsDone();
+              });
+            } else {
               dsDone();
-            });
-          } else {
-            dsDone();
-          }
-        }, function() {
-          source.cacheTypes = config.sourceCacheTypes[source.format];
-    	    return callback(err, source);
-        });
-      } else {
-  		  return callback(err, source);
-      }
-		});
+            }
+          }, function() {
+            source.cacheTypes = config.sourceCacheTypes[source.format];
+      	    return callback(err, source);
+          });
+        } else {
+    		  return callback(err, source);
+        }
+  		});
+    }
   });
 };
 
