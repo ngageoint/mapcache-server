@@ -103,8 +103,6 @@ function transform(source, ret) {
     var addVectorSources = false;
     var addRasterSources = false;
     ret.dataSources.forEach(function(ds) {
-      ds.id = ds._id;
-      delete ds._id;
       if (ds.vector) {
         addVectorSources = true;
         addRasterSources = true;
@@ -128,6 +126,7 @@ function transform(source, ret) {
 }
 
 function transformDatasource(source, ret) {
+  console.log('datasource ret', ret);
 	ret.id = ret._id;
 	delete ret._id;
 	delete ret.__v;

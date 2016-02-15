@@ -32,8 +32,9 @@ exports.getAllPropertiesFromSource = function(query, callback) {
   var properties = [];
   exports.getPropertyKeysFromSource(query, function(propertyKeys) {
     async.eachSeries(propertyKeys, function(key, keyComplete) {
-      exports.getValuesForKeyFromSource(key, query, function(values) {
-        properties.push({key: key, values: values});
+      exports.getValuesForKeyFromSource(key.property, query, function(values) {
+        var valueArray = values.map(function(value) { return value.value; });
+        properties.push({key: key.property, values: valueArray});
         keyComplete();
       });
     }, function done() {
