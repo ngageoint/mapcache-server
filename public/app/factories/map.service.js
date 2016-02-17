@@ -1,3 +1,4 @@
+var $ = require('jquery');
 module.exports = function MapService($q, $http, $rootScope, LocalStorageService) {
 
   var resolvedMaps = {};
@@ -43,48 +44,27 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
   }
 
   function getCachesForMap(map, success, error) {
-    $http.get('/api/maps/'+map.id+'/caches').then(function(caches) {
-      if (success) {
-        success(caches.data);
-      }
-    }, function(data) {
-      if (error) {
-        error(data);
-      }
-    });
+    $http.get('/api/maps/'+map.id+'/caches')
+      .then(function(data) { return data.data; })
+      .then(success, error);
   }
 
   function getMap(map, success, error) {
-    $http.get('/api/maps/'+map.id).then(function(data) {
-      if (success) {
-        success(data.data);
-      }
-    }, function(data) {
-      if (error) {
-        error(data);
-      }
-    });
+    $http.get('/api/maps/'+map.id)
+      .then(function(data) { return data.data; }).then(success, error);
   }
 
   function deleteMap(map, success, error) {
     var url = '/api/maps/' + map.id;
-    $http.delete(url).then(function(map) {
-      if (success) {
-        success(map.data);
-      }
-    }, function(failure) {
-      if (error) error(failure);
-    });
+    $http.delete(url)
+      .then(function(data) { return data.data; })
+      .then(success, error);
   }
 
   function deleteDataSource(map, dataSourceId, success, error) {
-    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId).then(function(map) {
-      if (success) {
-        success(map.data);
-      }
-    }, function(failure) {
-      if (error) error(failure);
-    });
+    $http.delete('/api/maps/' + map.id + '/dataSources/' + dataSourceId)
+      .then(function(data) { return data.data; })
+      .then(success, error);
   }
 
   function saveMap(map, success, error) {
@@ -98,26 +78,13 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
       '/api/maps/'+newMap.id,
       newMap,
       {headers: {"Content-Type": "application/json"}}
-    ).then(function(newMap) {
-      if (success) {
-        success(newMap.data);
-      }
-    }, function(failure) {
-      if(error) error(failure);
-    });
+    ).then(function(data) { return data.data; }).then(success, error);
   }
 
   function getFeatures(map, west, south, east, north, zoom, success, error) {
     $http.get('/api/maps/'+map.id+'/features?west='+ west + '&south=' + south + '&east=' + east + '&north=' + north + '&zoom=' + zoom)
-      .success(function(data, status) {
-        if (success) {
-          success(data, status);
-        }
-      }).error(function(data, status) {
-        if (error) {
-          error(data, status);
-        }
-      });
+      .then(function(data) { return data.data; })
+      .then(success, error);
   }
 
   function discoverMap(url, success, error) {
@@ -126,7 +93,7 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
       params: {
         url: url
       }
-    }).success(success).error(error);
+    }).then(function(data) { return data.data;}).then(success, error);
   }
 
   function getWmsGetCapabilities(url, success, error) {
@@ -135,72 +102,47 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
       params: {
         wmsUrl: url
       }
-    }).success(success).error(error);
+    }).then(function(data) { return data.data; }).then(success, error);
   }
 
   function createMap(map, success, error, progress) {
+    var formData = new FormData();
+    for (var i = 0; i < map.dataSources.length; i++) {
+      if (map.dataSources[i].file) {
+        formData.append('mapFile', map.dataSources[i].file);
+        map.dataSources[i].file = {name: map.dataSources[i].file.name};
+      }
+    }
 
-    // if (map.mapFile) {
-        var formData = new FormData();
-        for (var i = 0; i < map.dataSources.length; i++) {
-          if (map.dataSources[i].file) {
-            console.log('file', map.dataSources[i].file);
-            formData.append('mapFile', map.dataSources[i].file);
-            map.dataSources[i].file = {name: map.dataSources[i].file.name};
-          }
+    var sendMap = map;
+    delete sendMap.mapFile;
+    delete sendMap.data;
+
+    formData.append('map', JSON.stringify(sendMap));
+
+    $.ajax({
+      url: '/api/maps',
+      type: 'POST',
+      headers: {
+        authorization: 'Bearer ' + LocalStorageService.getToken()
+      },
+      xhr: function() {
+        var myXhr = $.ajaxSettings.xhr();
+        if(myXhr.upload){
+            myXhr.upload.addEventListener('progress',progress, false);
         }
-
-        var sendMap = map;
-        delete sendMap.mapFile;
-        delete sendMap.data;
-
-        formData.append('map', JSON.stringify(sendMap));
-
-        // for (var key in map) {
-        //   if (map.hasOwnProperty(key) && key != 'mapFile' && key != 'data' ) {
-        //     if (typeof map[key] === 'string' || map[key] instanceof String) {
-        //       formData.append(key, map[key]);
-        //     } else {
-        //       formData.append(key, angular.toJson(map[key]));
-        //     }
-        //   }
-        // }
-
-        $.ajax({
-          url: '/api/maps',
-          type: 'POST',
-          headers: {
-            authorization: 'Bearer ' + LocalStorageService.getToken()
-          },
-          xhr: function() {
-            var myXhr = $.ajaxSettings.xhr();
-            if(myXhr.upload){
-                myXhr.upload.addEventListener('progress',progress, false);
-            }
-            return myXhr;
-          },
-          success: function(response) {
-            $rootScope.$apply(function() {
-              success(response);
-            });
-          },
-          error: error,
-          data: formData,
-          cache: false,
-          contentType: false,
-          processData: false
+        return myXhr;
+      },
+      success: function(response) {
+        $rootScope.$apply(function() {
+          success(response);
         });
-      // } else {
-      //   $http.post(
-      //     '/api/maps',
-      //     map,
-      //     {headers: {"Content-Type": "application/json"}}
-      //   ).success(function(map) {
-      //     console.log("created a map", map);
-      //     if (success) {
-      //       success(map);
-      //     }
-      //   }).error(error);
-      // }
+      },
+      error: error,
+      data: formData,
+      cache: false,
+      contentType: false,
+      processData: false
+    });
   }
 };

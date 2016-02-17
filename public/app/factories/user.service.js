@@ -16,7 +16,6 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
     updateMyPassword: updateMyPassword,
     updateMyself: updateMyself,
     checkLoggedInUser: checkLoggedInUser,
-    getUser: getUser,
     getAllUsers: getAllUsers,
     createUser: createUser,
     updateUser: updateUser,
@@ -43,12 +42,13 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
      '/api/login',
       $.param(data),
       {headers: {"Content-Type": "application/x-www-form-urlencoded"}, ignoreAuthModule:true})
-      .success(function(data) {
+      .then(function(data) { return data.data; })
+      .then(function(data) {
         LocalStorageService.setToken(data.token);
         setUser(data.user);
 
         loginDeferred.resolve({user: data.user, token: data.token, isAdmin: service.amAdmin});
-      }).error(function(data, status) {
+      },function(data, status) {
         loginDeferred.reject({data:data, status:status});
       });
 
@@ -58,7 +58,7 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
   function logout() {
     var promise =  $http.post('/api/logout');
 
-    promise.success(function() {
+    promise.then(function() {
       clearUser();
       $location.path("/signin");
     });
@@ -71,7 +71,8 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
     $http.get(
       '/api/users/myself',
       {headers: {"Content-Type": "application/x-www-form-urlencoded"}})
-    .success(function(user) {
+    .then(function(data) { return data.data; })
+    .then(function(user) {
       setUser(user);
 
       $rootScope.$broadcast('login', {user: user, token: LocalStorageService.getToken(), isAdmin: service.amAdmin});
@@ -82,11 +83,9 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
       }
 
       theDeferred.resolve(user);
-    })
-    .error(function() {
+    }, function() {
       theDeferred.resolve({});
     });
-    console.log('returning the deferred.promise', theDeferred.promise);
     return theDeferred.promise;
   }
 
@@ -104,7 +103,7 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
       {headers: {"Content-Type": "application/x-www-form-urlencoded"}}
     );
 
-    promise.success(function() {
+    promise.then(function() {
       clearUser();
     });
 
@@ -112,27 +111,19 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
   }
 
   function checkLoggedInUser() {
-    console.info('check login');
     $http.get(
       '/api/users/myself',
       {
-        ignoreAuthModule: true})
-    .success(function(user) {
+        ignoreAuthModule: true
+      })
+    .then(function(data) { return data.data; })
+    .then(function(user) {
       setUser(user);
       userDeferred.resolve(user);
-    })
-    .error(function() {
+    }, function() {
       userDeferred.resolve({});
     });
-    console.log('returning user promise', userDeferred.promise);
     return userDeferred.promise;
-  }
-
-  function getUser(id) {
-    resolvedUsers[id] = resolvedUsers[id] || $http.get(
-      '/api/users/' + id
-    );
-    return resolvedUsers[id];
   }
 
   function getAllUsers(forceRefresh) {
@@ -185,7 +176,6 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
   function getRoles() {
     return $http.get('/api/roles');
   }
-
 
   function setUser(user) {
     service.myself = user;

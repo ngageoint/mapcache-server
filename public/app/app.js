@@ -30,10 +30,10 @@ function config($routeProvider, $locationProvider, $httpProvider) {
    };
   }
 
-  function checkLogin(roles) {
+  function checkLogin() {
     return {
       user: ['UserService', function(UserService) {
-        return UserService.checkLoggedInUser(roles);
+        return UserService.checkLoggedInUser();
       }]
     };
   }

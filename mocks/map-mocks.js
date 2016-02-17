@@ -555,3 +555,292 @@ exports.wmsMap = {
 
 exports.maps = [exports.xyzMap, exports.incompleteMap, exports.wmsMap];
 exports.completeMaps = [exports.xyzMap];
+
+exports.featureMock =
+[
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.735363002878,
+        39.83371877452
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: e/o E-470",
+      "avg_volume": 110000,
+      "gid": 1,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.735363002878,
+        39.83371877452
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: e/o E-470",
+      "avg_volume": 101900,
+      "gid": 2,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.786213700181,
+        39.8201366266901
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: n/o 56th Ave",
+      "avg_volume": 74300,
+      "gid": 3,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.786213700181,
+        39.8201366266901
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: n/o 56th Ave",
+      "avg_volume": 73000,
+      "gid": 4,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.760402539071,
+        39.833954477584
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: e/o Tower Rd",
+      "avg_volume": 88200,
+      "gid": 5,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.760402539071,
+        39.833954477584
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: e/o Tower Rd",
+      "avg_volume": 75100,
+      "gid": 6,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.760402539071,
+        39.833954477584
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: e/o Tower Rd",
+      "avg_volume": 82600,
+      "gid": 7,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.788349643079,
+        39.7914240665285
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: n/o 48th Ave",
+      "avg_volume": 86100,
+      "gid": 8,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.788349643079,
+        39.7914240665285
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: n/o 48th Ave",
+      "avg_volume": 87300,
+      "gid": 9,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.788349643079,
+        39.7914240665285
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: n/o 48th Ave",
+      "avg_volume": 82700,
+      "gid": 10,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.790511864866,
+        39.779246499841
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: s/o 48th Ave",
+      "avg_volume": 103400,
+      "gid": 11,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.790511864866,
+        39.779246499841
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: s/o 48th Ave",
+      "avg_volume": 108900,
+      "gid": 12,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.790511864866,
+        39.779246499841
+      ]
+    },
+    "properties": {
+      "location": "PENA BLVD: s/o 48th Ave",
+      "avg_volume": 95400,
+      "gid": 13,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -105.322225101888,
+        39.6192831022704
+      ]
+    },
+    "properties": {
+      "location": "CR-73: s/o Brook Forest Rd (CR-78)",
+      "avg_volume": 7698,
+      "gid": 14,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.922892231054,
+        39.5972279775711
+      ]
+    },
+    "properties": {
+      "location": "HOLLY ST: n/o Arapahoe Rd & s/o Forest Way",
+      "avg_volume": 11668,
+      "gid": 15,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -104.923037501208,
+        39.5674024250691
+      ]
+    },
+    "properties": {
+      "location": "HOLLY ST: n/o County Line & s/o Otero Ave",
+      "avg_volume": 12141,
+      "gid": 16,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -105.091924760926,
+        39.5662014485838
+      ]
+    },
+    "properties": {
+      "location": "CHATFIELD AVE: e/o Carr (Westmost int.)",
+      "avg_volume": 10573,
+      "gid": 17,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -105.024750490293,
+        39.6532683302174
+      ]
+    },
+    "properties": {
+      "location": "W. HAMPDEN AVE: e/o Federal Blvd (SH-88)",
+      "avg_volume": 5468,
+      "gid": 18,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  },
+  {
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        -105.025793801933,
+        39.6532764806593
+      ]
+    },
+    "properties": {
+      "location": "W. HAMPDEN AVE: w/o Federal Blvd (SH-88)",
+      "avg_volume": 3942,
+      "gid": 19,
+      "mapcache_source_id": "56c25070a15afea0e094406c"
+    }
+  }
+];

@@ -1,6 +1,8 @@
 var should = require('chai').should()
   , angular = require('angular')
   , sinon  = require('sinon')
+  , $ = require('jquery')
+  , _ = require('underscore')
   , mocks = require('../mocks');
 
 require('angular-mocks');
@@ -177,6 +179,102 @@ describe('Map Service tests', function() {
     $httpBackend.flush();
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should get the features for the map', function(done) {
+    $httpBackend.expect('GET', '/api/maps/'+mocks.mapMocks.xyzMap.id+'/features?west=-180&south=-85&east=180&north=85&zoom=0')
+      .respond(mocks.mapMocks.featureMock);
+
+    MapService.getFeatures(mocks.mapMocks.xyzMap, -180, -85, 180, 85, 0, function(features) {
+      features.should.be.deep.equal(mocks.mapMocks.featureMock);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should fail to get the features for the map', function(done) {
+    $httpBackend.expect('GET', '/api/maps/'+mocks.mapMocks.xyzMap.id+'/features?west=-180&south=-85&east=180&north=85&zoom=0')
+      .respond(503, 'failure');
+
+    MapService.getFeatures(mocks.mapMocks.xyzMap, -180, -85, 180, 85, 0, function() {
+    },function(failure) {
+      failure.status.should.be.equal(503);
+      failure.data.should.be.equal('failure');
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should get the wmsGetCapabilities for the map', function(done) {
+    $httpBackend.expect('GET', '/api/maps/wmsFeatureRequest?wmsUrl=http:%2F%2Fexample.com')
+      .respond(mocks.mapDiscoveryMocks.wmsGetCapabilities);
+
+    MapService.getWmsGetCapabilities('http://example.com', function(wmsFeatureRequest) {
+      wmsFeatureRequest.should.be.deep.equal(mocks.mapDiscoveryMocks.wmsGetCapabilities);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should discover the the map type', function(done) {
+    $httpBackend.expect('GET', '/api/maps/discoverMap?url=http:%2F%2Fexample.com')
+      .respond(mocks.mapDiscoveryMocks.wmsMapDiscovery);
+
+    MapService.discoverMap('http://example.com', function(discoverMap) {
+      discoverMap.should.be.deep.equal(mocks.mapDiscoveryMocks.wmsMapDiscovery);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('should create a new map', function(done) {
+
+    sandbox.stub(FormData.prototype, 'append', function(key, value) {
+      this[key] = value;
+    });
+
+    var formData = new FormData();
+    var xyzMap = JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap));
+    for (var i = 0; i < xyzMap.dataSources.length; i++) {
+      if (xyzMap.dataSources[i].file) {
+        formData.append('mapFile', xyzMap.dataSources[i].file);
+        xyzMap.dataSources[i].file = {name: xyzMap.dataSources[i].file.name};
+      }
+    }
+    formData.append('map', JSON.stringify(xyzMap));
+
+    var mock = sandbox.mock($);
+
+    var expectation = mock.expects('ajax').withArgs(sinon.match({
+      url:'/api/maps',
+      type: 'POST',
+      data: sinon.match(function(data) {
+        return _.isEqual(data, formData);
+      }, 'POST data is not correct')
+    }));
+    expectation.once();
+    expectation.yieldsTo('success', mocks.mapMocks.xyzMap);
+
+
+    MapService.createMap(mocks.mapMocks.xyzMap, function(response) {
+      response.should.be.deep.equal(mocks.mapMocks.xyzMap);
+      done();
+    });
+
+    expectation.verify();
+
   });
 
 });

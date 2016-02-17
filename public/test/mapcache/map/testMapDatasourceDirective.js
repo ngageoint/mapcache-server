@@ -72,7 +72,7 @@ describe('map datasource directive tests', function() {
     });
   });
 
-  it('should set up a wms data source', inject(function() {
+  it('should set up a wms data source', function() {
     var url = 'http://watzmann.geog.uni-heidelberg.de/cached/osm';
     MapServiceMock.expects('getWmsGetCapabilities')
       .withArgs(url)
@@ -102,6 +102,6 @@ describe('map datasource directive tests', function() {
 
     MapServiceMock.verify();
 
-  }));
+  });
 
 });

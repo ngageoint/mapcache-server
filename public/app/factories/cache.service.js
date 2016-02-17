@@ -46,7 +46,6 @@ module.exports = function CacheService($q, $http) {
         success(cache.data);
       }
     }, function(failure) {
-      console.log('error deleting cache', cache);
       if (error) {
         error(failure);
       }

@@ -21,7 +21,6 @@ require('./app/admin/storage');
 require('./app/user');
 require('./app/about');
 require('./app/directives');
-require('./app/file-upload');
 
 app.config(function($routeProvider, $httpProvider) {
 

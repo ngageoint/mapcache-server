@@ -38,7 +38,6 @@ describe('mapcache browser tests', function() {
     require('../app/user');
     require('../app/about');
     require('../app/directives');
-    require('../app/file-upload');
   });
 
   it('should have created the module', function(){
