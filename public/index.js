@@ -9,7 +9,7 @@ require('./vendor/angular-ui-select');
 
 // fix the image path
 var L = require('leaflet');
-L.Icon.Default.imagePath = 'public/node_modules/leaflet/dist/images/';
+L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
 var app = angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select' ]);
 

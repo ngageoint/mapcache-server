@@ -156,13 +156,17 @@ exports.getSources = function(options, callback) {
 
 exports.updateSourceAverageSize = function(source, size, callback) {
   var update = {$inc: {}};
-  update.$inc.tileSizeCount = 1;
-  if (source.tileSize === 0){
+  if (!source.tileSizeCount) {
+    update.tileSizeCount = 1;
+  } else {
+    update.$inc.tileSizeCount = 1;
+  }
+  if (!source.tileSize || source.tileSize === 0){
     update.tileSize = size;
   } else {
     update.$inc.tileSize = size;
   }
-  Source.findByIdAndUpdate(source.id, update, callback);
+  Source.findByIdAndUpdate(source._id, update, callback);
 };
 
 exports.getSourceById = function(id, callback) {

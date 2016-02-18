@@ -1,7 +1,8 @@
 module.exports = function ServerService($http) {
 
   var service = {
-    getServerInfo: getServerInfo
+    getServerInfo: getServerInfo,
+    getMaxCacheSize: getMaxCacheSize
   };
 
   return service;
@@ -12,5 +13,13 @@ module.exports = function ServerService($http) {
       success(data.data);
     }, error);
   }
+
+  function getMaxCacheSize(success, error) {
+    $http.get('/api/server/maxCacheSize')
+    .then(function(data) {
+      return data.data;
+    }).then(success, error);
+  }
+
 
 };

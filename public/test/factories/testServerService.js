@@ -48,4 +48,18 @@ describe('Server Service tests', function() {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   });
+
+  it('should get the max cache size', function(done) {
+    $httpBackend.expect('GET', '/api/server/maxCacheSize')
+      .respond(mocks.serverMocks.maxCacheSize);
+
+    ServerService.getMaxCacheSize(function(success) {
+      success.should.be.deep.equal(mocks.serverMocks.maxCacheSize);
+      done();
+    });
+
+    $httpBackend.flush();
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
 });

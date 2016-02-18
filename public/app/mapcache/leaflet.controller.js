@@ -120,7 +120,7 @@ module.exports = function LeafletController($rootScope, $scope, $interval, $filt
   });
 
   $rootScope.$on('cacheFilterChange', function(event, filter) {
-    CacheService.getAllCaches().success(function(caches) {
+    CacheService.getAllCaches().then(function(caches) {
       $scope.caches = $filter('filter')($filter('filter')(caches, filter.cacheFilter), filter.mapFilter);
     });
   });

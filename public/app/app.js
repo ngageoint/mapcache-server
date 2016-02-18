@@ -61,6 +61,7 @@ function config($routeProvider, $locationProvider, $httpProvider) {
   $routeProvider.when('/create/:mapId?', {
     templateUrl:    'app/mapcache/cache/create.html',
     controller:     "MapcacheCreateController",
+    controllerAs:   'create',
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
   });
   $routeProvider.when('/cache/:cacheId', {

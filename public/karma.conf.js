@@ -31,9 +31,15 @@ module.exports = function(config) {
     files: [
       'test/test.js',
       'test/**/*.js',
-      '**/*.html'
+      '**/*.html',
+      // static file locations
+      {pattern: 'node_modules/leaflet/dist/images/**/*.png', watched: false, included: false, served: true}
     ],
 
+    proxies: {
+      '/node_modules/':'node_modules/'
+
+    },
 
     // list of files to exclude
     exclude: [

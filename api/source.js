@@ -6,6 +6,7 @@ var models = require('mapcache-models')
   , Feature = models.Feature
   , log = require('mapcache-log')
   , Map = require('../map/map')
+  , lengthStream = require('length-stream')
   , config = require('mapcache-config');
 
 function Source(sourceModel) {
@@ -86,7 +87,13 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
 Source.getTile = function(source, format, z, x, y, params, callback) {
   var map = new Map(source);
   map.callbackWhenInitialized(function(err, map) {
-    map.getTile(format, z, x, y, params, callback);
+    map.getTile(format, z, x, y, params, function(err, tileStream){
+      var lstream = lengthStream(function(streamLength) {
+        SourceModel.updateSourceAverageSize(source, streamLength, function() {
+        });
+      });
+      callback(err, tileStream.pipe(lstream));
+    });
   });
 };
 

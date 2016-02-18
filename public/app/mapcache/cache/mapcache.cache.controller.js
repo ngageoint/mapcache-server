@@ -18,25 +18,17 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
     $location.path('/mapcache');
   };
 
-  $scope.generateFormat = function(cache, format) {
-    CacheService.createCacheFormat(cache, format, function() {
-      cache.formats = cache.formats || {};
-      cache.formats[format] = cache.formats[format] || {};
-      cache.formats[format].generating = true;
-      console.log('go get the cache');
-      getCache(cache.id);
+  $scope.generateFormat = function(format) {
+    CacheService.createCacheFormat($scope.cache, format, function() {
+      $scope.cache.formats = $scope.cache.formats || {};
+      $scope.cache.formats[format] = $scope.cache.formats[format] || {};
+      $scope.cache.formats[format].generating = true;
+      getCache($scope.cache.id);
     });
-  };
-
-  $scope.cacheBoundingBox = function(cache) {
-    if (!cache) return;
-    var extent = turf.extent(cache.geometry);
-    return "West: " + extent[0] + " South: " + extent[1] + " East: " + extent[2]+ " North: " + extent[3];
   };
 
   function getCache(id) {
     $scope.hasVectorSources = false;
-    console.log('location.path', $location.path());
     var cache = $scope.cache || {};
     if (id) {
       cache.id = id;
@@ -44,20 +36,18 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
     CacheService.getCache(cache, function(cache) {
       // success
       $scope.cache = cache;
-      for (var i = 0; i < cache.source.cacheTypes.length; i++) {
-        if (cache.source.cacheTypes[i].vector) {
+      for (var i = 0; i < cache.source.dataSources.length; i++) {
+        if (cache.source.dataSources[i].vector) {
           $scope.hasVectorSources = true;
         }
       }
       $rootScope.title = $scope.cache.name;
 
       $scope.formatGenerating = _.some($scope.cache.formats, function(format) {
-        console.log('format', format);
         return !format.complete;
       });
 
-      console.log('format generating', $scope.formatGenerating);
-      if ($scope.formatGenerating && $location.path().indexOf('/cache') === 0) {
+      if ($scope.formatGenerating) {
         $timeout(getCache, 5000);
       }
     }, function() {
@@ -67,37 +57,32 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
 
   getCache($routeParams.cacheId);
 
-  $scope.createTiles = function(cache, minZoom, maxZoom) {
-    cache.minZoom = minZoom;
-    cache.maxZoom = maxZoom;
-    CacheService.createCacheFormat(cache, 'xyz', function() {
-      cache.formats = cache.formats || {};
-      cache.formats.xyz = cache.formats.xyz || {};
-      cache.formats.xyz.generating = true;
-      getCache(cache.id);
+  $scope.createTiles = function(minZoom, maxZoom) {
+    $scope.cache.minZoom = minZoom;
+    $scope.cache.maxZoom = maxZoom;
+    CacheService.createCacheFormat($scope.cache, 'xyz', function() {
+      $scope.cache.formats = $scope.cache.formats || {};
+      $scope.cache.formats.xyz = $scope.cache.formats.xyz || {};
+      $scope.cache.formats.xyz.generating = true;
+      getCache($scope.cache.id);
     });
   };
 
-  $scope.calculateCacheSize = function(cache, minZoom, maxZoom) {
-    if (!cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !cache.geometry) return;
-    cache.totalCacheSize = 0;
-    cache.totalCacheTiles = 0;
-    var extent = turf.extent(cache.geometry);
+  $scope.calculateCacheSize = function(minZoom, maxZoom) {
+    if (!$scope.cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !$scope.cache.geometry) return;
+    $scope.cache.totalCacheSize = 0;
+    $scope.cache.totalCacheTiles = 0;
+    var extent = turf.extent($scope.cache.geometry);
     for (var i = minZoom; i <= maxZoom; i++) {
       var xtiles = xCalculator(extent, i);
       var ytiles = yCalculator(extent, i);
-      cache.totalCacheTiles += (1 + (ytiles.max - ytiles.min)) * (1 + (xtiles.max - xtiles.min));
+      $scope.cache.totalCacheTiles += (1 + (ytiles.max - ytiles.min)) * (1 + (xtiles.max - xtiles.min));
     }
-    cache.totalCacheSize = cache.totalCacheTiles * (cache.source.tileSize/cache.source.tileSizeCount);
+    $scope.cache.totalCacheSize = $scope.cache.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
   };
 
   Math.radians = function(degrees) {
     return degrees * Math.PI / 180;
-  };
-
-  // Converts from radians to degrees.
-  Math.degrees = function(radians) {
-    return radians * 180 / Math.PI;
   };
 
   function xCalculator(bbox,z) {
