@@ -98,7 +98,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
     });
   }, 500);
 
-  $scope.$watch('options.currentDatasources', function() {
+  $scope.$watch('options.currentDatasources.length', function() {
     if ($scope.options.currentDatasources) {
       debounceDataSources();
     }
