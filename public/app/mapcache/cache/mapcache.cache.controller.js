@@ -1,5 +1,6 @@
 var turf = require('turf');
 var _ = require('underscore');
+var xyzTileUtils = require('xyz-tile-utils');
 
 module.exports = function MapcacheCacheController($scope, $location, $timeout, $routeParams, $rootScope, CacheService, LocalStorageService) {
 
@@ -70,51 +71,8 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
 
   $scope.calculateCacheSize = function(minZoom, maxZoom) {
     if (!$scope.cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !$scope.cache.geometry) return;
-    $scope.cache.totalCacheSize = 0;
-    $scope.cache.totalCacheTiles = 0;
     var extent = turf.extent($scope.cache.geometry);
-    for (var i = minZoom; i <= maxZoom; i++) {
-      var xtiles = xCalculator(extent, i);
-      var ytiles = yCalculator(extent, i);
-      $scope.cache.totalCacheTiles += (1 + (ytiles.max - ytiles.min)) * (1 + (xtiles.max - xtiles.min));
-    }
+    $scope.cache.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, minZoom, maxZoom);
     $scope.cache.totalCacheSize = $scope.cache.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
   };
-
-  Math.radians = function(degrees) {
-    return degrees * Math.PI / 180;
-  };
-
-  function xCalculator(bbox,z) {
-    var x = [];
-    var x1 = getX(Number(bbox[0]), z);
-    var x2 = getX(Number(bbox[2]), z);
-    x.max = Math.max(x1, x2);
-    x.min = Math.min(x1, x2);
-    if (z === 0){
-      x.current = Math.min(x1, x2);
-    }
-    return x;
-  }
-
-  function yCalculator(bbox,z) {
-    var y = [];
-    var y1 = getY(Number(bbox[1]), z);
-    var y2 = getY(Number(bbox[3]), z);
-    y.max = Math.max(y1, y2);
-    y.min = Math.min(y1, y2);
-    y.current = Math.min(y1, y2);
-    return y;
-  }
-
-  function getX(lon, zoom) {
-    var xtile = Math.floor((lon + 180) / 360 * (1 << zoom));
-    return xtile;
-  }
-
-  function getY(lat, zoom) {
-    var ytile = Math.floor((1 - Math.log(Math.tan(Math.radians(parseFloat(lat))) + 1 / Math.cos(Math.radians(parseFloat(lat)))) / Math.PI) /2 * (1 << zoom));
-    return ytile;
-  }
-
 };

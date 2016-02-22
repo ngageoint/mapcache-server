@@ -56,8 +56,8 @@
           <span class="page-sub-entity-title one-line-ellipsis">Data Sources - choose at least one</span>
           <div class="row">
           <div ng-repeat="ds in create.cache.source.dataSources" class="col-sm-4 nice-check">
-              <input value="{{ds._id}}" id="{{ds._id}}" ng-model="create.selectedDatasources[ds._id]" ng-change="create.toggleDataSource(ds._id, ds);" type="checkbox" class="checkbox" name="{{ds._id}}" checked>
-              <label for="{{ds._id}}" class="one-line-ellipsis">{{ds.name}}</label>
+              <input value="{{ds.id}}" id="{{ds.id}}" ng-model="create.selectedDatasources[ds.id]" ng-change="create.toggleDataSource(ds.id, ds);" type="checkbox" class="checkbox" name="{{ds.id}}" checked>
+              <label for="{{ds.id}}" class="one-line-ellipsis">{{ds.name}}</label>
             </div>
           </div>
         </div>

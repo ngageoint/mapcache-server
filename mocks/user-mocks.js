@@ -65,6 +65,8 @@ exports.newUser = {
   "username": "newuser",
   "firstname": "newuser",
   "lastname": "newuser",
+  "email": "email@email.com",
+  "phone": "555-555-5555",
   "password": "password",
   "passwordconfirm":"password"
 };

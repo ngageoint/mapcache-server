@@ -36,7 +36,8 @@
     "sinon": "^1.17.3",
     "sinon-as-promised": "^4.0.0",
     "turf": "^2.0.2",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "xyz-tile-utils": "file:../modules/xyz-tile-utils"
   },
   "devDependencies": {
     "browserify-istanbul": "^0.2.1",

@@ -136,7 +136,7 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
 
     resolveAllUsers.then(function(users) {
       for (var i = 0; i < users.length; i++) {
-        resolvedUsers[users[i]._id] = $q.when(users[i]);
+        resolvedUsers[users[i].id] = $q.when(users[i]);
       }
     });
 

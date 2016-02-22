@@ -5,7 +5,7 @@ var angular = require('angular')
   , _ = require('underscore')
   , angularMocks = require('angular-mocks');
 
-require('../../../vendor/angular-ui-select');
+// require('../../../vendor/angular_ui_select');
 
 describe('map edit page tests', function() {
 

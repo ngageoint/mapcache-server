@@ -63,7 +63,7 @@ module.exports = function CacheService($q, $http) {
     });
     resolveAllCaches.then(function(caches) {
       for (var i = 0; i < caches.length; i++) {
-        resolvedCaches[caches[i]._id] = $q.when(caches[i]);
+        resolvedCaches[caches[i].id] = $q.when(caches[i]);
       }
     });
 

@@ -85,8 +85,8 @@ module.exports = function LeafletUtilities(LocalStorageService) {
       if (dataSources && dataSources.length) {
         _.each(dataSources, function(ds) {
           console.log('ds', ds);
-          if (ds._id) {
-            url += '&dataSources[]=' + ds._id;
+          if (ds.id) {
+            url += '&dataSources[]=' + ds.id;
           } else if (ds.id) {
             url += '&dataSources[]=' + ds.id;
           }

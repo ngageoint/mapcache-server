@@ -13,7 +13,8 @@ exports.xyzMap = {
     "complete":true
   },
   "styleTime":1,
-  "tileSize":0,
+  "tileSize":50,
+  "tileSizeCount":1,
   "dataSources":[{
     "geometry":{
       "type":"Feature",
@@ -157,7 +158,8 @@ exports.incompleteMap = {
     "complete":false
   },
   "styleTime":1,
-  "tileSize":0,
+  "tileSize":50,
+  "tileSizeCount":1,
   "dataSources":[{
     "geometry":{
       "type":"Feature",
@@ -237,6 +239,12 @@ exports.wmsDatasource = {
   "format": "wms",
   "valid": true,
   "name": "http://watzmann.geog.uni-heidelberg.de/cached/osm",
+  "status":{
+    "message":"Complete",
+    "failure":false,
+    "totalFeatures":0,
+    "complete":true
+  },
   metadata: {
     "wmsGetCapabilities": {
       "version": "1.1.1",

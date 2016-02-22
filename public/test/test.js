@@ -5,7 +5,7 @@ require('angular-route');
 require('../app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
 // putting this  because you have to build it before you can use it
-require('../vendor/angular-ui-select');
+require('../vendor/angular_ui_select');
 require('angular-sanitize');
 
 angular.module('ngTemplates',[]);

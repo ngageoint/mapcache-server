@@ -83,8 +83,8 @@ describe('MapcacheCacheController tests', function() {
 
   it('should calculate the cache size', function() {
     scope.calculateCacheSize(0, 1);
-    scope.cache.totalCacheTiles.should.be.equal(8);
-    scope.cache.totalCacheSize.should.be.equal(mocks.cacheMocks.xyzCache.source.tileSize*8);
+    scope.cache.totalCacheTiles.should.be.equal(5);
+    scope.cache.totalCacheSize.should.be.equal(mocks.cacheMocks.xyzCache.source.tileSize*5);
     CacheService.verify();
   });
 

@@ -36,7 +36,7 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
 
     resolveAllMaps.then(function(maps) {
       for (var i = 0; i < maps.length; i++) {
-        resolvedMaps[maps[i]._id] = $q.when(maps[i]);
+        resolvedMaps[maps[i].id] = $q.when(maps[i]);
       }
     });
 
