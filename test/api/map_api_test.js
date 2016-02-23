@@ -132,7 +132,9 @@ describe('Map API', function() {
     it.only('should create the map with multiple datasources', function(done) {
       var map = {
         name: 'Cache Route Test',
-        dataSources: [osmDataSource, riversDataSource]
+        dataSources: [osmDataSource, riversDataSource],
+        tileSizeCount: 1,
+        tileSize: 50
       };
 
       Map.create(map, function(err, newMap) {
@@ -141,10 +143,10 @@ describe('Map API', function() {
           createdMap = newMap;
           // console.log(newMap.dataSources[1].properties);
           var mapCompare = JSON.parse(JSON.stringify(newMap));
-          console.log(mapCompare.dataSources[1].properties);
+          console.log('inserted map properties', mapCompare.dataSources[1].properties);
           var mapMock = JSON.parse(JSON.stringify(mocks.mapMocks.xyzMap));
           // console.log(mocks.mapMocks.xyzMap.dataSources[1].properties);
-          console.log(mapMock.dataSources[1].properties);
+          console.log('mock map properties', mapMock.dataSources[1].properties);
           //compare newmap to map mock but without id properties
           delete mapCompare.id;
           delete mapMock.id;

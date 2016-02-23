@@ -115,14 +115,12 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
           keyboard: false
         });
         marker.dataSource = ds;
-        console.log('add marker to map');
         marker.addTo(map);
       });
     }
   });
 
   $scope.$on('extentChanged', function(event, envelope) {
-    console.log('extent', envelope);
     drawnItems.removeLayer(cacheFootprintLayer);
     cacheFootprintLayer = null;
     if (envelope) {
@@ -167,7 +165,6 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
         }
         return merge;
       }, $scope.options.source.dataSources[0].geometry);
-      console.log('merged is', merged);
       updateMapExtent(turf.extent(merged));
     }
     addMapLayer();

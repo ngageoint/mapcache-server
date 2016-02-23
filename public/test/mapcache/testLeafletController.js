@@ -3,11 +3,11 @@ var should = require('chai').should()
   , sinon  = require('sinon')
   , $ = require('jquery')
   , L = require('leaflet')
-  , mocks = require('../../mocks');
+  , mocks = require('../mocks');
 
 require('angular-mocks');
 
-describe('LeafletMapController tests', function() {
+describe('LeafletController tests', function() {
 
   var MapService
     , LeafletUtilities
@@ -42,19 +42,19 @@ describe('LeafletMapController tests', function() {
     };
     element = $('<div class="leaflet-map"></div>');
 
-    ctrl = $controller('LeafletMapController', {$scope: scope, $element: element});
+    ctrl = $controller('LeafletController', {$scope: scope, $element: element});
     scope.$apply();
   }));
 
-  it('should create the LeafletMapController', function() {
+  it('should create the LeafletController', function() {
     should.exist(ctrl);
   });
 
   it('should set the caches', function() {
-    var mock = sandbox.mock(L.Map.prototype).expects('fitBounds').withArgs([[-85, -180], [85, 180]]).once();
+    var styleMock = sandbox.mock(L.GeoJSON.prototype).expects('setStyle').withArgs({fill: false, color: undefined, opacity: 0, weight: 4}).once();
     scope.caches = [mocks.cacheMocks.xyzCache];
     scope.$apply();
-    mock.verify();
+    styleMock.verify();
   });
 
   it('should show a cache', function() {
@@ -87,21 +87,12 @@ describe('LeafletMapController tests', function() {
   });
 
   it('should hide the cache extent', function() {
-    var mock = sandbox.mock(L.GeoJSON.prototype).expects('setStyle').withArgs({fill: false, color: '#333333', opacity: 0, weight: 4}).once();
+    var mock = sandbox.mock(L.GeoJSON.prototype).expects('setStyle').withArgs({fill: false, color: undefined, opacity: 0, weight: 4}).once();
 
     $rootScope.$emit('hideCacheExtent', mocks.cacheMocks.xyzCache);
     scope.$apply();
 
     mock.verify();
-  });
-
-  it('should click the map', function() {
-    MapService.expects('getFeatures').yields(mocks.mapMocks.featureMock).once();
-    var spy = sandbox.spy(L, 'popup');
-
-    element.click();
-    MapService.verify();
-    spy.calledOnce.should.be.equal(true);
   });
 
   it('should show the cache tiles', function(){
@@ -121,6 +112,37 @@ describe('LeafletMapController tests', function() {
     $rootScope.$emit('hideCacheTiles', mocks.cacheMocks.xyzCache);
     scope.$apply();
     mock.verify();
+  });
+
+  it('should overlay the source tiles', function() {
+    var addToSpy = sinon.spy();
+    var mock = sandbox.mock(L).expects('tileLayer').once().returns({addTo: addToSpy});
+    sandbox.stub(L.Map.prototype, 'getCenter').returns({});
+    sandbox.stub(L.Map.prototype, 'getZoom').returns(4);
+
+    $rootScope.$emit('overlaySourceTiles', mocks.mapMocks.xyzMap);
+
+    scope.$apply();
+    mock.verify();
+    addToSpy.calledOnce.should.be.equal(true);
+  });
+
+  it('should remove the source tiles', function() {
+    var addToSpy = sinon.spy();
+    var mock = sandbox.mock(L).expects('tileLayer').once().returns({addTo: addToSpy});
+    sandbox.stub(L.Map.prototype, 'setView').returns(4);
+
+    $rootScope.$emit('overlaySourceTiles', mocks.mapMocks.xyzMap);
+
+    scope.$apply();
+    var mapMock = sandbox.mock(L.Map.prototype).expects('removeLayer').once();
+
+    $rootScope.$emit('removeSourceTiles', mocks.mapMocks.xyzMap);
+    scope.$apply();
+
+    mock.verify();
+    mapMock.verify();
+    addToSpy.calledOnce.should.be.equal(true);
   });
 
 });

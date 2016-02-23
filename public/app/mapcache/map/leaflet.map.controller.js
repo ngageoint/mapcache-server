@@ -373,6 +373,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       debounceDataSources();
     }
   });
+  
   var layerControlAdded = false;
   var layerControlLayers = [];
 
@@ -413,37 +414,28 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     var tl = LeafletUtilities.tileLayer($scope.map, defaultLayer, mapLayerOptions, $scope.map.style, styleFunction, currentDatasources);
     if (!tl) return;
     mapLayer = tl;
-    tl.on('tileload', function(event) {
-      var split = event.url.split('/');
-      var z = split[split.length-3];
-      var x = split[split.length-2];
-      var y = split[split.length-1].split('.')[0];
-      if ($scope.map.format === 'arcgis') {
-        z = split[split.length-3];
-        x = split[split.length-1];
-        y = split[split.length-2];
-      }
-      mapTilesLoaded[z+'-'+x+'-'+y] = true;
-      canvasTiles.redraw();
-    });
-    tl.on('tileerror', function(event) {
-      var split = event.url.split('/');
-      var z = split[split.length-3];
-      var x = split[split.length-2];
-      var y = split[split.length-1].split('.')[0];
-      if ($scope.map.format === 'arcgis') {
-        z = split[split.length-3];
-        x = split[split.length-1];
-        y = split[split.length-2];
-      }
-      mapTilesLoaded[z+'-'+x+'-'+y] = true;
-      canvasTiles.redraw();
-    });
+    tl.on('tileload', tileLoad);
+    tl.on('tileerror', tileLoad);
+
     map.addLayer(canvasTiles);
     mapLayer.addTo(map);
     if ($scope.map.geometry) {
       updateMapExtent();
     }
+  }
+
+  function tileLoad(event) {
+    var split = event.url.split('/');
+    var z = split[split.length-3];
+    var x = split[split.length-2];
+    var y = split[split.length-1].split('.')[0];
+    if ($scope.map.format === 'arcgis') {
+      z = split[split.length-3];
+      x = split[split.length-1];
+      y = split[split.length-2];
+    }
+    mapTilesLoaded[z+'-'+x+'-'+y] = true;
+    canvasTiles.redraw();
   }
 
   function updateMapExtent(extent) {

@@ -47,7 +47,6 @@ module.exports = function LeafletCacheController($scope, $element, LocalStorageS
       cacheLayer.addTo(map);
     }
     var extent = turf.extent(cache.geometry);
-    console.log('extent', extent);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]
