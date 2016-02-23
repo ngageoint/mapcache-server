@@ -37,7 +37,7 @@ module.exports = function LeafletUtilities(LocalStorageService) {
 
     return {
       color: defaultStyle.style.stroke,
-      fillOpacity: 0,//defaultStyle.style['fill-opacity'],
+      fillOpacity: defaultStyle.style['fill-opacity'],
       opacity: defaultStyle.style['stroke-opacity'],
       weight: defaultStyle.style['stroke-width'],
       fillColor: defaultStyle.style.fill
@@ -71,49 +71,38 @@ module.exports = function LeafletUtilities(LocalStorageService) {
     var url;
     if (!layerSource) {
       return L.tileLayer(defaultLayer, layerOptions);
-    } else if (layerSource.vector) {
-      url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
-      if (layerSource.wmsLayer) {
-        url += '&layer=' + layerSource.wmsLayer.Name;
-      }
-      var layer = L.tileLayer(url, layerOptions);
-      return layer;
     } else if (typeof layerSource === "string") {
-      return L.tileLayer(layerSource + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png"), layerOptions);
+      return L.tileLayer(layerSource + "/{z}/{x}/{y}", layerOptions);
     } else if (layerSource.mapcacheUrl) {
-      url = layerSource.mapcacheUrl + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png") +"?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
+      url = layerSource.mapcacheUrl + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken()+"&_dc="+layerSource.styleTime;
       if (dataSources && dataSources.length) {
         _.each(dataSources, function(ds) {
-          console.log('ds', ds);
-          if (ds.id) {
-            url += '&dataSources[]=' + ds.id;
-          } else if (ds.id) {
-            url += '&dataSources[]=' + ds.id;
-          }
+          url += '&dataSources[]=' + ds.id;
         });
-      }
-      if (layerSource.wmsLayer) {
-        url += '&layer=' + layerSource.wmsLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
     } else if (layerSource.format === 'wms') {
-      if (layerSource.wmsGetCapabilities && layerSource.wmsLayer) {
-        return L.tileLayer.wms(layerSource.url, {
-          layers: layerSource.wmsLayer.Name,
-          version: layerSource.wmsGetCapabilities.version,
-          transparent: !layerSource.wmsLayer.opaque,
-          format: layerSource.wmsLayer.opaque ? 'image/jpeg' : 'image/png'
-        });
+      if (layerSource.metadata && layerSource.metadata.wmsGetCapabilities && layerSource.metadata.wmsLayer) {
+        var options = {
+          layers: layerSource.metadata.wmsLayer.Name,
+          version: layerSource.metadata.wmsGetCapabilities.version,
+          transparent: !layerSource.metadata.wmsLayer.opaque,
+          format: layerSource.metadata.wmsLayer.opaque ? 'image/jpeg' : 'image/png'
+        };
+        for(var k in layerOptions) options[k]=layerOptions[k];
+        return L.tileLayer.wms(layerSource.url, options);
+      } else {
+        return L.tileLayer(defaultLayer, layerOptions);
       }
     } else if (layerSource.format === 'arcgis') {
-      return L.tileLayer(layerSource.wmsGetCapabilities.tileServers[0] + "/tile/{z}/{y}/{x}", layerOptions);
+      return L.tileLayer(layerSource.metadata.wmsGetCapabilities.tileServers[0] + "/tile/{z}/{y}/{x}", layerOptions);
     } else if (layerSource.url) {
-      console.log('layersource.url', layerSource.url);
       url = layerSource.url + "/{z}/{x}/{y}"+ (layerSource.tilesLackExtensions ? "" : ".png");
-      if (layerSource.wmsLayer) {
-        url += '&layer=' + layerSource.wmsLayer.Name;
+      if (layerSource.metadata && layerSource.metadata.wmsLayer) {
+        url += '&layer=' + layerSource.metadata.wmsLayer.Name;
       }
       return L.tileLayer(url, layerOptions);
     }
+    return L.tileLayer(defaultLayer, layerOptions);
   }
 };

@@ -39,7 +39,7 @@ module.exports = function(config) {
       watch: true,
       debug: true,
       transform: [istanbul({
-        ignore: [ 'test/**/*', '**/vendor/**/*', '**/leaflet*/**/*', '**/leaflet*.js']
+        ignore: [ 'test/**/*', '**/vendor/**/*']
       })]
     },
 

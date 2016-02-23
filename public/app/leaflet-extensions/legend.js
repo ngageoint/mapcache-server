@@ -18,7 +18,7 @@ L.Control.Legend = L.Control.extend({
   },
 
 	onAdd: function (map) {
-    this._div = L.DomUtil.create('div', 'legend'); // create a div with a class "info"
+    this._div = L.DomUtil.create('div', 'legend');
     this.update(map);
     return this._div;
   },
@@ -33,7 +33,6 @@ L.Control.Legend = L.Control.extend({
 			var style = this.styles[i].style;
 			var el = $('<canvas height="30" width="32" style="zoom:50%; -moz-transform:scale(.5)"></canvas>');
 			var canvas = el[0];
-			console.log('style', style);
 	    if (canvas.getContext){
 	      var ctx = canvas.getContext('2d');
 	      ctx.clearRect ( 0 , 0 , canvas.width, canvas.height );
@@ -63,10 +62,10 @@ L.Control.Legend = L.Control.extend({
 
     }
 		var toggle = $('<a style="cursor: pointer;">'+(this.showLegend ? 'Hide Legend' : 'Show Legend') + '</a>');
-		toggle.on('click', $.proxy(function() {
+		toggle.on('click', function() {
 			this.showLegend = !this.showLegend;
 			this.update(map);
-		}, this));
+		}.bind(this));
 		$(this._div).append(toggle);
   },
 

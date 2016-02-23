@@ -1,6 +1,6 @@
 var turf = require('turf');
 var xyzTileUtils = require('xyz-tile-utils');
-module.exports = function CacheListingController($scope, $rootScope, $timeout, LocalStorageService, $location, $routeParams, CacheService) {
+module.exports = function CacheListingController($scope, $rootScope, $timeout, LocalStorageService, CacheService) {
 
   $scope.token = LocalStorageService.getToken();
   $scope.options.opacity = $scope.options.opacity || 0.14;
@@ -40,10 +40,6 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
   });
 
   $scope.featureProperties = [];
-
-  $scope.createCacheFromMap = function() {
-    $location.path('/create/'+$routeParams.mapId);
-  };
 
   $scope.$watch('map.previewLayer', function(layer) {
     if (layer) {

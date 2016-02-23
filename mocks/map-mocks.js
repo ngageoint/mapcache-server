@@ -1,5 +1,136 @@
 var exports = module.exports;
 
+exports.osmDatasource = {
+  "geometry":{
+    "type":"Feature",
+    "geometry":{
+      "type":"Polygon",
+      "coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]
+    }
+  },
+  "name":"osm",
+  "url":"http://osm.geointapps.org/osm",
+  "format":"xyz",
+  "styleTime":1,
+  "status":{
+    "message":"Complete",
+    "failure":false,
+    "totalFeatures":0,
+    "complete":true
+  },
+  "zOrder":0,
+  "tilesLackExtensions":false,
+  "scaledFiles":[],
+  "layers":[],
+  "vector":false,
+  "id":"56a92d006a4c0e8d43c40195a"
+};
+
+// verify this
+exports.arcgisDatasource = {
+  format: 'arcgis',
+  metadata: {
+    wmsGetCapabilities: {
+      tileServers: ['http://server1']
+    }
+  }
+};
+
+exports.geojsonDatasource = {
+  "geometry": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -115.525899779486,
+            -31.1403304199038
+          ],
+          [
+            -115.525899779486,
+            73.1048807777633
+          ],
+          [
+            123.377109149484,
+            73.1048807777633
+          ],
+          [
+            123.377109149484,
+            -31.1403304199038
+          ],
+          [
+            -115.525899779486,
+            -31.1403304199038
+          ]
+        ]
+      ]
+    }
+  },
+  "name":"geojson",
+  "file": {
+    "path": 'path/to/maptest.geojson',
+    "name": 'maptest.geojson'
+  },
+  "size":345727,
+  "format":"geojson",
+  "styleTime":1,
+  "style": {
+    "defaultStyle": {
+      "style": {
+				'fill': "#000000",
+				'fill-opacity': 0.5,
+				'stroke': "#0000FF",
+				'stroke-opacity': 1.0,
+				'stroke-width': 1
+			}
+    },
+    "styles": []
+  },
+  properties: [
+    { key: 'Scalerank', values: [ 4, 1, 5, 6, 2, 3 ] },
+    {
+      key: 'Name',
+      values: [
+        'Gan',
+        'Orange',
+        'Arkansas',
+        'Ganale Doria',
+        'Niagra',
+        'Olenëk',
+        'Garonne',
+        'Ohio',
+        'Niger',
+        'Madeira',
+        'Missouri',
+        'Ayeyarwady',
+        'Omo',
+        'Meta',
+        'Oder',
+        'Mississippi',
+        'Athabasca',
+        'Atbara',
+        'Nile',
+        'Godävari',
+        'Ganges'
+      ]
+    },
+    { key: 'Name_alt', values: [ null ] }
+  ],
+  "status":{
+    "message":"Complete",
+    "failure":false,
+    "totalFeatures":38,
+    "complete":true
+  },
+  "zOrder":1,
+  "tilesLackExtensions":false,
+  "scaledFiles":[],
+  "layers":[],
+  "vector":true,
+  "id":"56c25070a15afea0e094406c"
+};
+
 exports.xyzMap = {
   "name":"Cache Route Test",
   "humanReadableId":"4JbQ3GMte",
@@ -15,124 +146,7 @@ exports.xyzMap = {
   "styleTime":1,
   "tileSize":50,
   "tileSizeCount":1,
-  "dataSources":[{
-    "geometry":{
-      "type":"Feature",
-      "geometry":{
-        "type":"Polygon",
-        "coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]
-      }
-    },
-    "name":"osm",
-    "url":"http://osm.geointapps.org/osm",
-    "format":"xyz",
-    "styleTime":1,
-    "status":{
-      "message":"Complete",
-      "failure":false,
-      "totalFeatures":0,
-      "complete":true
-    },
-    "zOrder":0,
-    "tilesLackExtensions":false,
-    "scaledFiles":[],
-    "layers":[],
-    "vector":false,
-    "id":"56a92d006a4c0e8d43c40195a"
-  },{
-    "geometry": {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              -115.525899779486,
-              -31.1403304199038
-            ],
-            [
-              -115.525899779486,
-              73.1048807777633
-            ],
-            [
-              123.377109149484,
-              73.1048807777633
-            ],
-            [
-              123.377109149484,
-              -31.1403304199038
-            ],
-            [
-              -115.525899779486,
-              -31.1403304199038
-            ]
-          ]
-        ]
-      }
-    },
-    "name":"geojson",
-    "file": {
-      "path": 'path/to/maptest.geojson',
-      "name": 'maptest.geojson'
-    },
-    "size":345727,
-    "format":"geojson",
-    "styleTime":1,
-    "style": {
-      "defaultStyle": {
-        "style": {
-  				'fill': "#000000",
-  				'fill-opacity': 0.5,
-  				'stroke': "#0000FF",
-  				'stroke-opacity': 1.0,
-  				'stroke-width': 1
-  			}
-      },
-      "styles": []
-    },
-    properties: [
-      { key: 'Scalerank', values: [ 4, 1, 5, 6, 2, 3 ] },
-      {
-        key: 'Name',
-        values: [
-          'Gan',
-          'Orange',
-          'Arkansas',
-          'Ganale Doria',
-          'Niagra',
-          'Olenëk',
-          'Garonne',
-          'Ohio',
-          'Niger',
-          'Madeira',
-          'Missouri',
-          'Ayeyarwady',
-          'Omo',
-          'Meta',
-          'Oder',
-          'Mississippi',
-          'Athabasca',
-          'Atbara',
-          'Nile',
-          'Godävari',
-          'Ganges'
-        ]
-      },
-      { key: 'Name_alt', values: [ null ] }
-    ],
-    "status":{
-      "message":"Complete",
-      "failure":false,
-      "totalFeatures":38,
-      "complete":true
-    },
-    "zOrder":1,
-    "tilesLackExtensions":false,
-    "scaledFiles":[],
-    "layers":[],
-    "vector":true,
-    "id":"56a92d006a4c0e8d43c40195c"
-  }],
+  "dataSources":[exports.osmDatasource,exports.geojsonDatasource],
   "id":"56a92d006a4c0e8d43c40194",
   "mapcacheUrl":"/api/sources/56a92d006a4c0e8d43c40194",
   "cacheTypes":[

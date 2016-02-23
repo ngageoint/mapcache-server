@@ -50,7 +50,7 @@ module.exports = function UserController($scope, $location, $timeout, UserServic
     };
 
     UserService.updateMyPassword(user)
-      .success(function() {
+      .then(function() {
         $scope.user.password = "";
         $scope.user.passwordconfirm = "";
         $scope.passwordStatus = {status: "success", msg: "password successfully updated, redirecting to the login page"};
@@ -58,8 +58,7 @@ module.exports = function UserController($scope, $location, $timeout, UserServic
         $timeout(function() {
           $location.path('/signin');
         }, 5000);
-      })
-      .error(function(data) {
+      }, function(data) {
         $scope.passwordStatus = {status: "error", msg: data};
       });
   };

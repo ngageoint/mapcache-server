@@ -96,8 +96,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
         }
         var popupContent = title + " " + description;
 
-        L.popup()
-          .setLatLng(event.latlng)
+        L.popup().setLatLng(event.latlng)
           .setContent(popupContent)
           .openOn(map);
       });
@@ -122,7 +121,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
 
     if (!centered) {
       if (cacheCenters && cacheCenters.length > 0) {
-        var fc = turf.featurecollection(cacheCenters);
         var extent = turf.extent(turf.featurecollection(cacheCenters));
         map.fitBounds([
           [extent[1],extent[0]],
@@ -226,7 +224,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     }
 
     var cacheRectangle = L.geoJson(cache.geometry);
-    cacheRectangle.setStyle({fill: false, color: color, opacity: color ? 1 : 0, weight: 4});
+    cacheRectangle.setStyle({fill: false, color: color || "#333333", opacity: color ? 1 : 0, weight: 4});
 
     if (cache.geometry) {
       var center = turf.center(cache.geometry);

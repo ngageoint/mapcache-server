@@ -103,8 +103,9 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
       {headers: {"Content-Type": "application/x-www-form-urlencoded"}}
     );
 
-    promise.then(function() {
+    promise.then(function(data) {
       clearUser();
+      return data.data;
     });
 
     return promise;
