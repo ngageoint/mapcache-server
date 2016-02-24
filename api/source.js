@@ -122,7 +122,7 @@ Source.prototype.delete = function(callback) {
 
 Source.prototype.deleteDataSource = function(dataSourceId, callback) {
   var source = this.sourceModel;
-  log.info('Deleting the datasource %s from source %s', dataSourceId, this.sourceModel.id);
+  log.info('Deleting the datasource %s from source %s', dataSourceId, this.sourceModel.id.toString());
   SourceModel.deleteDataSource(source, dataSourceId, function(err) {
     if (err) return callback(err);
     var dataSource;

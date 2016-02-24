@@ -129,7 +129,7 @@ describe('Map API', function() {
       zOrder: 1
     };
 
-    it.only('should create the map with multiple datasources', function(done) {
+    it('should create the map with multiple datasources', function(done) {
       var map = {
         name: 'Cache Route Test',
         dataSources: [osmDataSource, riversDataSource],
@@ -166,7 +166,6 @@ describe('Map API', function() {
               delete mapMock.dataSources[j].file.path;
             }
           }
-
           mapCompare.should.containDeep(mapMock);
           done();
         });

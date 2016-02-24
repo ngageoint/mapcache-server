@@ -28,8 +28,8 @@ WMS.prototype.processSource = function(doneCallback, progressCallback) {
     console.log('getting wms get capabilities');
     self._getWmsGetCapabilities(function(){
       var wmsGetCapabilities = self.source.metadata.wmsGetCapabilities;
-      console.log('self.source.wmsLayer', self.source.wmsLayer);
-      if (self.source.metadata.wmsLayer.Name && wmsGetCapabilities.Capability && wmsGetCapabilities.Capability.Layer && wmsGetCapabilities.Capability.Layer.Layer && Array.isArray(wmsGetCapabilities.Capability.Layer.Layer)) {
+      console.log('self.source.wmsLayer', self.source.metadata.wmsLayer);
+      if (self.source.metadata && self.source.metadata.wmsLayer && self.source.metadata.wmsLayer.Name && wmsGetCapabilities.Capability && wmsGetCapabilities.Capability.Layer && wmsGetCapabilities.Capability.Layer.Layer && Array.isArray(wmsGetCapabilities.Capability.Layer.Layer)) {
         var layerArray = wmsGetCapabilities.Capability.Layer.Layer;
         var layer;
         console.log('json', wmsGetCapabilities.Capability.Layer.Layer);
@@ -95,7 +95,7 @@ WMS.prototype.getTile = function(format, z, x, y, params, callback) {
   format = format.toLowerCase();
   if (format !== 'png' && format !== 'jpeg') return callback(null, null);
   if (params.layer === undefined || params.layer === null) {
-    if (this.source.metadata.wmsLayer && this.source.metadata.wmsLayer.Name) {
+    if (this.source.metadata && this.source.metadata.wmsLayer && this.source.metadata.wmsLayer.Name) {
       params.layer = this.source.metadata.wmsLayer.Name;
     } else {
       return callback(null);

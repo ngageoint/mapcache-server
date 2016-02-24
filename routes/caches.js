@@ -83,7 +83,9 @@ module.exports = function(app, auth) {
     function(req, res) {
       var called = false;
       Cache.create(req.newCache, function(err, newCache) {
-        if (newCache._id && !called) {
+        console.log('callback err', err);
+        console.log('callback', newCache);
+        if (newCache.id && !called) {
           called = true;
           console.log('cache was posted', newCache);
           if (err) return res.status(400).send(err.message);
@@ -91,10 +93,12 @@ module.exports = function(app, auth) {
           if (!newCache) return res.status(400).send();
 
           var response = cacheXform.transform(newCache);
-          res.location(newCache._id.toString()).json(response);
+          res.location(newCache.id.toString()).json(response);
         }
       }, function(err, newCache) {
-        if (newCache._id && !called) {
+        console.log('progress err', err);
+        console.log('progress', newCache);
+        if (newCache.id && !called) {
           called = true;
           console.log('cache was posted', newCache);
           if (err) return res.status(400).send(err.message);
@@ -102,7 +106,7 @@ module.exports = function(app, auth) {
           if (!newCache) return res.status(400).send();
 
           var response = cacheXform.transform(newCache);
-          res.location(newCache._id.toString()).json(response);
+          res.location(newCache.id.toString()).json(response);
         }
       });
     }
@@ -120,7 +124,7 @@ module.exports = function(app, auth) {
         if (!newCache) return res.status(400).send();
 
         var response = cacheXform.transform(newCache);
-        res.location(newCache._id.toString()).json(response);
+        res.location(newCache.id.toString()).json(response);
       });
     }
   );

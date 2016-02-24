@@ -190,6 +190,7 @@ function parseGeoJSONFile(source, callback, progressCallback) {
       async.setImmediate(function() {
         var fivePercent = Math.floor(gjData.features.length * 0.05);
         // console.log('create feature', feature);
+        console.log('inserting feature for source id', source.id);
         FeatureModel.createFeature(feature, {sourceId:source.id}, function(err) {
           if (err) log.error('err', err);
           count++;
@@ -255,7 +256,6 @@ function setSourceStyle(source, callback) {
 
 function setSourceProperties(source, callback) {
   source.properties = [];
-  log.info('looking for properties for source %s: %s', source.name, source.id);
   FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
     async.eachSeries(propertyArray, function(key, propertyDone) {
       FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {

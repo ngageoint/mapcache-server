@@ -177,13 +177,12 @@ module.exports = function(app, auth) {
   );
 
   app.delete(
-    '/api/maps/:sourceId/dataSources/:dataSourceId',
+    '/api/maps/:sourceIdNoProperties/dataSources/:dataSourceId',
     access.authorize('CREATE_CACHE'),
     parseQueryParams,
     function(req, res) {
       new Map(req.source).deleteDataSource(req.param('dataSourceId'), function(err, source) {
-        var sourceJson = sourceXform.transform(source);
-        res.json(sourceJson);
+        res.json(source);
       });
     }
   );
@@ -319,14 +318,13 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res) {
-      var sourceJson = sourceXform.transform(req.source);
-      res.json(sourceJson);
+      res.json(req.source);
     }
   );
 
   // Delete a specific source
   app.delete(
-    '/api/maps/:sourceId',
+    '/api/maps/:sourceIdNoProperties',
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {

@@ -69,7 +69,6 @@ describe("map route tests", function() {
 
   it('tests', function() {
     TokenModel.findOne({token: "12345"}, function(err, token) {
-      console.log('Token', token);
     });
   });
 
@@ -161,7 +160,6 @@ describe("map route tests", function() {
         .expect(function(res) {
           var source = res.body;
           mapId = source.id;
-          console.log('map', source);
           source.should.have.property('id');
           source.should.have.property('name');
           source.should.have.property('dataSources');
@@ -247,7 +245,6 @@ describe("map route tests", function() {
           map.should.have.property('id', mapId);
           map.should.have.property('mapcacheUrl', '/api/sources/'+mapId);
           map.should.have.property('dataSources');
-          console.log(res.body);
         })
         .end(done);
     });
@@ -266,7 +263,6 @@ describe("map route tests", function() {
           map.should.have.property('id', mapId);
           map.should.have.property('mapcacheUrl', '/api/sources/'+mapId);
           map.should.have.property('dataSources');
-          console.log(res.body);
         })
         .end(done);
     });
@@ -277,7 +273,6 @@ describe("map route tests", function() {
         .set('Authorization', 'Bearer 12345')
         .expect(200)
         .expect(function(res) {
-          console.log('res', res);
         })
         .end(done);
     });

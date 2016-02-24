@@ -1,6 +1,4 @@
-var assert = require('assert')
-  , async = require('async')
-  , turf = require('turf')
+var turf = require('turf')
   , fs = require('fs-extra')
   , log = require('mapcache-log')
   , colors = require('colors')
@@ -40,7 +38,7 @@ function getRandomInt(min, max) {
 }
 
 function toHex(d) {
-    return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase()
+    return  ("0"+(Number(d).toString(16))).slice(-2).toUpperCase();
 }
 
 function getRandomColor() {
@@ -54,7 +52,7 @@ function getRandomStyle() {
     'stroke': getRandomColor(),
     'stroke-opacity': 0.5,
     'stroke-width': 1
-  }
+  };
 }
 
 var formatDataSources = [{
@@ -81,7 +79,7 @@ var formatDataSources = [{
   testParams: {
     featureCount: 1
   }
-},{
+},/*{
   id: 'test-wms',
   name: 'wms',
   format: 'wms',
@@ -90,7 +88,7 @@ var formatDataSources = [{
   wmsLayer: {
     Name: 'osm_auto:all'
   }
-},
+},*/
 mocks.mapMocks.wmsDatasource,
 {
   id: 'test-arcgis',
@@ -199,7 +197,6 @@ describe('Format Tests', function() {
           if(err) {
             return done(err);
           }
-          console.log('Source', newSource);
           newSource.status.message.should.equal("Complete");
           endTest('Process the source ' + dataSource.id);
           done();
@@ -219,7 +216,6 @@ describe('Format Tests', function() {
 
           should.exist(tileStream);
 
-          console.log('writing the file');
           var ws = fs.createOutputStream(path.join('/tmp', 'test_'+dataSource.id+'.png'));
           ws.on('close', function() {
             endTest('Pull the 0/0/0 tile for the data source ' + dataSource.id);
@@ -233,7 +229,6 @@ describe('Format Tests', function() {
         this.timeout(10000);
         startTest('Pull a tile containing the extent of the geometry for source ' + dataSource.id);
         if (!dataSource.geometry) {
-          console.log('no geometry for source ' + dataSource.format);
           return done(new Error('no geom for source ' + dataSource.format));
         }
         var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(dataSource.geometry));
@@ -255,7 +250,7 @@ describe('Format Tests', function() {
 
           tileStream.pipe(ws);
         });
-      })
+      });
 
       it('should get all features of the source', function(done) {
         startTest('Get all features of the source ' + dataSource.id);
@@ -266,7 +261,6 @@ describe('Format Tests', function() {
             return;
           }
 
-          log.info("Get All Features feature count", features);
           if (dataSource.testParams && dataSource.testParams.featureCount) {
             features.length.should.be.equal(dataSource.testParams.featureCount);
           } else {
@@ -320,17 +314,14 @@ describe('Format Tests', function() {
       it ('should run tests if available for source ' + dataSource.format, function() {
         if (!f) return;
         describe(dataSource.format + ' cache tests if available', function() {
-          console.log('in the cache tests for source ' + dataSource.format);
 
           before(function(done) {
             beforeTest(dataSource.format + ' cache tests');
             this.timeout(30000);
-            console.log('doing the before');
             FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(count) {
               log.info('deleted %d %s features', count, dataSource.id);
               var cacheObj = new Cache(cache);
               cacheObj.callbackWhenInitialized(function(err, cacheObj) {
-                console.log('format', !!Format);
                 try {
                   f = new Format({
                     cache: cacheObj,

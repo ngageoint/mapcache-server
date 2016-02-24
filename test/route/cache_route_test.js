@@ -129,7 +129,6 @@ describe("Cache Route Tests", function() {
           name: 'Cache'
         })
         .expect(function(res) {
-          console.log(res);
         })
         .end(done);
     });
@@ -157,7 +156,6 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('minZoom', 0);
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
-          console.log('cache', cache);
         })
         .end(done);
     });
@@ -186,7 +184,6 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('minZoom', 0);
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
-          console.log('cache', cache);
         })
         .end(function() {
           var finishedGenerating = false;
@@ -243,7 +240,6 @@ describe("Cache Route Tests", function() {
         .expect(function(res) {
           map = res.body;
           mapId = map.id;
-          console.log('map', map);
         })
         .end(function() {
           request(app)
@@ -267,7 +263,6 @@ describe("Cache Route Tests", function() {
               cache.should.have.property('minZoom', 0);
               cache.should.have.property('maxZoom', 3);
               cache.should.have.property('status');
-              console.log('cache', cache);
             })
             .end(done);
         });
@@ -277,7 +272,13 @@ describe("Cache Route Tests", function() {
       if (!mapId) return done();
       Map.getById(mapId, function(err, map) {
         var m = new Map(map);
-        m.delete(done);
+        m.delete(function() {
+          if (!cacheId) return done();
+          Cache.getById(cacheId, function(err, cache) {
+            var c = new Cache(cache);
+            c.delete(done);
+          });
+        });
       });
     });
 
@@ -347,7 +348,6 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
           cache.status.should.have.property('xyz');
-          console.log(res.body);
         }).end(function() {
           var finishedGenerating = false;
           console.log('until');
@@ -391,7 +391,6 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
           cache.formats.should.have.property('xyz');
-          console.log(res.body);
         }).end(function() {
           var finishedGenerating = false;
           console.log('until');
@@ -461,7 +460,6 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
           cache.status.should.have.property('xyz');
-          console.log(res.body);
         }).end(function() {
           var finishedGenerating = false;
           console.log('until');
@@ -511,7 +509,6 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('maxZoom', 3);
           cache.should.have.property('status');
           cache.status.should.have.property('xyz');
-          console.log(res.body);
         }).end(function() {
           request(app)
             .delete('/api/caches/'+cacheId+'/xyz')

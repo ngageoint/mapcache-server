@@ -45,6 +45,7 @@ exports.getAllPropertiesFromSource = function(query, callback) {
 
 exports.getPropertyKeysFromSource = function(query, callback) {
 	if (!query.layerId) query.layerId = null;
+  if (query.sourceId) query.sourceId = query.sourceId.toString();
 	knex(function(knex) {
 		knex('features')
 		.distinct(knex.raw('json_object_keys(properties) as property'))
@@ -57,6 +58,7 @@ exports.getPropertyKeysFromSource = function(query, callback) {
 exports.getValuesForKeyFromSource = function(key, query, callback) {
 	if (!query.sourceId) query.sourceId = null;
 	if (!query.layerId) query.layerId = null;
+  if (query.sourceId) query.sourceId = query.sourceId.toString();
 	knex(function(knex) {
 		knex('features')
 		.distinct(knex.raw('properties::jsonb -> \''+key+'\' as value'))

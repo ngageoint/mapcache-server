@@ -111,6 +111,8 @@ function transform(source, ret) {
         addRasterSources = true;
       }
     });
+    console.log('add vector sources? ', addVectorSources);
+    console.log('add raster sources? ', addRasterSources);
     if (addVectorSources) {
       var vectorTypes = config.sourceCacheTypes.vector;
       vectorTypes.forEach(function(type) {
@@ -127,7 +129,6 @@ function transform(source, ret) {
 }
 
 function transformDatasource(source, ret) {
-  console.log('datasource ret', ret);
 	ret.id = ret._id;
 	delete ret._id;
 	delete ret.__v;
@@ -137,9 +138,18 @@ DatasourceSchema.set("toJSON", {
   transform: transformDatasource
 });
 
+DatasourceSchema.set('toObject', {
+  transform: transformDatasource
+});
+
 SourceSchema.set("toJSON", {
   transform: transform
 });
+
+SourceSchema.set('toObject', {
+  transform: transform
+});
+
 var Source = mongoose.model('Source', SourceSchema);
 
 exports.sourceModel = Source;
@@ -175,9 +185,11 @@ exports.getSourceById = function(id, callback) {
       console.log("Error finding source in mongo: " + id + ', error: ' + err);
     }
 		if (source) {
+      source = source.toObject();
       async.eachSeries(source.dataSources, function(ds, dsDone) {
         if (ds.vector) {
-          Feature.getAllPropertiesFromSource({sourceId: ds._id}, function(properties) {
+          Feature.getAllPropertiesFromSource({sourceId: ds.id}, function(properties) {
+            console.log('got properties from source', properties);
             if (properties.length) {
               ds.properties = properties;
             }
@@ -187,13 +199,15 @@ exports.getSourceById = function(id, callback) {
           dsDone();
         }
       }, function() {
-        source.cacheTypes = config.sourceCacheTypes[source.format];
+        console.log('source after the properties', source);
+        // source.cacheTypes = config.sourceCacheTypes[source.format];
   	    return callback(err, source);
       });
 		} else {
   		// try to find by human readable
   		Source.findOne({humanReadableId: id}, function(err, source) {
         if (source) {
+          source = source.toObject();
           async.eachSeries(source.dataSources, function(ds, dsDone) {
             if (ds.vector) {
               Feature.getAllPropertiesFromSource({sourceId: ds._id}, function(properties) {
