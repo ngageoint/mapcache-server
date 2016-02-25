@@ -64,7 +64,6 @@ Cache.create = function(cache, callback, progressCallback) {
 };
 
 function createFormat(formats, cache, callback, progressCallback) {
-  console.trace();
   callback = callback || function() {};
   var cacheApi = new CacheApi(cache);
   cacheApi.callbackWhenInitialized(function(err, cache) {

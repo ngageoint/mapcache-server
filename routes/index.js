@@ -58,6 +58,11 @@ module.exports = function(app, security) {
   app.param('cacheId', function(req, res, next, cacheId) {
       Cache.getCacheById(cacheId, function(err, cache) {
         if (!cache) return res.status(404).send('Cache ' + cacheId + ' not found');
+        if (cache.permission === 'USER') {
+          if (cache.userId.toString() !== req.user._id.toString()) {
+            return res.status(404).send('Cache ' + cacheId + ' not found');
+          }
+        }
         req.cache = cache;
         next();
       });
@@ -67,6 +72,11 @@ module.exports = function(app, security) {
   app.param('sourceId', function(req, res, next, sourceId) {
       Source.getSourceById(sourceId, function(err, source) {
         if (!source) return res.status(404).send('Source ' + sourceId + ' not found');
+        if (source.permission === 'USER') {
+          if (source.userId.toString() !== req.user._id.toString()) {
+            return res.status(404).send('Source ' + sourceId + ' not found');
+          }
+        }
         req.source = source;
         next();
       });

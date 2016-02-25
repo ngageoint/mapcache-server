@@ -18,6 +18,7 @@ module.exports = function(app, auth) {
       source = JSON.parse(source.map);
     }
     req.newSource = source;
+    req.newSource.permission = req.newSource.permission || 'MAPCACHE';
     console.log('req.user', req.user);
     req.newSource.userId = req.user ? req.user._id : null;
     if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
@@ -50,6 +51,8 @@ module.exports = function(app, auth) {
       if (req.param('format')) {
         options.format = req.param('format');
       }
+
+      options.userId = req.user._id;
 
       Map.getAll(options, function(err, sources) {
         if (err) return next(err);

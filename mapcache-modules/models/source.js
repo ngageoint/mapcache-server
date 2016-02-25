@@ -92,7 +92,8 @@ var SourceSchema = new Schema({
   wmsGetCapabilities: Schema.Types.Mixed,
   wmsLayer: Schema.Types.Mixed,
   url: { type: String, required: false },
-  userId: {type: Schema.Types.ObjectId, required: false, sparse: true}
+  userId: {type: Schema.Types.ObjectId, required: false, sparse: true},
+  permission: {type: String, required: false}
 });
 
 function transform(source, ret) {
@@ -156,7 +157,21 @@ var Source = mongoose.model('Source', SourceSchema);
 exports.sourceModel = Source;
 
 exports.getSources = function(options, callback) {
+  var userId = options.userId;
+  delete options.userId;
   var query = options || {};
+  if (userId) {
+    query.$or = [{
+      $and: [
+        {userId: userId},
+        {permission: 'USER'}
+      ]
+    }, {
+      permission: { $exists: false }
+    }, {
+      permission: 'MAPCACHE'
+    }];
+  }
 	Source.find(query).exec(function(err, sources) {
     if (err) {
       console.log("Error finding sources in mongo, error: " + err);

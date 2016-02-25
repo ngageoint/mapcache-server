@@ -20,6 +20,7 @@ module.exports = function(app, auth) {
       return res.status(400).send('geometry is required');
     }
     req.newCache = cache;
+    req.newCache.permission = req.newCache.permission || 'MAPCACHE';
     req.newCache.userId = req.user ? req.user._id : null;
     next();
   };
@@ -61,7 +62,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var options = {
-
+        userId: req.user._id
       };
 
       Cache.getAll(options, function(err, caches) {
