@@ -91,7 +91,8 @@ var SourceSchema = new Schema({
   vector: { type: Boolean, required: false},
   wmsGetCapabilities: Schema.Types.Mixed,
   wmsLayer: Schema.Types.Mixed,
-  url: { type: String, required: false }
+  url: { type: String, required: false },
+  userId: {type: Schema.Types.ObjectId, required: false, sparse: true}
 });
 
 function transform(source, ret) {
@@ -189,7 +190,6 @@ exports.getSourceById = function(id, callback) {
       async.eachSeries(source.dataSources, function(ds, dsDone) {
         if (ds.vector) {
           Feature.getAllPropertiesFromSource({sourceId: ds.id}, function(properties) {
-            console.log('got properties from source', properties);
             if (properties.length) {
               ds.properties = properties;
             }
@@ -199,8 +199,6 @@ exports.getSourceById = function(id, callback) {
           dsDone();
         }
       }, function() {
-        console.log('source after the properties', source);
-        // source.cacheTypes = config.sourceCacheTypes[source.format];
   	    return callback(err, source);
       });
 		} else {

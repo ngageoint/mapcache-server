@@ -40,8 +40,8 @@ var CacheSchema = new Schema({
 	cacheCreationParams: Schema.Types.Mixed,
 	style: Schema.Types.Mixed,
 	vector: { type: Boolean, required: true, default: false},
-	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }/*,
-	userId: { type: Schema.Types.ObjectId, ref: 'User', required: false }*/
+	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true },
+  userId: {type: Schema.Types.ObjectId, required: false, sparse: true}
 },{
 	strict: true
 });

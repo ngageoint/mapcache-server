@@ -20,6 +20,7 @@ module.exports = function(app, auth) {
       return res.status(400).send('geometry is required');
     }
     req.newCache = cache;
+    req.newCache.userId = req.user ? req.user._id : null;
     next();
   };
 
@@ -42,9 +43,7 @@ module.exports = function(app, auth) {
       req.cache.minZoom = req.param('minZoom') || req.cache.minZoom;
       req.cache.maxZoom = req.param('maxZoom') || req.cache.maxZoom;
       new Cache(req.cache).createFormat(format, function(err, newCache) {
-        console.log('cache done', newCache);
       }, function(err, newCache) {
-        console.log('cache progress', newCache);
         if (sent) return;
         if (!err) {
           sent = true;
@@ -83,11 +82,8 @@ module.exports = function(app, auth) {
     function(req, res) {
       var called = false;
       Cache.create(req.newCache, function(err, newCache) {
-        console.log('callback err', err);
-        console.log('callback', newCache);
         if (newCache.id && !called) {
           called = true;
-          console.log('cache was posted', newCache);
           if (err) return res.status(400).send(err.message);
 
           if (!newCache) return res.status(400).send();
@@ -96,11 +92,8 @@ module.exports = function(app, auth) {
           res.location(newCache.id.toString()).json(response);
         }
       }, function(err, newCache) {
-        console.log('progress err', err);
-        console.log('progress', newCache);
         if (newCache.id && !called) {
           called = true;
-          console.log('cache was posted', newCache);
           if (err) return res.status(400).send(err.message);
 
           if (!newCache) return res.status(400).send();
@@ -148,7 +141,6 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res) {
       if (!req.cache.geometry) return res.status(404).send();
-      console.log('req.cache.geometry', req.cache.geometry);
       var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry));
       new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) {
@@ -156,7 +148,6 @@ module.exports = function(app, auth) {
           return res.status(404).send();
         }
         if (!tileStream) return res.status(404).send();
-        console.log('bloop');
         tileStream.pipe(res);
       });
     }
@@ -178,7 +169,6 @@ module.exports = function(app, auth) {
           return res.sendStatus(202);
         }
         if (status.stream) {
-          console.log('streaming %s', req.cache.name + '_' + format + status.extension);
           res.attachment(req.cache.name + '_' + format + status.extension);
           status.stream.pipe(res);
         }

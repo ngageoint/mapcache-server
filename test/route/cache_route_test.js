@@ -4,6 +4,7 @@ var request = require('supertest')
   , async = require('async')
   , turf = require('turf')
   , fs = require('fs-extra')
+  , colors = require('colors')
   // this initializes the mongo models
   , models = require('mapcache-models') // jshint ignore:line
   , TokenModel = mongoose.model('Token')
@@ -14,6 +15,22 @@ var request = require('supertest')
 
 require('sinon-mongoose');
 // require('chai').should();
+
+function startTest(test) {
+  console.log('Starting: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function endTest(test) {
+  console.log('Complete: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function beforeTest(test) {
+  console.log('Before: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
+
+function afterTest(test) {
+  console.log('After: '.white.bgRed.italic + test.white.bgBlue.bold);
+}
 
 describe("Cache Route Tests", function() {
 
@@ -38,14 +55,16 @@ describe("Cache Route Tests", function() {
     });
   });
 
-  beforeEach(function() {
+  var userId = mongoose.Types.ObjectId();
+
+  before(function() {
     var token = {
       _id: '1',
       token: '12345',
       userId: {
         populate: function(field, callback) {
           callback(null, {
-            _id: '1',
+            _id: userId,
             username: 'test',
             roleId: {
               permissions: ['CREATE_CACHE', 'READ_CACHE', 'DELETE_CACHE', 'EXPORT_CACHE']
@@ -66,7 +85,7 @@ describe("Cache Route Tests", function() {
       .yields(null, token);
   });
 
-  afterEach(function() {
+  after(function() {
     sandbox.restore();
   });
 
@@ -116,7 +135,7 @@ describe("Cache Route Tests", function() {
     });
 
     it("api should fail to create a cache because geometry is not specified", function(done) {
-
+      startTest("api should fail to create a cache because geometry is not specified");
       request(app)
         .post('/api/caches')
         .set('Accept', 'application/json')
@@ -134,7 +153,7 @@ describe("Cache Route Tests", function() {
     });
 
     it("api should create a cache", function(done) {
-
+      startTest("api should create a cache");
       request(app)
         .post('/api/caches')
         .set('Accept', 'application/json')
@@ -144,7 +163,7 @@ describe("Cache Route Tests", function() {
         .send({
           sourceId: mapId,
           minZoom: 0,
-          maxZoom: 3,
+          maxZoom: 1,
           name: 'Cache',
           geometry: turf.bboxPolygon([-180, -85, 180, 85]).geometry
         })
@@ -152,15 +171,17 @@ describe("Cache Route Tests", function() {
           var cache = res.body;
           cacheId = cache.id;
           cache.should.have.property('id');
+          cache.should.have.property('userId', userId.toString());
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
         })
         .end(done);
     });
 
     it("api should create a cache and generate a format", function(done) {
+      startTest("api should create a cache and generate a format");
       this.timeout(10000);
       request(app)
         .post('/api/caches')
@@ -171,7 +192,7 @@ describe("Cache Route Tests", function() {
         .send({
           sourceId: mapId,
           minZoom: 0,
-          maxZoom: 3,
+          maxZoom: 1,
           name: 'Cache',
           create: ['xyz'],
           geometry: turf.bboxPolygon([-180, -85, 180, 85]).geometry
@@ -182,7 +203,7 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('id');
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
         })
         .end(function() {
@@ -200,7 +221,7 @@ describe("Cache Route Tests", function() {
                   if (!cache.status.complete) return;
                   cache.formats.should.have.property('xyz');
                   if (cache.formats.xyz.complete) {
-                    cache.formats.xyz.should.have.property('generatedTiles', 85);
+                    cache.formats.xyz.should.have.property('generatedTiles', 5);
                     finishedGenerating = true;
                   }
                 }).end(function() {
@@ -220,7 +241,7 @@ describe("Cache Route Tests", function() {
     var map;
     var cacheId;
 
-    beforeEach(function(done) {
+    before(function(done) {
       request(app)
         .post('/api/maps')
         .set('Accept', 'application/json')
@@ -251,7 +272,7 @@ describe("Cache Route Tests", function() {
             .send({
               sourceId: mapId,
               minZoom: 0,
-              maxZoom: 3,
+              maxZoom: 1,
               name: 'Cache',
               geometry: turf.bboxPolygon([-180, -85, 180, 85]).geometry
             })
@@ -261,14 +282,14 @@ describe("Cache Route Tests", function() {
               cache.should.have.property('id');
               cache.should.have.property('name', 'Cache');
               cache.should.have.property('minZoom', 0);
-              cache.should.have.property('maxZoom', 3);
+              cache.should.have.property('maxZoom', 1);
               cache.should.have.property('status');
             })
             .end(done);
         });
     });
 
-    afterEach(function(done) {
+    after(function(done) {
       if (!mapId) return done();
       Map.getById(mapId, function(err, map) {
         var m = new Map(map);
@@ -283,6 +304,7 @@ describe("Cache Route Tests", function() {
     });
 
     it ('should get all caches for the map', function(done) {
+      startTest('should get all caches for the map');
       request(app)
         .get('/api/maps/'+mapId+'/caches')
         .set('Authorization', 'Bearer 12345')
@@ -296,13 +318,14 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('id', cacheId);
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
         })
         .end(done);
     });
 
     it ('should pull the cache', function(done) {
+      startTest('should pull the cache');
       request(app)
         .get('/api/caches/'+cacheId)
         .set('Authorization', 'Bearer 12345')
@@ -314,13 +337,14 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('id', cacheId);
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
         })
         .end(done);
     });
 
     it ('should pull the 0/0/0 tile for the cache', function(done) {
+      startTest('should pull the 0/0/0 tile for the cache');
       var file = fs.createWriteStream('/tmp/cache_test.png');
       file.on('close', done);
       request(app)
@@ -334,6 +358,7 @@ describe("Cache Route Tests", function() {
     });
 
     it ('should generate an xyz cache', function(done) {
+      startTest('should generate an xyz cache');
       this.timeout(10000);
       request(app)
         .get('/api/caches/'+cacheId + '/generate')
@@ -345,7 +370,7 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('id', cacheId);
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
           cache.status.should.have.property('xyz');
         }).end(function() {
@@ -362,7 +387,7 @@ describe("Cache Route Tests", function() {
                   var cache = res.body;
                   cache.formats.should.have.property('xyz');
                   if (cache.formats.xyz.complete) {
-                    cache.formats.xyz.should.have.property('generatedTiles', 85);
+                    cache.formats.xyz.should.have.property('generatedTiles', 5);
                     finishedGenerating = true;
                   }
                 }).end(function() {
@@ -377,6 +402,7 @@ describe("Cache Route Tests", function() {
     });
 
     it ('should generate a geopackage cache', function(done) {
+      startTest('should generate a geopackage cache');
       this.timeout(10000);
       request(app)
         .get('/api/caches/'+cacheId + '/generate')
@@ -388,7 +414,7 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('id', cacheId);
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
           cache.formats.should.have.property('xyz');
         }).end(function() {
@@ -421,6 +447,7 @@ describe("Cache Route Tests", function() {
     });
 
     it('should pull the overview tile', function(done) {
+      startTest('should pull the overview tile');
       var file = fs.createWriteStream('/tmp/cache_overview_tile_test.png');
       file.on('close', done);
       request(app)
@@ -428,12 +455,12 @@ describe("Cache Route Tests", function() {
         .set('Authorization', 'Bearer 12345')
         .expect(200)
         .expect(function(res) {
-          console.log('XXXXXXXXXXXXXX_____-------______-------res', res);
         })
         .pipe(file);
     });
 
     it('should pull the 0/0/0 tile', function(done) {
+      startTest('should pull the 0/0/0 tile');
       var file = fs.createWriteStream('/tmp/cache_zero_tile_test.png');
       file.on('close', done);
       request(app)
@@ -441,12 +468,12 @@ describe("Cache Route Tests", function() {
         .set('Authorization', 'Bearer 12345')
         .expect(200)
         .expect(function(res) {
-          console.log('XXXXXXXXXXXXXX_____-------______-------res', res);
         })
         .pipe(file);
     });
 
     it ('should generate an xyz cache and download it', function(done) {
+      startTest('should generate an xyz cache and download it');
       this.timeout(15000);
       request(app)
         .get('/api/caches/'+cacheId + '/xyz')
@@ -474,7 +501,7 @@ describe("Cache Route Tests", function() {
                   var cache = res.body;
                   cache.formats.should.have.property('xyz');
                   if (cache.formats.xyz.complete) {
-                    cache.formats.xyz.should.have.property('generatedTiles', 85);
+                    cache.formats.xyz.should.have.property('generatedTiles', 5);
                     finishedGenerating = true;
                   }
                 }).end(function() {
@@ -496,6 +523,7 @@ describe("Cache Route Tests", function() {
     });
 
     it('should delete the cache xyz format', function(done) {
+      startTest('should delete the cache xyz format');
       request(app)
         .get('/api/caches/'+cacheId + '/generate')
         .set('Authorization', 'Bearer 12345')
@@ -506,7 +534,7 @@ describe("Cache Route Tests", function() {
           cache.should.have.property('id', cacheId);
           cache.should.have.property('name', 'Cache');
           cache.should.have.property('minZoom', 0);
-          cache.should.have.property('maxZoom', 3);
+          cache.should.have.property('maxZoom', 1);
           cache.should.have.property('status');
           cache.status.should.have.property('xyz');
         }).end(function() {
@@ -515,11 +543,9 @@ describe("Cache Route Tests", function() {
             .set('Authorization', 'Bearer 12345')
             .expect(200)
             .expect(function(res) {
-              console.log('XXXXXXXXXXXXXX_____-------______-------res', res);
             })
             .end(done);
         });
     });
-
   });
 });
