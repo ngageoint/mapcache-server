@@ -196,6 +196,8 @@ module.exports = function StorageController($scope, $http, $location, $injector,
     }, function(response) {
       user.active = false;
       $scope.error = response.responseText;
+    }, function() {
+      
     });
   };
 

@@ -155,7 +155,6 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     var height = canvas.height;
 
     ctx.clearRect(0, 0, height, height);
-    log.info('self.dataSourceErrors', self.dataSourceErrors);
     async.eachSeries(sorted, function iterator(s, callback) {
       log.info('self.dataSourceErrors[s.source.id]', self.dataSourceErrors[s.source.id]);
       if (params.dataSources.indexOf(s.source.id) === -1 || self.dataSourceErrors[s.source.id]) return callback();
