@@ -88,17 +88,13 @@ KMZ.prototype.processSource = function(doneCallback) {
 };
 
 KMZ.prototype._extractLayer = function(file, layer, layerId, callback) {
-  console.log('this', this);
   log.info('Extract the layer %s', layer);
 
   var ogr = ogr2ogr(file);
   var stream = ogr.skipfailures().options([layer]).stream();
   var gjStream = geojsonStream.parse();
   gjStream.on('data', function(feature) {
-    // console.log('feature', feature);
-    var source = this.source.id;
     FeatureModel.createFeature(feature, {sourceId: this.source.id, layerId: layerId}, function() {
-      log.debug('Created feature for sourceId %s and layerId %s', source, layerId, feature);
     });
   }.bind(this));
   gjStream.on('end', function() {
@@ -108,7 +104,6 @@ KMZ.prototype._extractLayer = function(file, layer, layerId, callback) {
 };
 
 function isAlreadyProcessed(source, callback) {
-  log.debug('is it already processed?', source);
   if (source.status && source.status.complete) {
     return callback(true);
   }

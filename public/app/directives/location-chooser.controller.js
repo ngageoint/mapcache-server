@@ -1,13 +1,12 @@
 module.exports = function LocationChooserController($scope, $element) {
 
-  $element.find(':file').bind('change', function() {
-    $scope.file = this.files[0];
+  $element.find(':file').bind('change', function(event) {
+    $scope.file = event.target.files[0];
     if ($scope.file) {
       $scope.location = $scope.file.name;
     }
-    $scope.$emit('location-file', $scope.file);
-    // $scope.$emit('location-file', {name: 'pee'});
     $scope.$apply();
+    $scope.$emit('location-file', $scope.file);
   });
 
   function isValidURL(str) {

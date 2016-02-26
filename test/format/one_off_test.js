@@ -6,27 +6,27 @@ var assert = require('assert')
   , Map = require('../../map/map')
   , should = require('should');
 
-var geotiffDataSource = {
-  id: 'test-ds',
-  name: 'geotiff',
-  format: 'geotiff',
-  file: {
-    path: __dirname + '/new.tif',
-    name: 'new.tif'
-  },
-  zOrder: 0
-};
-
 // var geotiffDataSource = {
 //   id: 'test-ds',
 //   name: 'geotiff',
-//   format: 'mrsid',
+//   format: 'geotiff',
 //   file: {
-//     path: __dirname + '/13may28132352-s3dm_r4c7-054553426010_01_p001.sid',
-//     name: '13may28132352-s3dm_r4c7-054553426010_01_p001.sid'
+//     path: __dirname + '/new.tif',
+//     name: 'new.tif'
 //   },
 //   zOrder: 0
 // };
+
+var geotiffDataSource = {
+  id: 'test-ds',
+  name: 'geotiff',
+  format: 'mrsid',
+  file: {
+    path: __dirname + '/5682de4cfff8e4894de8fcda',
+    name: '5682de4cfff8e4894de8fcda'
+  },
+  zOrder: 0
+};
 
 var mapModel = {
   id: 'test-map',
@@ -56,7 +56,7 @@ var tmpImage = '/tmp/geotiff_test.png';
 describe('geotiff source tests', function() {
   var map;
   before(function(done) {
-    this.timeout(10000);
+    this.timeout(60000);
     map = new Map(mapModel);
     map.callbackWhenInitialized(function() {
       done();

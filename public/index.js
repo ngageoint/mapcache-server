@@ -5,7 +5,7 @@ require('angular-sanitize');
 require('./app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
 // putting this  because you have to build it before you can use it
-require('./vendor/angular-ui-select');
+require('./vendor/angular_ui_select');
 
 // fix the image path
 var L = require('leaflet');
@@ -21,7 +21,6 @@ require('./app/admin/storage');
 require('./app/user');
 require('./app/about');
 require('./app/directives');
-require('./app/file-upload');
 
 app.config(function($routeProvider, $httpProvider) {
 

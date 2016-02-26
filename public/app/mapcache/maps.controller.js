@@ -1,5 +1,5 @@
 var _ = require('underscore');
-module.exports = function MapsController($scope, $rootScope, LocalStorageService, CacheService, MapService) {
+module.exports = function MapsController($scope, $rootScope, LocalStorageService, MapService) {
   $scope.token = LocalStorageService.getToken();
   $rootScope.title = 'Maps';
 
@@ -8,7 +8,7 @@ module.exports = function MapsController($scope, $rootScope, LocalStorageService
     opacity: 0.5
   };
 
-  MapService.getAllMaps(true).success(function(maps) {
+  MapService.getAllMaps(true).then(function(maps) {
     $scope.maps = maps;
 
     _.each($scope.maps, function(map) {

@@ -25,8 +25,8 @@ exports.server = {
     },
     "postgres": {
       "host": "127.0.0.1",
-      //"user": "postgres",
-      //"password": "postgres",
+      "user": "postgres",
+      "password": "postgres",
       "database": "mapcache"
     },
     "cacheDirectory": {

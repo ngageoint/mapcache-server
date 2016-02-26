@@ -1,6 +1,10 @@
 module.exports = function offsetFilter() {
-  return function(input, start) {
+  return function(input, start, length) {
     start = parseInt(start, 10);
-    return input.slice(start);
+    if (length) {
+      return input.slice(start, start+length);
+    } else {
+      return input.slice(start);
+    }
   };
 };

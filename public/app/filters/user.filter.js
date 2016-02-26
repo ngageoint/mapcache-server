@@ -3,12 +3,9 @@ var _ = require('underscore');
 module.exports = function userFilter() {
   return function(collection, properties, search) {
     if (!search) return collection;
+    if (!collection) return null;
 
     collection = (_.isArray(collection)) ? collection : [collection];
-
-    if(!_.isArray(collection) || _.isUndefined(search)) {
-      return collection;
-    }
 
     var match = new RegExp(search, 'i');
     return collection.filter(function(element) {

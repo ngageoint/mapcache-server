@@ -95,8 +95,7 @@
   },
   "scripts": {
     "postinstall": "cd public && npm install && npm run build",
-    "test": "istanbul cover  _mocha",
-    "browsertest": "cd public && karma start"
+    "test": "istanbul cover  _mocha"
   },
   "bundleDependencies": [],
   "private": true,

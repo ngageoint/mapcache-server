@@ -5,7 +5,7 @@ require('angular-route');
 require('../app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
 // putting this  because you have to build it before you can use it
-require('../vendor/angular-ui-select');
+require('../vendor/angular_ui_select');
 require('angular-sanitize');
 
 angular.module('ngTemplates',[]);
@@ -15,7 +15,14 @@ angular.module('ngTemplates',[]);
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
-angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select', 'ngTemplates' ]);
+angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select', 'ngTemplates']).config(function($routeProvider) {
+
+  $routeProvider.when('/map/:mapId/edit', {
+    templateUrl:    'app/mapcache/map/map-edit.html',
+    // template : 'welcome to {{ title }}',
+    controller:     "MapEditController"
+  });
+});
 
 describe('mapcache browser tests', function() {
 
@@ -31,7 +38,6 @@ describe('mapcache browser tests', function() {
     require('../app/user');
     require('../app/about');
     require('../app/directives');
-    require('../app/file-upload');
   });
 
   it('should have created the module', function(){

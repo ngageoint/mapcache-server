@@ -74,6 +74,7 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   $scope.itemsPerPage = 10;
 
   UserService.getRoles().then(function (roles) {
+    console.log('roles', roles);
     $scope.roles = roles;
   });
 
@@ -188,6 +189,7 @@ module.exports = function StorageController($scope, $http, $location, $injector,
 
   /* shortcut for giving a user the USER_ROLE */
   $scope.activateUser = function (user) {
+    user.active = true;
     UserService.updateUser(user.id, user, function() {
       $scope.saved = true;
       user.active = true;
@@ -195,6 +197,8 @@ module.exports = function StorageController($scope, $http, $location, $injector,
     }, function(response) {
       user.active = false;
       $scope.error = response.responseText;
+    }, function() {
+
     });
   };
 

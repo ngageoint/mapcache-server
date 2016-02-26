@@ -40,8 +40,9 @@ var CacheSchema = new Schema({
 	cacheCreationParams: Schema.Types.Mixed,
 	style: Schema.Types.Mixed,
 	vector: { type: Boolean, required: true, default: false},
-	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true }/*,
-	userId: { type: Schema.Types.ObjectId, ref: 'User', required: false }*/
+	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true },
+  userId: {type: Schema.Types.ObjectId, required: false, sparse: true},
+  permission: {type: String, required: false}
 },{
 	strict: true
 });
@@ -53,6 +54,7 @@ function transform(cache, ret) {
 	delete ret._id;
 
 	delete ret.__v;
+  ret.permission = cache.permission || 'MAPCACHE';
 
 	if (cache.populated('sourceId')) {
 		ret.source = ret.sourceId;
@@ -83,7 +85,21 @@ if (mongoose.models.Cache) {
 exports.cacheModel = Cache;
 
 exports.getCaches = function(options, callback) {
+  var userId = options.userId;
+  delete options.userId;
 	var query = options || {};
+  if (userId) {
+    query.$or = [{
+      $and: [
+        {userId: userId},
+        {permission: 'USER'}
+      ]
+    }, {
+      permission: { $exists: false }
+    }, {
+      permission: 'MAPCACHE'
+    }];
+  }
 	Cache.find(query).populate('sourceId').exec(function(err, caches) {
     if (err) {
       console.log('Error finding caches in mongo error: ' + err);

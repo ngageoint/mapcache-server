@@ -1,9 +1,19 @@
 var mongoose = require('mongoose')
   , config = require('mapcache-config')
+  , Feature = require('./feature')
+  , async = require('async')
   , shortid = require('shortid');
 
 // Creates a new Mongoose Schema object
 var Schema = mongoose.Schema;
+
+var StyleSchema = new Schema({
+  fill: { type: String, required: false },
+  'fill-opacity': { type: Number, required: false },
+  stroke: { type: String, required: false},
+  'stroke-opacity': { type: Number, required: false},
+  'stroke-width': { type: Number, required: false}
+});
 
 var DatasourceSchema = new Schema({
   name: { type: String, required: false },
@@ -36,8 +46,20 @@ var DatasourceSchema = new Schema({
     totalFeatures: {type: Number, required: false, default: 0},
     failure: { type: Boolean, required: false, default: false}
   },
-  properties: Schema.Types.Mixed,
-  style: Schema.Types.Mixed,
+  style: {required: false, type: {
+    defaultStyle: {
+      style: {
+        fill: { type: String, required: false },
+        'fill-opacity': { type: Number, required: false },
+        stroke: { type: String, required: false},
+        'stroke-opacity': { type: Number, required: false},
+        'stroke-width': { type: Number, required: false}
+      }
+    },
+    title: { type: String, required: false },
+    description: { type: String, required: false},
+    styles: {type: [StyleSchema], required: false }
+  }},
   styleTime: { type: Number, required: false, default: 1 }
 });
 
@@ -69,7 +91,9 @@ var SourceSchema = new Schema({
   vector: { type: Boolean, required: false},
   wmsGetCapabilities: Schema.Types.Mixed,
   wmsLayer: Schema.Types.Mixed,
-  url: { type: String, required: false }
+  url: { type: String, required: false },
+  userId: {type: Schema.Types.ObjectId, required: false, sparse: true},
+  permission: {type: String, required: false}
 });
 
 function transform(source, ret) {
@@ -78,12 +102,11 @@ function transform(source, ret) {
 	delete ret.__v;
   ret.mapcacheUrl = ['/api/sources', source.id].join("/");
   ret.cacheTypes = [];
+  ret.permission = source.permission || 'MAPCACHE';
   if (ret.dataSources) {
     var addVectorSources = false;
     var addRasterSources = false;
     ret.dataSources.forEach(function(ds) {
-      ds.id = ds._id;
-      delete ds._id;
       if (ds.vector) {
         addVectorSources = true;
         addRasterSources = true;
@@ -106,19 +129,48 @@ function transform(source, ret) {
   }
 }
 
+function transformDatasource(source, ret) {
+	ret.id = ret._id;
+	delete ret._id;
+	delete ret.__v;
+}
+
+DatasourceSchema.set("toJSON", {
+  transform: transformDatasource
+});
+
+DatasourceSchema.set('toObject', {
+  transform: transformDatasource
+});
+
 SourceSchema.set("toJSON", {
   transform: transform
 });
-var Source;
-if (mongoose.models.Source) {
-  Source = mongoose.model('Source');
-} else {
-  Source = mongoose.model('Source', SourceSchema);
-}
+
+SourceSchema.set('toObject', {
+  transform: transform
+});
+
+var Source = mongoose.model('Source', SourceSchema);
+
 exports.sourceModel = Source;
 
 exports.getSources = function(options, callback) {
+  var userId = options.userId;
+  delete options.userId;
   var query = options || {};
+  if (userId) {
+    query.$or = [{
+      $and: [
+        {userId: userId},
+        {permission: 'USER'}
+      ]
+    }, {
+      permission: { $exists: false }
+    }, {
+      permission: 'MAPCACHE'
+    }];
+  }
 	Source.find(query).exec(function(err, sources) {
     if (err) {
       console.log("Error finding sources in mongo, error: " + err);
@@ -129,13 +181,17 @@ exports.getSources = function(options, callback) {
 
 exports.updateSourceAverageSize = function(source, size, callback) {
   var update = {$inc: {}};
-  update.$inc.tileSizeCount = 1;
-  if (source.tileSize === 0){
+  if (!source.tileSizeCount) {
+    update.tileSizeCount = 1;
+  } else {
+    update.$inc.tileSizeCount = 1;
+  }
+  if (!source.tileSize || source.tileSize === 0){
     update.tileSize = size;
   } else {
     update.$inc.tileSize = size;
   }
-  Source.findByIdAndUpdate(source.id, update, callback);
+  Source.findByIdAndUpdate(source._id, update, callback);
 };
 
 exports.getSourceById = function(id, callback) {
@@ -144,16 +200,46 @@ exports.getSourceById = function(id, callback) {
       console.log("Error finding source in mongo: " + id + ', error: ' + err);
     }
 		if (source) {
-      source.cacheTypes = config.sourceCacheTypes[source.format];
-	    return callback(err, source);
-		}
-		// try to find by human readable
-		Source.findOne({humanReadableId: id}, function(err, source) {
-      if (source) {
-        source.cacheTypes = config.sourceCacheTypes[source.format];
-      }
-		  return callback(err, source);
-		});
+      source = source.toObject();
+      async.eachSeries(source.dataSources, function(ds, dsDone) {
+        if (ds.vector) {
+          Feature.getAllPropertiesFromSource({sourceId: ds.id}, function(properties) {
+            if (properties.length) {
+              ds.properties = properties;
+            }
+            dsDone();
+          });
+        } else {
+          dsDone();
+        }
+      }, function() {
+  	    return callback(err, source);
+      });
+		} else {
+  		// try to find by human readable
+  		Source.findOne({humanReadableId: id}, function(err, source) {
+        if (source) {
+          source = source.toObject();
+          async.eachSeries(source.dataSources, function(ds, dsDone) {
+            if (ds.vector) {
+              Feature.getAllPropertiesFromSource({sourceId: ds._id}, function(properties) {
+                if (properties.length) {
+                  ds.properties = properties;
+                }
+                dsDone();
+              });
+            } else {
+              dsDone();
+            }
+          }, function() {
+            source.cacheTypes = config.sourceCacheTypes[source.format];
+      	    return callback(err, source);
+          });
+        } else {
+    		  return callback(err, source);
+        }
+  		});
+    }
   });
 };
 
@@ -258,6 +344,7 @@ exports.updateSource = function(id, update, callback) {
   // for now just update all of the datasource style times when the source is saved
   for (var i = 0; i < update.dataSources.length; i++) {
     update.dataSources[i].styleTime = update.styleTime;
+    if (update.dataSources[i].id) update.dataSources[i]._id = update.dataSources[i].id;
   }
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
     if (err) console.log('Could not update source', err);

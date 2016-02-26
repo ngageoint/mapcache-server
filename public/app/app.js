@@ -30,10 +30,10 @@ function config($routeProvider, $locationProvider, $httpProvider) {
    };
   }
 
-  function checkLogin(roles) {
+  function checkLogin() {
     return {
       user: ['UserService', function(UserService) {
-        return UserService.checkLoggedInUser(roles);
+        return UserService.checkLoggedInUser();
       }]
     };
   }
@@ -51,6 +51,7 @@ function config($routeProvider, $locationProvider, $httpProvider) {
   $routeProvider.when('/mapcache', {
     templateUrl:    'app/mapcache/mapcache.html',
     controller:     "MapcacheController",
+    controllerAs:   'mapcache',
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
   });
   $routeProvider.when('/maps', {
@@ -61,6 +62,7 @@ function config($routeProvider, $locationProvider, $httpProvider) {
   $routeProvider.when('/create/:mapId?', {
     templateUrl:    'app/mapcache/cache/create.html',
     controller:     "MapcacheCreateController",
+    controllerAs:   'create',
     resolve: resolveLogin(["USER_ROLE", "ADMIN_ROLE"])
   });
   $routeProvider.when('/cache/:cacheId', {

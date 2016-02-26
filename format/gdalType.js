@@ -22,6 +22,7 @@ exports.processSource = function(source, callback, progressCallback) {
     } catch (e) {
       return callback(new Error('error reading source file ' + source.file.path), source);
     }
+    log.info('Opening ' + source.file.path);
     var ds = gdal.open(source.file.path);
     console.log(exports.gdalInfo(ds));
 

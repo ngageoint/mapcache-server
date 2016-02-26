@@ -20,6 +20,8 @@ module.exports = function(app, auth) {
       return res.status(400).send('geometry is required');
     }
     req.newCache = cache;
+    req.newCache.permission = req.newCache.permission || 'MAPCACHE';
+    req.newCache.userId = req.user ? req.user._id : null;
     next();
   };
 
@@ -42,9 +44,7 @@ module.exports = function(app, auth) {
       req.cache.minZoom = req.param('minZoom') || req.cache.minZoom;
       req.cache.maxZoom = req.param('maxZoom') || req.cache.maxZoom;
       new Cache(req.cache).createFormat(format, function(err, newCache) {
-        console.log('cache done', newCache);
       }, function(err, newCache) {
-        console.log('cache progress', newCache);
         if (sent) return;
         if (!err) {
           sent = true;
@@ -62,7 +62,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res, next) {
       var options = {
-
+        userId: req.user._id
       };
 
       Cache.getAll(options, function(err, caches) {
@@ -83,26 +83,24 @@ module.exports = function(app, auth) {
     function(req, res) {
       var called = false;
       Cache.create(req.newCache, function(err, newCache) {
-        if (newCache._id && !called) {
+        if (newCache.id && !called) {
           called = true;
-          console.log('cache was posted', newCache);
           if (err) return res.status(400).send(err.message);
 
           if (!newCache) return res.status(400).send();
 
           var response = cacheXform.transform(newCache);
-          res.location(newCache._id.toString()).json(response);
+          res.location(newCache.id.toString()).json(response);
         }
       }, function(err, newCache) {
-        if (newCache._id && !called) {
+        if (newCache.id && !called) {
           called = true;
-          console.log('cache was posted', newCache);
           if (err) return res.status(400).send(err.message);
 
           if (!newCache) return res.status(400).send();
 
           var response = cacheXform.transform(newCache);
-          res.location(newCache._id.toString()).json(response);
+          res.location(newCache.id.toString()).json(response);
         }
       });
     }
@@ -120,7 +118,7 @@ module.exports = function(app, auth) {
         if (!newCache) return res.status(400).send();
 
         var response = cacheXform.transform(newCache);
-        res.location(newCache._id.toString()).json(response);
+        res.location(newCache.id.toString()).json(response);
       });
     }
   );
@@ -151,7 +149,6 @@ module.exports = function(app, auth) {
           return res.status(404).send();
         }
         if (!tileStream) return res.status(404).send();
-        console.log('bloop');
         tileStream.pipe(res);
       });
     }
@@ -173,7 +170,6 @@ module.exports = function(app, auth) {
           return res.sendStatus(202);
         }
         if (status.stream) {
-          console.log('streaming %s', req.cache.name + '_' + format + status.extension);
           res.attachment(req.cache.name + '_' + format + status.extension);
           status.stream.pipe(res);
         }

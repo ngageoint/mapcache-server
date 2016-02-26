@@ -1,1 +1,2 @@
 require('./zoomIndicator');
+require('./legend');

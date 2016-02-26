@@ -1,7 +1,7 @@
 var L = require('leaflet')
   , turf = require('turf');
 
-module.exports = function LeafletController($rootScope, $scope, $interval, $filter, $element, CacheService, LeafletUtilities, LocalStorageService) {
+module.exports = function LeafletController($rootScope, $scope, $filter, $element, CacheService, LeafletUtilities, LocalStorageService) {
   var layers = {};
   var cacheFootprints = {};
 
@@ -91,7 +91,6 @@ module.exports = function LeafletController($rootScope, $scope, $interval, $filt
     highlightedCache = cache;
 
     var extent = turf.extent(cache.geometry);
-    console.log('extent', extent);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]
@@ -120,13 +119,12 @@ module.exports = function LeafletController($rootScope, $scope, $interval, $filt
   });
 
   $rootScope.$on('cacheFilterChange', function(event, filter) {
-    CacheService.getAllCaches().success(function(caches) {
+    CacheService.getAllCaches().then(function(caches) {
       $scope.caches = $filter('filter')($filter('filter')(caches, filter.cacheFilter), filter.mapFilter);
     });
   });
 
   function createRectangle(cache, color) {
-    console.log('what is color', color);
     var rectangle = cacheFootprints[cache.id];
     if (rectangle) {
       var rectangleStyle = {
@@ -177,13 +175,11 @@ module.exports = function LeafletController($rootScope, $scope, $interval, $filt
   }
 
   function removeCacheTiles(cache) {
-    console.log('layers', layers);
     var layer = layers[cache.id];
     if (layer) {
       map.removeLayer(layer);
       delete layers[cache.id];
     }
-    console.log('new layers', layers);
     if (Object.keys(layers).length === 0) {
       baseLayer.setOpacity(1);
     }
@@ -198,7 +194,6 @@ module.exports = function LeafletController($rootScope, $scope, $interval, $filt
   }
 
   function removeSourceTiles(source) {
-    console.log('layers', layers);
     var layer = layers[source.id];
     if (layer) {
       map.removeLayer(layer);
@@ -212,7 +207,6 @@ module.exports = function LeafletController($rootScope, $scope, $interval, $filt
       oldZoom = map.getZoom();
 
       var extent = turf.extent(source.geometry);
-      console.log('extent', extent);
       map.fitBounds([
         [extent[1],extent[0]],
         [extent[3], extent[2]]

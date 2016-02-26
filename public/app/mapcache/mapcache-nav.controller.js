@@ -1,10 +1,9 @@
 
 module.exports = function($rootScope, $scope, $location, UserService) {
-console.log('mapcache nav controller');
   $scope.location = $location;
+  $scope.logout = UserService.logout;
 
   $rootScope.$on('login', function(e, login) {
-    console.log('login caught', login);
     $scope.token = login.token;
     $scope.myself = login.user;
     $scope.amAdmin = login.isAdmin;
@@ -17,10 +16,7 @@ console.log('mapcache nav controller');
   $rootScope.$on('logout', function() {
     $scope.myself = null;
     $scope.amAdmin = null;
+    $scope.token = null;
   });
-
-  $scope.logout = function() {
-    UserService.logout();
-  };
 
 };

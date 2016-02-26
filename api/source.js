@@ -6,6 +6,7 @@ var models = require('mapcache-models')
   , Feature = models.Feature
   , log = require('mapcache-log')
   , Map = require('../map/map')
+  , lengthStream = require('length-stream')
   , config = require('mapcache-config');
 
 function Source(sourceModel) {
@@ -59,7 +60,7 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
           fs.stat(newFilePath, function(err, stat) {
             ds.file.path = newFilePath;
             ds.size = stat.size;
-            newSource.markModified('datasources');
+            newSource.markModified('dataSources');
             callback();
           });
         });
@@ -71,10 +72,10 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
             // console.log('map.map', JSON.stringify(map.map, null, 2));
             newSource.status = newSource.status || {};
             newSource.status.complete = true;
-            console.log('about to save', newSource);
+            newSource.markModified('dataSources');
             newSource.save(function(err) {
               console.log('err from save', err);
-              callback(err, map.map);
+              callback(err, newSource);
             });
           });
         });
@@ -86,7 +87,13 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
 Source.getTile = function(source, format, z, x, y, params, callback) {
   var map = new Map(source);
   map.callbackWhenInitialized(function(err, map) {
-    map.getTile(format, z, x, y, params, callback);
+    map.getTile(format, z, x, y, params, function(err, tileStream){
+      var lstream = lengthStream(function(streamLength) {
+        SourceModel.updateSourceAverageSize(source, streamLength, function() {
+        });
+      });
+      callback(err, tileStream.pipe(lstream));
+    });
   });
 };
 
@@ -115,7 +122,7 @@ Source.prototype.delete = function(callback) {
 
 Source.prototype.deleteDataSource = function(dataSourceId, callback) {
   var source = this.sourceModel;
-  log.info('Deleting the datasource %s from source %s', dataSourceId, this.sourceModel.id);
+  log.info('Deleting the datasource %s from source %s', dataSourceId, this.sourceModel.id.toString());
   SourceModel.deleteDataSource(source, dataSourceId, function(err) {
     if (err) return callback(err);
     var dataSource;
@@ -135,6 +142,13 @@ Source.prototype.deleteDataSource = function(dataSourceId, callback) {
         callback(err, source);
       });
     }
+  });
+};
+
+Source.prototype.getFeatures = function(west, south, east, north, zoom, callback) {
+  var map = new Map(this.sourceModel);
+  map.callbackWhenInitialized(function(err, map) {
+    map.getFeatures(west, south, east, north, zoom, callback);
   });
 };
 

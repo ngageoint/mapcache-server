@@ -40,14 +40,6 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
     }
   }, true);
 
-  $scope.$watch('map.wmsLayer', function(layer) {
-    if (layer) {
-      if (layer.EX_GeographicBoundingBox) { // jshint ignore:line
-        $scope.mapOptions.extent = layer.EX_GeographicBoundingBox; // jshint ignore:line
-      }
-    }
-  });
-
   $scope.deleteDataSource = function(id) {
     MapService.deleteDataSource($scope.map, id, function(newMap) {
       $scope.map = newMap;
@@ -56,7 +48,7 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
 
   $scope.setStyleTab = function(id) {
     $scope.styleTab = _.find($scope.map.dataSources, function(ds) {
-      return ds._id === id;
+      return ds.id === id;
     });
     $scope.tab = id;
   };
@@ -84,11 +76,11 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   };
 
   $scope.$on('deleteStyle', function(event, style) {
-    $scope.map.style.styles = _.without($scope.map.style.styles, style);
+    $scope.styleTab.style.styles = _.without($scope.styleTab.style.styles, style);
   });
 
   $scope.$on('promoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.map.style.styles, {priority: style.priority-1});
+    var toMove = _.findWhere($scope.styleTab.style.styles, {priority: style.priority-1});
     style.priority = style.priority - 1;
     if (toMove) {
       toMove.priority = toMove.priority + 1;
@@ -96,19 +88,15 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   });
 
   $scope.$on('demoteStyle', function(event, style) {
-    var toMove = _.findWhere($scope.map.style.styles, {priority: style.priority+1});
+    var toMove = _.findWhere($scope.styleTab.style.styles, {priority: style.priority+1});
     style.priority = style.priority + 1;
     if (toMove) {
       toMove.priority = toMove.priority - 1;
     }
   });
 
-  $scope.isNotDefault = function(style) {
-    return style.key;
-  };
-
   function getMap() {
-    MapService.refreshMap($scope.map, function(map) {
+    MapService.getMap($scope.map, function(map) {
       // success
       $scope.map = map;
       $rootScope.title = 'Edit - ' +map.name;

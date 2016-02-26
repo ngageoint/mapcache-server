@@ -15,4 +15,4 @@ module.exports = function FormatService() {
     mrsid: "MrSID",
     arcgis: "ArcGIS"
   };
-}
+};

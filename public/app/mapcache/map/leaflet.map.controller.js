@@ -63,8 +63,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   };
 
   map.on('click', function(event) {
-    if (!$scope.map.style) return;
-    if ($scope.map.style.title || $scope.map.style.description) {
+    // if (!$scope.map.style) return;
+    // if ($scope.map.style.title || $scope.map.style.description) {
 
       var pixelPoint = event.layerPoint;
       pixelPoint.y = pixelPoint.y + 5;
@@ -78,22 +78,29 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       MapService.getFeatures($scope.map, event.latlng.lng - latLngDelta.lng, event.latlng.lat - latLngDelta.lat, event.latlng.lng + latLngDelta.lng, event.latlng.lat + latLngDelta.lat, map.getZoom(), function(features) {
         if (!features) return;
 
+        var feature = features[0];
+        var dataSource;
+        for (var i = 0; i < $scope.map.dataSources.length && !dataSource; i++) {
+          if ($scope.map.dataSources[i].id === feature.properties.mapcache_source_id) {
+            dataSource = $scope.map.dataSources[i];
+          }
+        }
+
         var title = "";
-        if ($scope.map.style.title && features[0].properties && features[0].properties[$scope.map.style.title]) {
-          title = features[0].properties[$scope.map.style.title];
+        if (dataSource.style.title && features[0].properties && features[0].properties[dataSource.style.title]) {
+          title = features[0].properties[dataSource.style.title];
         }
         var description = "";
-        if ($scope.map.style.description && features[0].properties && features[0].properties[$scope.map.style.description]) {
-          description = features[0].properties[$scope.map.style.description];
+        if (dataSource.style.description && features[0].properties && features[0].properties[dataSource.style.description]) {
+          description = features[0].properties[dataSource.style.description];
         }
         var popupContent = title + " " + description;
 
-        L.popup()
-          .setLatLng(event.latlng)
+        L.popup().setLatLng(event.latlng)
           .setContent(popupContent)
           .openOn(map);
       });
-    }
+    // }
   });
 
   var cacheFootprints = {};
@@ -114,7 +121,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
 
     if (!centered) {
       if (cacheCenters && cacheCenters.length > 0) {
-        var fc = turf.featurecollection(cacheCenters);
         var extent = turf.extent(turf.featurecollection(cacheCenters));
         map.fitBounds([
           [extent[1],extent[0]],
@@ -218,7 +224,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     }
 
     var cacheRectangle = L.geoJson(cache.geometry);
-    cacheRectangle.setStyle({fill: false, color: color, opacity: color ? 1 : 0, weight: 4});
+    cacheRectangle.setStyle({fill: false, color: color || "#333333", opacity: color ? 1 : 0, weight: 4});
 
     if (cache.geometry) {
       var center = turf.center(cache.geometry);
@@ -367,6 +373,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       debounceDataSources();
     }
   });
+  
   var layerControlAdded = false;
   var layerControlLayers = [];
 
@@ -407,37 +414,28 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     var tl = LeafletUtilities.tileLayer($scope.map, defaultLayer, mapLayerOptions, $scope.map.style, styleFunction, currentDatasources);
     if (!tl) return;
     mapLayer = tl;
-    tl.on('tileload', function(event) {
-      var split = event.url.split('/');
-      var z = split[split.length-3];
-      var x = split[split.length-2];
-      var y = split[split.length-1].split('.')[0];
-      if ($scope.map.format === 'arcgis') {
-        z = split[split.length-3];
-        x = split[split.length-1];
-        y = split[split.length-2];
-      }
-      mapTilesLoaded[z+'-'+x+'-'+y] = true;
-      canvasTiles.redraw();
-    });
-    tl.on('tileerror', function(event) {
-      var split = event.url.split('/');
-      var z = split[split.length-3];
-      var x = split[split.length-2];
-      var y = split[split.length-1].split('.')[0];
-      if ($scope.map.format === 'arcgis') {
-        z = split[split.length-3];
-        x = split[split.length-1];
-        y = split[split.length-2];
-      }
-      mapTilesLoaded[z+'-'+x+'-'+y] = true;
-      canvasTiles.redraw();
-    });
+    tl.on('tileload', tileLoad);
+    tl.on('tileerror', tileLoad);
+
     map.addLayer(canvasTiles);
     mapLayer.addTo(map);
     if ($scope.map.geometry) {
       updateMapExtent();
     }
+  }
+
+  function tileLoad(event) {
+    var split = event.url.split('/');
+    var z = split[split.length-3];
+    var x = split[split.length-2];
+    var y = split[split.length-1].split('.')[0];
+    if ($scope.map.format === 'arcgis') {
+      z = split[split.length-3];
+      x = split[split.length-1];
+      y = split[split.length-2];
+    }
+    mapTilesLoaded[z+'-'+x+'-'+y] = true;
+    canvasTiles.redraw();
   }
 
   function updateMapExtent(extent) {

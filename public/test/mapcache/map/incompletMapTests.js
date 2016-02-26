@@ -57,7 +57,7 @@ describe('MapController incomplete map tests', function() {
   }));
 
   beforeEach(inject(function($rootScope, $controller){
-    MapServiceMock.expects('refreshMap')
+    MapServiceMock.expects('getMap')
       .once()
       .withArgs({id:mocks.mapMocks.incompleteMap.id})
       .yields(mocks.mapMocks.incompleteMap);

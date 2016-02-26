@@ -62,7 +62,7 @@ describe('MapController incomplete cache tests', function() {
 
   beforeEach(inject(function($rootScope, $controller, $injector){
     $timeout = $injector.get('$timeout');
-    MapServiceMock.expects('refreshMap')
+    MapServiceMock.expects('getMap')
       .once()
       .withArgs({id:mocks.mapMocks.xyzMap.id})
       .yields(mocks.mapMocks.xyzMap);

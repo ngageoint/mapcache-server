@@ -1,5 +1,6 @@
 var knex = require('./db/knex')
 	, turf = require('turf')
+  , async = require('async')
 	, proj4 = require('proj4');
 
 exports.createFeature = function(feature, featureOwnerProperties, callback) {
@@ -27,8 +28,24 @@ exports.getExtentOfSource = function(query, callback) {
 	});
 };
 
+exports.getAllPropertiesFromSource = function(query, callback) {
+  var properties = [];
+  exports.getPropertyKeysFromSource(query, function(propertyKeys) {
+    async.eachSeries(propertyKeys, function(key, keyComplete) {
+      exports.getValuesForKeyFromSource(key.property, query, function(values) {
+        var valueArray = values.map(function(value) { return value.value; });
+        properties.push({key: key.property, values: valueArray});
+        keyComplete();
+      });
+    }, function done() {
+      callback(properties);
+    });
+  });
+};
+
 exports.getPropertyKeysFromSource = function(query, callback) {
 	if (!query.layerId) query.layerId = null;
+  if (query.sourceId) query.sourceId = query.sourceId.toString();
 	knex(function(knex) {
 		knex('features')
 		.distinct(knex.raw('json_object_keys(properties) as property'))
@@ -41,6 +58,7 @@ exports.getPropertyKeysFromSource = function(query, callback) {
 exports.getValuesForKeyFromSource = function(key, query, callback) {
 	if (!query.sourceId) query.sourceId = null;
 	if (!query.layerId) query.layerId = null;
+  if (query.sourceId) query.sourceId = query.sourceId.toString();
 	knex(function(knex) {
 		knex('features')
 		.distinct(knex.raw('properties::jsonb -> \''+key+'\' as value'))
@@ -86,7 +104,13 @@ exports.findFeaturesWithin = function(query, west, south, east, north, projectio
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
 			.andWhere(whereQuery)
 			.then(function(collection){
-				console.log('returned ' + collection.length + ' features');
+        collection = collection.map(function(feature) {
+          feature.geometry = JSON.parse(feature.geometry);
+          if (query.sourceId) {
+            feature.properties.mapcache_source_id = query.sourceId;
+          }
+          return feature;
+        });
 			  callback(null, collection);
 			});
 		});
@@ -101,7 +125,10 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+west+","+south+","+east+","+north+', 4326))')
 			.andWhere({cache_id: cacheId}) // jshint ignore:line
 			.then(function(collection){
-				console.log('returned ' + collection.length + ' features');
+        collection = collection.map(function(feature) {
+          feature.geometry = JSON.parse(feature.geometry);
+          return feature;
+        });
 		    callback(null, collection);
 		  });
 		});
@@ -121,8 +148,11 @@ exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, s
 			.andWhere('cache_id', cacheId)
 			.andWhere('source_id', sourceId)
 			.then(function(collection){
-				console.log('returned ' + collection.length + ' features');
-				callback(null, collection);
+        collection = collection.map(function(feature) {
+          feature.geometry = JSON.parse(feature.geometry);
+          return feature;
+        });
+			  callback(null, collection);
 			});
 		});
 	});

@@ -129,33 +129,45 @@ describe('Feature Model Tests', function() {
     FeatureModel.getFeatureCount({sourceId:'featuretest', cacheId: null}, function(collection) {
       collection[0].count.should.be.equal('2');
       done();
-    })
+    });
   });
 
   it('should get the extent of the feature set', function (done) {
     FeatureModel.getExtentOfSource({sourceId:'featuretest'}, function(collection) {
-      console.log('collection', collection);
       collection[0].extent.should.be.equal('{"type":"Polygon","coordinates":[[[9.49218750000001,16.972741019999],[9.49218750000001,31],[32,31],[32,16.972741019999],[9.49218750000001,16.972741019999]]]}');
       done();
-    })
+    });
   });
 
   it('should get the properties of the feature set', function (done) {
     FeatureModel.getPropertyKeysFromSource({sourceId:'featuretest'}, function(collection) {
-      console.log('collection', collection);
       expects(collection).to.deep.include.members([ { property: 'state' }]);
       expects(collection).to.deep.include.members([ { property: 'year' }]);
       done();
-    })
+    });
   });
 
   it('should get the values of the feature set', function (done) {
     FeatureModel.getValuesForKeyFromSource('state',{sourceId:'featuretest'}, function(collection) {
-      console.log('collection values', collection);
       expects(collection).to.deep.include.members([ { value: 'California' }]);
       expects(collection).to.deep.include.members([ { value: 'Colorado' }]);
       done();
-    })
+    });
+  });
+
+  it('should get all of the properties', function (done) {
+    FeatureModel.getAllPropertiesFromSource({sourceId:'featuretest'}, function(collection) {
+      expects(collection).to.deep.include({key: 'state', values:['California', 'Colorado']});
+      expects(collection).to.deep.include({key: 'year', values:[1876]});
+      done();
+    });
+  });
+
+  it('should find features within', function(done) {
+    FeatureModel.findFeaturesWithin({sourceId:'featuretest'}, -179.5, -85, 179, 85, 4326, function(err, collection) {
+      console.log('collection of features', collection);
+      done();
+    });
   });
 
   describe('point test', function() {
@@ -185,7 +197,7 @@ describe('Feature Model Tests', function() {
           FeatureModel.findFeaturesByCacheIdWithin('pointtest', -180, -85, 180, 85, 4326, function(err, collection) {
 
             console.log('bounding box query', collection);
-            collection[0].geometry.should.be.equal('{"type":"Point","coordinates":[-105.01621,39.57422]}');
+            collection[0].geometry.should.be.deepEqual({"type":"Point","coordinates":[-105.01621,39.57422]});
             done();
           });
         });

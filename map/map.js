@@ -2,6 +2,7 @@ var log = require('mapcache-log')
   , Canvas = require('canvas')
   , xyzTileUtils = require('xyz-tile-utils')
   , Image = Canvas.Image
+  , Feature = require('mapcache-models').Feature
   , turf = require('turf')
   , fs = require('fs-extra')
   , async = require('async')
@@ -154,7 +155,6 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
     var height = canvas.height;
 
     ctx.clearRect(0, 0, height, height);
-    log.info('self.dataSourceErrors', self.dataSourceErrors);
     async.eachSeries(sorted, function iterator(s, callback) {
       log.info('self.dataSourceErrors[s.source.id]', self.dataSourceErrors[s.source.id]);
       if (params.dataSources.indexOf(s.source.id) === -1 || self.dataSourceErrors[s.source.id]) return callback();
@@ -182,6 +182,26 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
 
       log.info('Tile %d %d %d was created for map %s, returning', z, x, y, self.map.id);
       callback(null, canvas.pngStream());
+    });
+  });
+};
+
+Map.prototype.getFeatures = function(west, south, east, north, zoom, callback) {
+  var allFeatures = [];
+  this.initPromise.then(function(self) {
+    console.log('self.dataSources', self.dataSources);
+    async.eachSeries(self.dataSources, function iterator(ds, dsDone) {
+      if (ds.getDataWithin) {
+        ds.getDataWithin(west, south, east, north, 4326, function(err, features) {
+          console.log('features', features);
+          allFeatures = allFeatures.concat(features);
+          dsDone();
+        });
+      } else {
+        dsDone();
+      }
+    }, function done() {
+      callback(null, allFeatures);
     });
   });
 };

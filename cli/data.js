@@ -1,6 +1,9 @@
 var api = require('../api')
   , mapcacheModels = require('mapcache-models')
   , cacheModel = mapcacheModels.Cache
+  , config = require('mapcache-config')
+  , fs = require('fs-extra')
+  , path = require('path')
   , async = require('async');
 
 exports.testGeoPackage = function() {
@@ -30,7 +33,8 @@ exports.fixData = function(yargs) {
 
   async.series([
     dropIndex,
-    migrateCaches
+    migrateCaches,
+    migrateMaps
   ], function() {
     process.exit();
   });
@@ -50,17 +54,48 @@ function migrateCaches(done) {
         cache.formats.xyz = JSON.parse(JSON.stringify(cache.status));
         cache.formats.xyz.size = size;
         cache.formats.xyz.percentComplete = 100;
-        cache.geometry = {
-          "type":"Feature",
-          "geometry": cache.geometry
-        };
+        // cache.geometry = {
+        //   "type":"Feature",
+        //   "geometry": cache.geometry
+        // };
         cache.markModified('formats');
-        cache.markModified('geometry');
+        // cache.markModified('geometry');
         cache.save(function(err) {
           console.log('err is', err);
           callback();
         });
       }
+    }, function() {
+      done();
+    });
+  });
+}
+
+function migrateMaps(done) {
+  var sourceDirectory = config.server.sourceDirectory.path;
+  api.Source.getAll({}, function(err, maps) {
+    async.eachSeries(maps, function iterator(map, callback) {
+      console.log('migrating map %s', map._id);
+      async.eachSeries(map.dataSources, function(dataSource, dsDone) {
+
+        // console.log('datasource', dataSource);
+        if (dataSource.file && dataSource.file.path) {
+          var srcFile = dataSource.file.path;
+          var destFile = path.join(sourceDirectory, dataSource._id.toString());
+          console.log('moving file %s to %s', srcFile, destFile);
+          // fs.move(srcFile, destFile, function() {
+            dataSource.file.path = path.join(destFile, dataSource._id.toString());
+            dsDone();
+          // });
+        } else {
+          dsDone();
+        }
+      }, function() {
+        map.markModified('dataSources');
+        map.save(function() {
+          callback();
+        });
+      });
     }, function() {
       done();
     });

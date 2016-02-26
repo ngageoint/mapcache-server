@@ -18,6 +18,9 @@ module.exports = function(app, auth) {
       source = JSON.parse(source.map);
     }
     req.newSource = source;
+    req.newSource.permission = req.newSource.permission || 'MAPCACHE';
+    console.log('req.user', req.user);
+    req.newSource.userId = req.user ? req.user._id : null;
     if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
       req.newSource.dataSources = JSON.parse(source.dataSources);
     } else {
@@ -49,6 +52,8 @@ module.exports = function(app, auth) {
         options.format = req.param('format');
       }
 
+      options.userId = req.user._id;
+
       Map.getAll(options, function(err, sources) {
         if (err) return next(err);
         sources = sourceXform.transform(sources);
@@ -69,7 +74,6 @@ module.exports = function(app, auth) {
       }
 
       var sent = false;
-
       Map.create(req.newSource, req.files.mapFile, function(err, map) {
         if (sent) return;
         sent = true;
@@ -77,7 +81,6 @@ module.exports = function(app, auth) {
           if (err) return next(err);
 
           if (!map) return res.status(400).send();
-          console.log('transformting the source in create', map);
 
           var response = sourceXform.transform(map);
           res.location(map._id.toString()).json(response);
@@ -92,6 +95,7 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
+      console.log('req.newsource', req.newSource);
       var sent = false;
       Map.create(req.newSource, function(err, map) {
         if (sent) return;
@@ -100,7 +104,6 @@ module.exports = function(app, auth) {
         if (err) return next(err);
 
         if (!map) return res.status(400).send();
-        console.log('transformting the source in create', map);
 
         var response = sourceXform.transform(map);
         res.location(map._id.toString()).json(response);
@@ -163,14 +166,26 @@ module.exports = function(app, auth) {
     pullTile
   );
 
+  app.get(
+    '/api/maps/:sourceId/features',
+    access.authorize('READ_CACHE'),
+    parseQueryParams,
+    function (req, res, next) {
+      new Map(req.source).getFeatures(req.param('west'), req.param('south'), req.param('east'), req.param('north'), req.param('zoom'), function(err, features) {
+        if (err) return next(err);
+        if (!features) return res.status(200).send();
+        res.json(features);
+      });
+    }
+  );
+
   app.delete(
-    '/api/maps/:sourceId/dataSources/:dataSourceId',
+    '/api/maps/:sourceIdNoProperties/dataSources/:dataSourceId',
     access.authorize('CREATE_CACHE'),
     parseQueryParams,
     function(req, res) {
       new Map(req.source).deleteDataSource(req.param('dataSourceId'), function(err, source) {
-        var sourceJson = sourceXform.transform(source);
-        res.json(sourceJson);
+        res.json(source);
       });
     }
   );
@@ -181,7 +196,7 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      Cache.getCachesFromMapId(req.param('sourceId'), function(err, caches) {
+      Cache.getCachesFromMapId(req.param('sourceId'), req.user, function(err, caches) {
         if (err) return next(err);
 
         caches = cacheXform.transform(caches);
@@ -306,14 +321,13 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res) {
-      var sourceJson = sourceXform.transform(req.source);
-      res.json(sourceJson);
+      res.json(req.source);
     }
   );
 
   // Delete a specific source
   app.delete(
-    '/api/maps/:sourceId',
+    '/api/maps/:sourceIdNoProperties',
     passport.authenticate(authenticationStrategy),
     access.authorize('DELETE_CACHE'),
     function(req, res, next) {
@@ -324,4 +338,6 @@ module.exports = function(app, auth) {
       });
     }
   );
+
+
 };

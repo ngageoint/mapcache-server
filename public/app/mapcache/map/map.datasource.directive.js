@@ -1,5 +1,7 @@
 require('../../filters');
-require('../../../vendor/angular-ui-select');
+require('../../../vendor/angular_ui_select');
+var L = require('leaflet');
+// L.Icon.Default.imagePath = 'public/node_modules/leaflet/dist/images/';
 
 module.exports = function mapDatasource() {
   var directive = {
