@@ -74,7 +74,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   function fileChosen() {
     console.log('file was chosen', $scope.mapDatasource.file);
     if (!$scope.mapDatasource.file) return;
-    if (!$scope.mapDatasource.name || $scope.mapDatasource.name === "") {
+    if (!$scope.nameSet) {
       $scope.mapDatasource.name = $scope.mapDatasource.file.name;
     }
     $scope.locationStatus = 'success';
