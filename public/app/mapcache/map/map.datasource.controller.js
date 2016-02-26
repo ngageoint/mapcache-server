@@ -62,18 +62,28 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
     urlChecker();
   });
 
+  $scope.$watch('mapDatasource.file', function() {
+    fileChosen();
+  });
+
   $scope.$on('location-file', function(e, uploadFile) {
-    $scope.locationStatus = 'success';
+    console.log('location-file caught');
     $scope.mapDatasource.file = uploadFile;
-    if (!$scope.mapDatasource.name || $scope.mapDatasource.name === "") {
-      $scope.mapDatasource.name = uploadFile.name;
+  });
+
+  function fileChosen() {
+    console.log('file was chosen', $scope.mapDatasource.file);
+    if (!$scope.mapDatasource.file) return;
+    if (!$scope.nameSet) {
+      $scope.mapDatasource.name = $scope.mapDatasource.file.name;
     }
+    $scope.locationStatus = 'success';
 
     delete $scope.mapDatasource.url;
     delete $scope.mapDatasource.format;
     $scope.mapDatasource.valid = true;
 
-    var fileType = uploadFile.name.split('.').pop().toLowerCase();
+    var fileType = $scope.mapDatasource.file.name.split('.').pop().toLowerCase();
     switch(fileType) {
       case 'tif':
       case 'tiff':
@@ -104,7 +114,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
         $scope.format = 'geojson';
         break;
     }
-  });
+  }
 
   $scope.$watch('mapDatasource.metadata.wmsGetCapabilities', function(capabilities) {
     if (capabilities && capabilities.Capability) {

@@ -42,9 +42,10 @@ module.exports = function MapCreateController($scope, $rootScope, $location, Map
     }
   };
 
-  $scope.addDataSource = function() {
+  $scope.addDataSource = function(file) {
     $scope.map.dataSources.push({
-      zOrder: $scope.map.dataSources.length
+      zOrder: $scope.map.dataSources.length,
+      file: file
     });
   };
 
@@ -55,5 +56,11 @@ module.exports = function MapCreateController($scope, $rootScope, $location, Map
       $location.path('/map/'+map.id);
     }, function() { }, uploadProgress);
   };
+
+  $scope.$on('location-files', function(e, files) {
+    for (var i = 1; i < files.length; i++) {
+      $scope.addDataSource(files[i]);
+    }
+  });
 
 };
