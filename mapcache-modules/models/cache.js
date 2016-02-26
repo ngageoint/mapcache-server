@@ -54,6 +54,7 @@ function transform(cache, ret) {
 	delete ret._id;
 
 	delete ret.__v;
+  ret.permission = cache.permission || 'MAPCACHE';
 
 	if (cache.populated('sourceId')) {
 		ret.source = ret.sourceId;

@@ -102,6 +102,7 @@ function transform(source, ret) {
 	delete ret.__v;
   ret.mapcacheUrl = ['/api/sources', source.id].join("/");
   ret.cacheTypes = [];
+  ret.permission = source.permission || 'MAPCACHE';
   if (ret.dataSources) {
     var addVectorSources = false;
     var addRasterSources = false;
@@ -113,8 +114,6 @@ function transform(source, ret) {
         addRasterSources = true;
       }
     });
-    console.log('add vector sources? ', addVectorSources);
-    console.log('add raster sources? ', addRasterSources);
     if (addVectorSources) {
       var vectorTypes = config.sourceCacheTypes.vector;
       vectorTypes.forEach(function(type) {

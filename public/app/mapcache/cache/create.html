@@ -281,6 +281,21 @@
       </div>
     </div>
     <div class="row">
+      <div class="col-md-12 nice-radio">
+        <div class="form-group">
+          <span class="page-sub-entity-title one-line-ellipsis">Visibility of this cache (this can be changed later)</span>
+          <span class="nice-radio">
+            <input value="MAPCACHE" id="MAPCACHE" ng-model="create.cache.permission" type="radio" class="radio" name="MAPCACHE" checked>
+            <label for="MAPCACHE">Visible to all mapcache users</label>
+          </span>
+          <span class="nice-radio">
+            <input value="USER" id="USER" ng-model="create.cache.permission" type="radio" class="radio" name="USER" checked>
+            <label for="USER">Visible only to you</label>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="row">
       <div class="col-md-12">
         <div class="form-group">
           <span class="page-sub-entity-title one-line-ellipsis">Cache Name</span>

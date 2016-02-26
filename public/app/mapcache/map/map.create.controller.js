@@ -11,6 +11,7 @@ module.exports = function MapCreateController($scope, $rootScope, $location, Map
   $scope.dataSourceTotalFileSize = 0;
 
   $scope.map = {
+    permission: 'MAPCACHE',
     dataSources: [{
       zOrder: 0
     }]

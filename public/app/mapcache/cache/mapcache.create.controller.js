@@ -23,6 +23,7 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   this.mapId = $routeParams.mapId;
   this.cache = {
     format: "xyz",
+    permission: 'MAPCACHE',
     create: {}
   };
 
