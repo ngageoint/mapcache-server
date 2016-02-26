@@ -64,6 +64,7 @@ MapcacheCreateController.prototype.initialize = function () {
   if (this.mapId) {
     this.MapService.getMap({id:this.mapId}, function(map) {
       this.cache.source = map;
+      this.cache.permission = map.permission;
       this.loadingMaps = false;
     }.bind(this));
   } else {
@@ -269,6 +270,7 @@ MapcacheCreateController.prototype._cacheSourceWatch = function(map) {
   this.cache.create = {};
   if (this.cache.source) {
     this.cache.style = this.cache.source.style;
+    this.cache.permission = this.cache.source.permission;
     for (var i = 0; i < this.cache.source.cacheTypes.length; i++) {
       var type = this.cache.source.cacheTypes[i];
       this.cache.create[type.type] = type.required;

@@ -196,7 +196,7 @@ module.exports = function(app, auth) {
     access.authorize('READ_CACHE'),
     parseQueryParams,
     function (req, res, next) {
-      Cache.getCachesFromMapId(req.param('sourceId'), function(err, caches) {
+      Cache.getCachesFromMapId(req.param('sourceId'), req.user, function(err, caches) {
         if (err) return next(err);
 
         caches = cacheXform.transform(caches);

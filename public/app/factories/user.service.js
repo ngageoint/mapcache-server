@@ -175,7 +175,7 @@ module.exports = function($rootScope, $q, $http, $location, $timeout, LocalStora
 
   // TODO should this go in Roles service/resource
   function getRoles() {
-    return $http.get('/api/roles');
+    return $http.get('/api/roles').then(function(data) { return data.data; });
   }
 
   function setUser(user) {

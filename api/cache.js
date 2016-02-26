@@ -99,9 +99,10 @@ function createFormat(formats, cache, callback, progressCallback) {
   });
 }
 
-Cache.getCachesFromMapId = function(id, callback) {
+Cache.getCachesFromMapId = function(id, user, callback) {
   var query = {
-	  'sourceId': id
+	  'sourceId': id,
+    'userId': user._id
   };
   CacheModel.getCaches(query, callback);
 };

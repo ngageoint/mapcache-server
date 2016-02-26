@@ -225,7 +225,6 @@
         </div>
       </div>
     </div>
-    create size = {{create.totalCacheSize}}
     <div class="row" ng-show="create.totalCacheSize">
       <div class="col-md-12">
         <div class="form-group">
@@ -280,7 +279,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" ng-if="create.cache.source.permission == 'MAPCACHE'">
       <div class="col-md-12 nice-radio">
         <div class="form-group">
           <span class="page-sub-entity-title one-line-ellipsis">Visibility of this cache (this can be changed later)</span>
@@ -293,6 +292,11 @@
             <label for="USER">Visible only to you</label>
           </span>
         </div>
+      </div>
+    </div>
+    <div class="row" ng-if="create.cache.source.permission == 'USER'">
+      <div class="col-md-12">
+        <span class="page-sub-entity-title"><i class="fa fa-info-circle"></i> You will be the only user able to see this cache since the map it is being created from is only visible to you.</span>
       </div>
     </div>
     <div class="row">
