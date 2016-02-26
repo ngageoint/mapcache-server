@@ -4,7 +4,8 @@ module.exports = function locationChooser() {
     templateUrl: 'app/directives/location-chooser.directive.html',
     scope: {
       accept: '=',
-      locationStatus: '='
+      locationStatus: '=',
+      file: '='
     },
     controller: 'LocationChooserController',
     bindToController: true
