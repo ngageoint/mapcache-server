@@ -77,14 +77,21 @@ module.exports = function(app, auth) {
       Map.create(req.newSource, req.files.mapFile, function(err, map) {
         if (sent) return;
         sent = true;
-        // Map.getById(map.id, function(err, newMap) {
-          if (err) return next(err);
+        if (err) return next(err);
 
-          if (!map) return res.status(400).send();
+        if (!map) return res.status(400).send();
 
-          var response = sourceXform.transform(map);
-          res.location(map._id.toString()).json(response);
-        // });
+        var response = sourceXform.transform(map);
+        res.location(map._id.toString()).json(response);
+      }, function(err, map) {
+        if (sent) return;
+        sent = true;
+        if (err) return next(err);
+
+        if (!map) return res.status(400).send();
+
+        var response = sourceXform.transform(map);
+        res.location(map._id.toString()).json(response);
       });
     }
   );
@@ -100,14 +107,21 @@ module.exports = function(app, auth) {
       Map.create(req.newSource, function(err, map) {
         if (sent) return;
         sent = true;
-        // Map.getById(map.id, function(err, newMap) {
         if (err) return next(err);
 
         if (!map) return res.status(400).send();
 
         var response = sourceXform.transform(map);
         res.location(map._id.toString()).json(response);
-        // });
+      }, function(err, map) {
+        if (sent) return;
+        sent = true;
+        if (err) return next(err);
+
+        if (!map) return res.status(400).send();
+
+        var response = sourceXform.transform(map);
+        res.location(map._id.toString()).json(response);
       });
     }
   );

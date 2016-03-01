@@ -1,10 +1,11 @@
 var _ = require('underscore');
+var config = require('../config');
 module.exports = function MapsController($scope, $rootScope, LocalStorageService, MapService) {
   $scope.token = LocalStorageService.getToken();
   $rootScope.title = 'Maps';
 
   $scope.mapOptions = {
-    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    baseLayerUrl: config.defaultMapLayer,
     opacity: 0.5
   };
 

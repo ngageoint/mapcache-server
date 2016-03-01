@@ -186,16 +186,16 @@ function parseGeoJSONFile(source, callback, progressCallback) {
     // save the geojson to the db
     log.debug('gjdata.features', gjData.features.length);
     var count = 0;
+    source.status.totalFeatures = gjData.features.length;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
       async.setImmediate(function() {
         var fivePercent = Math.floor(gjData.features.length * 0.05);
         // console.log('create feature', feature);
-        console.log('inserting feature for source id', source.id);
-        FeatureModel.createFeature(feature, {sourceId:source.id}, function(err) {
-          if (err) log.error('err', err);
+        FeatureModel.createFeature(feature, {sourceId:source.id}, function() {
           count++;
           async.setImmediate(function() {
             if (count % fivePercent === 0) {
+              source.status.generatedFeatures = count;
               source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
               progressCallback(source, function(err, updatedSource) {
                 source = updatedSource;
@@ -219,6 +219,7 @@ function parseGeoJSONFile(source, callback, progressCallback) {
 function setSourceCount(source, callback) {
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     source.status.totalFeatures = resultArray[0].count;
+    source.status.generatedFeatures = resultArray[0].count;
     callback(null, source);
   });
 }
@@ -234,8 +235,6 @@ function setSourceExtent(source, callback) {
 }
 
 function setSourceStyle(source, callback) {
-  console.log('current style', source.style);
-
   source.style = source.style || { };
   if (!source.style.defaultStyle || !source.style.defaultStyle.style || !source.style.defaultStyle.style.fill) {
     source.style.defaultStyle = {
@@ -250,7 +249,6 @@ function setSourceStyle(source, callback) {
   }
 
   source.style.styles = source.style.styles || [];
-  console.log('setting the style', source.style);
   callback(null, source);
 }
 

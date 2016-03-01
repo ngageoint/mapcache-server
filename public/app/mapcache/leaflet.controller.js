@@ -1,5 +1,6 @@
 var L = require('leaflet')
-  , turf = require('turf');
+  , turf = require('turf')
+  , config = require('../config');
 
 module.exports = function LeafletController($rootScope, $scope, $filter, $element, CacheService, LeafletUtilities, LocalStorageService) {
   var layers = {};
@@ -30,7 +31,7 @@ module.exports = function LeafletController($rootScope, $scope, $filter, $elemen
   });
   map.addControl(new L.Control.ZoomIndicator());
 
-  var baseLayer = L.tileLayer('http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png');
+  var baseLayer = L.tileLayer(config.defaultMapLayer);
   baseLayer.addTo(map);
 
   $scope.$watch('caches', function(caches) {

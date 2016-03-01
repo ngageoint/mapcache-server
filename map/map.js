@@ -28,15 +28,14 @@ Map.prototype.callbackWhenInitialized = function(callback) {
 Map.prototype.initialize = function(callback) {
   log.info('Initializing the map with id %s', this.map.id);
   log.debug('There are %d data sources to process', this.map.dataSources.length);
-  var tempDataSources = this.map.dataSources || [];
-  this.map.dataSources = [];
+  // var tempDataSources = this.map.dataSources || [];
+  // this.map.dataSources = [];
   var self = this;
-  async.eachSeries(tempDataSources, function(ds, done) {
+  async.eachSeries(this.map.dataSources, function(ds, done) {
     log.info('Processing the data source %s', ds.name);
     self.addDataSource(ds, done);
   }, function done() {
     log.info('Map %s was initialized', self.map.id);
-    // log.info('self.map', self.map);
     self.map.status = self.map.status || {};
     self.initialized = true;
     self.map.status.message = "Completed map processing";
@@ -57,7 +56,7 @@ Map.prototype.addDataSource = function(ds, callback) {
     if (ds.source.status && ds.source.status.complete) {
       log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
       self.dataSources.push(ds);
-      self.map.dataSources.push(ds.source);
+      // self.map.dataSources.push(ds.source);
       callback(null, ds);
     } else {
       log.debug('Processing the datasource %s to add to the map %s', ds.source.id, this.map.id);
@@ -67,40 +66,43 @@ Map.prototype.addDataSource = function(ds, callback) {
           log.error('error processing the source', err);
         } else {
           self.dataSources.push(ds);
-          self.map.dataSources.push(ds.source);
+          // self.map.dataSources.push(ds.source);
           log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
         }
         callback(null, ds);
+      }, function(updatedDataSource, callback) {
+        callback(null, updatedDataSource);
+        if (self.config.progressCallback) {
+          self.config.progressCallback(null, updatedDataSource);
+        }
       });
     }
   } else {
     var DataSource = require('../format/'+ds.format);
     var dsObj = new DataSource({source: ds});
-    // if (dsObj.source.status && dsObj.source.status.complete) {
-    //   self.dataSources.push(dsObj);
-    //   self.map.dataSources.push(dsObj.source);
-    //   log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
-    //   callback(null, dsObj);
-    // } else {
-      log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
-      try {
-        dsObj.processSource(function(err, source) {
-          if (err) {
-            self.dataSourceErrors[ds.id] = err;
-            log.error('Error processing the datasource %s', ds.id, err);
-          } else {
-            log.info('finished processing the source %s', source.id);
-            self.dataSources.push(dsObj);
-            self.map.dataSources.push(dsObj.source);
-            log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
-          }
-          callback(err, dsObj);
-        });
-      } catch (e) {
-        console.log('e is', e);
-        console.error(e.stack);
-      }
-    // }
+    log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
+    try {
+      dsObj.processSource(function(err, source) {
+        if (err) {
+          self.dataSourceErrors[ds.id] = err;
+          log.error('Error processing the datasource %s', ds.id, err);
+        } else {
+          log.info('finished processing the source %s', source.id);
+          self.dataSources.push(dsObj);
+          // self.map.dataSources.push(dsObj.source);
+          log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
+        }
+        callback(err, dsObj);
+      }, function(updatedDataSource, callback) {
+        callback(null, updatedDataSource);
+        if (self.config.progressCallback) {
+          self.config.progressCallback(null, updatedDataSource);
+        }
+      });
+    } catch (e) {
+      console.log('e is', e);
+      console.error(e.stack);
+    }
   }
 };
 

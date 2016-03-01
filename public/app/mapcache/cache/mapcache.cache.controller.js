@@ -1,13 +1,14 @@
 var turf = require('turf');
 var _ = require('underscore');
 var xyzTileUtils = require('xyz-tile-utils');
+var config = require('../../config');
 
 module.exports = function MapcacheCacheController($scope, $location, $timeout, $routeParams, $rootScope, CacheService, LocalStorageService) {
 
   $scope.token = LocalStorageService.getToken();
 
   $scope.mapOptions = {
-    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    baseLayerUrl: config.defaultMapLayer,
     opacity: 0.25
   };
 

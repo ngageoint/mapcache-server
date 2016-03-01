@@ -7,15 +7,23 @@
         <a ng-show-"mapComplete" class="btn btn-primary pull-right" ng-href="/#/create/{{map.id}}">Create A Cache From This Map</a>
       </div>
     </div>
-    <div class="row" ng-show="!mapComplete">
-      <div class="col-md-12">
-        <p class="lead">The map is being processed.  The status of the map processing will be updated here.  If you leave this page the map will continue to be processed on the server.</p>
-        <p class="map-status">{{map.status.message}}</p>
+    <div ng-show="!mapComplete">
+      <div class="row">
+        <div class="col-md-12">
+          <p class="lead">The map is being processed.  The status of the map processing will be updated here.  If you leave this page the map will continue to be processed on the server.</p>
+          <p class="map-status">{{map.status.message}}</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <span class="page-sub-entity-label">Data Source Processing Status</span>
+        </div>
       </div>
     </div>
-    <div class="row" ng-show="map.status.totalFeatures">
+    <div ng-repeat="ds in map.dataSources" class="row">
       <div class="col-md-12">
-        <span class="page-sub-entity-label">Total Features: <span class="page-sub-entity-title">{{map.status.totalFeatures}}</span>
+        <div ng-class="{'text-success': ds.status.complete && !ds.status.failure}" ng-if="ds.vector"><i class="fa" ng-class="{'fa-spin': !ds.status.complete, 'fa-cog': !ds.status.complete, 'fa-check': ds.status.complete}"></i> {{ds.name}} - {{ds.status.message || 'Waiting'}} - {{ds.status.generatedFeatures}} of {{ds.status.totalFeatures}} features</div>
+        <div ng-class="{'text-success': ds.status.complete && !ds.status.failure}" ng-if="!ds.vector"><i class="fa" ng-class="{'fa-spin': !ds.status.complete, 'fa-cog': !ds.status.complete, 'fa-check': ds.status.complete}"></i> {{ds.name}} - {{ds.status.message || 'Waiting'}}</div>
       </div>
     </div>
 

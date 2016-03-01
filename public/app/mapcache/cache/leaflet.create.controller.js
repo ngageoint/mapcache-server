@@ -2,6 +2,7 @@ var L = require('leaflet');
 var turf = require('turf');
 var _ = require('underscore');
 require('leaflet-draw');
+var config = require('../../config');
 
 module.exports = function LeafletCreateController($scope, $element, LocalStorageService, LeafletUtilities) {
 
@@ -11,7 +12,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
     noWrap: true
   };
 
-  var defaultLayer = 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png';
+  var defaultLayer = config.defaultMapLayer;
 
   var baseLayer = L.tileLayer(defaultLayer, options);
   var sourceLayer;

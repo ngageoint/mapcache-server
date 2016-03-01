@@ -66,7 +66,15 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
         });
       }, function() {
         newSource.save(function() {
-          var map = new Map(newSource);
+          var map = new Map(newSource, {
+            progressCallback: function(err, dataSource) {
+              newSource.markModified('dataSources');
+              newSource.save(function(err) {
+                console.log('map progress save', err);
+                // callback(err, newSource);
+              });
+            }
+          });
           map.callbackWhenInitialized(function(err, map) {
             newSource = map.map;
             // console.log('map.map', JSON.stringify(map.map, null, 2));
@@ -74,7 +82,7 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
             newSource.status.complete = true;
             newSource.markModified('dataSources');
             newSource.save(function(err) {
-              console.log('err from save', err);
+              // console.log('err from save', err);
               callback(err, newSource);
             });
           });

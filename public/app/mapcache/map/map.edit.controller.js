@@ -1,11 +1,12 @@
 var angular = require('angular');
 var _ = require('underscore');
+var config = require('../../config');
 
 module.exports = function MapEditController($scope, $rootScope, $routeParams, MapService, LocalStorageService) {
   $scope.tab='general';
   $scope.token = LocalStorageService.getToken();
   $scope.mapOptions = {
-    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    baseLayerUrl: config.defaultMapLayer,
     opacity: 0.5,
     hideFilter: true
   };
