@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var proj4 = require('proj4');
+var config = require('../../config');
 
 module.exports = function MapDatasourceController($scope, $timeout, $http, MapService) {
   $scope.showMap = false;
@@ -7,7 +8,7 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   $scope.validFileFormats = MapService.validFileFormats;
 
   $scope.mapOptions = {
-    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    baseLayerUrl: config.defaultMapLayer,
     opacity: 0.5
   };
 

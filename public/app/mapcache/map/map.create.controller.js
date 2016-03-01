@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var config = require('../../config');
 
 module.exports = function MapCreateController($scope, $rootScope, $location, MapService) {
   $rootScope.title = 'Create A Map';
@@ -18,7 +19,7 @@ module.exports = function MapCreateController($scope, $rootScope, $location, Map
   };
 
   $scope.mapOptions = {
-    baseLayerUrl: 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png',
+    baseLayerUrl: config.defaultMapLayer,
     opacity: 0.5
   };
 

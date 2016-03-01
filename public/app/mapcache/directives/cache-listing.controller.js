@@ -1,10 +1,11 @@
 var turf = require('turf');
 var xyzTileUtils = require('xyz-tile-utils');
+var config = require('../../config');
 module.exports = function CacheListingController($scope, $rootScope, $timeout, LocalStorageService, CacheService) {
 
   $scope.token = LocalStorageService.getToken();
   $scope.options.opacity = $scope.options.opacity || 0.14;
-  $scope.options.baseLayerUrl = $scope.options.baseLayerUrl || 'http://mapbox.geointapps.org:2999/v4/mapbox.light/{z}/{x}/{y}.png';
+  $scope.options.baseLayerUrl = $scope.options.baseLayerUrl || config.defaultMapLayer;
 
   var cacheHighlightPromise;
   $scope.mouseOver = function(cache) {
