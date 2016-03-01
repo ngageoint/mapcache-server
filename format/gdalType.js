@@ -224,7 +224,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     img.data[(i*4)+3] = pixelRegion4[i];
   }
 
-
   var stream = img.pack();
   callback(null, stream);
 
