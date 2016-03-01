@@ -55,7 +55,7 @@ function getRandomStyle() {
   };
 }
 
-var formatDataSources = [{
+var formatDataSources = [/*{
   id: 'test-xyz',
   name: 'osm',
   url: 'http://osm.geointapps.org/osm',
@@ -79,24 +79,8 @@ var formatDataSources = [{
   testParams: {
     featureCount: 1
   }
-},/*{
-  id: 'test-wms',
-  name: 'wms',
-  format: 'wms',
-  url: 'http://watzmann.geog.uni-heidelberg.de/cached/osm',
-  zOrder: 0,
-  wmsLayer: {
-    Name: 'osm_auto:all'
-  }
-},*/
-mocks.mapMocks.wmsDatasource,
-{
-  id: 'test-arcgis',
-  name: 'arcgis',
-  format: 'arcgis',
-  url: 'http://tiles.arcgis.com/tiles/cc7nIINtrZ67dyVJ/arcgis/rest/services/Gorkha_West_2015/MapServer',
-  zOrder: 0
-},{
+},
+mocks.mapMocks.wmsDatasource,{
   id: 'test-geotiff',
   name: 'geotiff',
   format: 'geotiff',
@@ -144,7 +128,7 @@ mocks.mapMocks.wmsDatasource,
   testParams: {
     featureCount: 3807
   }
-}];
+}*/];
 
 describe('Format Tests', function() {
 
