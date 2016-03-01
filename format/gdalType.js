@@ -17,14 +17,13 @@ exports.processSource = function(source, callback, progressCallback) {
     source = newSource;
     try {
       var stats = fs.statSync(source.file.path);
-      log.info('stats', stats);
       if (!stats.isFile()) return callback(new Error('source file ' + source.file.path + ' does not exist'), source);
     } catch (e) {
       return callback(new Error('error reading source file ' + source.file.path), source);
     }
     log.info('Opening ' + source.file.path);
     var ds = gdal.open(source.file.path);
-    console.log(exports.gdalInfo(ds));
+    // console.log(exports.gdalInfo(ds));
 
     if (!ds.srs) {
       source.status.message="There is no Spatial Reference System in the file";
@@ -55,7 +54,6 @@ exports.processSource = function(source, callback, progressCallback) {
 };
 
 function expandColorsIfNecessary(ds, source, callback) {
-  console.log('ds.bands.get(1).colorInterpretation', ds.bands.get(1).colorInterpretation);
   var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
   var file = path.join(path.dirname(source.file.path), fileName);
   if (ds.bands.get(1).colorInterpretation === 'Palette' && !fs.existsSync(file)) {
@@ -166,7 +164,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
   console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
 
   var filePath = pickCorrectResolutionFile(source, z);
-  console.log('using the source file', filePath);
 
   var tileEnvelope = xyzTileUtils.tileBboxCalculator(x, y, z);
   var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
@@ -178,7 +175,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
 
   var gdalFile = gdal.open(filePath);
 
-  console.log('in_ds.bands.get(1).colorInterpretation', gdalFile.bands.get(1).colorInterpretation);
   var grayscale = gdalFile.bands.get(1).colorInterpretation === 'Gray';
 
   var gt = gdalFile.geoTransform;
@@ -228,7 +224,6 @@ exports.getTile = function(source, format, z, x, y, params, callback) {
     img.data[(i*4)+3] = pixelRegion4[i];
   }
 
-  console.log('got the image data');
 
   var stream = img.pack();
   callback(null, stream);

@@ -44,6 +44,7 @@ var DatasourceSchema = new Schema({
     message: { type: String, required: false},
     complete: {type: Boolean, required: true, default: false},
     totalFeatures: {type: Number, required: false, default: 0},
+    generatedFeatures: { type: Number, required: false, default: 0},
     failure: { type: Boolean, required: false, default: false}
   },
   style: {required: false, type: {
