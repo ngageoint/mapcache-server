@@ -2,7 +2,6 @@ module.exports = function LocationChooserController($scope, $element) {
 
   $scope.$watch('file', function() {
     if ($scope.file) {
-      console.log('setting scope location', $scope.file.name);
       $scope.location = $scope.file.name;
     }
   });
@@ -12,7 +11,6 @@ module.exports = function LocationChooserController($scope, $element) {
       if (event.target.files.length === 1) {
         $scope.file = event.target.files[0];
         $scope.$emit('location-file', $scope.file);
-        console.log('emitting location-file');
       } else if (event.target.files.length !== 0) {
         $scope.file = event.target.files[0];
         $scope.$emit('location-file', $scope.file);
@@ -38,9 +36,6 @@ module.exports = function LocationChooserController($scope, $element) {
   $scope.$watch('location', function(location) {
     if (location && isValidURL(location)) {
       $scope.$emit('location-url', location, isValidURL(location));
-      console.log('emitting location-url');
-      $scope.file = {};
-      $element.find(':file').val('');
     }
   });
 };
