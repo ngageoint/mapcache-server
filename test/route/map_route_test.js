@@ -164,7 +164,7 @@ describe("map route tests", function() {
           format: 'geojson',
           name: 'rivers',
           file: {
-            name: 'Rivers.geojson'
+            name: 'maptest.geojson'
           }
         }],
         name: 'Rivers'
@@ -174,7 +174,7 @@ describe("map route tests", function() {
         .post('/api/maps')
         .set('Accept', 'application/json')
         .set('Authorization', 'Bearer 12345')
-        .attach('mapFile', path.join(__dirname, '../format/Rivers.geojson'))
+        .attach('mapFile', path.join(__dirname, '../api/maptest.geojson'))
         .expect(200)
         .expect('Content-Type', /json/)
         .field('map', JSON.stringify(mapJson))
