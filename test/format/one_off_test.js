@@ -53,7 +53,7 @@ var cache = {
 
 var tmpImage = '/tmp/geotiff_test.png';
 
-describe('geotiff source tests', function() {
+describe.skip('geotiff source tests', function() {
   var map;
   before(function(done) {
     this.timeout(60000);

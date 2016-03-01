@@ -177,13 +177,6 @@ describe('Map API', function() {
 
     var createdMap;
 
-    before(function(done) {
-      fs.copy(path.join(__dirname, '../format/Rivers.geojson'), __dirname+'/maptest.geojson', function(err) {
-        console.log('err', err);
-        done();
-      });
-    });
-
     after(function(done) {
       async.each(createdMap.dataSources, function(dataSource, callback) {
         FeatureModel.deleteFeaturesBySourceId(dataSource.id, function(err) {
