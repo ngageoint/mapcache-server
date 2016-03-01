@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "karma start",
-    "build": "mkdir static && browserify index.js -o static/mapcache.js",
-    "watch": "mkdir static && watchify index.js -o static/mapcache.js --debug --verbose"
+    "build": "browserify index.js -o static/mapcache.js",
+    "watch": "watchify index.js -o static/mapcache.js --debug --verbose"
   },
   "author": "daniel.barela@gmail.com",
   "license": "MIT",
