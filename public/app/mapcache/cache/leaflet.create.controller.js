@@ -68,7 +68,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
       drawnItems.removeLayer(cacheFootprintLayer);
       cacheFootprintLayer = null;
       $scope.$apply(function() {
-        $scope.options.geometry = null;
+        $scope.$emit('draw:drawstart');
       });
     }
   });
@@ -79,7 +79,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      $scope.options.geometry = cacheFootprintLayer.toGeoJSON().geometry;
+      $scope.$emit('draw:created', cacheFootprintLayer.toGeoJSON().geometry);
     });
   });
 
@@ -89,7 +89,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      $scope.options.geometry = cacheFootprintLayer.toGeoJSON().geometry;
+      $scope.$emit('draw:edited', cacheFootprintLayer.toGeoJSON().geometry);
     });
   });
 

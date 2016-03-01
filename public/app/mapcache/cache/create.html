@@ -67,18 +67,18 @@
 
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
-          <div class="form-group">
+          <div class="form-group" ng-class="{'has-error': create.bb.north <= create.bb.south}">
             <label>Northern Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.north" placeholder="e.g. 39.9">
               <span class="input-group-addon">&deg;</span>
             </div>
             <div class="input-group merged top-gap-s">
-              <input type="text" class="form-control" ng-change="create.dmsChange('north', north)" ng-model="create.north.degrees">
+              <input type="text" class="form-control" ng-change="create.dmsChange('north', create.north)" ng-model="create.north.degrees">
               <span class="input-group-addon">&deg;</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('north', north)" ng-model="create.north.minutes">
+              <input type="text" class="form-control" ng-change="create.dmsChange('north', create.north)" ng-model="create.north.minutes">
               <span class="input-group-addon">'</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('north', north)" ng-model="create.north.seconds">
+              <input type="text" class="form-control" ng-change="create.dmsChange('north', create.north)" ng-model="create.north.seconds">
               <span class="input-group-addon">&quot;</span>
             </div>
           </div>
@@ -86,18 +86,18 @@
       </div>
       <div class="row">
         <div class="col-sm-2" style="height: 500px">
-          <div class="form-group vertical-center">
+          <div class="form-group vertical-center" ng-class="{'has-error': create.bb.east <= create.bb.west}">
             <label>Western Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.west" placeholder="e.g. -105.2">
               <span class="input-group-addon">&deg;</span>
             </div>
             <div class="input-group merged top-gap-s">
-              <input type="text" class="form-control" ng-change="create.dmsChange('west', west)" ng-model="create.west.degrees">
+              <input type="text" class="form-control" ng-change="create.dmsChange('west', create.west)" ng-model="create.west.degrees">
               <span class="input-group-addon">&deg;</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('west', west)" ng-model="create.west.minutes">
+              <input type="text" class="form-control" ng-change="create.dmsChange('west', create.west)" ng-model="create.west.minutes">
               <span class="input-group-addon">'</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('west', west)" ng-model="create.west.seconds">
+              <input type="text" class="form-control" ng-change="create.dmsChange('west', create.west)" ng-model="create.west.seconds">
               <span class="input-group-addon">&quot;</span>
             </div>
           </div>
@@ -110,18 +110,18 @@
             </div>
         </div>
         <div class="col-sm-2" style="height: 500px">
-          <div class="form-group vertical-center">
+          <div class="form-group vertical-center" ng-class="{'has-error': create.bb.east <= create.bb.west}">
             <label>Eastern Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.east" placeholder="e.g. -104.8">
               <span class="input-group-addon">&deg;</span>
             </div>
             <div class="input-group merged top-gap-s">
-              <input type="text" class="form-control" ng-change="create.dmsChange('east', east)" ng-model="create.east.degrees">
+              <input type="text" class="form-control" ng-change="create.dmsChange('east', create.east)" ng-model="create.east.degrees">
               <span class="input-group-addon">&deg;</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('east', east)" ng-model="create.east.minutes">
+              <input type="text" class="form-control" ng-change="create.dmsChange('east', create.east)" ng-model="create.east.minutes">
               <span class="input-group-addon">'</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('east', east)" ng-model="create.east.seconds">
+              <input type="text" class="form-control" ng-change="create.dmsChange('east', create.east)" ng-model="create.east.seconds">
               <span class="input-group-addon">&quot;</span>
             </div>
           </div>
@@ -129,18 +129,18 @@
       </div>
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
-          <div class="form-group">
+          <div class="form-group" ng-class="{'has-error': create.bb.north <= create.bb.south}">
             <label>Southern Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.south" placeholder="e.g. 39.5">
               <span class="input-group-addon">&deg;</span>
             </div>
             <div class="input-group merged top-gap-s">
-              <input type="text" class="form-control" ng-change="create.dmsChange('south', south)" ng-model="create.south.degrees">
+              <input type="text" class="form-control" ng-change="create.dmsChange('south', create.south)" ng-model="create.south.degrees">
               <span class="input-group-addon">&deg;</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('south', south)" ng-model="create.south.minutes">
+              <input type="text" class="form-control" ng-change="create.dmsChange('south', create.south)" ng-model="create.south.minutes">
               <span class="input-group-addon">'</span>
-              <input type="text" class="form-control" ng-change="create.dmsChange('south', south)" ng-model="create.south.seconds">
+              <input type="text" class="form-control" ng-change="create.dmsChange('south', create.south)" ng-model="create.south.seconds">
               <span class="input-group-addon">&quot;</span>
             </div>
           </div>
