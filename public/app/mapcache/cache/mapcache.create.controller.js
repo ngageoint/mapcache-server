@@ -96,22 +96,32 @@ MapcacheCreateController.prototype.dmsChange = function(direction, dms) {
 
 MapcacheCreateController.prototype.manualEntry = function() {
   var directionsSet = 0;
-  if(!isNaN(this.bb.north)) {
+  if(!isNaN(parseFloat(this.bb.north))) {
     this._setDirectionDMS(this.bb.north, this.north);
     directionsSet++;
   }
-  if(!isNaN(this.bb.south)) {
+  if(!isNaN(parseFloat(this.bb.south))) {
     this._setDirectionDMS(this.bb.south, this.south);
     directionsSet++;
   }
-  if(!isNaN(this.bb.east)) {
+  if(!isNaN(parseFloat(this.bb.east))) {
     this._setDirectionDMS(this.bb.east, this.east);
     directionsSet++;
   }
-  if(!isNaN(this.bb.west)) {
+  if(!isNaN(parseFloat(this.bb.west))) {
     this._setDirectionDMS(this.bb.west, this.west);
     directionsSet++;
   }
+
+  if (parseFloat(this.bb.east) <= parseFloat(this.bb.west) || parseFloat(this.bb.north) <= parseFloat(this.bb.south)) {
+    this.boundsSet = false;
+    this.ewError = parseFloat(this.bb.east) <= parseFloat(this.bb.west);
+    this.nsError = parseFloat(this.bb.north) <= parseFloat(this.bb.south);
+    this.$scope.$broadcast('extentChanged', null);
+    return true;
+  }
+  this.ewError = false;
+  this.nsError = false;
 
   if (directionsSet !== 4) {
     this.boundsSet = false;
@@ -119,33 +129,36 @@ MapcacheCreateController.prototype.manualEntry = function() {
     return true;
   }
 
-  if (this.bb.east <= this.bb.west || this.bb.north <= this.bb.south) {
-    this.boundsSet = false;
-    this.$scope.$broadcast('extentChanged', null);
-    return true;
-  }
-
   this.boundsSet = true;
   var envelope = {
-    north: Number(this.bb.north),
-    south: Number(this.bb.south),
-    west: Number(this.bb.west),
-    east: Number(this.bb.east)
+    north: parseFloat(this.bb.north),
+    south: parseFloat(this.bb.south),
+    west: parseFloat(this.bb.west),
+    east: parseFloat(this.bb.east)
   };
   this.$scope.$broadcast('extentChanged', envelope);
   this._calculateCacheSize();
 };
 
-MapcacheCreateController.prototype._setDirectionDMS = function(deg, direction) {
+MapcacheCreateController.prototype._setDirectionDMS = function(dd, direction) {
+  var deg = parseFloat(dd);
   if (!deg) return;
-   var d = Math.floor (deg);
-   var minfloat = (deg-d)*60;
-   var m = Math.floor(minfloat);
-   var secfloat = (minfloat-m)*60;
-   var s = Math.round(secfloat);
-   direction.degrees = d;
-   direction.minutes = m;
-   direction.seconds = s;
+
+  var absDeg = Math.abs(deg);
+  var multiplier = deg < 0 ? -1 : 1;
+
+ var d = Math.floor(absDeg);
+ var minfloat = (absDeg-d)*60;
+ var m = Math.floor(minfloat);
+ var secfloat = (minfloat-m)*60;
+ var s = Math.round(secfloat);
+ if (s === 60) {
+   s = 0;
+   m = m + 1;
+ }
+ direction.degrees = d * multiplier;
+ direction.minutes = m;
+ direction.seconds = s;
 };
 
 MapcacheCreateController.prototype.toggleDataSource = function(id, ds) {

@@ -67,7 +67,7 @@
 
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
-          <div class="form-group" ng-class="{'has-error': create.bb.north <= create.bb.south}">
+          <div class="form-group north-group" ng-class="{'has-error': create.nsError}">
             <label>Northern Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.north" placeholder="e.g. 39.9">
@@ -86,7 +86,7 @@
       </div>
       <div class="row">
         <div class="col-sm-2" style="height: 500px">
-          <div class="form-group vertical-center" ng-class="{'has-error': create.bb.east <= create.bb.west}">
+          <div class="form-group west-group vertical-center" ng-class="{'has-error': create.ewError}">
             <label>Western Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.west" placeholder="e.g. -105.2">
@@ -110,7 +110,7 @@
             </div>
         </div>
         <div class="col-sm-2" style="height: 500px">
-          <div class="form-group vertical-center" ng-class="{'has-error': create.bb.east <= create.bb.west}">
+          <div class="form-group east-group vertical-center" ng-class="{'has-error': create.ewError}">
             <label>Eastern Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.east" placeholder="e.g. -104.8">
@@ -129,7 +129,7 @@
       </div>
       <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
-          <div class="form-group" ng-class="{'has-error': create.bb.north <= create.bb.south}">
+          <div class="form-group south-group" ng-class="{'has-error': create.nsError}">
             <label>Southern Boundary</label>
             <div class="input-group merged">
               <input class="form-control" ng-change="create.manualEntry()" ng-model="create.bb.south" placeholder="e.g. 39.5">

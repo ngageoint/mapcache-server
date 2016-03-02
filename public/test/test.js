@@ -19,26 +19,25 @@ angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', '
 
   $routeProvider.when('/map/:mapId/edit', {
     templateUrl:    'app/mapcache/map/map-edit.html',
-    // template : 'welcome to {{ title }}',
     controller:     "MapEditController"
+  }).when('/create/:mapId?', {
+    templateUrl:    'app/mapcache/cache/create.html',
+    controller:     "MapcacheCreateController"
   });
 });
+
+require('../app/signin');
+require('../app/factories');
+require('../app/filters');
+require('../app/mapcache');
+require('../app/admin/storage');
+require('../app/user');
+require('../app/about');
+require('../app/directives');
 
 describe('mapcache browser tests', function() {
 
   beforeEach(angular.mock.module('mapcache'));
-
-  before(function(){
-
-    require('../app/signin');
-    require('../app/factories');
-    require('../app/filters');
-    require('../app/mapcache');
-    require('../app/admin/storage');
-    require('../app/user');
-    require('../app/about');
-    require('../app/directives');
-  });
 
   it('should have created the module', function(){
 
