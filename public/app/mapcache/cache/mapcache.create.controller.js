@@ -212,7 +212,7 @@ MapcacheCreateController.prototype.requiredFieldsSet = function() {
     this.unsetFields.push('cache boundaries');
   }
 
-  if (!_.some(_.values(this.currentDatasources), function(value) {
+  if (!_.some(_.values(this.cache.currentDatasources), function(value) {
     return value;
   })) {
     this.unsetFields.push('at least one data source');
