@@ -74,7 +74,6 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   $scope.itemsPerPage = 10;
 
   UserService.getRoles().then(function (roles) {
-    console.log('roles', roles);
     $scope.roles = roles;
   });
 
