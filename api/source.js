@@ -97,8 +97,7 @@ Source.getTile = function(source, format, z, x, y, params, callback) {
   map.callbackWhenInitialized(function(err, map) {
     map.getTile(format, z, x, y, params, function(err, tileStream){
       var lstream = lengthStream(function(streamLength) {
-        SourceModel.updateSourceAverageSize(source, streamLength, function() {
-        });
+        SourceModel.updateSourceAverageSize(source, streamLength);
       });
       callback(err, tileStream.pipe(lstream));
     });
