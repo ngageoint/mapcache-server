@@ -180,19 +180,19 @@ exports.getSources = function(options, callback) {
   });
 };
 
-exports.updateSourceAverageSize = function(source, size, callback) {
-  var update = {$inc: {}};
+exports.updateSourceAverageSize = function(source, size) {
+  console.log('updating tile size with params %s %s', source._id, size.toString());
+  var update = {};
   if (!source.tileSizeCount) {
+    update.$inc = {
+      tileSizeCount: 1,
+      tileSize: size
+    };
+  } else {
     update.tileSizeCount = 1;
-  } else {
-    update.$inc.tileSizeCount = 1;
-  }
-  if (!source.tileSize || source.tileSize === 0){
     update.tileSize = size;
-  } else {
-    update.$inc.tileSize = size;
   }
-  Source.findByIdAndUpdate(source._id, update, callback);
+  Source.findByIdAndUpdate(source._id, update).exec();
 };
 
 exports.getSourceById = function(id, callback) {
