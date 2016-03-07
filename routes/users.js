@@ -6,7 +6,8 @@ module.exports = function(app, security) {
     , userTransformer = require('../transformers/user')
     , passport = security.authentication.passport
     , loginStrategy = security.authentication.loginStrategy
-    , authenticationStrategy = security.authentication.authenticationStrategy;
+    , authenticationStrategy = security.authentication.authenticationStrategy
+    , oauthStrategy = security.authentication.oauthStrategy;
 
   var passwordLength = config.api.authentication.passwordMinLength;
   var emailRegex = /^[^\s@]+@[^\s@]+\./;
@@ -158,7 +159,7 @@ module.exports = function(app, security) {
   // get info for the user bearing a token, i.e get info for myself
   app.get(
     '/api/users/myself',
-    passport.authenticate(authenticationStrategy),
+    passport.authenticate([authenticationStrategy, oauthStrategy]),
     function(req, res) {
       var user = userTransformer.transform(req.user, {path: req.getRoot()});
       res.json(user);

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Log In to Mapcache</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/roboto.css"/>
+  <link rel="stylesheet" href="/css/mapcache.css"/>
+
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#"><i class="fa fa-globe" style="margin-right:10px;"></i> mapcache</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <span class="page-sub-entity-title">Log in with your mapcache account</span>
+      </div>
+    </div>
+
+    <form class="form top-gap" action="/oauth2/login" method="post">
+      <input name="response_type" type="hidden" value="<%= response_type %>">
+      <input name="client_id" type="hidden" value="<%= client_id %>">
+      <input name="redirect_uri" type="hidden" value="<%= redirect_uri %>">
+      <input name="scope" type="hidden" value="<%= scope %>">
+
+      <div class="form-group" ng-class="{'has-error': status > 399}">
+        <label>Username</label>
+        <input ng-model="username" class="form-control" name="username" type="text" autocapitalize="off"/>
+      </div>
+
+      <div class="form-group" ng-class="{'has-error': status > 399}">
+        <label>Password</label>
+        <input ng-model="password" class="form-control" name="password" type="password" autocapitalize="off"/>
+      </div>
+
+      <span>
+        <button class="btn btn-primary" type="submit">Log In</button>
+      </span>
+    </form>
+<!--
+    <p class="top-gap-s">Don't have an account? <a ng-click="login = false">Create one here.</a></p>
+-->
+    <div class="top-gap">
+      <div class="top-gap-s alert alert-danger <%= loginFailure ? 'visible' : 'hidden' %>">
+        <strong>Failed to log in</strong>
+        <p>Please check your username, and password and try again.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

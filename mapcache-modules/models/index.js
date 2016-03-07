@@ -6,7 +6,8 @@ var Cache = require('./cache')
   , Login = require('./login')
   , Server = require('./server')
   , Permission = require('./permission')
-  , User = require('./user');
+  , User = require('./user')
+  , oauth = require('./oauth');
 
 exports.Cache = Cache;
 exports.Feature = Feature;
@@ -18,3 +19,4 @@ exports.Login = Login;
 exports.Server = Server;
 exports.Permission = Permission;
 exports.User = User;
+exports.oauth = oauth;

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Request for Permission</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/roboto.css"/>
+  <link rel="stylesheet" href="/css/mapcache.css"/>
+
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#"><i class="fa fa-globe" style="margin-right:10px;"></i> mapcache</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="media">
+      <div class="media-left">
+        <img class="media-object" width="64px" height="64px" src="<%= client.icon_url %>" alt="<%= client.title %>">
+      </div>
+      <div class="media-body">
+        <h4 class="media-heading"><%= client.title %></h4>
+      </div>
+    </div>
+    <div class="row top-gap">
+      <div class="col-md-12">
+        <span class="page-sub-entity-title">Hello <%= user.firstname %> <%= user.lastname %> (<%= user.username %>). The application, <%= client.title %>, would like to:</span>
+      </div>
+    </div>
+    <hr>
+    <div class="row top-gap">
+      <div class="col-md-1">
+        <i class="fa fa-globe"></i>
+      </div>
+      <div class="col-md-11">
+        Access your account
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-md-12">
+        <form action="/oauth2/decision" method="post">
+          <input name="transaction_id" type="hidden" value="<%= transactionID %>">
+          <input name="response_type" type="hidden" value="<%= response_type %>">
+          <input name="client_id" type="hidden" value="<%= client.oauth_id %>">
+          <input name="auth_url" type="hidden" value="<%= currentURL %>">
+          <input name="scope" type="hidden" value="<%= scope.join(',') %>">
+          <input name="access_token" type="hidden" value="<%= token %>">
+          <div>
+            <input class="btn" type="submit" value="Cancel" name="cancel" id="cancel"></input>
+            <input class="btn btn-primary" type="submit" value="Allow" id="allow"></input>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
