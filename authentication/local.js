@@ -2,8 +2,6 @@ module.exports = function(passport) {
 
   var LocalStrategy = require('passport-local').Strategy
     , BearerStrategy = require('passport-http-bearer').Strategy
-    , BasicStrategy = require('passport-http').BasicStrategy
-    , ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy
     , models = require('mapcache-models')
     , Token = models.Token
     , User = models.User;
@@ -35,28 +33,6 @@ module.exports = function(passport) {
           }
           return done(null, user);
         });
-      });
-    }
-  ));
-
-  passport.use(new BasicStrategy(
-    function(username, password, done) {
-      models.oauthModels.Client.findByClientId(username, function(err, client) {
-        if (err) { return done(err); }
-        if (!client) { return done(null, false); }
-        if (client.clientSecret !== password) { return done(null, false); }
-        return done(null, client);
-      });
-    }
-  ));
-
-  passport.use(new ClientPasswordStrategy(
-    function(clientId, clientSecret, done) {
-      models.oauthModels.Client.findByClientId(clientId, function(err, client) {
-        if (err) { return done(err); }
-        if (!client) { return done(null, false); }
-        if (client.clientSecret !== clientSecret) { return done(null, false); }
-        return done(null, client);
       });
     }
   ));

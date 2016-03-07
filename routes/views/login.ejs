@@ -3,6 +3,7 @@
 <head>
   <title>Log In to Mapcache</title>
 
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/roboto.css"/>
@@ -19,7 +20,7 @@
     </div>
   </nav>
 
-  <div class="container">
+  <div class="container form-container hidden">
     <div class="row">
       <div class="col-md-12">
         <span class="page-sub-entity-title">Log in with your mapcache account</span>
@@ -27,6 +28,7 @@
     </div>
 
     <form class="form top-gap" action="/oauth2/login" method="post">
+      <input name="access_token" type="hidden">
       <input name="response_type" type="hidden" value="<%= response_type %>">
       <input name="client_id" type="hidden" value="<%= client_id %>">
       <input name="redirect_uri" type="hidden" value="<%= redirect_uri %>">
@@ -46,9 +48,6 @@
         <button class="btn btn-primary" type="submit">Log In</button>
       </span>
     </form>
-<!--
-    <p class="top-gap-s">Don't have an account? <a ng-click="login = false">Create one here.</a></p>
--->
     <div class="top-gap">
       <div class="top-gap-s alert alert-danger <%= loginFailure ? 'visible' : 'hidden' %>">
         <strong>Failed to log in</strong>
@@ -56,5 +55,14 @@
       </div>
     </div>
   </div>
+
+  <script type="text/javascript">
+    if (window.localStorage.getItem('mapcachetoken') && <%= !loginFailure %>) {
+      $('input[name=access_token]').val(window.localStorage.getItem('mapcachetoken'));
+      $('form').submit();
+    } else {
+      $('.form-container').removeClass('hidden');
+    }
+  </script>
 </body>
 </html>

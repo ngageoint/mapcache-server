@@ -136,6 +136,7 @@ MapcacheCreateController.prototype.manualEntry = function() {
     west: parseFloat(this.bb.west),
     east: parseFloat(this.bb.east)
   };
+  this.cache.geometry = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
   this.$scope.$broadcast('extentChanged', envelope);
   this._calculateCacheSize();
 };
@@ -293,6 +294,8 @@ MapcacheCreateController.prototype._boundariesDrawn = function(event, geometry) 
   this._setDirectionDMS(this.bb.west, this.west);
   this.bb.east = extent[2];
   this._setDirectionDMS(this.bb.east, this.east);
+
+  this.cache.geometry = geometry;
 
   this._calculateCacheSize();
 };

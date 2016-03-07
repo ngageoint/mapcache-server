@@ -132,7 +132,10 @@ module.exports = function(app, security) {
 
   app.post('/oauth2/login',
     function(req, res, next) {
-      return passport.authenticate(loginStrategy, function(err, user, info) {
+      return passport.authenticate([authenticationStrategy, loginStrategy], function(err, user, info) {
+        console.log('user', user);
+        console.log('err', err);
+        console.log('info', info);
         if (err) { return next(err); }
         if (!user) {
           return res.redirect( '/oauth2/login?response_type='+req.param('response_type') +'&redirect_uri='+req.param('redirect_uri') +'&scope='+req.param('scope') +'&client_id='+req.param('client_id')+'&loginFailure=true');
@@ -143,10 +146,15 @@ module.exports = function(app, security) {
     },
     function(req, res, next) {
       var options = {userAgent: req.headers['user-agent'], appVersion: req.param('appVersion')};
-      new api.User().login(req.user, options, function(err, token) {
-        req.query.access_token = token.token;
+      if (!req.token) {
+        new api.User().login(req.user, options, function(err, token) {
+          req.query.access_token = token.token;
+          next();
+        });
+      } else {
+        req.query.access_token = req.token.token;
         next();
-      });
+      }
     },
     function(req, res, next) {
       req.query.response_type = req.body.response_type;
