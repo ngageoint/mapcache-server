@@ -107,6 +107,10 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
         $scope.mapDatasource.format = 'kmz';
         $scope.format = 'kmz';
         break;
+      case 'kml':
+        $scope.mapDatasource.format = 'kmz';
+        $scope.format = 'kml';
+        break;
       case 'json':
       case 'geojson':
         $scope.mapDatasource.format = 'geojson';

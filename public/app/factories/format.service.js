@@ -11,7 +11,7 @@ module.exports = function FormatService() {
     kml: "KML",
     gpx: "GPX",
     wms: "Web Map Service (WMS)",
-    kmz: "KMZ",
+    kmz: "KMZ/KML",
     mrsid: "MrSID",
     arcgis: "ArcGIS"
   };

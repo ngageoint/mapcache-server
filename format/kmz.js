@@ -46,6 +46,10 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
 
       self.geoJsonFile = path.join(self.outDirectory, fileName);
 
+      if (path.extname(source.file.name) === '.kml') {
+        return self._processKml(source.file.path, progressCallback, doneCallback);
+      }
+
       log.info('Decompressing kmz file');
       var zip = new decompress(source.file.path);
 
@@ -61,28 +65,7 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
         });
 
         finder.on('end', function() {
-          var gdal = require("gdal");
-          var ds = gdal.open(kmlFile);
-
-          var layer = ds.layers;
-          console.log('DataSource Layer Count', layer.count());
-
-          var tasks = [];
-          for (var i = 0; i < layer.count(); i++) {
-            console.log('Layer %d:', i, JSON.stringify(layer.get(i), null, 2));
-            tasks.push(self._extractLayer.bind(self, kmlFile, layer.get(i).name, i, progressCallback));
-          }
-
-          async.parallel(tasks,
-            function(err, results) {
-              return completeProcessing(self.source, function(err, source) {
-                console.log('source finished processing', source);
-                console.log('self.generatedFeatures', self.generatedFeatures);
-
-                doneCallback(null, source);
-              });
-            }
-          );
+          self._processKml(kmlFile, progressCallback, doneCallback);
         });
       }.bind(this));
 
@@ -91,6 +74,32 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
       });
     }.bind(this));
   });
+};
+
+KMZ.prototype._processKml = function(kmlFile, progressCallback, doneCallback) {
+  var self = this;
+  var gdal = require("gdal");
+  var ds = gdal.open(kmlFile);
+
+  var layer = ds.layers;
+  console.log('DataSource Layer Count', layer.count());
+
+  var tasks = [];
+  for (var i = 0; i < layer.count(); i++) {
+    console.log('Layer %d:', i, JSON.stringify(layer.get(i), null, 2));
+    tasks.push(self._extractLayer.bind(self, kmlFile, layer.get(i).name, i, progressCallback));
+  }
+
+  async.parallel(tasks,
+    function(err, results) {
+      return completeProcessing(self.source, function(err, source) {
+        console.log('source finished processing', source);
+        console.log('self.generatedFeatures', self.generatedFeatures);
+
+        doneCallback(null, source);
+      });
+    }
+  );
 };
 
 KMZ.prototype._extractLayer = function(file, layer, layerId, progressCallback, callback) {
