@@ -44,26 +44,33 @@ exports.getAllPropertiesFromSource = function(query, callback) {
 };
 
 exports.getPropertyKeysFromSource = function(query, callback) {
-	if (!query.layerId) query.layerId = null;
-  if (query.sourceId) query.sourceId = query.sourceId.toString();
+  var dbQuery = {
+    cache_id: null // jshint ignore:line
+  };
+
+	if (query.layerId) dbQuery.layer_id = query.layerId; // jshint ignore:line
+  if (query.sourceId) dbQuery.source_id = query.sourceId.toString(); // jshint ignore:line
 	knex(function(knex) {
 		knex('features')
 		.distinct(knex.raw('json_object_keys(properties) as property'))
 		.select()
-		.where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}) // jshint ignore:line
+		.where(dbQuery) // jshint ignore:line
 		.then(callback);
 	});
 };
 
 exports.getValuesForKeyFromSource = function(key, query, callback) {
-	if (!query.sourceId) query.sourceId = null;
-	if (!query.layerId) query.layerId = null;
-  if (query.sourceId) query.sourceId = query.sourceId.toString();
+  var dbQuery = {
+    cache_id: null // jshint ignore:line
+  };
+  if (query.layerId) dbQuery.layer_id = query.layerId; // jshint ignore:line
+  if (query.sourceId) dbQuery.source_id = query.sourceId.toString(); // jshint ignore:line
+
 	knex(function(knex) {
 		knex('features')
 		.distinct(knex.raw('properties::jsonb -> \''+key+'\' as value'))
 		.select()
-		.where({source_id: query.sourceId, layer_id: query.layerId, cache_id: null}) // jshint ignore:line
+		.where(dbQuery) // jshint ignore:line
 		.andWhere(knex.raw("properties::jsonb\\?|array[\'"+key+"\']"))
 		.then(callback);
 	});

@@ -19,7 +19,6 @@ module.exports = function(app, auth) {
     }
     req.newSource = source;
     req.newSource.permission = req.newSource.permission || 'MAPCACHE';
-    console.log('req.user', req.user);
     req.newSource.userId = req.user ? req.user._id : null;
     if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
       req.newSource.dataSources = JSON.parse(source.dataSources);
