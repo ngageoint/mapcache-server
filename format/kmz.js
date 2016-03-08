@@ -38,7 +38,6 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
         doneCallback(null, source);
       });
     }
-    source.status.message = "Decompressing kmz file";
     progressCallback(source, function(err, updateSource) {
       source = updateSource;
       self.outDirectory = self.config.outputDirectory || path.dirname(source.file.path);
@@ -47,10 +46,12 @@ KMZ.prototype.processSource = function(doneCallback, progressCallback) {
       self.geoJsonFile = path.join(self.outDirectory, fileName);
 
       if (path.extname(source.file.name) === '.kml') {
+        source.status.message="Processing KML file";
         return self._processKml(source.file.path, progressCallback, doneCallback);
       }
 
       log.info('Decompressing kmz file');
+      source.status.message = "Decompressing KMZ file";
       var zip = new decompress(source.file.path);
 
       zip.on('extract', function() {
