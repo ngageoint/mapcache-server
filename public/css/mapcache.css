@@ -333,9 +333,9 @@
   color: #FFF;
 }
 
-/* 500 allows the full map to be visible at zoom level 1 */
 .leaflet-map {
-  height:500px;
+  height:30vh;
+  min-height: 200px;
 }
 
 .short-map .leaflet-map {
@@ -620,11 +620,11 @@
   }
 
   .ui-scrollpoint .maps-scrollpoint {
-    margin-top:500px;
+    margin-top:30vh;
   }
 
   .filter-scrollpoint.ui-scrollpoint {
-    top:510px;
+    top:30vh;
     position: fixed;
   }
 

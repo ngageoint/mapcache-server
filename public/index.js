@@ -4,6 +4,7 @@ require('angular-route');
 require('angular-sanitize');
 require('./app/auth/http-auth-interceptor');
 require('angular-ui-bootstrap');
+require('angular-ui-scrollpoint');
 // putting this  because you have to build it before you can use it
 require('./vendor/angular_ui_select');
 
@@ -11,7 +12,7 @@ require('./vendor/angular_ui_select');
 var L = require('leaflet');
 L.Icon.Default.imagePath = 'node_modules/leaflet/dist/images/';
 
-var app = angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select' ]);
+var app = angular.module('mapcache', [ 'ngRoute', 'ngSanitize', 'http-auth-interceptor', 'ui.bootstrap', 'ui.select', 'ui.scrollpoint' ]);
 
 require('./app/signin');
 require('./app/factories');
