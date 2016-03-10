@@ -83,6 +83,9 @@ module.exports = function(app, auth) {
     function(req, res) {
       var called = false;
       Cache.create(req.newCache, function(err, newCache) {
+        if (err) {
+          console.log('Error creating cache', err);
+        }
         if (newCache.id && !called) {
           called = true;
           if (err) return res.status(400).send(err.message);
