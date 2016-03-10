@@ -39,6 +39,9 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
 
   SourceModel.createSource(source, function(err, newSource) {
+    if (err) {
+      log.error('Error creating source', err);
+    }
     // console.log('new source', JSON.stringify(newSource, null, 2));
     if (progressCallback) progressCallback(err, newSource);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
