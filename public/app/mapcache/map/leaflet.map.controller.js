@@ -373,7 +373,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       debounceDataSources();
     }
   });
-  
+
   var layerControlAdded = false;
   var layerControlLayers = [];
 

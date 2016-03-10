@@ -136,12 +136,16 @@ function transformDatasource(source, ret) {
 	delete ret.__v;
 }
 
+function transformDatasourceToObject(source, ret) {
+	ret.id = ret._id;
+}
+
 DatasourceSchema.set("toJSON", {
   transform: transformDatasource
 });
 
 DatasourceSchema.set('toObject', {
-  transform: transformDatasource
+  transform: transformDatasourceToObject
 });
 
 SourceSchema.set("toJSON", {
@@ -244,68 +248,6 @@ exports.getSourceById = function(id, callback) {
   });
 };
 
-exports.updateDatasource = function(datasource, callback) {
-
-  exports.getSourceByDatasourceId(datasource._id, function(err, source) {
-    if (err) {
-      console.log('Could not update source', err);
-      return callback(err);
-    }
-    var set = {};
-    var addToSet = {};
-    set['dataSources.$.styleTime'] = Date.now();
-    if (datasource.name) set['dataSources.$.name'] = datasource.name;
-    if (datasource.url) set['dataSources.$.url'] = datasource.url;
-    if (datasource.format) set['dataSources.$.format'] = datasource.format;
-    if (datasource.projection) set['dataSources.$.projection'] = datasource.projection;
-    if (datasource.vector) set['dataSources.$.vector'] = datasource.vector;
-    if (datasource.metadata) set['dataSources.$.metadata'] = datasource.metadata;
-    if (datasource.geometry) set['dataSources.$.geometry'] = datasource.geometry;
-    if (datasource.file) {
-      for (var key in datasource.file) {
-        if (datasource.file[key]) {
-          set['dataSources.$.file.'+key] = datasource.file[key];
-        }
-      }
-    }
-    if (datasource.size) set['dataSources.$.size'] = datasource.size;
-    if (datasource.tilesLackExtensions) set['dataSources.$.tilesLackExtensions'] = datasource.tilesLackExtensions;
-    if (datasource.zOrder) set['dataSources.$.zOrder'] = datasource.zOrder;
-    if (datasource.status) {
-      for (var statusKey in datasource.status) {
-        if (datasource.status[statusKey]) {
-          set['dataSources.$.status.'+statusKey] = datasource.status[statusKey];
-        }
-      }
-    }
-    if (datasource.properties) set['dataSources.$.properties'] = datasource.properties;
-    if (datasource.style) {
-      for (var styleKey in datasource.style) {
-        if (datasource.style[styleKey]) {
-          set['dataSources.$.style.'+styleKey] = datasource.style[styleKey];
-        }
-      }
-    }
-    if (datasource.scaledFiles) {
-      addToSet['dataSources.$.scaledFiles'] = { $each: datasource.scaledFiles };
-    }
-
-    Source.update(
-      {_id: source._id, 'dataSources._id': datasource._id},
-      {
-        '$set': set,
-        '$addToSet': addToSet
-      },
-      function(err) {
-        console.log('err saving the datasource', err);
-        exports.getDataSourceById(datasource._id, function(err, datasource) {
-          callback(err, datasource);
-        });
-      }
-    );
-  });
-};
-
 exports.getSourceByDatasourceId = function(id, callback) {
   var dataSource = {"dataSources": {"$elemMatch": {_id: id}}};
   Source.findOne(dataSource, function(err, source) {
@@ -340,16 +282,34 @@ exports.getSourceNoProperties = function(id, callback) {
   });
 };
 
+exports.updateDataSource = function(sourceId, dataSource, callback) {
+  console.log('update datasource %s', sourceId, dataSource);
+
+  exports.getSourceById(sourceId, function(err, source) {
+    console.log('source that i found', JSON.stringify(source, null, 2));
+    console.log('dataSource._id', dataSource._id);
+    for (var i = 0; i < source.dataSources.length; i++) {
+      console.log('looking at ds %s', source.dataSources[i].id, source.dataSources[i]);
+      if (source.dataSources[i].id === dataSource.id) {
+        var ds = source.dataSources[i];
+        console.log('ds', ds);
+        for(var k in dataSource) ds[k]=dataSource[k];
+      }
+    }
+    source.save(callback);
+  });
+};
+
 exports.updateSource = function(id, update, callback) {
   update.styleTime = Date.now();
-  // for now just update all of the datasource style times when the source is saved
   for (var i = 0; i < update.dataSources.length; i++) {
-    update.dataSources[i].styleTime = update.styleTime;
-    if (update.dataSources[i].id) update.dataSources[i]._id = update.dataSources[i].id;
+    update.dataSources[i]._id = update.dataSources[i].id;
   }
   Source.findByIdAndUpdate(id, update, function(err, updatedSource) {
-    if (err) console.log('Could not update source', err);
-    callback(err, updatedSource);
+    if (err) return console.log('Could not update source', err);
+    exports.getSourceById(id, function(err, retrievedSource) {
+      callback(err, retrievedSource);
+    });
   });
 };
 

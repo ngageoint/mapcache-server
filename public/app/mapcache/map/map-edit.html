@@ -20,7 +20,12 @@
       </div>
     </div>
   </div>
-  <div cache-listing map="map" options="mapOptions"></div>
+  <div class="row top-gap hidden-xs">
+    <div class="col-md-12">
+      <div leaflet-map map="map" options="mapOptions"></div>
+    </div>
+  </div>
+  <!-- <div cache-listing map="map" options="mapOptions"></div> -->
 </div>
 <div class="container">
   <div class="row top-gap bottom-gap">
@@ -29,7 +34,6 @@
       <button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button>
     </div>
   </div>
-
   <ul class="nav nav-tabs datasource-tabs">
     <li role="presentation" ng-class="{active: tab=='general'}"><a ng-click="tab='general'">General</a></li>
     <li ng-repeat="dataSource in map.dataSources | filter: {vector:true} | orderBy : 'zOrder' : true" ng-class="{active: tab==dataSource.id}"><a ng-click="setStyleTab(dataSource.id)">{{dataSource.name}}</a></li>
@@ -78,7 +82,6 @@
         </ui-select>
       </div>
     </div>
-  </div>
     <div class="row top-gap bottom-gap">
       <div class="col-md-12">
         <span class="page-sub-entity-label">Add New Style</span>
@@ -173,4 +176,5 @@
         <button class="btn btn-success pull-right" ng-click="saveMap()">Save Changes To Map</button>
       </div>
     </div>
+  </div>
 </div>

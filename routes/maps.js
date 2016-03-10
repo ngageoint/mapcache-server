@@ -18,6 +18,10 @@ module.exports = function(app, auth) {
       source = JSON.parse(source.map);
     }
     req.newSource = source;
+    if (req.newSource.id) {
+      req.newSource._id = req.newSource.id;
+    }
+
     req.newSource.permission = req.newSource.permission || 'MAPCACHE';
     req.newSource.userId = req.user ? req.user._id : null;
     if (typeof source.dataSources === 'string' || source.dataSources instanceof String) {
@@ -101,7 +105,6 @@ module.exports = function(app, auth) {
     access.authorize('CREATE_CACHE'),
     validateSource,
     function(req, res, next) {
-      console.log('req.newsource', req.newSource);
       var sent = false;
       Map.create(req.newSource, function(err, map) {
         if (sent) return;

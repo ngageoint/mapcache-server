@@ -270,6 +270,9 @@ describe("map route tests", function() {
           map.should.have.property('id', mapId);
           map.should.have.property('mapcacheUrl', '/api/sources/'+mapId);
           map.should.have.property('dataSources');
+          for (var i = 0; i < map.dataSources.length; i++) {
+            map.dataSources[i].should.have.property('id');
+          }
         })
         .end(done);
     });
@@ -289,6 +292,9 @@ describe("map route tests", function() {
           map.should.have.property('id', mapId);
           map.should.have.property('mapcacheUrl', '/api/sources/'+mapId);
           map.should.have.property('dataSources');
+          for (var i = 0; i < map.dataSources.length; i++) {
+            map.dataSources[i].should.have.property('id');
+          }
         })
         .end(done);
     });

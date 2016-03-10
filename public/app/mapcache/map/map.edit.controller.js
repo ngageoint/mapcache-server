@@ -14,7 +14,7 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   $scope.unsavedChanges = false;
 
   $rootScope.title = 'Map Edit';
-  $scope.map = {
+  $scope.mapLoad = {
     id: $routeParams.mapId
   };
 
@@ -34,7 +34,7 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   var initialLoadComplete = false;
 
   $scope.$watch('map', function(map) {
-    if (map.name && !initialLoadComplete) {
+    if (map && map.name && !initialLoadComplete) {
       initialLoadComplete = true;
     } else if (initialLoadComplete) {
       $scope.unsavedChanges = true;
@@ -97,7 +97,7 @@ module.exports = function MapEditController($scope, $rootScope, $routeParams, Ma
   });
 
   function getMap() {
-    MapService.getMap($scope.map, function(map) {
+    MapService.getMap($scope.mapLoad, function(map) {
       // success
       $scope.map = map;
       $rootScope.title = 'Edit - ' +map.name;
