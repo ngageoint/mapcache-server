@@ -6,11 +6,15 @@ module.exports = function LeafletController($element) {
   var map = L.map($element[0], {
     center: [45,0],
     zoom: 3,
-    minZoom: 0,
-    maxZoom: 18,
-    worldCopyJump: true
+    minZoom: 3,
+    maxZoom: 3,
+    worldCopyJump: true,
+    touchZoom: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    boxZoom: false,
+    zoomControl: false
   });
-  map.addControl(new L.Control.ZoomIndicator());
 
   var baseLayer = L.tileLayer(config.defaultMapLayer);
   baseLayer.addTo(map);
