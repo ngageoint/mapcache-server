@@ -8,24 +8,39 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
   $scope.options.baseLayerUrl = $scope.options.baseLayerUrl || config.defaultMapLayer;
 
   var cacheHighlightPromise;
-  $scope.mouseOver = function(cache) {
-    $rootScope.$broadcast('showCacheExtent', cache);
+  $scope.showingCache = undefined;
+
+  $scope.mouseClick = function(cache) {
     if (cacheHighlightPromise) {
       $timeout.cancel(cacheHighlightPromise);
     }
-    cacheHighlightPromise = $timeout(function() {
-      $rootScope.$broadcast('showCache', cache);
-    }, 500);
+
+    if ($scope.showingCache) {
+      $rootScope.$broadcast('hideCache', $scope.showingCache);
+      // $rootScope.$broadcast('hideCacheExtent', $scope.showingCache);
+    }
+
+    if (!$scope.showingCache || $scope.showingCache.id !== cache.id) {
+      $scope.showingCache = cache;
+      cacheHighlightPromise = $timeout(function() {
+        $rootScope.$broadcast('showCache', cache);
+        // $rootScope.$broadcast('showCacheExtent', cache, '#15A200');
+      }, 500);
+    } else {
+      $scope.showingCache = undefined;
+    }
+  };
+
+  $scope.mouseOver = function(cache) {
+    if(!$scope.showingCache || $scope.showingCache.id !== cache.id) {
+      $rootScope.$broadcast('showCacheExtent', cache);
+    }
   };
 
   $scope.mouseOut = function(cache) {
-    $rootScope.$broadcast('hideCacheExtent', cache);
-
-    if (cacheHighlightPromise) {
-      $timeout.cancel(cacheHighlightPromise);
-      cacheHighlightPromise = undefined;
+    if(!$scope.showingCache || $scope.showingCache.id !== cache.id) {
+      $rootScope.$broadcast('hideCacheExtent', cache);
     }
-    $rootScope.$broadcast('hideCache', cache);
   };
 
   $rootScope.$on('cacheFootprintPopupOpen', function(event, cache) {

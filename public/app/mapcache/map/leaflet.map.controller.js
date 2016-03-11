@@ -24,6 +24,13 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     iconColor: '#FCFCFC'
   });
 
+  var greenCacheMarker = L.AwesomeMarkers.icon({
+    icon: 'globe',
+    prefix: 'fa',
+    markerColor: 'green',
+    iconColor: '#FCFCFC'
+  });
+
   var mapLayerOptions = {
     maxZoom: 18,
     tms: false,
@@ -33,6 +40,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   var mapLayer = null;
   var baseLayer = null;
   var defaultLayer = null;
+
+  var showingCache = undefined;
 
   var mapOptions = $scope.options && $scope.options.mapOptions ? $scope.options.mapOptions : {};
   mapOptions.center = mapOptions.center || [45,-100];
@@ -140,8 +149,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     hideCache(cache, true);
   });
 
-  $rootScope.$on('showCacheExtent', function(event, cache) {
-    showCacheExtent(cache);
+  $rootScope.$on('showCacheExtent', function(event, cache, color) {
+    showCacheExtent(cache, color);
   });
 
   $rootScope.$on('hideCacheExtent', function(event, cache) {
@@ -156,15 +165,22 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     }
     for (var cacheId in cacheFootprints) {
       if (!popupOpenId) {
-        cacheFootprints[cacheId].center.setIcon(cacheMarker);
+        if(!showingCache || showingCache.id !== cacheId) {
+          if (showingCache) {
+            cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
+          } else {
+            cacheFootprints[cacheId].center.setIcon(cacheMarker);
+          }
+        }
       }
     }
   }
 
-  function showCacheExtent(cache) {
-    createRectangle(cache, "#0066A2");
+  function showCacheExtent(cache, color) {
+    createRectangle(cache, color || "#0066A2");
+    cacheFootprints[cache.id].center.setIcon(cacheMarker);
     for (var cacheId in cacheFootprints) {
-      if (cacheId !== cache.id && popupOpenId !== cacheId) {
+      if ((!showingCache || showingCache.id !== cacheId) && cacheId !== cache.id && popupOpenId !== cacheId) {
         cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
       }
     }
@@ -183,6 +199,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       [extent[3], extent[2]]
     ], {animate: false});
     showCacheTiles(cache);
+    createRectangle(cache, '#15A200');
+    cacheFootprints[cache.id].center.setIcon(greenCacheMarker);
   }
 
   function hideCache(cache, moveMap) {
@@ -194,6 +212,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       oldZoom = undefined;
       removeCacheTiles(cache);
       highlightedCache = undefined;
+      createRectangle(cache);
+      cacheFootprints[cache.id].center.setIcon(cacheMarker);
     }
   }
 
@@ -219,7 +239,8 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
         rectangleStyle.opacity = 0;
       }
       rectangle.footprint.setStyle(rectangleStyle);
-      rectangle.center.setIcon(cacheMarker);
+      // this is the key part
+      // rectangle.center.setIcon(cacheMarker);
       return;
     }
 
@@ -254,7 +275,9 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     if (mapLayer) {
       map.removeLayer(mapLayer);
     }
-    // removeCacheTiles(cache);
+    console.log('showing the green marker for cache %s', cache.name);
+    showingCache = cache;
+    cacheFootprints[cache.id].center.setIcon(greenCacheMarker);
     baseLayer.setOpacity(0.5);
     var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
     layers[cache.id] = layer;
@@ -273,6 +296,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     if (mapLayer) {
       map.addLayer(mapLayer);
     }
+    showingCache = undefined;
   }
 
   $scope.$watch('options', function(options) {

@@ -74,6 +74,13 @@
   border-style: solid;
 }
 
+.cache-row.cache-click {
+  border-radius: 4px;
+  border-width: 3px;
+  border-color: #15A200;
+  border-style: solid;
+}
+
 .source-row {
   padding: 5px;
 }
