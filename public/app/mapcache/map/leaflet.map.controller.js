@@ -239,8 +239,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
         rectangleStyle.opacity = 0;
       }
       rectangle.footprint.setStyle(rectangleStyle);
-      // this is the key part
-      // rectangle.center.setIcon(cacheMarker);
       return;
     }
 
@@ -275,7 +273,6 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     if (mapLayer) {
       map.removeLayer(mapLayer);
     }
-    console.log('showing the green marker for cache %s', cache.name);
     showingCache = cache;
     if (cacheFootprints[cache.id]) {
       cacheFootprints[cache.id].center.setIcon(greenCacheMarker);
