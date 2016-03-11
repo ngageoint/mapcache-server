@@ -17,14 +17,12 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
 
     if ($scope.showingCache) {
       $rootScope.$broadcast('hideCache', $scope.showingCache);
-      // $rootScope.$broadcast('hideCacheExtent', $scope.showingCache);
     }
 
     if (!$scope.showingCache || $scope.showingCache.id !== cache.id) {
       $scope.showingCache = cache;
       cacheHighlightPromise = $timeout(function() {
         $rootScope.$broadcast('showCache', cache);
-        // $rootScope.$broadcast('showCacheExtent', cache, '#15A200');
       }, 500);
     } else {
       $scope.showingCache = undefined;

@@ -41,7 +41,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   var baseLayer = null;
   var defaultLayer = null;
 
-  var showingCache = undefined;
+  var showingCache;
 
   var mapOptions = $scope.options && $scope.options.mapOptions ? $scope.options.mapOptions : {};
   mapOptions.center = mapOptions.center || [45,-100];
@@ -166,9 +166,9 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     for (var cacheId in cacheFootprints) {
       if (!popupOpenId) {
         if(!showingCache || showingCache.id !== cacheId) {
-          if (showingCache) {
+          if (showingCache && cacheFootprints[cacheId]) {
             cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
-          } else {
+          } else if (cacheFootprints[cacheId]) {
             cacheFootprints[cacheId].center.setIcon(cacheMarker);
           }
         }
@@ -180,7 +180,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     createRectangle(cache, color || "#0066A2");
     cacheFootprints[cache.id].center.setIcon(cacheMarker);
     for (var cacheId in cacheFootprints) {
-      if ((!showingCache || showingCache.id !== cacheId) && cacheId !== cache.id && popupOpenId !== cacheId) {
+      if (cacheFootprints[cacheId] && (!showingCache || showingCache.id !== cacheId) && cacheId !== cache.id && popupOpenId !== cacheId) {
         cacheFootprints[cacheId].center.setIcon(grayCacheMarker);
       }
     }
@@ -277,7 +277,9 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     }
     console.log('showing the green marker for cache %s', cache.name);
     showingCache = cache;
-    cacheFootprints[cache.id].center.setIcon(greenCacheMarker);
+    if (cacheFootprints[cache.id]) {
+      cacheFootprints[cache.id].center.setIcon(greenCacheMarker);
+    }
     baseLayer.setOpacity(0.5);
     var layer = L.tileLayer("/api/caches/"+ cache.id + "/{z}/{x}/{y}.png?access_token=" + LocalStorageService.getToken());
     layers[cache.id] = layer;
