@@ -56,7 +56,7 @@ describe('Cache API', function() {
       });
     });
 
-    it('should get create an xyz cache', function(done) {
+    it('should create an xyz cache', function(done) {
       this.timeout(0);
       var osmDataSource = {
         name: 'osm',
@@ -115,7 +115,7 @@ describe('Cache API', function() {
       });
     });
 
-    it('should get create an xyz cache', function(done) {
+    it('should create an xyz cache', function(done) {
       this.timeout(0);
       var osmDataSource = {
         name: 'osm',
@@ -152,6 +152,7 @@ describe('Cache API', function() {
           if (err) console.log('err creating cache', err);
           console.log('Created Cache', cache);
           createdCache = cache;
+          createdCache.outputDirectory = '/tmp';
           expect(cache.formats.xyz).to.have.property('complete', true);
           expect(cache.formats.xyz).to.have.property('generatedTiles', 85);
           expect(cache.formats.xyz).to.have.property('totalTiles', 85);
@@ -177,7 +178,7 @@ describe('Cache API', function() {
       });
     });
 
-    it('should get create a GeoPackage cache', function(done) {
+    it('should create a GeoPackage cache', function(done) {
       this.timeout(0);
       var osmDataSource = {
         name: 'osm',
@@ -192,7 +193,7 @@ describe('Cache API', function() {
       };
 
       var cache = {
-        name: 'XYZ',
+        name: 'XYZ-gpkg',
         minZoom: 0,
         maxZoom: 3,
         geometry: turf.polygon([[
@@ -228,7 +229,7 @@ describe('Cache API', function() {
 
   describe('xyz cache with null in the cache creation params data source array', function() {
     var map = {
-      "name":"OSM",
+      "name":"OSM-null",
       "styleTime":1,
       "tileSize":0,
       "dataSources":[{
@@ -247,7 +248,7 @@ describe('Cache API', function() {
         "coordinates":[
           [[-108.80859375,35.460669951495305],[-108.80859375,42.293564192170095],[-99.140625,42.293564192170095],[-99.140625,35.460669951495305],[-108.80859375,35.460669951495305]]]
         },
-        "name":"OSM1",
+        "name":"OSM-null",
         "cacheCreationParams":{
           "dataSources":[null]
         },
@@ -277,6 +278,7 @@ describe('Cache API', function() {
         Cache.create(cache, function(err, cache) {
           if (err) console.log('err creating cache', err);
           createdCache = cache;
+          createdCache.outputDirectory = '/tmp';
           log.info('cache was created', JSON.stringify(cache, null, 2));
           done();
         });
@@ -316,4 +318,84 @@ describe('Cache API', function() {
     });
   });
 
+  describe('existing cache tests', function() {
+    var map = {
+      "name":"OSM",
+      "styleTime":1,
+      "tileSize":0,
+      "dataSources":[{
+        "geometry":{
+          "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]}
+        },
+        "url":"http://osm.geointapps.org/osm",
+        "name":"OSM",
+        "format":"xyz",
+        "zOrder":0
+      }]
+    };
+    var cache  = {
+      "geometry": {
+        "type":"Polygon",
+        "coordinates":[
+          [[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]
+        ]
+      },
+      "name":"OSM3",
+      "tileSizeLimit":2147483648,
+      "vector":false,
+      "minZoom":1,
+      "maxZoom":1
+    };
+
+    var createdCache;
+    var createdMap;
+
+    after(function(done) {
+      new Cache(createdCache).delete(function() {
+        Map.getById(createdMap.id, function(err, map) {
+          new Map(map).delete(done);
+        });
+      });
+    });
+
+    before(function(done) {
+      Map.create(map, function(err, map) {
+        createdMap = map;
+        log.info('Created a map %s with id %s', map.name, map.id);
+        cache.source = map;
+        cache.create = ['xyz'];
+        Cache.create(cache, function(err, cache) {
+          if (err) console.log('err creating cache', err);
+          createdCache = cache;
+          createdCache.outputDirectory = '/tmp';
+          log.info('cache was created', JSON.stringify(cache, null, 2));
+          done();
+        });
+      });
+    });
+
+    it('should pull the 1/0/0 tile', function(done) {
+      var c = new Cache(createdCache);
+      c.getTile('png', 1, 0, 0, {}, function(err, stream) {
+        should.exist(stream);
+        done();
+      });
+    });
+
+    it('should not pull a tile below the min zoom', function(done) {
+      var c = new Cache(createdCache);
+      c.getTile('png', 0, 0, 0, {}, function(err, stream) {
+        should.not.exist(stream);
+        done();
+      });
+    });
+
+    it('should not pull a tile above the max zoom', function(done) {
+      var c = new Cache(createdCache);
+      c.getTile('png', 2, 0, 0, {}, function(err, stream) {
+        should.not.exist(stream);
+        done();
+      });
+    });
+  });
 });

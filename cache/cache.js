@@ -108,6 +108,9 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
 
   this.initPromise.then(function(self) {
     if (self.error) return callback(self.error);
+    if (self.cache.minZoom > z || self.cache.maxZoom < z) {
+      return callback(null, null);
+    }
     // determine if the cache bounds intersect this tile
     var bounds = xyzTileUtils.tileBboxCalculator(x, y, z);
     var tilePoly = turf.bboxPolygon([bounds.west, bounds.south, bounds.east, bounds.north]);
