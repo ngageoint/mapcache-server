@@ -8,6 +8,7 @@ var should = require('should')
   , config = require('mapcache-config')
   , log = require('mapcache-log')
   , Cache = require('../../api/cache')
+  , sinon = require('sinon')
   , Map = require('../../api/source');
 
 describe('Cache API', function() {
@@ -84,7 +85,6 @@ describe('Cache API', function() {
       };
 
       Map.create(map, function(err, map) {
-        log.error('CREATED THE MAP');
         createdMap = map;
         log.info('Created a map %s with id %s', map.name, map.id);
         cache.source = map;
