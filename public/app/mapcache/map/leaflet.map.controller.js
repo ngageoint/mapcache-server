@@ -200,6 +200,14 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     ], {animate: false});
     showCacheTiles(cache);
     createRectangle(cache, '#15A200');
+    map.options.minZoom = cache.minZoom;
+    map.options.maxZoom = cache.maxZoom;
+    if (map.getZoom() < cache.minZoom) {
+      map.setZoom(Number(cache.minZoom));
+    } else if (map.getZoom() > cache.maxZoom) {
+      map.setZoom(Number(cache.maxZoom));
+    }
+    map.fire('zoomend');
     cacheFootprints[cache.id].center.setIcon(greenCacheMarker);
   }
 
@@ -213,6 +221,9 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
       removeCacheTiles(cache);
       highlightedCache = undefined;
       createRectangle(cache);
+      map.options.minZoom = 0;
+      map.options.maxZoom = 18;
+      map.fire('zoomend');
       cacheFootprints[cache.id].center.setIcon(cacheMarker);
     }
   }

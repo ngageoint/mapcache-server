@@ -1,3 +1,9 @@
+[ng-click],
+[data-ng-click],
+[x-ng-click] {
+    cursor: pointer;
+}
+
 .navbar-shift {
   padding-top: 50px;
 }
