@@ -1,0 +1,6 @@
+--recursive
+--require mock-fs
+--require mock-knex
+--require chai
+--reporter mochawesome
+--reporter-options reportName=mapcache-unit-tests

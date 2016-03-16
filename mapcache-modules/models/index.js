@@ -20,3 +20,5 @@ exports.Server = Server;
 exports.Permission = Permission;
 exports.User = User;
 exports.oauth = oauth;
+exports.knexSetup = require('./db/setup');
+exports.knex = require('./db/knex');

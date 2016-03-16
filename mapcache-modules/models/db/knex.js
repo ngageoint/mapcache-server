@@ -1,33 +1,27 @@
-var config = require('mapcache-config')
+
+var knexSetup = require('./setup')
   , async = require('async')
   , q = require('q');
-
-var dbConfig = {
-  client: 'pg',
-  connection: {
-    host     : config.server.postgres.host,
-    user     : config.server.postgres.user,
-    password : config.server.postgres.password,
-    database : config.server.postgres.database,
-    charset  : 'utf8'
-  }
-};
 
 var initDefer = q.defer();
 var initPromise = initDefer.promise;
 
-var knex = require('knex')(dbConfig);
+var knex = knexSetup.knex;
+
+console.log('knex', knex);
 
 function getKnex(callback) {
+  if (initPromise.isFulfilled()) {
+    return initPromise.then(callback);
+  }
+  async.series([
+    createFeaturesTable
+  ],
+  function() {
+    initDefer.resolve(knex);
+  });
   return initPromise.then(callback);
 }
-
-async.series([
-  createFeaturesTable
-],
-function() {
-  initDefer.resolve(knex);
-});
 
 function createFeaturesTable(callback) {
   knex.schema.hasTable('features').then(function(exists) {

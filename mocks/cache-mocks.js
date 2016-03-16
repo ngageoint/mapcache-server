@@ -1,4 +1,5 @@
-
+var mapMocks = require('./map-mocks');
+var mongoose = require('mongoose');
 var exports = module.exports;
 
 exports.xyzCache = {
@@ -467,3 +468,18 @@ exports.generatingCache = {
 
 exports.caches = [exports.xyzCache, exports.generatingCache, exports.xyzCacheWithVectorSources];
 exports.completeCaches = [exports.xyzCache];
+
+exports.osmCache = {
+  id: mongoose.Types.ObjectId(),
+  name: 'createXyzCache',
+  "geometry":{
+    "type":"Feature",
+    "geometry":{
+      "type":"Polygon",
+      "coordinates":[[[-180,-85],[-180,85],[180,85],[180,-85],[-180,-85]]]
+    }
+  },
+  minZoom: 0,
+  maxZoom: 1,
+  source: mapMocks.osmMap
+};

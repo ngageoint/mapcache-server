@@ -1,4 +1,5 @@
 var FeatureModel = require('mapcache-models').Feature
+  , Formats = require('../format')
   , turf = require('turf')
   , log = require('mapcache-log')
   , config = require('mapcache-config')
@@ -27,8 +28,6 @@ Cache.prototype.initialize = function() {
   } else if (this.cache.source && !this.cache.source.getTile) {
     var map = new Map(this.cache.source, {outputDirectory: this.cache.outputDirectory});
     map.callbackWhenInitialized(function(err, map) {
-      log.info('map was made');
-
       self.map = map;
       self.cache.source = map.map;
       self._updateDataSourceParams(function() {
@@ -54,7 +53,6 @@ Cache.prototype._updateDataSourceParams = function(callback) {
   }
 
   async.eachSeries(mapSources, function iterator(s, sourceFinishedCallback) {
-    log.info('Checking source %s', s.source.id.toString());
     if (!s.source.vector) return sourceFinishedCallback();
     FeatureModel.getFeatureCount({sourceId: s.source.id, cacheId: self.cache.id}, function(countResults) {
       if (countResults[0].count !== '0') {
@@ -87,14 +85,14 @@ Cache.prototype.callbackWhenInitialized = function(callback) {
 };
 
 Cache.prototype.generateFormat = function(format, doneCallback, progressCallback) {
-  log.info("Generate the format %s for cache %s", format, this.cache.id);
+  log.info("Generate the format %s for cache %s", format, this.cache.id.toString());
   this.callbackWhenInitialized(function(err, self) {
     self._generateFormat(format, doneCallback, progressCallback);
   });
 };
 
 Cache.prototype._generateFormat = function(format, doneCallback, progressCallback) {
-  var DataSource = require('../format/'+format);
+  var DataSource = Formats.getFormat(format);
   var ds = new DataSource({cache: this, outputDirectory: this.cache.outputDirectory});
   ds.generateCache(doneCallback, progressCallback);
 };
@@ -105,7 +103,6 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
 		params = {};
   }
   callback = callback || function(){};
-
   this.initPromise.then(function(self) {
     if (self.error) return callback(self.error);
     if (self.cache.minZoom > z || self.cache.maxZoom < z) {
@@ -118,7 +115,6 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
     if (!intersection) {
       return callback(null, null);
     }
-    log.info('5: Pull the tile %d, %d, %d', x, y, z);
 
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       callback(null, tileStream);
@@ -127,7 +123,7 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
 };
 
 Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
-  var DataSource = require('../format/'+format);
+  var DataSource = Formats.getFormat(format);
   var ds = new DataSource({cache: this, outputDirectory: this.cache.outputDirectory});
   ds.getData(minZoom, maxZoom, callback);
 };

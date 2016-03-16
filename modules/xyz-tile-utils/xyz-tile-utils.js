@@ -105,8 +105,6 @@ exports.iterateAllTilesInExtent = function(extent, minZoom, maxZoom, data, proce
     function (zoomLevelDone) {
       var yRange = exports.calculateYTileRange(extent, zoom);
       var xRange = exports.calculateXTileRange(extent, zoom);
-      console.log('the x range for zoom %d is', zoom, xRange);
-      console.log('the y range for zoom %d is', zoom, yRange);
       var currentx = xRange.min;
 
       async.doWhilst(

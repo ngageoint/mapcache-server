@@ -110,6 +110,7 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
         doneCallback(null, source);
       });
     }
+
     source.status.message = "Parsing GeoJSON";
     progressCallback(source, function(err, updatedSource) {
       if (updatedSource.url) {
@@ -126,13 +127,13 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
             var stream = fs.createWriteStream(dir + '/' + updatedSource.id + '.geojson');
         		stream.on('close',function() {
               fs.stat(dir + '/' + updatedSource.id + '.geojson', function(err, stat) {
-                console.log('stat.size', stat);
                 updatedSource.filePath = dir + '/' + updatedSource.id + '.geojson';
                 updatedSource.size = stat.size;
                 updatedSource.status.message = "Creating";
                 updatedSource.status.complete = false;
                 parseGeoJSONFile(updatedSource, function(err, updatedSource) {
                   updatedSource.status.complete = true;
+                  updatedSource.status.failure = false;
                   updatedSource.status.message="Complete";
                   source = updatedSource;
                   doneCallback(err, source);
@@ -147,9 +148,9 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
       } else if (fs.existsSync(updatedSource.file.path)) {
         parseGeoJSONFile(updatedSource, function(err, updatedSource) {
           fs.stat(updatedSource.file.path, function(err, stat) {
-            console.log('stat.size', stat);
             updatedSource.size = stat.size;
             updatedSource.status.complete = true;
+            updatedSource.status.failure = false;
             updatedSource.status.message="Complete";
             source = updatedSource;
             return completeProcessing(source, function(err, source) {
@@ -178,13 +179,12 @@ function isAlreadyProcessed(source, callback) {
 
 function parseGeoJSONFile(source, callback, progressCallback) {
   log.info('reading in the file', source.file.path);
-  fs.readFile(source.file.path, function(err, fileData) {
-    log.debug('parsing file data', source.file.path);
+  fs.readFile(source.file.path, 'utf8', function(err, fileData) {
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
+
     // save the geojson to the db
-    log.debug('gjdata.features', gjData.features.length);
     var count = 0;
     source.status.totalFeatures = gjData.features.length;
     async.eachSeries(gjData.features, function iterator(feature, callback) {

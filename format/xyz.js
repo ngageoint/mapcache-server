@@ -4,6 +4,7 @@ var tileImage = require('tile-image')
   , turf = require('turf')
   , path = require('path')
   , xyzTileUtils = require('xyz-tile-utils')
+  , colors = require('colors')
   , log = require('mapcache-log');
 
 var XYZ = function(config) {
@@ -53,11 +54,10 @@ XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
 
 XYZ.prototype.delete = function(callback) {
   if (!this.cache) return callback();
-  fs.remove(path.join(this.config.outputDirectory, 'xyztiles'), callback);
+  fs.remove(path.join(this.config.outputDirectory, this.cache.cache.id.toString(), 'xyztiles'), callback);
 };
 
 XYZ.prototype.generateCache = function(callback, progressCallback) {
-  log.info('Generating cache with id %s', this.cache.cache.id);
   var self = this;
   callback = callback || function() {};
   progressCallback = progressCallback || function(cache, callback) {
@@ -65,6 +65,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
   };
   var cache = this.cache.cache;
   var cacheId = this.cache.cache.id;
+  log.info('%s: %s', 'Generating Cache'.bold.bgBlue.yellow, cacheId.toString());
   cache.formats = cache.formats || {};
   cache.formats.xyz = cache.formats.xyz || {
     generatedTiles: 0,
@@ -74,8 +75,6 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
   };
 
   cache.formats.xyz.totalTiles = xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom);
-
-  console.log('cache.status', cache.formats.xyz);
 
   cache.formats.xyz.zoomLevelStatus = [];
   for (var i = cache.minZoom; i <= cache.maxZoom; i++) {
@@ -93,10 +92,8 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
         var dir = path.join(self.config.outputDirectory, cacheId.toString(), 'xyztiles', tile.z.toString(), tile.x.toString());
         var filename = tile.y + '.png';
 
-        log.debug('tile %d %d %d will be written to %s', tile.z, tile.x, tile.y, path.join(dir, filename));
-
         if (fs.existsSync(path.join(dir, filename)) && (!cache.cacheCreationParams || (cache.cacheCreationParams && !cache.cacheCreationParams.noCache))) {
-          log.debug('file already exists, skipping: %s', path.join(dir, filename));
+          log.info('[Tile Exists]:\t %d %d %d for the xyz cache %s', tile.z, tile.x, tile.y, cacheId.toString());
           cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles++;
           cache.formats.xyz.zoomLevelStatus[tile.z].percentComplete = 100 * cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles / cache.formats.xyz.zoomLevelStatus[tile.z].totalTiles;
           cache.formats.xyz.generatedTiles++;
@@ -111,9 +108,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
             });
         	});
         } else {
-          log.info('the file %s does not exist for the xyz cache %s, creating', path.join(dir, filename), cacheId);
           self.cache.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
-            log.info('pulled the tile', stream);
             if (err) {
               log.error(err);
               return tileDone(null, null);
@@ -124,7 +119,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
             var ws = fs.createOutputStream(path.join(dir, filename));
             stream.pipe(ws);
             ws.on('finish', function(){
-              log.info('the file %s was written for the xyz cache %s', path.join(dir, filename), cacheId);
+              log.info('[Saved Tile]:\t\t %d %d %d for the xyz cache %s', tile.z, tile.x, tile.y, cacheId.toString());
               cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles++;
               cache.formats.xyz.zoomLevelStatus[tile.z].percentComplete = 100 *  cache.formats.xyz.zoomLevelStatus[tile.z].generatedTiles / cache.formats.xyz.zoomLevelStatus[tile.z].totalTiles;
               cache.formats.xyz.generatedTiles++;
@@ -143,7 +138,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
         }
       },
       function(zoom, callback) {
-        log.info('zoom level %d is done for %s', zoom, cacheId);
+        log.info('[Zoom Level Done]:\t %d for %s', zoom, cacheId.toString());
         cache.formats.xyz.zoomLevelStatus[zoom].complete = true;
         progressCallback(cache, function(err, updatedCache) {
           cache = updatedCache;
@@ -151,7 +146,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
         });
       },
       function(err, data) {
-        log.info('all tiles are done for %s', cacheId);
+        log.info('%s: %s', 'Cache is complete'.bold.bgBlue.yellow, cacheId.toString());
         data.formats.xyz.complete = true;
         self.cache.cache = data;
         callback(null, self.cache);
@@ -161,17 +156,16 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
 };
 
 XYZ.prototype.getData = function(minZoom, maxZoom, callback) {
+  log.info('%s: zoom levels %d through %d for cache %s', 'Zipping the cache'.bold.bgBlue.yellow, minZoom, maxZoom, this.cache.cache.id.toString());
+
   var cp = require('child_process');
   var args = ['-rq', '-'];
-  console.log('minzoom', minZoom);
-  console.log('maxzoom', maxZoom);
   for (var i = minZoom; i <= maxZoom; i++) {
     args.push('xyztiles/'+i);
   }
 
-  console.log('working dir',path.join(this.config.outputDirectory, this.cache.cache.id.toString() ));
   var zip = cp.spawn('zip', args, {cwd: path.join(this.config.outputDirectory, this.cache.cache.id.toString())}).on('close', function(code) {
-    console.log('close the zip with code', code);
+    log.info('%s: for cache %s', 'Zip was created with code'.bold.bgBlue.yellow, this.cache.cache.id.toString(), code);
   });
   callback(null, {stream: zip.stdout, extension: '.zip'});
 };
@@ -180,7 +174,7 @@ function getTileForCache(cache, z, x, y, format, params, outputDirectory, callba
   var dir = path.join(outputDirectory, cache.cache.id.toString(), 'xyztiles', z.toString(), x.toString());
   var filename = y + '.png';
 
-  if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {
+  if (fs.existsSync(path.join(dir, filename)) && (!params || !params.noCache)) {
     log.info('file already exists, skipping: %s', path.join(dir,filename));
     return callback(null, fs.createReadStream(path.join(dir, filename)));
   }
@@ -198,8 +192,8 @@ function getTileForCache(cache, z, x, y, format, params, outputDirectory, callba
 }
 
 function getTileFromSource(source, z, x, y, format, callback) {
-  log.info('get tile %d/%d/%d.%s for source %s', z, x, y, format, source.name);
   var url = source.url + "/" + z + '/' + x + '/' + y + '.png';
+  log.info('Get XYZ Tile:\t %s', url);
   var req = null;
   if (format === 'jpg' || format === 'jpeg') {
     tileImage.pngRequestToJpegStream(callback);
