@@ -285,8 +285,8 @@
 .nice-radio input.radio:checked ~ label:before {
 	content:'\25C9';
 	text-indent: .7em;
-	color: #9CE2AE;
-	background-color: #0057FF;
+	color: #BDF1E7;
+	background-color: rgb(35, 87, 165);
 }
 
 .nice-radio input.radio:checked ~ label {
@@ -297,52 +297,6 @@
 .nice-radio input.radio:focus ~ label:before {
 	box-shadow: 0 0 0 3px #999;
 }
-/*
-.nice-radio input {
-  position: absolute;
-  left: -9999px;
-}
-
-.nice-radio label {
-  display: inline-block;
-  position: relative;
-  margin-right: 5px;
-  padding: 4px 5px 4px 23px;
-  border: 3px solid #fff;
-  color: #fff;
-  background-color: #a5b6bf;
-  box-shadow: 0 0 20px rgba(0, 0, 0, .2);
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color .2s, box-shadow .2s;
-}
-
-.nice-radio label::before {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 5px;
-  bottom: 5px;
-  left: 5px;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #fff;
-  border-radius: 100px;
-  transition: background-color .2s;
-}
-
-.nice-radio label:hover, .nice-radio input:focus + label {
-  box-shadow: 0 0 20px rgba(0, 0, 0, .6);
-}
-
-.nice-radio input:checked + label {
-  background-color: #336699;
-}
-
-.nice-radio input:checked + label::before {
-  background-color: #fff;
-}*/
 
 .leaflet-draw-tooltip-subtext {
   color: #FFF;
