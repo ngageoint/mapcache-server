@@ -127,7 +127,10 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
             var stream = fs.createWriteStream(dir + '/' + updatedSource.id + '.geojson');
         		stream.on('close',function() {
               fs.stat(dir + '/' + updatedSource.id + '.geojson', function(err, stat) {
-                updatedSource.filePath = dir + '/' + updatedSource.id + '.geojson';
+                updatedSource.file = {
+                  path: dir + '/' + updatedSource.id + '.geojson',
+                  name: updatedSource.id + '.geojson'
+                };
                 updatedSource.size = stat.size;
                 updatedSource.status.message = "Creating";
                 updatedSource.status.complete = false;
@@ -136,7 +139,9 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
                   updatedSource.status.failure = false;
                   updatedSource.status.message="Complete";
                   source = updatedSource;
-                  doneCallback(err, source);
+                  return completeProcessing(source, function(err, source) {
+                    doneCallback(err, source);
+                  });
                 });
               });
         		});
@@ -209,17 +214,15 @@ function parseGeoJSONFile(source, callback, progressCallback) {
       });
     }, function done() {
       log.info('done processing features');
-      completeProcessing(source, function(err, source) {
-        callback(null, source);
-      });
+      callback(null, source);
     });
   });
 }
 
 function setSourceCount(source, callback) {
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
-    source.status.totalFeatures = resultArray[0].count;
-    source.status.generatedFeatures = resultArray[0].count;
+    source.status.totalFeatures = parseInt(resultArray[0].count);
+    source.status.generatedFeatures = parseInt(resultArray[0].count);
     callback(null, source);
   });
 }
@@ -280,6 +283,7 @@ function completeProcessing(source, callback) {
   ], function (err, source){
     source.status.complete = true;
     source.status.message = "Complete";
+    source.status.failure = false;
     callback(err, source);
   });
 }

@@ -8,8 +8,6 @@ var initPromise = initDefer.promise;
 
 var knex = knexSetup.knex;
 
-console.log('knex', knex);
-
 function getKnex(callback) {
   if (initPromise.isFulfilled()) {
     return initPromise.then(callback);
