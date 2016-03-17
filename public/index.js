@@ -1,3 +1,6 @@
+// require('bootstrap/less/bootstrap.less');
+
+
 window.jQuery = window.$ = require("jquery");
 var angular = require('angular');
 require('angular-route');

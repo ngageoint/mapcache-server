@@ -152,10 +152,12 @@
 
 .source-type-icon {
   font-size: 80px;
+  color: #777777;
 }
 
 .source-type-icon-stack {
   font-size: 40px;
+  color: #777777;
 }
 
 .mapcache-header-description {
