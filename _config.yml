@@ -1,0 +1,12 @@
+# Site settings
+title: mapcache
+email: mapcache@nga.mil
+description: > # this means to ignore newlines until "baseurl:"
+   mapcache does the things
+baseurl: "/mapcache" # the subpath of your site, e.g. /blog
+url: "http://yourdomain.com" # the base hostname & protocol for your site
+twitter_username: nga_geoint
+github_username:  ngageoint/mapcache-server
+
+# Build settings
+markdown: kramdown
