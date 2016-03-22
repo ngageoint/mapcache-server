@@ -36,6 +36,7 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
 
   var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
   var filename = cache.id + '.geojson';
+  console.log('dir', dir);
   fs.emptyDirSync(dir);
 
   if (fs.existsSync(path.join(dir, filename))) {
@@ -43,21 +44,9 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     return doneCallback(null, cacheObj);
   }
 
-  FeatureModel.getFeatureCount({sourceId: self.cache.map.map.id, cacheId: self.cache.id}, function(countResults) {
-    if (countResults[0].count !== '0') {
-      return self._writeCacheFile(dir, filename, doneCallback);
-    }
-    var extent = turf.extent(self.cache.cache.geometry);
-    extent[0] = Math.max(-180, extent[0]);
-    extent[1] = Math.max(-85, extent[1]);
-    extent[2] = Math.min(180, extent[2]);
-    extent[3] = Math.min(85, extent[3]);
-    log.debug('Creating the cache features from the source %s', self.cache.map.map.id);
-    FeatureModel.createCacheFeaturesFromSource(self.cache.map.map.id, self.cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
-      log.info('Created the cache features for cache %s ', self.cache.id, features);
-      cache.formats.geojson.generatedFeatures = features;
-      self._writeCacheFile(dir, filename, doneCallback);
-    });
+  FeatureModel.getFeatureCount({cacheId: cache.id}, function(countResults) {
+    cache.formats.geojson.generatedFeatures = parseInt(countResults[0].count);
+    self._writeCacheFile(dir, filename, doneCallback);
   });
 
 };
@@ -74,6 +63,7 @@ GeoJSON.prototype._writeCacheFile = function(dir, filename, callback) {
     log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
     var stats = fs.statSync(path.join(dir, filename));
     cache.formats.geojson.complete = true;
+    cache.formats.geojson.percentComplete = 100;
     cache.formats.geojson.size = stats.size;
     return callback(null, self.cache);
   });
@@ -172,6 +162,9 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
 
 function isAlreadyProcessed(source, callback) {
   log.debug('Checking if the source %s is already processed', source.id);
+  if (source.status && source.status.complete) {
+    return callback(true);
+  }
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     log.debug("The source already has features", resultArray);
     if (resultArray[0].count !== '0') {
@@ -198,10 +191,10 @@ function parseGeoJSONFile(source, callback, progressCallback) {
         // console.log('create feature', feature);
         FeatureModel.createFeature(feature, {sourceId:source.id}, function() {
           count++;
+          source.status.generatedFeatures = count;
+          source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
           async.setImmediate(function() {
             if (count % fivePercent === 0) {
-              source.status.generatedFeatures = count;
-              source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
               progressCallback(source, function(err, updatedSource) {
                 source = updatedSource;
                 callback(null, feature);
@@ -220,6 +213,9 @@ function parseGeoJSONFile(source, callback, progressCallback) {
 }
 
 function setSourceCount(source, callback) {
+  if (source.status.totalFeatures) {
+    return callback(null, source);
+  }
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     source.status.totalFeatures = parseInt(resultArray[0].count);
     source.status.generatedFeatures = parseInt(resultArray[0].count);
@@ -228,6 +224,9 @@ function setSourceCount(source, callback) {
 }
 
 function setSourceExtent(source, callback) {
+  if (source.geometry) {
+    return callback(null, source);
+  }
   FeatureModel.getExtentOfSource({sourceId:source.id}, function(resultArray) {
     source.geometry = {
       type: "Feature",
@@ -238,6 +237,9 @@ function setSourceExtent(source, callback) {
 }
 
 function setSourceStyle(source, callback) {
+  if (source.style && source.style.defaultStyle) {
+    return callback(null, source);
+  }
   source.style = source.style || { };
   if (!source.style.defaultStyle || !source.style.defaultStyle.style || !source.style.defaultStyle.style.fill) {
     source.style.defaultStyle = {
@@ -256,6 +258,9 @@ function setSourceStyle(source, callback) {
 }
 
 function setSourceProperties(source, callback) {
+  if (source.properties) {
+    return callback(null, source);
+  }
   source.properties = [];
   FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
     async.eachSeries(propertyArray, function(key, propertyDone) {

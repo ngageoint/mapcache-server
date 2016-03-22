@@ -55,6 +55,7 @@ Cache.prototype._updateDataSourceParams = function(callback) {
   async.eachSeries(mapSources, function iterator(s, sourceFinishedCallback) {
     if (!s.source.vector) return sourceFinishedCallback();
     FeatureModel.getFeatureCount({sourceId: s.source.id, cacheId: self.cache.id}, function(countResults) {
+      console.log('count results', countResults);
       if (countResults[0].count !== '0') {
         self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
         return sourceFinishedCallback();
