@@ -117,6 +117,7 @@ describe('GeoJSON cache create tests', function() {
   });
 
   var sandbox;
+  var tracker;
 
   beforeEach(function(done) {
     mockKnex.mock(knexSetup.knex);
@@ -135,6 +136,8 @@ describe('GeoJSON cache create tests', function() {
         console.log('cachedir', cacheDir);
         files[cacheDir] = {};
         mockfs(files);
+        tracker = mockKnex.getTracker();
+        tracker.install();
         done();
       });
     });
@@ -142,6 +145,7 @@ describe('GeoJSON cache create tests', function() {
 
   afterEach(function() {
     mockfs.restore();
+    tracker.uninstall();
     mockKnex.unmock(knexSetup.knex);
   });
 
@@ -163,9 +167,6 @@ describe('GeoJSON cache create tests', function() {
 
     var mockMapcacheTile = sandbox.mock(tile);
     mockMapcacheTile.expects('getVectorTile').once().yields(null, fs.createReadStream(path.join('/mocks', 'zero_tile.png')));
-
-    var tracker = mockKnex.getTracker();
-    tracker.install();
 
     var mockQueryResponder = sinon.stub();
 
@@ -196,9 +197,6 @@ describe('GeoJSON cache create tests', function() {
     var mockMapcacheTile = sandbox.mock(tile);
     mockMapcacheTile.expects('getVectorTile').once().yields(null, fs.createReadStream(path.join('/mocks', 'features.geojson')));
 
-    var tracker = mockKnex.getTracker();
-    tracker.install();
-
     var mockQueryResponder = sinon.stub();
 
     tracker.on('query', mockQueryResponder);
@@ -228,16 +226,9 @@ describe('GeoJSON cache create tests', function() {
     var mockMapcacheTile = sandbox.mock(tile);
     mockMapcacheTile.expects('getVectorTile').once().yields(null, fs.createReadStream(path.join('/mocks', 'zero_tile.png')));
 
-    var tracker = mockKnex.getTracker();
-    tracker.install();
-
     var mockQueryResponder = sinon.stub();
 
     tracker.on('query', mockQueryResponder);
-
-    // tracker.on('query', function(query) {
-    //   console.log('query', query);
-    // });
 
     mockQueryResponder.withArgs(sinon.match({
       bindings: [cacheId.toString(), 'geojson'],
@@ -269,16 +260,9 @@ describe('GeoJSON cache create tests', function() {
       fs.writeFile(file, 'test', callback);
     }).withArgs(cacheId.toString(), path.join(os.tmpdir(), cacheId.toString(), 'geojson', cacheId.toString()+'.geojson'), 'geojson');
 
-    var tracker = mockKnex.getTracker();
-    tracker.install();
-
     var mockQueryResponder = sinon.stub();
 
     tracker.on('query', mockQueryResponder);
-
-    tracker.on('query', function(query) {
-      console.log('query', query);
-    });
 
     mockQueryResponder.withArgs(sinon.match({
       bindings: [cacheId.toString(), 'geojson'],
@@ -317,16 +301,9 @@ describe('GeoJSON cache create tests', function() {
       fs.writeFile(file, 'test', callback);
     }).withArgs(cacheId.toString(), path.join(os.tmpdir(), cacheId.toString(), 'geojson', cacheId.toString()+'.geojson'), 'geojson');
 
-    var tracker = mockKnex.getTracker();
-    tracker.install();
-
     var mockQueryResponder = sinon.stub();
 
     tracker.on('query', mockQueryResponder);
-
-    tracker.on('query', function(query) {
-      console.log('query', query);
-    });
 
     mockQueryResponder.withArgs(sinon.match({
       bindings: [cacheId.toString(), 'geojson'],
@@ -369,16 +346,9 @@ describe('GeoJSON cache create tests', function() {
       fs.writeFile(file, 'test', callback);
     }).withArgs(cacheId.toString(), path.join(os.tmpdir(), cacheId.toString(), 'geojson', cacheId.toString()+'.geojson'), 'geojson');
 
-    var tracker = mockKnex.getTracker();
-    tracker.install();
-
     var mockQueryResponder = sinon.stub();
 
     tracker.on('query', mockQueryResponder);
-
-    tracker.on('query', function(query) {
-      console.log('query', query);
-    });
 
     mockQueryResponder.withArgs(sinon.match({
       bindings: [cacheId.toString(), 'geojson'],

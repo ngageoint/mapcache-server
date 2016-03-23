@@ -1,3 +1,5 @@
+var gdal = require('gdal');
+
 var exports = module.exports;
 
 exports.osmDatasource = {
@@ -605,6 +607,38 @@ exports.wmsMap = {
 
 exports.maps = [exports.xyzMap, exports.incompleteMap, exports.wmsMap];
 exports.completeMaps = [exports.xyzMap];
+
+exports.geotiff = {
+  srs: gdal.SpatialReference.fromEPSG(21892),
+  rasterSize: {
+    x: 512,
+    y: 512
+  },
+  bands: {
+    count: function() {
+      return 3;
+    },
+    get: function(i) {
+      var a = [{
+        colorInterpretation: 'Red'
+      }, {
+        colorInterpretation: 'Green'
+      }, {
+        colorInterpretation: 'Blue'
+      }];
+      return a[i];
+    }
+  },
+  layers: {
+    count: function() {
+      return 0;
+    },
+    get: function() {
+      return undefined;
+    }
+  },
+  geoTransform: [ 440720, 60, 0, 100000, 0, -60 ]
+};
 
 exports.featureMock =
 [
