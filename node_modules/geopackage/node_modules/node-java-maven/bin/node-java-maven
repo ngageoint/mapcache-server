@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var mvn = require('../');
+
+mvn({ debug: true }, function(err, results) {
+  if (err) {
+    return console.error(err);
+  }
+  return console.log(results.classpath);
+});
