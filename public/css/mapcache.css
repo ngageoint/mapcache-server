@@ -150,6 +150,42 @@
   font-weight: bold;
 }
 
+.leaflet-control-geocode-search {
+  border: 1px solid #777;
+  border-radius: 2px;
+  background-color: white;
+}
+
+.leaflet-control-geocode-search input {
+  height: 35px;
+  width: 25vw;
+  font-size: 18px;
+}
+
+.leaflet-control-geocode-search .geocode-suggestions {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #777;
+}
+
+.leaflet-control-geocode-search .geocode-suggestion {
+  height: 35px;
+  font-size: 18px;
+  width: 25vw;
+  cursor: pointer;
+}
+
+.leaflet-control-geocode-search .geocode-suggestion:hover {
+  font-weight: bold;
+}
+
+.clear-geocode-search {
+  padding: 7px;
+  font-size: 18px;
+  font-color: #333;
+  cursor: pointer;
+}
+
 .source-type-icon {
   font-size: 80px;
   color: #777777;
