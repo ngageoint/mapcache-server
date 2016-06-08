@@ -110,10 +110,10 @@ Cache.getCachesFromMapId = function(id, user, callback) {
 Cache.prototype.delete = function(callback) {
   var cacheModel = this.cacheModel;
   CacheModel.deleteCache(cacheModel, function(err) {
-    if (err) return callback(err);
-    fs.remove(config.server.cacheDirectory.path + "/" + cacheModel.id, function(err) {
-      callback(err, cacheModel);
-    });
+    callback(err, cacheModel);
+    if (!err) {
+      fs.remove(config.server.cacheDirectory.path + "/" + cacheModel.id);
+    }
   });
 };
 
