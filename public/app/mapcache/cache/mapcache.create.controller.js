@@ -16,6 +16,7 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   $scope.$on('draw:created', this._boundariesDrawn.bind(this));
   $scope.$on('draw:edited', this._boundariesDrawn.bind(this));
 
+  $scope.$watch('create.cache.geometry', this._boundariesDrawn.bind(this, undefined));
   $scope.$watch('create.cache.source', this._cacheSourceWatch.bind(this));
   $scope.$watch('create.cache.source.previewLayer', this._layerWatch.bind(this));
   $scope.$watch('create.cache.create', this._cacheCreateWatch.bind(this), true);
