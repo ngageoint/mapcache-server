@@ -137,10 +137,12 @@ Cache.prototype.createFormat = function(formats, callback, progressCallback) {
 };
 
 // Cache.prototype.restart = function(format, callback) {
-  // cacheProcessor.restartCacheFormat(this.cacheModel, format, function(err, cache) {
-  //   console.log('format ' + format + ' restarted for cache ' + cache.name);
-  //   callback(err, cache);
-  // });
+//   var cache = this.cacheModel;
+//
+//   cacheProcessor.restartCacheFormat(this.cacheModel, format, function(err, cache) {
+//     console.log('format ' + format + ' restarted for cache ' + cache.name);
+//     callback(err, cache);
+//   });
 // };
 
 // Cache.prototype.generateMoreZooms = function(format, newMinZoom, newMaxZoom, callback) {

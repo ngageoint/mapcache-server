@@ -197,7 +197,7 @@ exports.restartFormat = function(yargs) {
       console.log("Cache does not exist");
       process.exit();
     }
-    new api.Cache(cache).restart(argv.f, function(err, cache) {
+    new api.Cache(cache).createFormat(argv.f, function(err, cache) {
       if (err) {
         console.log('Error creating the cache format ', err);
         process.exit();
@@ -429,8 +429,8 @@ function cacheFormatTimerFunction(cache, format) {
     if (!cache.formats[format]) {
       return setTimeout(cacheFormatTimerFunction, 5000, cache, format);
     }
-
-    if (cache.formats[format].generating) {
+    console.log('cache.formats[format]', cache.formats[format]);
+    if (!cache.formats[format].complete) {
       console.log('Cache format is being generated:\n\tName:%s\n\tFormat:%s\n\tFormat Size:%s\n\tID:%s\n\tGenerated Tiles:%s\n\tGenerated Features:%s', cache.name, format, cache.formats[format].size, cache._id, cache.status.generatedTiles, cache.status.generatedFeatures);
       setTimeout(cacheFormatTimerFunction, 5000, cache, format);
     } else {
