@@ -109,6 +109,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
         	});
         } else {
           self.cache.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, stream) {
+            console.log('Get Tile returned error and stream', err, !!stream);
             if (err) {
               log.error(err);
               return tileDone(null, null);
