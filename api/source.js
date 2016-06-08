@@ -117,16 +117,15 @@ Source.getOverviewTile = function(source, callback) {
 Source.prototype.delete = function(callback) {
   var source = this.sourceModel;
   SourceModel.deleteSource(source, function(err) {
-    if (err) return callback(err);
-    fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
-      if (source.vector) {
-        Feature.deleteFeaturesBySourceId(source.id, function(err) {
-          callback(err, source);
-        });
-      } else {
-        callback(err, source);
-      }
-    });
+    callback(err, source);
+    if (!err) {
+      fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
+        if (source.vector) {
+          Feature.deleteFeaturesBySourceId(source.id, function(err) {
+          });
+        }
+      });
+    }
   });
 };
 
