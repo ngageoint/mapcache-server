@@ -18,6 +18,4 @@ module.exports = function LeafletController($element) {
 
   var baseLayer = L.tileLayer(config.defaultMapLayer);
   baseLayer.addTo(map);
-
-  map.addControl(new L.Control.AtlasGeocoder());
 };
