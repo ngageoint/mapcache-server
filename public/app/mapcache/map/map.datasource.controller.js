@@ -68,12 +68,10 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
   });
 
   $scope.$on('location-file', function(e, uploadFile) {
-    console.log('location-file caught');
     $scope.mapDatasource.file = uploadFile;
   });
 
   function fileChosen() {
-    console.log('file was chosen', $scope.mapDatasource.file);
     if (!$scope.mapDatasource.file) return;
     if (!$scope.nameSet) {
       $scope.mapDatasource.name = $scope.mapDatasource.file.name;
@@ -108,6 +106,10 @@ module.exports = function MapDatasourceController($scope, $timeout, $http, MapSe
       case 'kmz':
         $scope.mapDatasource.format = 'kmz';
         $scope.format = 'kmz';
+        break;
+      case 'kml':
+        $scope.mapDatasource.format = 'kmz';
+        $scope.format = 'kml';
         break;
       case 'json':
       case 'geojson':

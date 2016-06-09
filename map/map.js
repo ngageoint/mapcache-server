@@ -3,6 +3,7 @@ var log = require('mapcache-log')
   , xyzTileUtils = require('xyz-tile-utils')
   , Image = Canvas.Image
   , Feature = require('mapcache-models').Feature
+  , Formats = require('../format')
   , turf = require('turf')
   , fs = require('fs-extra')
   , async = require('async')
@@ -27,9 +28,6 @@ Map.prototype.callbackWhenInitialized = function(callback) {
 
 Map.prototype.initialize = function(callback) {
   log.info('Initializing the map with id %s', this.map.id);
-  log.debug('There are %d data sources to process', this.map.dataSources.length);
-  // var tempDataSources = this.map.dataSources || [];
-  // this.map.dataSources = [];
   var self = this;
   async.eachSeries(this.map.dataSources, function(ds, done) {
     log.info('Processing the data source %s', ds.name);
@@ -52,7 +50,6 @@ Map.prototype.addDataSource = function(ds, callback) {
 
   var self = this;
   if (ds.getTile) {
-    log.debug('data source is already made', ds);
     if (ds.source.status && ds.source.status.complete) {
       log.debug('Adding the datasource %s to add to the map %s', ds.source.id, this.map.id);
       self.dataSources.push(ds);
@@ -78,7 +75,7 @@ Map.prototype.addDataSource = function(ds, callback) {
       });
     }
   } else {
-    var DataSource = require('../format/'+ds.format);
+    var DataSource = Formats.getFormat(ds.format);
     var dsObj = new DataSource({source: ds});
     log.debug('Processing the datasource %s to add to the map %s', ds.id, self.map.id);
     try {
@@ -87,9 +84,7 @@ Map.prototype.addDataSource = function(ds, callback) {
           self.dataSourceErrors[ds.id] = err;
           log.error('Error processing the datasource %s', ds.id, err);
         } else {
-          log.info('finished processing the source %s', source.id);
           self.dataSources.push(dsObj);
-          // self.map.dataSources.push(dsObj.source);
           log.debug('Adding the datasource %s to add to the map %s', dsObj.source.id, self.map.id);
         }
         callback(err, dsObj);
@@ -127,21 +122,17 @@ Map.prototype.getOverviewTile = function(callback) {
 };
 
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
-  log.info('get tile %d/%d/%d.%s for map %s', z, x, y, format, this.map.id);
-  log.info('the map is initialized?', this.initialized);
+  log.info('[Retrieve Tile]:\t %d %d %d for map %s', z, x, y, this.map.id.toString());
   this.initPromise.then(function(self) {
 
     if (self.config && self.config.outputDirectory) {
       var dir = path.join(self.config.outputDirectory, self.map.id, 'tiles', z.toString(), x.toString());
       var filename = y + '.png';
 
-      log.debug('tile %d %d %d will be written to %s', z, y, x, path.join(dir, filename));
-
       if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {
-        log.debug('file already exists, returning: %s', path.join(dir, filename));
+        log.info('[Tile Exists]:\t %d %d %d for map %s', z, x, y, self.map.id.toString());
         return callback(null, fs.createReadStream(path.join(dir, filename)));
       }
-      log.info('the file %s does not exist for the map %s, creating', path.join(dir, filename), self.map.id);
     }
 
     var sorted = self.dataSources.sort(zOrderDatasources);
@@ -158,7 +149,6 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
 
     ctx.clearRect(0, 0, height, height);
     async.eachSeries(sorted, function iterator(s, callback) {
-      log.info('self.dataSourceErrors[s.source.id]', self.dataSourceErrors[s.source.id]);
       if (params.dataSources.indexOf(s.source.id) === -1 || self.dataSourceErrors[s.source.id]) return callback();
       s.getTile(format, z, x, y, params, function(err, tileStream) {
         if (!tileStream) return callback();
@@ -182,7 +172,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         canvas.pngStream().pipe(stream);
       }
 
-      log.info('Tile %d %d %d was created for map %s, returning', z, x, y, self.map.id);
+      log.info('[Tile Created]:\t %d %d %d for map %s', z, x, y, self.map.id.toString());
       callback(null, canvas.pngStream());
     });
   });
@@ -191,11 +181,9 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
 Map.prototype.getFeatures = function(west, south, east, north, zoom, callback) {
   var allFeatures = [];
   this.initPromise.then(function(self) {
-    console.log('self.dataSources', self.dataSources);
     async.eachSeries(self.dataSources, function iterator(ds, dsDone) {
       if (ds.getDataWithin) {
         ds.getDataWithin(west, south, east, north, 4326, function(err, features) {
-          console.log('features', features);
           allFeatures = allFeatures.concat(features);
           dsDone();
         });

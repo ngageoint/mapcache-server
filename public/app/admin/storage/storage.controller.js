@@ -74,7 +74,6 @@ module.exports = function StorageController($scope, $http, $location, $injector,
   $scope.itemsPerPage = 10;
 
   UserService.getRoles().then(function (roles) {
-    console.log('roles', roles);
     $scope.roles = roles;
   });
 
@@ -119,10 +118,15 @@ module.exports = function StorageController($scope, $http, $location, $injector,
       lastname: $scope.user.lastname,
       email: $scope.user.email,
       phone: $scope.user.phone,
-      password: this.user.password,
-      passwordconfirm: this.user.passwordconfirm,
       roleId: $scope.user.roleId
     };
+
+    if ($scope.user.password) {
+      user.password = $scope.user.password;
+    }
+    if ($scope.user.passwordconfirm) {
+      user.passwordconfirm = $scope.user.passwordconfirm;
+    }
 
     var failure = function(response) {
       $scope.saving = false;

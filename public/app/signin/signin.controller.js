@@ -6,8 +6,8 @@ module.exports = function($scope, $rootScope, $location, UserService) {
       .then(function (data) {
         $rootScope.$broadcast('login', data);
       },
-      function (data) {
-        $scope.status = data.status;
+      function (response) {
+        $scope.loginStatus = response.data;
       });
   };
 

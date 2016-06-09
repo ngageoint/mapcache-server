@@ -11,7 +11,12 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   this.$scope = $scope;
 
   $scope.create = this;
-  $scope.$watch('create.cache.geometry', this._cacheGeometryWatch.bind(this));
+  // $scope.$watch('create.cache.geometry', this._cacheGeometryWatch.bind(this));
+  $scope.$on('draw:drawstart', this._boundariesDrawn.bind(this));
+  $scope.$on('draw:created', this._boundariesDrawn.bind(this));
+  $scope.$on('draw:edited', this._boundariesDrawn.bind(this));
+
+  $scope.$watch('create.cache.geometry', this._boundariesDrawn.bind(this, undefined));
   $scope.$watch('create.cache.source', this._cacheSourceWatch.bind(this));
   $scope.$watch('create.cache.source.previewLayer', this._layerWatch.bind(this));
   $scope.$watch('create.cache.create', this._cacheCreateWatch.bind(this), true);
@@ -85,43 +90,77 @@ MapcacheCreateController.prototype.useCurrentView = function() {
 };
 
 MapcacheCreateController.prototype.dmsChange = function(direction, dms) {
+  console.log('dms', dms);
   this.bb[direction] = (!isNaN(dms.degrees) ? Number(dms.degrees) : 0) + (!isNaN(dms.minutes) ? dms.minutes/60 : 0) + (!isNaN(dms.seconds) ? dms.seconds/(60*60) : 0);
   this.manualEntry();
 };
 
 MapcacheCreateController.prototype.manualEntry = function() {
-  this._setDirectionDMS(this.bb.north, this.north);
-  this._setDirectionDMS(this.bb.south, this.south);
-  this._setDirectionDMS(this.bb.east, this.east);
-  this._setDirectionDMS(this.bb.west, this.west);
-  if (isNaN(this.bb.north) || !this.bb.north || this.bb.north.toString().lastIndexOf('.') === this.bb.north.toString().length-1 ||
-  isNaN(this.bb.south) || !this.bb.south || this.bb.south.toString().lastIndexOf('.') === this.bb.south.toString().length-1  ||
-  isNaN(this.bb.west) || !this.bb.west || this.bb.west.toString().lastIndexOf('.') === this.bb.west.toString().length-1  ||
-  isNaN(this.bb.east) || !this.bb.east || this.bb.east.toString().lastIndexOf('.') === this.bb.east.toString().length-1 ) {
+  var directionsSet = 0;
+  if(!isNaN(parseFloat(this.bb.north))) {
+    this._setDirectionDMS(this.bb.north, this.north);
+    directionsSet++;
+  }
+  if(!isNaN(parseFloat(this.bb.south))) {
+    this._setDirectionDMS(this.bb.south, this.south);
+    directionsSet++;
+  }
+  if(!isNaN(parseFloat(this.bb.east))) {
+    this._setDirectionDMS(this.bb.east, this.east);
+    directionsSet++;
+  }
+  if(!isNaN(parseFloat(this.bb.west))) {
+    this._setDirectionDMS(this.bb.west, this.west);
+    directionsSet++;
+  }
+
+  if (parseFloat(this.bb.east) <= parseFloat(this.bb.west) || parseFloat(this.bb.north) <= parseFloat(this.bb.south)) {
+    this.boundsSet = false;
+    this.ewError = parseFloat(this.bb.east) <= parseFloat(this.bb.west);
+    this.nsError = parseFloat(this.bb.north) <= parseFloat(this.bb.south);
+    this.$scope.$broadcast('extentChanged', null);
+    return true;
+  }
+  this.ewError = false;
+  this.nsError = false;
+
+  if (directionsSet !== 4) {
     this.boundsSet = false;
     this.$scope.$broadcast('extentChanged', null);
     return true;
   }
+
   this.boundsSet = true;
   var envelope = {
-    north: Number(this.bb.north),
-    south: Number(this.bb.south),
-    west: Number(this.bb.west),
-    east: Number(this.bb.east)
+    north: parseFloat(this.bb.north),
+    south: parseFloat(this.bb.south),
+    west: parseFloat(this.bb.west),
+    east: parseFloat(this.bb.east)
   };
+  this.cache.geometry = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
   this.$scope.$broadcast('extentChanged', envelope);
+  this._calculateCacheSize();
 };
 
-MapcacheCreateController.prototype._setDirectionDMS = function(deg, direction) {
+MapcacheCreateController.prototype._setDirectionDMS = function(dd, direction) {
+  var deg = parseFloat(dd);
   if (!deg) return;
-   var d = Math.floor (deg);
-   var minfloat = (deg-d)*60;
-   var m = Math.floor(minfloat);
-   var secfloat = (minfloat-m)*60;
-   var s = Math.round(secfloat);
-   direction.degrees = d;
-   direction.minutes = m;
-   direction.seconds = s;
+
+  var absDeg = Math.abs(deg);
+  var multiplier = deg < 0 ? -1 : 1;
+
+ var d = Math.floor(absDeg);
+ var minfloat = (absDeg-d)*60;
+ var m = Math.floor(minfloat);
+ var secfloat = (minfloat-m)*60;
+ var s = Math.round(secfloat);
+ if (s === 60) {
+   s = 0;
+   m = m + 1;
+ }
+ direction.degrees = d * multiplier;
+ direction.minutes = m;
+ direction.seconds = s;
 };
 
 MapcacheCreateController.prototype.toggleDataSource = function(id, ds) {
@@ -175,7 +214,7 @@ MapcacheCreateController.prototype.requiredFieldsSet = function() {
     this.unsetFields.push('cache boundaries');
   }
 
-  if (!_.some(_.values(this.currentDatasources), function(value) {
+  if (!_.some(_.values(this.cache.currentDatasources), function(value) {
     return value;
   })) {
     this.unsetFields.push('at least one data source');
@@ -233,7 +272,7 @@ MapcacheCreateController.prototype._calculateCacheSize = function() {
   this.totalCacheSize = this.totalCacheTiles * (this.cache.source.tileSize/this.cache.source.tileSizeCount);
 };
 
-MapcacheCreateController.prototype._cacheGeometryWatch = function(geometry) {
+MapcacheCreateController.prototype._boundariesDrawn = function(event, geometry) {
   if (!geometry) {
     this.bb.north = null;
     this.bb.south = null;
@@ -256,6 +295,8 @@ MapcacheCreateController.prototype._cacheGeometryWatch = function(geometry) {
   this._setDirectionDMS(this.bb.west, this.west);
   this.bb.east = extent[2];
   this._setDirectionDMS(this.bb.east, this.east);
+
+  this.cache.geometry = geometry;
 
   this._calculateCacheSize();
 };

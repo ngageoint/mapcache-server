@@ -66,6 +66,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.geojson'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('geojson');
     scope.format.should.be.equal('geojson');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -77,6 +78,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.json'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('geojson');
     scope.format.should.be.equal('geojson');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -89,6 +91,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.tif'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('geotiff');
     scope.format.should.be.equal('geotiff');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -100,6 +103,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.tiff'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('geotiff');
     scope.format.should.be.equal('geotiff');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -111,6 +115,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.geotif'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('geotiff');
     scope.format.should.be.equal('geotiff');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -122,6 +127,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.geotiff'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('geotiff');
     scope.format.should.be.equal('geotiff');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -133,6 +139,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.sid'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('mrsid');
     scope.format.should.be.equal('mrsid');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -144,6 +151,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.mbtiles'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('mbtiles');
     scope.format.should.be.equal('mbtiles');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -155,6 +163,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.zip'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('shapefile');
     scope.format.should.be.equal('shapefile');
     scope.mapDatasource.file.should.be.deep.equal(file);
@@ -166,6 +175,7 @@ describe('MapDatasourceController tests', function() {
       name: 'test.kmz'
     };
     scope.$emit('location-file', file);
+    scope.$apply();
     scope.mapDatasource.format.should.be.equal('kmz');
     scope.format.should.be.equal('kmz');
     scope.mapDatasource.file.should.be.deep.equal(file);

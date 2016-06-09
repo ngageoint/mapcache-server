@@ -1,3 +1,5 @@
+var gdal = require('gdal');
+
 var exports = module.exports;
 
 exports.osmDatasource = {
@@ -147,6 +149,34 @@ exports.xyzMap = {
   "tileSize":50,
   "tileSizeCount":1,
   "dataSources":[exports.osmDatasource,exports.geojsonDatasource],
+  "id":"56a92d006a4c0e8d43c40194",
+  "mapcacheUrl":"/api/sources/56a92d006a4c0e8d43c40194",
+  "cacheTypes":[
+    { required: false, type: 'geojson', vector: true },
+    { required: false, type: 'shapefile', vector: true },
+    { required: false, type: 'kml', vector: true },
+    { required: false, type: 'xyz' },
+    { depends: 'xyz', required: false, type: 'tms' },
+    { depends: 'xyz', required: false, type: 'geopackage' }
+  ]
+};
+
+exports.osmMap = {
+  "name":"Cache Route Test",
+  "humanReadableId":"4JbQ3GMte",
+  "tilesLackExtensions":false,
+  "status":{
+    "message":"Completed map processing",
+    "generatedFeatures":0,
+    "totalFeatures":0,
+    "generatedTiles":0,
+    "totalTiles":0,
+    "complete":true
+  },
+  "styleTime":1,
+  "tileSize":50,
+  "tileSizeCount":1,
+  "dataSources":[exports.osmDatasource],
   "id":"56a92d006a4c0e8d43c40194",
   "mapcacheUrl":"/api/sources/56a92d006a4c0e8d43c40194",
   "cacheTypes":[
@@ -577,6 +607,38 @@ exports.wmsMap = {
 
 exports.maps = [exports.xyzMap, exports.incompleteMap, exports.wmsMap];
 exports.completeMaps = [exports.xyzMap];
+
+exports.geotiff = {
+  srs: gdal.SpatialReference.fromEPSG(21892),
+  rasterSize: {
+    x: 512,
+    y: 512
+  },
+  bands: {
+    count: function() {
+      return 3;
+    },
+    get: function(i) {
+      var a = [{
+        colorInterpretation: 'Red'
+      }, {
+        colorInterpretation: 'Green'
+      }, {
+        colorInterpretation: 'Blue'
+      }];
+      return a[i];
+    }
+  },
+  layers: {
+    count: function() {
+      return 0;
+    },
+    get: function() {
+      return undefined;
+    }
+  },
+  geoTransform: [ 440720, 60, 0, 100000, 0, -60 ]
+};
 
 exports.featureMock =
 [

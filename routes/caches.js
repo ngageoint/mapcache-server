@@ -83,6 +83,9 @@ module.exports = function(app, auth) {
     function(req, res) {
       var called = false;
       Cache.create(req.newCache, function(err, newCache) {
+        if (err) {
+          console.log('Error creating cache', err);
+        }
         if (newCache.id && !called) {
           called = true;
           if (err) return res.status(400).send(err.message);
@@ -142,7 +145,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res) {
       if (!req.cache.geometry) return res.status(404).send();
-      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry));
+      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry), req.cache.minZoom, req.cache.maxZoom);
       new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) {
           log.error('Error getting overview tile for cache %s', req.cache.id, err);

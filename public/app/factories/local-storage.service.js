@@ -1,6 +1,6 @@
 
 module.exports = function ($window) {
-  var tokenKey = 'token';
+  var tokenKey = 'mapcachetoken';
 
   var service = {
     getToken: getToken,

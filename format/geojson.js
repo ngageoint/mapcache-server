@@ -2,6 +2,7 @@ var log = require('mapcache-log')
   , tile = require('mapcache-tile')
   , FeatureModel = require('mapcache-models').Feature
   , config = require('mapcache-config')
+  , vector = require('./vector')
   , turf = require('turf')
   , Readable = require('stream').Readable
   , StreamQueue = require('streamqueue')
@@ -36,6 +37,7 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
 
   var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
   var filename = cache.id + '.geojson';
+  console.log('dir', dir);
   fs.emptyDirSync(dir);
 
   if (fs.existsSync(path.join(dir, filename))) {
@@ -43,21 +45,9 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
     return doneCallback(null, cacheObj);
   }
 
-  FeatureModel.getFeatureCount({sourceId: self.cache.map.map.id, cacheId: self.cache.id}, function(countResults) {
-    if (countResults[0].count !== '0') {
-      return self._writeCacheFile(dir, filename, doneCallback);
-    }
-    var extent = turf.extent(self.cache.cache.geometry);
-    extent[0] = Math.max(-180, extent[0]);
-    extent[1] = Math.max(-85, extent[1]);
-    extent[2] = Math.min(180, extent[2]);
-    extent[3] = Math.min(85, extent[3]);
-    log.debug('Creating the cache features from the source %s', self.cache.map.map.id);
-    FeatureModel.createCacheFeaturesFromSource(self.cache.map.map.id, self.cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
-      log.info('Created the cache features for cache %s ', self.cache.id, features);
-      cache.formats.geojson.generatedFeatures = features;
-      self._writeCacheFile(dir, filename, doneCallback);
-    });
+  FeatureModel.getFeatureCount({cacheId: cache.id}, function(countResults) {
+    cache.formats.geojson.generatedFeatures = parseInt(countResults[0].count);
+    self._writeCacheFile(dir, filename, doneCallback);
   });
 
 };
@@ -74,6 +64,7 @@ GeoJSON.prototype._writeCacheFile = function(dir, filename, callback) {
     log.info('Wrote the GeoJSON for cache %s to the file %s', cache.id, path.join(dir, filename));
     var stats = fs.statSync(path.join(dir, filename));
     cache.formats.geojson.complete = true;
+    cache.formats.geojson.percentComplete = 100;
     cache.formats.geojson.size = stats.size;
     return callback(null, self.cache);
   });
@@ -101,15 +92,16 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
   source.vector = true;
   source.status = source.status || {};
 
-  isAlreadyProcessed(source, function(processed) {
+  vector.isAlreadyProcessed(source, function(processed) {
     log.info('is already processed?', processed);
     if (processed) {
-      return completeProcessing(source, function(err, source) {
+      return vector.completeProcessing(source, function(err, source) {
         console.log('source %s was already processed, returning', source.id);
 
         doneCallback(null, source);
       });
     }
+
     source.status.message = "Parsing GeoJSON";
     progressCallback(source, function(err, updatedSource) {
       if (updatedSource.url) {
@@ -126,16 +118,21 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
             var stream = fs.createWriteStream(dir + '/' + updatedSource.id + '.geojson');
         		stream.on('close',function() {
               fs.stat(dir + '/' + updatedSource.id + '.geojson', function(err, stat) {
-                console.log('stat.size', stat);
-                updatedSource.filePath = dir + '/' + updatedSource.id + '.geojson';
+                updatedSource.file = {
+                  path: dir + '/' + updatedSource.id + '.geojson',
+                  name: updatedSource.id + '.geojson'
+                };
                 updatedSource.size = stat.size;
                 updatedSource.status.message = "Creating";
                 updatedSource.status.complete = false;
                 parseGeoJSONFile(updatedSource, function(err, updatedSource) {
                   updatedSource.status.complete = true;
+                  updatedSource.status.failure = false;
                   updatedSource.status.message="Complete";
                   source = updatedSource;
-                  doneCallback(err, source);
+                  return vector.completeProcessing(source, function(err, source) {
+                    doneCallback(err, source);
+                  });
                 });
               });
         		});
@@ -147,12 +144,12 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
       } else if (fs.existsSync(updatedSource.file.path)) {
         parseGeoJSONFile(updatedSource, function(err, updatedSource) {
           fs.stat(updatedSource.file.path, function(err, stat) {
-            console.log('stat.size', stat);
             updatedSource.size = stat.size;
             updatedSource.status.complete = true;
+            updatedSource.status.failure = false;
             updatedSource.status.message="Complete";
             source = updatedSource;
-            return completeProcessing(source, function(err, source) {
+            return vector.completeProcessing(source, function(err, source) {
               doneCallback(null, source);
             });
           });
@@ -164,27 +161,14 @@ GeoJSON.prototype.processSource = function(doneCallback, progressCallback) {
   });
 };
 
-function isAlreadyProcessed(source, callback) {
-  log.debug('Checking if the source %s is already processed', source.id);
-  FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
-    log.debug("The source already has features", resultArray);
-    if (resultArray[0].count !== '0') {
-      return callback(true);
-    } else {
-      return callback(false);
-    }
-  });
-}
-
 function parseGeoJSONFile(source, callback, progressCallback) {
   log.info('reading in the file', source.file.path);
-  fs.readFile(source.file.path, function(err, fileData) {
-    log.debug('parsing file data', source.file.path);
+  fs.readFile(source.file.path, 'utf8', function(err, fileData) {
     console.time('parsing geojson');
     var gjData = JSON.parse(fileData);
     console.timeEnd('parsing geojson');
+
     // save the geojson to the db
-    log.debug('gjdata.features', gjData.features.length);
     var count = 0;
     source.status.totalFeatures = gjData.features.length;
     async.eachSeries(gjData.features, function iterator(feature, callback) {
@@ -193,10 +177,10 @@ function parseGeoJSONFile(source, callback, progressCallback) {
         // console.log('create feature', feature);
         FeatureModel.createFeature(feature, {sourceId:source.id}, function() {
           count++;
+          source.status.generatedFeatures = count;
+          source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
           async.setImmediate(function() {
             if (count % fivePercent === 0) {
-              source.status.generatedFeatures = count;
-              source.status.message="Processing " + ((count/gjData.features.length)*100) + "% complete";
               progressCallback(source, function(err, updatedSource) {
                 source = updatedSource;
                 callback(null, feature);
@@ -209,78 +193,8 @@ function parseGeoJSONFile(source, callback, progressCallback) {
       });
     }, function done() {
       log.info('done processing features');
-      completeProcessing(source, function(err, source) {
-        callback(null, source);
-      });
-    });
-  });
-}
-
-function setSourceCount(source, callback) {
-  FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
-    source.status.totalFeatures = resultArray[0].count;
-    source.status.generatedFeatures = resultArray[0].count;
-    callback(null, source);
-  });
-}
-
-function setSourceExtent(source, callback) {
-  FeatureModel.getExtentOfSource({sourceId:source.id}, function(resultArray) {
-    source.geometry = {
-      type: "Feature",
-      geometry: JSON.parse(resultArray[0].extent)
-    };
-    callback(null, source);
-  });
-}
-
-function setSourceStyle(source, callback) {
-  source.style = source.style || { };
-  if (!source.style.defaultStyle || !source.style.defaultStyle.style || !source.style.defaultStyle.style.fill) {
-    source.style.defaultStyle = {
-      style: {
-        'fill': "#000000",
-        'fill-opacity': 0.5,
-        'stroke': "#0000FF",
-        'stroke-opacity': 1.0,
-        'stroke-width': 1
-      }
-    };
-  }
-
-  source.style.styles = source.style.styles || [];
-  callback(null, source);
-}
-
-function setSourceProperties(source, callback) {
-  source.properties = [];
-  FeatureModel.getPropertyKeysFromSource({sourceId: source.id}, function(propertyArray){
-    async.eachSeries(propertyArray, function(key, propertyDone) {
-      FeatureModel.getValuesForKeyFromSource(key.property, {sourceId: source.id}, function(valuesArray) {
-        source.properties.push({key: key.property, values: valuesArray.map(function(current) {
-          return current.value;
-        })});
-        propertyDone();
-      });
-    }, function() {
       callback(null, source);
     });
-  });
-}
-
-function completeProcessing(source, callback) {
-  async.waterfall([
-    function(callback) {
-      callback(null, source);
-    },
-    setSourceCount,
-    setSourceExtent,
-    setSourceStyle,
-    setSourceProperties
-  ], function (err, source){
-    source.status.complete = true;
-    source.status.message = "Complete";
-    callback(err, source);
   });
 }
 

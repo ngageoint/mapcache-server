@@ -1,3 +1,9 @@
+[ng-click],
+[data-ng-click],
+[x-ng-click] {
+    cursor: pointer;
+}
+
 .navbar-shift {
   padding-top: 50px;
 }
@@ -74,6 +80,13 @@
   border-style: solid;
 }
 
+.cache-row.cache-click {
+  border-radius: 4px;
+  border-width: 3px;
+  border-color: #15A200;
+  border-style: solid;
+}
+
 .source-row {
   padding: 5px;
 }
@@ -137,12 +150,50 @@
   font-weight: bold;
 }
 
+.leaflet-control-geocode-search {
+  border: 1px solid #777;
+  border-radius: 2px;
+  background-color: white;
+}
+
+.leaflet-control-geocode-search input {
+  height: 35px;
+  width: 25vw;
+  font-size: 18px;
+}
+
+.leaflet-control-geocode-search .geocode-suggestions {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #777;
+}
+
+.leaflet-control-geocode-search .geocode-suggestion {
+  height: 35px;
+  font-size: 18px;
+  width: 25vw;
+  cursor: pointer;
+}
+
+.leaflet-control-geocode-search .geocode-suggestion:hover {
+  font-weight: bold;
+}
+
+.clear-geocode-search {
+  padding: 7px;
+  font-size: 18px;
+  font-color: #333;
+  cursor: pointer;
+}
+
 .source-type-icon {
   font-size: 80px;
+  color: #777777;
 }
 
 .source-type-icon-stack {
   font-size: 40px;
+  color: #777777;
 }
 
 .mapcache-header-description {
@@ -270,8 +321,8 @@
 .nice-radio input.radio:checked ~ label:before {
 	content:'\25C9';
 	text-indent: .7em;
-	color: #9CE2AE;
-	background-color: #0057FF;
+	color: #BDF1E7;
+	background-color: rgb(35, 87, 165);
 }
 
 .nice-radio input.radio:checked ~ label {
@@ -282,60 +333,14 @@
 .nice-radio input.radio:focus ~ label:before {
 	box-shadow: 0 0 0 3px #999;
 }
-/*
-.nice-radio input {
-  position: absolute;
-  left: -9999px;
-}
-
-.nice-radio label {
-  display: inline-block;
-  position: relative;
-  margin-right: 5px;
-  padding: 4px 5px 4px 23px;
-  border: 3px solid #fff;
-  color: #fff;
-  background-color: #a5b6bf;
-  box-shadow: 0 0 20px rgba(0, 0, 0, .2);
-  white-space: nowrap;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color .2s, box-shadow .2s;
-}
-
-.nice-radio label::before {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 5px;
-  bottom: 5px;
-  left: 5px;
-  width: 15px;
-  height: 15px;
-  border: 3px solid #fff;
-  border-radius: 100px;
-  transition: background-color .2s;
-}
-
-.nice-radio label:hover, .nice-radio input:focus + label {
-  box-shadow: 0 0 20px rgba(0, 0, 0, .6);
-}
-
-.nice-radio input:checked + label {
-  background-color: #336699;
-}
-
-.nice-radio input:checked + label::before {
-  background-color: #fff;
-}*/
 
 .leaflet-draw-tooltip-subtext {
   color: #FFF;
 }
 
-/* 500 allows the full map to be visible at zoom level 1 */
 .leaflet-map {
-  height:500px;
+  height:30vh;
+  min-height: 200px;
 }
 
 .short-map .leaflet-map {
@@ -620,11 +625,11 @@
   }
 
   .ui-scrollpoint .maps-scrollpoint {
-    margin-top:500px;
+    margin-top:30vh;
   }
 
   .filter-scrollpoint.ui-scrollpoint {
-    top:510px;
+    top:30vh;
     position: fixed;
   }
 

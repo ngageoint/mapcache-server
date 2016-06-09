@@ -110,10 +110,10 @@ Cache.getCachesFromMapId = function(id, user, callback) {
 Cache.prototype.delete = function(callback) {
   var cacheModel = this.cacheModel;
   CacheModel.deleteCache(cacheModel, function(err) {
-    if (err) return callback(err);
-    fs.remove(config.server.cacheDirectory.path + "/" + cacheModel.id, function(err) {
-      callback(err, cacheModel);
-    });
+    callback(err, cacheModel);
+    if (!err) {
+      fs.remove(config.server.cacheDirectory.path + "/" + cacheModel.id);
+    }
   });
 };
 
@@ -137,10 +137,12 @@ Cache.prototype.createFormat = function(formats, callback, progressCallback) {
 };
 
 // Cache.prototype.restart = function(format, callback) {
-  // cacheProcessor.restartCacheFormat(this.cacheModel, format, function(err, cache) {
-  //   console.log('format ' + format + ' restarted for cache ' + cache.name);
-  //   callback(err, cache);
-  // });
+//   var cache = this.cacheModel;
+//
+//   cacheProcessor.restartCacheFormat(this.cacheModel, format, function(err, cache) {
+//     console.log('format ' + format + ' restarted for cache ' + cache.name);
+//     callback(err, cache);
+//   });
 // };
 
 // Cache.prototype.generateMoreZooms = function(format, newMinZoom, newMaxZoom, callback) {

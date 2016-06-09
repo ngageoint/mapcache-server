@@ -8,28 +8,39 @@ var gdal = require("gdal")
   , xyzTileUtils = require('xyz-tile-utils')
   , log = require('mapcache-log');
 
-exports.processSource = function(source, callback, progressCallback) {
-  callback = callback || function() {};
+var GdalType = function(config) {
+  config = config || {};
+  this.source = config.source;
+  if(config.cache) {
+    throw new Error('cannot create a '+config.cache.format+' cache at this time');
+  }
+};
+
+GdalType.prototype.initialize = function() {
+};
+
+GdalType.prototype.processSource = function(doneCallback, progressCallback) {
+  doneCallback = doneCallback || function() {};
   progressCallback = progressCallback || function(source, callback) { callback(null, source);};
+  var source = this.source;
+  source.status = source.status || {};
   source.status.message="Processing source";
   source.status.complete = false;
   progressCallback(source, function(err, newSource) {
     source = newSource;
     try {
       var stats = fs.statSync(source.file.path);
-      if (!stats.isFile()) return callback(new Error('source file ' + source.file.path + ' does not exist'), source);
+      if (!stats.isFile()) return doneCallback(new Error('source file ' + source.file.path + ' does not exist'), source);
     } catch (e) {
-      return callback(new Error('error reading source file ' + source.file.path), source);
+      return doneCallback(new Error('error reading source file ' + source.file.path), source);
     }
     log.info('Opening ' + source.file.path);
     var ds = gdal.open(source.file.path);
-    // console.log(exports.gdalInfo(ds));
-
     if (!ds.srs) {
       source.status.message="There is no Spatial Reference System in the file";
       source.status.complete = true;
       source.status.failure = true;
-      return callback(null, source);
+      return doneCallback(null, source);
     }
 
     source.projection = ds.srs.getAuthorityCode("PROJCS");
@@ -46,12 +57,98 @@ exports.processSource = function(source, callback, progressCallback) {
           source = newSource;
           source.status.message = "Complete";
           source.status.complete = true;
-          callback(null, source);
+          source.status.failure = false;
+          doneCallback(null, source);
         });
       });
     });
   });
 };
+
+GdalType.prototype.getTile = function(format, z, x, y, params, callback) {
+  var source = this.source;
+  format = format.toLowerCase();
+  if (format !== 'png' && format !== 'jpeg') return callback(null, null);
+  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
+
+  var filePath = pickCorrectResolutionFile(source, z);
+
+  var tileEnvelope = xyzTileUtils.tileBboxCalculator(x, y, z);
+  var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
+  var intersection = turf.intersect(tilePoly, source.geometry);
+  if (!intersection){
+    console.log("GeoTIFF does not intersect the requested tile");
+    return callback();
+  }
+
+  var gdalFile = gdal.open(filePath);
+
+  var grayscale = gdalFile.bands.get(1).colorInterpretation === 'Gray';
+
+  var gt = gdalFile.geoTransform;
+
+  if (gt[2] !== 0 || gt[4] !== 0) {
+    console.log("error the geotiff is skewed, need to warp first");
+    return callback();
+  }
+
+  var fullExtent = turf.extent(source.geometry);
+
+  var cutline = createCutlineInProjection(tileEnvelope, gdal.SpatialReference.fromEPSG(3857));
+  var srcCutline = createPixelCoordinateCutline({west: fullExtent[0], south: fullExtent[1], east: fullExtent[2], north: fullExtent[3]}, gdalFile);
+
+  var reprojectedFile = reproject(gdalFile, 3857, cutline, srcCutline);
+
+  var readOptions = {};
+  if (grayscale) {
+    readOptions.pixel_space = 1; // jshint ignore:line
+  }
+  var pixelRegion1 = reprojectedFile.bands.get(1).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion2 = reprojectedFile.bands.get(2).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion3 = reprojectedFile.bands.get(3).pixels.read(0, 0, 256, 256, null, readOptions);
+  var pixelRegion4 = reprojectedFile.bands.get(4).pixels.read(0, 0, 256, 256, null, readOptions);
+
+  if (grayscale) {
+    pixelRegion2 = pixelRegion3 = pixelRegion1;
+  }
+
+  if (!pixelRegion1) {
+    return callback();
+  }
+  var options = {
+    buffer_width: 256, // jshint ignore:line
+    buffer_height: 256 // jshint ignore:line
+  };
+
+  var img = new png.PNG({
+      width: options.buffer_width, // jshint ignore:line
+      height: options.buffer_height, // jshint ignore:line
+      filterType: 0
+  });
+  for (var i = 0; i < pixelRegion1.length; i++) {
+    img.data[i*4] = pixelRegion1[i];
+    img.data[(i*4)+1] = pixelRegion2[i];
+    img.data[(i*4)+2] = pixelRegion3[i];
+    img.data[(i*4)+3] = pixelRegion4[i];
+  }
+
+  var stream = img.pack();
+  callback(null, stream);
+
+  reprojectedFile.close();
+};
+
+GdalType.prototype.generateCache = function(doneCallback) {
+  doneCallback(null, null);
+};
+
+GdalType.prototype.getDataWithin = function(west, south, east, north, projection, callback) {
+  callback(null, []);
+};
+
+
+module.exports = GdalType;
+
 
 function expandColorsIfNecessary(ds, source, callback) {
   var fileName = path.basename(path.basename(source.file.path), path.extname(source.file.path)) + '_expanded.tif';
@@ -158,78 +255,6 @@ function pickCorrectResolutionFile(source, zoom) {
   return filePath;
 }
 
-exports.getTile = function(source, format, z, x, y, params, callback) {
-  format = format.toLowerCase();
-  if (format !== 'png' && format !== 'jpeg') return callback(null, null);
-  console.log('get tile ' + z + '/' + x + '/' + y + '.png for source ' + source.name);
-
-  var filePath = pickCorrectResolutionFile(source, z);
-
-  var tileEnvelope = xyzTileUtils.tileBboxCalculator(x, y, z);
-  var tilePoly = turf.bboxPolygon([tileEnvelope.west, tileEnvelope.south, tileEnvelope.east, tileEnvelope.north]);
-  var intersection = turf.intersect(tilePoly, source.geometry);
-  if (!intersection){
-    console.log("GeoTIFF does not intersect the requested tile");
-    return callback();
-  }
-
-  var gdalFile = gdal.open(filePath);
-
-  var grayscale = gdalFile.bands.get(1).colorInterpretation === 'Gray';
-
-  var gt = gdalFile.geoTransform;
-
-  if (gt[2] !== 0 || gt[4] !== 0) {
-    console.log("error the geotiff is skewed, need to warp first");
-    return callback();
-  }
-
-  var fullExtent = turf.extent(source.geometry);
-
-  var cutline = createCutlineInProjection(tileEnvelope, gdal.SpatialReference.fromEPSG(3857));
-  var srcCutline = createPixelCoordinateCutline({west: fullExtent[0], south: fullExtent[1], east: fullExtent[2], north: fullExtent[3]}, gdalFile);
-
-  var reprojectedFile = reproject(gdalFile, 3857, cutline, srcCutline);
-
-  var readOptions = {};
-  if (grayscale) {
-    readOptions.pixel_space = 1; // jshint ignore:line
-  }
-  var pixelRegion1 = reprojectedFile.bands.get(1).pixels.read(0, 0, 256, 256, null, readOptions);
-  var pixelRegion2 = reprojectedFile.bands.get(2).pixels.read(0, 0, 256, 256, null, readOptions);
-  var pixelRegion3 = reprojectedFile.bands.get(3).pixels.read(0, 0, 256, 256, null, readOptions);
-  var pixelRegion4 = reprojectedFile.bands.get(4).pixels.read(0, 0, 256, 256, null, readOptions);
-
-  if (grayscale) {
-    pixelRegion2 = pixelRegion3 = pixelRegion1;
-  }
-
-  if (!pixelRegion1) {
-    return callback();
-  }
-  var options = {
-    buffer_width: 256, // jshint ignore:line
-    buffer_height: 256 // jshint ignore:line
-  };
-
-  var img = new png.PNG({
-      width: options.buffer_width, // jshint ignore:line
-      height: options.buffer_height, // jshint ignore:line
-      filterType: 0
-  });
-  for (var i = 0; i < pixelRegion1.length; i++) {
-    img.data[i*4] = pixelRegion1[i];
-    img.data[(i*4)+1] = pixelRegion2[i];
-    img.data[(i*4)+2] = pixelRegion3[i];
-    img.data[(i*4)+3] = pixelRegion4[i];
-  }
-
-  var stream = img.pack();
-  callback(null, stream);
-
-  reprojectedFile.close();
-};
-
 function reproject(ds, epsgCode, cutline, srcCutline) {
   var extent = cutline.getEnvelope();
   var targetSrs = gdal.SpatialReference.fromEPSG(epsgCode);
@@ -293,8 +318,7 @@ function sourceCorners(ds) {
   return coordinateCorners;
 }
 
-
-exports.gdalInfo = function(ds) {
+GdalType.gdalInfo = function(ds) {
   console.log("number of bands: " + ds.bands.count());
   var size = ds.rasterSize;
   if (ds.rasterSize) {

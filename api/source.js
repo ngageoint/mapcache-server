@@ -39,6 +39,9 @@ Source.create = function(source, sourceFiles, callback, progressCallback) {
   sourceFiles = Array.isArray(sourceFiles) ? sourceFiles : [sourceFiles];
 
   SourceModel.createSource(source, function(err, newSource) {
+    if (err) {
+      log.error('Error creating source', err);
+    }
     // console.log('new source', JSON.stringify(newSource, null, 2));
     if (progressCallback) progressCallback(err, newSource);
     var dir = path.join(config.server.sourceDirectory.path, newSource.id);
@@ -97,8 +100,7 @@ Source.getTile = function(source, format, z, x, y, params, callback) {
   map.callbackWhenInitialized(function(err, map) {
     map.getTile(format, z, x, y, params, function(err, tileStream){
       var lstream = lengthStream(function(streamLength) {
-        SourceModel.updateSourceAverageSize(source, streamLength, function() {
-        });
+        SourceModel.updateSourceAverageSize(source, streamLength);
       });
       callback(err, tileStream.pipe(lstream));
     });
@@ -115,16 +117,15 @@ Source.getOverviewTile = function(source, callback) {
 Source.prototype.delete = function(callback) {
   var source = this.sourceModel;
   SourceModel.deleteSource(source, function(err) {
-    if (err) return callback(err);
-    fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
-      if (source.vector) {
-        Feature.deleteFeaturesBySourceId(source.id, function(err) {
-          callback(err, source);
-        });
-      } else {
-        callback(err, source);
-      }
-    });
+    callback(err, source);
+    if (!err) {
+      fs.remove(config.server.sourceDirectory.path + "/" + source.id, function(err) {
+        if (source.vector) {
+          Feature.deleteFeaturesBySourceId(source.id, function(err) {
+          });
+        }
+      });
+    }
   });
 };
 

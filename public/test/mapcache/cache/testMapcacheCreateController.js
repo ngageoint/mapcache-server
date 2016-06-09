@@ -88,7 +88,6 @@ describe('MapcacheCreateController tests', function() {
     ctrl.unsetFields.should.include('cache name');
     ctrl.unsetFields.should.include('type of cache to create');
     ctrl.unsetFields.should.include('cache boundaries');
-    ctrl.unsetFields.should.include('at least one data source');
     fieldsSet.should.be.equal(false);
   });
 
@@ -99,8 +98,14 @@ describe('MapcacheCreateController tests', function() {
     ctrl.unsetFields.should.include('type of cache to create');
     ctrl.unsetFields.should.include('cache boundaries');
     ctrl.unsetFields.should.include('zoom levels');
-    ctrl.unsetFields.should.include('at least one data source');
     fieldsSet.should.be.equal(false);
+  });
+
+  it('should have a data source set', function() {
+    ctrl.tileCacheRequested = true;
+    ctrl.cache.currentDatasources.length.should.be.equal(mocks.mapMocks.xyzMap.dataSources.length);
+    ctrl.requiredFieldsSet();
+    ctrl.unsetFields.should.not.include('at least one data source');
   });
 
   it('should create a cache', function() {

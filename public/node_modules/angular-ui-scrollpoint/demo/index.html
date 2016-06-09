@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="demo">
+    <head>
+        <meta charset="utf-8">
+        <title>AngularJS ui-scrollpoint</title>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.1/angular.js"></script>
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css">
+
+        <link rel="stylesheet" href="style.css">
+
+        <!-- ui-scrollpoint files -->
+        <script src="../dist/scrollpoint.js"></script>
+        <script>
+            var app = angular.module('demo', ['ui.scrollpoint']);
+            app.controller( 'scrollpointTest', function($scope, $timeout){
+                $scope.trackView = function(distance, element, edge){
+                    var id = element.attr('id');
+                    if($scope.views.indexOf(id) == -1){
+                        $scope.views.push(id);
+                        $scope.views.sort();
+                    }
+                    if(distance >= 0){
+                        $scope.inView[id] = false;
+                        $scope.outView[id] = edge;
+                        element.removeClass('in-view');
+                    }
+                    else{
+                        $scope.inView[id] = true;
+                        $scope.outView[id] = undefined;
+                        element.addClass('in-view');
+                    }
+                    $scope.$apply();
+                };
+
+                $scope.reportScroll = function(distance, element, edge){
+                    // distance >= 0 means scrollpoint is hit & applied
+                    // distance < 0 means scrollpoint is hit & unapplied
+                    // undefined edge means initialized unhit / unapplied (-distance is distance from edge)
+                    console.log(edge+' hit @ '+distance);
+                };
+
+                $scope.scrollpoint = undefined;
+                $scope.views = [];
+                $scope.inView = {};
+                $scope.outView = {};
+                $scope.topSpacer = false;
+                $scope.showAbsolute = false;
+                $scope.absolute = { x: 0, y: 575 };
+                $scope.shiftRelative = false;
+                $scope.relative = { x: 50, y: 50 };
+
+                $scope.target = {
+                    showControls: false,
+                    showAbsolute: false,
+                    absolute: { x: 0, y: 100 },
+                    showRelative: true,
+                    relative: { x: 15, y: 0 }
+                };
+
+                function resetScrollpoint(){
+                    $scope.$broadcast('scrollpointShouldReset');
+                }
+
+                // watch toggle controls
+                $scope.$watchGroup(['topSpacer', 'showAbsolute', 'shiftRelative', 'target.showAbsolute', 'target.showRelative'], resetScrollpoint);
+
+                // watch co-ordinate collections
+                $scope.$watchCollection('absolute', resetScrollpoint);
+                $scope.$watchCollection('relative', resetScrollpoint);
+                $scope.$watchCollection('target.absolute', resetScrollpoint);
+                $scope.$watchCollection('target.relative', resetScrollpoint);
+
+                // initialize
+                $timeout( resetScrollpoint, 10 );
+                
+            });
+        </script>
+        <style>
+            .demo {
+                background-color: #EEF;
+            }
+            .demo.ui-scrollpoint {
+                background-color: #EFE;
+            }
+            .demo.my-scrollpoint {
+                background-color: #DFE;
+            }
+            .demo.another-scrollpoint {
+                border: 2px solid #3D3;
+            }  
+            .demo.in-view .id {
+                font-weight: bold;
+            }
+
+            .parent {
+                padding: 10px;
+                border: 1px solid #BBB;
+            }
+            .parent.relative {
+                position: relative;
+                background-color: #FEA;
+            }
+            .parent.absolute {
+                position: absolute;
+                background-color: #FE7;
+            }
+        </style>
+    </head>
+
+    <body class="container">
+        <section id="scrollpoint" ng-controller="scrollpointTest">
+            <h1>Scrollpoints</h1>
+
+            <div class="top-bar">
+                <div class="input">
+                    <label for="scrollpointValue">Scrollpoint:</label> <input type="text" ng-model="scrollpoint" id="scrollpointValue" placeholder="absolute, +, -, or %" />
+                </div>
+                <ul class="view-trackers">
+                    <li ng-repeat="view in views" ng-class="{in: inView[view]}">
+                        <strong>{{view}}:</strong> {{inView[view]}} <span ng-show="outView[view]">({{outView[view]}})</span>
+                    </li>
+                </ul>
+
+                <br style="clear:both;"/>
+
+                <div class="input pull-right">
+                    <label for="windowTopSpacer">Show top spacer:</label> <input type="checkbox" ng-model="topSpacer" id="windowTopSpacer" />
+                </div>
+
+                <div class="input pull-right">
+                    <label for="showAbsolute">Show absolute parent:</label> <input type="checkbox" ng-model="showAbsolute" id="showAbsolute" />
+                    <div ng-show="showAbsolute">
+                        <label for="absoluteX">X:</label> <input type="text" ng-model="absolute.x" id="absoluteX" /><br/>
+                        <label for="absoluteY">Y:</label> <input type="text" ng-model="absolute.y" id="absoluteY" />
+                    </div>
+                </div>
+
+                <div class="input pull-right">
+                    <label for="shiftRelative">Shift relative parent:</label> <input type="checkbox" ng-model="shiftRelative" id="shiftRelative" />
+                    <div ng-show="shiftRelative">
+                        <label for="relativeX">X:</label> <input type="text" ng-model="relative.x" id="relativeX" /><br/>
+                        <label for="relativeY">Y:</label> <input type="text" ng-model="relative.y" id="relativeY" />
+                    </div>
+                </div>
+
+                <br style="clear:both;"/>
+
+                <div class="input pull-right">
+                    <label for="targetShowControls">Controls for Target:</label> <input type="checkbox" ng-model="target.showControls" id="targetShowControls" />
+                    <div ng-show="target.showControls">
+                        <div class="input pull-right">
+                            <label for="targetShowAbsolute">Show absolute parent:</label> <input type="checkbox" ng-model="target.showAbsolute" id="targetShowAbsolute" />
+                            <div ng-show="target.showAbsolute">
+                                <label for="targetAbsoluteX">X:</label> <input type="text" ng-model="target.absolute.x" id="targetAbsoluteX" /><br/>
+                                <label for="targetAbsoluteY">Y:</label> <input type="text" ng-model="target.absolute.y" id="targetAbsoluteY" />
+                            </div>
+                        </div>
+
+                        <div class="input pull-right">
+                            <label for="targetShowRelative">Show relative parent:</label> <input type="checkbox" ng-model="target.showRelative" id="targetShowRelative" />
+                            <div ng-show="target.showRelative">
+                                <label for="targetRelativeX">X:</label> <input type="text" ng-model="target.relative.x" id="targetRelativeX" /><br/>
+                                <label for="targetRelativeY">Y:</label> <input type="text" ng-model="target.relative.y" id="targetRelativeY" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="spacer" ng-show="topSpacer"></div>
+
+            <div class="demo" ui-scrollpoint>
+                ui-scrollpoint
+            </div>
+
+            <div class="demo" ui-scrollpoint="25">
+                ui-scrollpoint="25"
+            </div>
+
+            <div class="demo" ui-scrollpoint="25%">
+                ui-scrollpoint="25%"
+            </div>
+
+            <div class="demo" ui-scrollpoint="-25">
+                ui-scrollpoint="-25"
+            </div>
+
+            <div class="demo" ui-scrollpoint="+25">
+                ui-scrollpoint="+25"
+            </div>
+
+            <div class="demo" ui-scrollpoint ui-scrollpoint-edge="view" ui-scrollpoint-action="trackView" id="viewtrack-1">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-edge="view"<br/>
+                ui-scrollpoint-action="trackView"<br/>
+                <span class="id">id="viewtrack-1"</span>
+            </div>
+
+            <div class="demo" ui-scrollpoint ui-scrollpoint-edge="{ top: '-25', bottom: '+25' }" ui-scrollpoint-action="reportScroll">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-edge="{ top: '-25', bottom: '+25' }"<br/>
+                ui-scrollpoint-action="reportScroll"
+            </div>
+
+            <div class="demo" ui-scrollpoint="{{scrollpoint}}" ui-scrollpoint-edge="['top', 'bottom']" ui-scrollpoint-class="my-scrollpoint">
+                ui-scrollpoint="{{scrollpoint}}"<br/>
+                ui-scrollpoint-edge="['top', 'bottom']"<br/>
+                ui-scrollpoint-class="my-scrollpoint"
+            </div>
+
+            <div class="demo" ui-scrollpoint="{{scrollpoint}}" ui-scrollpoint-class="ui-scrollpoint another-scrollpoint">
+                ui-scrollpoint="{{scrollpoint}}"<br/>
+                ui-scrollpoint-class="ui-scrollpoint another-scrollpoint"
+            </div>
+
+            <div class="demo" ui-scrollpoint ui-scrollpoint-edge="{ top: '25%', bottom: '70%' }">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-edge="{ top: '25%', bottom: '70%' }"
+            </div>
+
+            <br style="clear:both;"/>
+
+            <div class="scrollpoint-target" ui-scrollpoint-target>
+                <h2>Scrollpoint Target</h2>
+                
+                <div class="demo" ui-scrollpoint>
+                    ui-scrollpoint
+                </div>
+
+                <div class="demo" ui-scrollpoint="25">
+                    ui-scrollpoint="25"
+                </div>
+
+                <div class="demo" ui-scrollpoint="25%">
+                    ui-scrollpoint="25%"
+                </div>
+
+                <div class="demo" ui-scrollpoint="-25">
+                    ui-scrollpoint="-25"
+                </div>
+
+                <div class="demo" ui-scrollpoint="+25">
+                    ui-scrollpoint="+25"
+                </div>
+
+                <br style="clear:both;"/>
+                <div class="spacer small"></div>
+
+                <div class="relative parent" ng-show="target.showRelative" ng-style="{left: target.showRelative ? target.relative.x + 'px' : '', top: target.showRelative ? target.relative.y + 'px' : '', width: target.showRelative?'90%':''}">
+                    <h4>relatively positioned parent <em>(inside ui-scrollpoint-target)</em></h4>
+
+                    <div class="demo" ui-scrollpoint ui-scrollpoint-enabled="{{target.showRelative}}">
+                        ui-scrollpoint
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="25" ui-scrollpoint-enabled="{{target.showRelative}}">
+                        ui-scrollpoint="25"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="25%" ui-scrollpoint-enabled="{{target.showRelative}}">
+                        ui-scrollpoint="25%"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="-25" ui-scrollpoint-enabled="{{target.showRelative}}">
+                        ui-scrollpoint="-25"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="+25"ui-scrollpoint-enabled="{{target.showRelative}}">
+                        ui-scrollpoint="+25"
+                    </div>
+
+                    <br style="clear:both;"/>
+                </div>
+
+                <div class="absolute parent" ng-show="target.showAbsolute" ng-style="{left: target.showAbsolute ? target.absolute.x + 'px' : '', top: target.showAbsolute ? target.absolute.y + 'px' : ''}">
+                    <h4>absolutely positioned parent <em>(inside ui-scrollpoint-target)</em></h4>
+
+                    <div class="demo" ui-scrollpoint ui-scrollpoint-absolute="true" ui-scrollpoint-enabled="{{target.showAbsolute}}">
+                        ui-scrollpoint<br/>
+                        ui-scrollpoint-absolute="true"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="25" ui-scrollpoint-absolute="true" ui-scrollpoint-enabled="{{target.showAbsolute}}">
+                        ui-scrollpoint="25"<br/>
+                        ui-scrollpoint-absolute="true"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="25%" ui-scrollpoint-absolute="true" ui-scrollpoint-enabled="{{target.showAbsolute}}">
+                        ui-scrollpoint="25%"<br/>
+                        ui-scrollpoint-absolute="true"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="-25" ui-scrollpoint-absolute="true" ui-scrollpoint-enabled="{{target.showAbsolute}}">
+                        ui-scrollpoint="-25"<br/>
+                        ui-scrollpoint-absolute="true"
+                    </div>
+
+                    <div class="demo" ui-scrollpoint="+25" ui-scrollpoint-absolute="true" ui-scrollpoint-enabled="{{target.showAbsolute}}">
+                        ui-scrollpoint="+25"<br/>
+                        ui-scrollpoint-absolute="true"
+                    </div>
+                </div>
+
+                <div class="demo" ui-scrollpoint ui-scrollpoint-edge="bottom">
+                    ui-scrollpoint<br/>
+                    ui-scrollpoint-edge="bottom"
+                </div>
+
+                <div class="demo" ui-scrollpoint="25" ui-scrollpoint-edge="bottom">
+                    ui-scrollpoint="25"<br/>
+                    ui-scrollpoint-edge="bottom"
+                </div>
+
+                <div class="demo" ui-scrollpoint="25%" ui-scrollpoint-edge="bottom">
+                    ui-scrollpoint="25%"<br/>
+                    ui-scrollpoint-edge="bottom"
+                </div>
+
+                <div class="demo" ui-scrollpoint="-25" ui-scrollpoint-edge="bottom">
+                    ui-scrollpoint="-25"<br/>
+                    ui-scrollpoint-edge="bottom"
+                </div>
+
+                <div class="demo" ui-scrollpoint="+25" ui-scrollpoint-edge="bottom">
+                    ui-scrollpoint="+25"<br/>
+                    ui-scrollpoint-edge="bottom"
+                </div>
+
+                <div class="demo" ui-scrollpoint ui-scrollpoint-edge="view" ui-scrollpoint-action="trackView" id="viewtrack-2">
+                    ui-scrollpoint<br/>
+                    ui-scrollpoint-edge="view"<br/>
+                    ui-scrollpoint-action="trackView"<br/>
+                    <span class="id">id="viewtrack-2"</span>
+                </div>
+
+                <br style="clear:both;"/>
+                <div class="spacer small"></div>
+            </div>
+
+            <div class="relative parent" ng-style="{left: shiftRelative ? relative.x + 'px' : '', top: shiftRelative ? relative.y + 'px' : '', width: shiftRelative?'90%':''}">
+                <h4>relatively positioned parent</h4>
+
+                <div class="demo" ui-scrollpoint>
+                    ui-scrollpoint
+                </div>
+
+                <div class="demo" ui-scrollpoint="25">
+                    ui-scrollpoint="25"
+                </div>
+
+                <div class="demo" ui-scrollpoint="25%">
+                    ui-scrollpoint="25%"
+                </div>
+
+                <div class="demo" ui-scrollpoint="-25">
+                    ui-scrollpoint="-25"
+                </div>
+
+                <div class="demo" ui-scrollpoint="+25">
+                    ui-scrollpoint="+25"
+                </div>
+                <br style="clear:both;"/>
+            </div>
+
+            <br style="clear:both;"/>
+
+            <div class="absolute parent" ng-show="showAbsolute" ng-style="{left: absolute.x + 'px', top: absolute.y + 'px'}">
+                <h4>absolutely positioned parent</h4>
+
+                <div class="demo" ui-scrollpoint ui-scrollpoint-enabled="{{showAbsolute}}">
+                    ui-scrollpoint
+                </div>
+
+                <div class="demo" ui-scrollpoint="25" ui-scrollpoint-enabled="{{showAbsolute}}">
+                    ui-scrollpoint="25"
+                </div>
+
+                <div class="demo" ui-scrollpoint="25%" ui-scrollpoint-enabled="{{showAbsolute}}">
+                    ui-scrollpoint="25%"
+                </div>
+
+                <div class="demo" ui-scrollpoint="-25" ui-scrollpoint-enabled="{{showAbsolute}}">
+                    ui-scrollpoint="-25"
+                </div>
+
+                <div class="demo" ui-scrollpoint="+25" ui-scrollpoint-enabled="{{showAbsolute}}">
+                    ui-scrollpoint="+25"
+                </div>
+            </div>
+
+            <div class="demo" ui-scrollpoint ui-scrollpoint-edge="bottom">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-edge="bottom"
+            </div>
+
+            <div class="demo" ui-scrollpoint="25" ui-scrollpoint-edge="bottom">
+                ui-scrollpoint="25"<br/>
+                ui-scrollpoint-edge="bottom"
+            </div>
+
+            <div class="demo" ui-scrollpoint="25%" ui-scrollpoint-edge="bottom">
+                ui-scrollpoint="25%"<br/>
+                ui-scrollpoint-edge="bottom"
+            </div>
+
+            <div class="demo" ui-scrollpoint="-25" ui-scrollpoint-edge="bottom">
+                ui-scrollpoint="-25"<br/>
+                ui-scrollpoint-edge="bottom"
+            </div>
+
+            <div class="demo" ui-scrollpoint="+25" ui-scrollpoint-edge="bottom" ui-scrollpoint-action="reportScroll">
+                ui-scrollpoint="+25"<br/>
+                ui-scrollpoint-edge="bottom"<br/>
+                ui-scrollpoint-action="reportScroll"
+            </div>
+
+            <div class="demo" ui-scrollpoint ui-scrollpoint-edge="bottom">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-edge="bottom"
+            </div>
+
+            <div class="demo" ui-scrollpoint ui-scrollpoint-edge="{ top: '-25', bottom: '+25' }">
+                ui-scrollpoint<br/>
+                ui-scrollpoint-edge="{ top: '-25', bottom: '+25' }"
+            </div>
+
+            <div class="demo" ui-scrollpoint="{{scrollpoint}}" ui-scrollpoint-edge="['bottom', 'top']" ui-scrollpoint-class="my-scrollpoint">
+                ui-scrollpoint="{{scrollpoint}}"<br/>
+                ui-scrollpoint-edge="['bottom', 'top']"<br/>
+                ui-scrollpoint-class="my-scrollpoint"
+            </div>
+
+            <div class="demo" ui-scrollpoint="{{scrollpoint}}" ui-scrollpoint-edge="bottom" ui-scrollpoint-class="ui-scrollpoint another-scrollpoint">
+                ui-scrollpoint="{{scrollpoint}}"<br/>
+                ui-scrollpoint-edge="bottom"<br/>
+                ui-scrollpoint-class="ui-scrollpoint another-scrollpoint"
+            </div>
+
+            <br style="clear:both;"/>
+            <div class="spacer medium"></div>
+        </section>
+    </body>
+</html>

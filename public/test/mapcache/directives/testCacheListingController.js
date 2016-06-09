@@ -57,20 +57,36 @@ describe('CacheListingController tests', function() {
     spy.alwaysCalledWithExactly('generateFormat', mocks.cacheMocks.xyzCache, 'xyz').should.be.equal(true);
   });
 
-  it('should emit show cache events', function() {
+  it('should emit show cache extent events', function() {
     var spy = sandbox.spy($rootScope, '$broadcast');
     scope.mouseOver(mocks.cacheMocks.xyzCache);
     $timeout.flush(501);
-    spy.calledTwice.should.be.equal(true);
+    spy.calledOnce.should.be.equal(true);
     spy.calledWith('showCacheExtent', mocks.cacheMocks.xyzCache).should.be.equal(true);
+  });
+
+  it('should emit hide cache extent events', function() {
+    var spy = sandbox.spy($rootScope, '$broadcast');
+    scope.mouseOut(mocks.cacheMocks.xyzCache);
+    spy.calledOnce.should.be.equal(true);
+    spy.calledWith('hideCacheExtent', mocks.cacheMocks.xyzCache).should.be.equal(true);
+  });
+
+  it('should emit show cache events', function() {
+    var spy = sandbox.spy($rootScope, '$broadcast');
+    scope.mouseClick(mocks.cacheMocks.xyzCache);
+    $timeout.flush(501);
+    spy.calledOnce.should.be.equal(true);
     spy.calledWith('showCache', mocks.cacheMocks.xyzCache).should.be.equal(true);
   });
 
-  it('should emit hide cache events', function() {
+  it('should emit hide cache extent events', function() {
     var spy = sandbox.spy($rootScope, '$broadcast');
-    scope.mouseOut(mocks.cacheMocks.xyzCache);
+    scope.mouseClick(mocks.cacheMocks.xyzCache);
+    $timeout.flush(501);
+    scope.mouseClick(mocks.cacheMocks.xyzCache);
     spy.calledTwice.should.be.equal(true);
-    spy.calledWith('hideCacheExtent', mocks.cacheMocks.xyzCache).should.be.equal(true);
+    spy.calledWith('showCache', mocks.cacheMocks.xyzCache).should.be.equal(true);
     spy.calledWith('hideCache', mocks.cacheMocks.xyzCache).should.be.equal(true);
   });
 

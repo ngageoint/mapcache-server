@@ -1,5 +1,6 @@
 var express = require("express")
   , path = require('path')
+  , cookieParser = require('cookie-parser')
   , config = require('mapcache-config');
 
 // Configuration of the mapcache Express server
@@ -30,13 +31,14 @@ app.use(function(req, res, next) {
   };
   return next();
 });
+app.use(cookieParser());
 app.use(require('body-parser').json({limit: '50mb'}));
 app.use(require('body-parser').urlencoded({limit: '50mb', extended: true}));
 app.use(require('body-parser')({ keepExtensions: true}));
 app.use(require('method-override')());
 app.use(require('multer')());
 app.use(authentication.passport.initialize());
-app.use(express.static(path.join(__dirname, process.env.NODE_ENV === 'production' ? 'public/dist' : 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/swagger', express.static('./public/vendor/swagger-ui/'));
 app.use('/private',
   authentication.passport.authenticate(authentication.authenticationStrategy),

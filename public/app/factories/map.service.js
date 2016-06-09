@@ -82,6 +82,7 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
   }
 
   function getFeatures(map, west, south, east, north, zoom, success, error) {
+    if (!map) return;
     $http.get('/api/maps/'+map.id+'/features?west='+ west + '&south=' + south + '&east=' + east + '&north=' + north + '&zoom=' + zoom)
       .then(function(data) { return data.data; })
       .then(success, error);

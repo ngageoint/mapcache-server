@@ -140,7 +140,7 @@ describe('User Service tests', function() {
       .respond(mocks.userMocks.roles);
 
     UserService.getRoles().then(function(data) {
-      data.data.should.be.deep.equal(mocks.userMocks.roles);
+      data.should.be.deep.equal(mocks.userMocks.roles);
       done();
     });
     $httpBackend.flush();
