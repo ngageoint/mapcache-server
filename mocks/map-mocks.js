@@ -11,7 +11,7 @@ exports.osmDatasource = {
     }
   },
   "name":"osm",
-  "url":"http://osm.geointapps.org/osm",
+  "url":"http://osm.geointservices.io/osm_tiles",
   "format":"xyz",
   "styleTime":1,
   "status":{

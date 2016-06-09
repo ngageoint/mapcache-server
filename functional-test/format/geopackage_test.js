@@ -36,7 +36,7 @@ describe('GeoPackage constraint violation test', function() {
   var dataSource = {
     id: 'test-xyz',
     name: 'osm',
-    url: 'http://osm.geointapps.org/osm',
+    url: 'http://osm.geointservices.io/osm_tiles',
     format: 'xyz',
     zOrder: 0
   };

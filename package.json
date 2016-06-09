@@ -40,6 +40,7 @@
     "geopackage": "file:modules/geopackage",
     "knex": "^0.9.0",
     "length-stream": "^0.1.1",
+    "lwip": "0.0.9",
     "mapcache-config": "file:mapcache-modules/config",
     "mapcache-log": "file:mapcache-modules/log",
     "mapcache-models": "file:mapcache-modules/models",
@@ -102,7 +103,9 @@
     "supertest": "^1.1.0"
   },
   "scripts": {
-    "test": "istanbul cover  _mocha"
+    "test": "istanbul cover  _mocha",
+    "mocha": "mocha",
+    "functional": "mocha functional-test"
   },
   "bundleDependencies": [],
   "private": true,

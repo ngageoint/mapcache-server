@@ -54,7 +54,7 @@ XYZ.prototype.getTile = function(format, z, x, y, params, callback) {
 
 XYZ.prototype.delete = function(callback) {
   if (!this.cache) return callback();
-  fs.remove(path.join(this.config.outputDirectory, this.cache.cache.id.toString(), 'xyztiles'), callback);
+  fs.remove(path.join(this.config.outputDirectory, this.cache.cache ? this.cache.cache.id.toString() : this.cache.id.toString(), 'xyztiles'), callback);
 };
 
 XYZ.prototype.generateCache = function(callback, progressCallback) {
@@ -164,9 +164,9 @@ XYZ.prototype.getData = function(minZoom, maxZoom, callback) {
   for (var i = minZoom; i <= maxZoom; i++) {
     args.push('xyztiles/'+i);
   }
-
-  var zip = cp.spawn('zip', args, {cwd: path.join(this.config.outputDirectory, this.cache.cache.id.toString())}).on('close', function(code) {
-    log.info('%s: for cache %s', 'Zip was created with code'.bold.bgBlue.yellow, this.cache.cache.id.toString(), code);
+  var cacheId = this.cache.cache ? this.cache.cache.id.toString() : this.cache.id.toString();
+  var zip = cp.spawn('zip', args, {cwd: path.join(this.config.outputDirectory, cacheId )}).on('close', function(code) {
+    log.info('%s: for cache %s', 'Zip was created with code'.bold.bgBlue.yellow, cacheId, code);
   });
   callback(null, {stream: zip.stdout, extension: '.zip'});
 };

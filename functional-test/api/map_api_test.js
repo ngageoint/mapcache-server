@@ -21,10 +21,9 @@ describe('Map API', function() {
         console.log('Error connecting to mongo database, please make sure mongodb is running...');
         throw err;
       }
+      done();
     });
     mongoose.set('debug', true);
-
-    done();
   });
 
   after(function(done) {
@@ -66,7 +65,7 @@ describe('Map API', function() {
 
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };
@@ -114,7 +113,7 @@ describe('Map API', function() {
 
     var osmDataSource = {
       name: 'osm',
-      url: 'http://osm.geointapps.org/osm',
+      url: 'http://osm.geointservices.io/osm_tiles',
       format: 'xyz',
       zOrder: 0
     };
@@ -197,7 +196,7 @@ describe('Map API', function() {
 
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };

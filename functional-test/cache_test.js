@@ -38,7 +38,7 @@ describe('Cache Tests', function() {
   var osm = {
     id: 'osm-ds',
     name: 'osm',
-    url: 'http://osm.geointapps.org/osm',
+    url: 'http://osm.geointservices.io/osm_tiles',
     format: 'xyz',
     zOrder: 0
   };
