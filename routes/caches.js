@@ -145,7 +145,7 @@ module.exports = function(app, auth) {
     parseQueryParams,
     function (req, res) {
       if (!req.cache.geometry) return res.status(404).send();
-      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry));
+      var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(req.cache.geometry), req.cache.minZoom, req.cache.maxZoom);
       new Cache(req.cache).getTile('png', xyz.z, xyz.x, xyz.y, function(err, tileStream) {
         if (err) {
           log.error('Error getting overview tile for cache %s', req.cache.id, err);

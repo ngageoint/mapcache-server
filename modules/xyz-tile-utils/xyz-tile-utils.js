@@ -46,7 +46,13 @@ exports.getXYZFullyEncompassingExtent = function(extent, minZoom, maxZoom) {
 			found = true;
 		}
 	}
-	zoom = zoom+1;
+  if (found) {
+  	zoom = zoom+1;
+  } else {
+    y = exports.calculateYTileRange(extent, minZoom);
+		x = exports.calculateXTileRange(extent, minZoom);
+    zoom = minZoom;
+  }
 	return {
 		z: zoom,
 		x: x.min,
