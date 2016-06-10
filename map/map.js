@@ -8,6 +8,7 @@ var log = require('mapcache-log')
   , fs = require('fs-extra')
   , async = require('async')
   , path = require('path')
+  , fileType = require('file-type')
   , q = require('q');
 
 var Map = function(map, config) {
@@ -157,7 +158,8 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
             buffer = Buffer.concat([buffer, chunk]);
           });
           tileStream.on('end', function() {
-            lwip.open(buffer, 'png', function(err, dsImage) {
+            var type = fileType(buffer);
+            lwip.open(buffer, type.ext, function(err, dsImage) {
               image.paste(0, 0, dsImage, function(err, image) {
                 callback();
               });
