@@ -61,7 +61,7 @@ describe('Cache API', function() {
       this.timeout(0);
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };
@@ -119,7 +119,7 @@ describe('Cache API', function() {
       this.timeout(0);
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };
@@ -182,7 +182,7 @@ describe('Cache API', function() {
       this.timeout(0);
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };
@@ -236,7 +236,7 @@ describe('Cache API', function() {
         "geometry":{
           "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]}
         },
-        "url":"http://osm.geointapps.org/osm",
+        "url":"http://osm.geointservices.io/osm_tiles",
         "name":"OSM",
         "format":"xyz",
         "zOrder":0
@@ -327,7 +327,7 @@ describe('Cache API', function() {
         "geometry":{
           "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[180,-85],[-180,-85],[-180,85],[180,85],[180,-85]]]}
         },
-        "url":"http://osm.geointapps.org/osm",
+        "url":"http://osm.geointservices.io/osm_tiles",
         "name":"OSM",
         "format":"xyz",
         "zOrder":0

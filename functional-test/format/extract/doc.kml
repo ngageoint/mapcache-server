@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>CARD FTX.kml</name>
+	<Style id="sn_ylw-pushpin">
+		<BalloonStyle>
+			<text><![CDATA[<font style="font-size: 11px;">
+                      <b>$[name]</b><p>$[description]]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff008cff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<color>6600ffff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="msn_ylw-pushpin0">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="sh_ylw-pushpin">
+		<BalloonStyle>
+			<text><![CDATA[<font style="font-size: 11px;">
+                      <b>$[name]</b><p>$[description]]]></text>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ff008cff</color>
+			<width>3</width>
+		</LineStyle>
+		<PolyStyle>
+			<color>6600ffff</color>
+		</PolyStyle>
+	</Style>
+	<Folder>
+		<name>CARD FTX</name>
+		<open>1</open>
+		<Placemark>
+			<name>0.0 - 0.8 AT</name>
+			<Snippet maxLines="0"></Snippet>
+			<description>Untitled</description>
+			<StyleMap>
+				<Pair>
+					<key>normal</key>
+					<Style>
+						<BalloonStyle>
+							<text><![CDATA[<font style="font-size: 11px;">
+                      <b>$[name]</b><p>$[description]]]></text>
+							<textColor>ff000000</textColor>
+							<displayMode>default</displayMode>
+						</BalloonStyle>
+						<LineStyle>
+							<color>ff008cff</color>
+							<width>2</width>
+						</LineStyle>
+						<PolyStyle>
+							<color>66ffff00</color>
+						</PolyStyle>
+					</Style>
+				</Pair>
+				<Pair>
+					<key>highlight</key>
+					<Style>
+						<BalloonStyle>
+							<text><![CDATA[<font style="font-size: 11px;">
+                      <b>$[name]</b><p>$[description]]]></text>
+							<textColor>ff000000</textColor>
+							<displayMode>default</displayMode>
+						</BalloonStyle>
+						<LineStyle>
+							<color>ff008cff</color>
+							<width>3</width>
+						</LineStyle>
+						<PolyStyle>
+							<color>66ffff00</color>
+						</PolyStyle>
+					</Style>
+				</Pair>
+			</StyleMap>
+			<Polygon>
+				<tessellate>1</tessellate>
+				<outerBoundaryIs>
+					<LinearRing>
+						<coordinates>
+							-84.3973575886513,33.7892759747792,0 -84.3967977224314,33.7883777170656,0 -84.3963337599439,33.787442133008,0 -84.3959692295896,33.7864763440493,0 -84.39570690261399,33.7854877013051,0 -84.3955487721089,33.7844837295907,0 -84.3954960379467,33.7834720701329,0 -84.39554909775789,33.7824604224041,0 -84.3957075440173,33.78145648552,0 -84.3959701672585,33.7804678996492,0 -84.39633496538779,33.7795021878789,0 -84.3967991590234,33.7785666989795,0 -84.39735921274141,33.7776685515023,0 -84.39801086206199,33.7768145796368,0 -84.39874914596891,33.7760112812355,0 -84.3995684447148,33.7752647684045,0 -84.4004625226185,33.774580721031,0 -84.4014245755331,33.7739643436026,0 -84.40244728261941,33.7734203256443,0 -84.4035228620324,33.7729528060731,0 -84.40464313009799,33.7725653417408,0 -84.4057995635312,33.7722608804021,0 -84.40698336422309,33.7720417383134,0 -84.4081855261075,33.7719095826311,0 -84.4093969036,33.7718654187436,0 -84.4093969036,33.7834728531,0 -84.3973575886513,33.7892759747792,0 
+						</coordinates>
+					</LinearRing>
+				</outerBoundaryIs>
+			</Polygon>
+		</Placemark>
+		<Placemark>
+			<name>0.0 - 0.55 AT</name>
+			<Snippet maxLines="0"></Snippet>
+			<styleUrl>#msn_ylw-pushpin0</styleUrl>
+			<Polygon>
+				<tessellate>1</tessellate>
+				<outerBoundaryIs>
+					<LinearRing>
+						<coordinates>
+							-84.3848484932376,33.7842966117437,0 -84.38529651239161,33.7837094934478,0 -84.3858041019059,33.7831572122711,0 -84.38636739826271,33.7826439707071,0 -84.38698211428409,33.7821736741124,0 -84.3876435717636,33.7817499010067,0 -84.3883467370663,33.7813758758597,0 -84.38908625942349,33.7810544445722,0 -84.3898565116328,33.7807880528374,0 -84.3906516328539,33.7805787275453,0 -84.39146557317549,33.7804280613724,0 -84.3922921396143,33.7803372006732,0 -84.3931250432,33.7803068367653,0 -84.3939579467857,33.7803372006732,0 -84.39478451322459,33.7804280613724,0 -84.3955984535461,33.7805787275453,0 -84.3963935747672,33.7807880528374,0 -84.3971638269765,33.7810544445722,0 -84.3979033493337,33.7813758758597,0 -84.3986065146364,33.7817499010067,0 -84.39926797211599,33.7821736741124,0 -84.3998826881373,33.7826439707071,0 -84.4004459844942,33.7831572122711,0 -84.4009535740084,33.7837094934478,0 -84.4014015931624,33.7842966117437,0 -84.3931250432,33.7882869393,0 -84.3848484932376,33.7842966117437,0 
+						</coordinates>
+					</LinearRing>
+				</outerBoundaryIs>
+			</Polygon>
+		</Placemark>
+		<Folder id="results">
+			<name>8850 Fairview Road, Mint Hill, NC</name>
+			<Placemark id="1.2.1">
+				<name>8850 Fairview Rd</name>
+				<address>8850 Fairview Rd, Mint Hill, NC 28227</address>
+				<snippet>8850 Fairview Rd, Mint Hill, NC 28227</snippet>
+				<description><![CDATA[<!DOCTYPE html><html lang="en"> <head> <style>body{font-family:Roboto,Arial,sans-serif}._qNc{background-color:#fafafa;border-radius:2px;bottom:2px;left:2px;position:absolute;right:2px;top:2px}._yNc{font-size:18px;font-weight:bold;line-height:25px;margin-bottom:5px}._pNc{font-size:14px;font-weight:300;line-height:18px;margin-bottom:5px}._vNc{font-size:16px;line-height:normal;color:#e7711b;margin-right:5px}.review-count{font-size:12px;line-height:normal}._wNc,._N8b,._M8b{display:inline-block;background-image:url('//maps.gstatic.com/tactile/omnibox/star-20130618.png');width:13px;height:13px;background-size:36px 12px}._N8b{background-position:-13px 0}._M8b{background-position:-25px 0}._rNc{font-size:12px;margin-bottom:2px}._tNc{font-size:14px;margin-bottom:2px}._CVi{font-size:14px;margin-bottom:2px;margin-top:5px}._DVi{font-size:14px;margin-bottom:2px;margin-top:5px}._xNc{font-size:14px;margin-bottom:2px;margin-top:5px}._i8c{font-size:14px;margin-bottom:2px}._mtd{font-size:14px;padding:6px 15px 2px;margin-bottom:5px}._uNc{overflow:hidden;display:inline-block;vertical-align:top;position:relative}._IGc{font-size:10px;font-style:italic}._EVi{font-weight:600}</style> <meta content="width=device-width, initial-scale=1" name="viewport"> </head> <body> <div class="_qNc"> <div class="_ltd"> <div class="_uNc"> <img alt="8850 Fairview Rd" src="files/cbk?panoid=J0ZfiepP9toIignUDgRy7Q&amp;output=thumbnail&amp;cb_client=search.TACTILE.gps&amp;thumb=2&amp;w=408&amp;h=306&amp;yaw=172.17184&amp;pitch=0" width="100%"> </div> </div> <br> <div> <span class="_yNc">8850 Fairview Rd</span>  <span class="_rNc"></span> </div> <div class="_pNc"> <div> Mint Hill, NC 28227 </div> </div> <div class="_CVi">   </div>  <div class="_xNc"></div> <br>  <div class="_i8c"></div> <div class="_DWd"> <a href="#" target="_blank">  </a> </div> <br>  <span class="reviews"> <a href="#" target="_blank"> <span class="review-count"></span></a> </span> <div class="_bpd">  </div> </div> </body> </html>]]></description>
+				<styleUrl>#geocode</styleUrl>
+				<ExtendedData>
+					<Data name="placepageUri">
+						<value>https://www.google.com/earth/rpc/entity?lat=35.178971&amp;lng=-80.633668&amp;fid=0x885422cac4bc011d:0x2d4f25675b1cdf1b&amp;q=8850 Fairview Rd, Mint Hill, NC 28227&amp;hl=en&amp;gl=us&amp;client=earth-client&amp;cv=7.1.5.1557&amp;useragent=GoogleEarth/7.1.5.1557(Windows;Microsoft Windows (6.2.9200.0);en;kml:2.2;client:Pro;type:default)</value>
+					</Data>
+				</ExtendedData>
+				<MultiGeometry>
+					<Point>
+						<coordinates>-80.633668,35.178971,0</coordinates>
+					</Point>
+					<LinearRing>
+						<coordinates>
+							-80.63724423899963,35.17628882075027,0 -80.63724423899963,35.18165317924972,0 -80.63009176100037,35.18165317924972,0 -80.63009176100037,35.17628882075027,0 -80.63724423899963,35.17628882075027,0 
+						</coordinates>
+					</LinearRing>
+				</MultiGeometry>
+			</Placemark>
+		</Folder>
+	</Folder>
+</Document>
+</kml>

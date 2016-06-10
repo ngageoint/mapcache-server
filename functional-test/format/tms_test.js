@@ -12,7 +12,7 @@ var dataSource = {
   id: 'test-ds',
   name: 'osm',
   format: 'xyz',
-  url: 'http://osm.geointapps.org/osm',
+  url: 'http://osm.geointservices.io/osm_tiles',
   zOrder: 0
 };
 

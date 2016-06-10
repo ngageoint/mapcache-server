@@ -3,8 +3,8 @@ var GeoPackageApi = require('geopackage')
   , path = require('path')
   , fs = require('fs-extra')
   , log = require('mapcache-log')
-  , Canvas = require('canvas')
-  , Image = Canvas.Image
+  , lwip = require('lwip')
+  , BufferStream = require('simple-bufferstream')
   , turf = require('turf')
   , tile = require('mapcache-tile')
   , async = require('async')
@@ -141,94 +141,85 @@ function completeProcessing(source, callback) {
 GeoPackage.prototype.getTile = function(format, z, x, y, params, callback) {
   if (this.source) {
 
-    var canvas = new Canvas(256,256);
-    var ctx = canvas.getContext('2d');
-    var height = canvas.height;
+    lwip.create(256, 256, function(err, image) {
+      console.log('Get the tile in GeoPackage', this.geoPackage);
 
-    ctx.clearRect(0, 0, height, height);
-    console.log('Get the tile in GeoPackage', this.geoPackage);
+      var gp = this.geoPackage;
+      var self = this;
 
-    var gp = this.geoPackage;
-    var self = this;
+      gp.getTileTables(function(err, tileTables) {
 
-    gp.getTileTables(function(err, tileTables) {
+        console.log('tileTables', tileTables.length);
+        var tileTableLength = tileTables.length;
 
-      console.log('tileTables', tileTables.length);
-      var tileTableLength = tileTables.length;
+        var count = 0;
+        async.whilst(
+          function() {
+            return count < tileTableLength;
+          },
+          function(callback) {
+            console.log('tile table', tileTables[count]);
+            gp.getTileFromTable(tileTables[count], z, x, y, function(err, tileStream) {
+              count++;
+              if (!tileStream) return callback();
+              var buffer = new Buffer(0);
+              tileStream.on('data', function(chunk) {
+                console.log('chunk', chunk);
+                buffer = Buffer.concat([buffer, chunk]);
+              });
+              tileStream.on('end', function() {
+                console.log('end buffer');
 
-      var count = 0;
-      async.whilst(
-        function() {
-          return count < tileTableLength;
-        },
-        function(callback) {
-          console.log('tile table', tileTables[count]);
-          gp.getTileFromTable(tileTables[count], z, x, y, function(err, tileStream) {
-            count++;
-            if (!tileStream) return callback();
-
-            var buffer = new Buffer(0);
-            tileStream.on('data', function(chunk) {
-              console.log('chunk', chunk);
-              buffer = Buffer.concat([buffer, chunk]);
-            });
-            tileStream.on('end', function() {
-              console.log('end buffer');
-              var img = new Image();
-              console.log('img');
-              img.onload = function() {
-                console.log('draw it');
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                console.log('drawn');
-                callback();
-              };
-              img.src = buffer;
-            });
-          });
-        },
-        function(err) {
-          if (err) console.log('error reading tile tables', err);
-
-          gp.getFeatureTables(function(err, featureTables) {
-            console.log('featureTables', featureTables.length);
-            var featureTableLength = featureTables.length;
-
-            var count = 0;
-            async.whilst(
-              function() {
-                return count < featureTableLength;
-              },
-              function(callback) {
-                log.info('Getting features from table %d', count);
-                tile.getVectorTileWithLayer(self.source, {id: count}, format, z, x, y, params, function(err, tileStream) {
-                  count++;
-                  if (!tileStream) return callback();
-
-                  console.log('tilestream is ', tileStream);
-
-                  var buffer = new Buffer(0);
-                  tileStream.on('data', function(chunk) {
-                    buffer = Buffer.concat([buffer, chunk]);
-                  });
-                  tileStream.on('end', function() {
-                    var img = new Image();
-                    img.onload = function() {
-                      ctx.drawImage(img, 0, 0, img.width, img.height);
-                      callback();
-                    };
-                    img.src = buffer;
+                lwip.open(buffer, 'png', function(err, dsImage) {
+                  image.paste(0, 0, dsImage, function(err, image) {
+                    callback();
                   });
                 });
+              });
+            });
+          },
+          function(err) {
+            if (err) console.log('error reading tile tables', err);
 
-              },
-              function(err) {
-                callback(err, canvas.pngStream());
-              }
-            );
-          });
-        }
-      );
-    });
+            gp.getFeatureTables(function(err, featureTables) {
+              console.log('featureTables', featureTables.length);
+              var featureTableLength = featureTables.length;
+
+              var count = 0;
+              async.whilst(
+                function() {
+                  return count < featureTableLength;
+                },
+                function(callback) {
+                  log.info('Getting features from table %d', count);
+                  tile.getVectorTileWithLayer(self.source, {id: count}, format, z, x, y, params, function(err, tileStream) {
+                    count++;
+                    if (!tileStream) return callback();
+                    var buffer = new Buffer(0);
+                    tileStream.on('data', function(chunk) {
+                      buffer = Buffer.concat([buffer, chunk]);
+                    });
+                    tileStream.on('end', function() {
+                      lwip.open(buffer, 'png', function(err, dsImage) {
+                        image.paste(0, 0, dsImage, function(err, image) {
+                          callback();
+                        });
+                      });
+                    });
+                  });
+
+                },
+                function(err) {
+                  image.toBuffer('png', function(err, buffer) {
+                    callback(null, new BufferStream(buffer));
+                  });
+                }
+              );
+            });
+          }
+        );
+      });
+    }.bind(this));
   } else {
     this.cache.getTile(format, z, x, y, params, callback);
   }

@@ -11,7 +11,7 @@ require('sinon-mongoose');
 describe("user route tests", function() {
 
   var sandbox;
-  before(function() {
+  before(function(done) {
     sandbox = sinon.sandbox.create();
     var mongodbConfig = config.server.mongodb;
 
@@ -21,6 +21,7 @@ describe("user route tests", function() {
         console.log('Error connecting to mongo database, please make sure mongodb is running...');
         throw err;
       }
+      done();
     });
     mongoose.set('debug', true);
   });

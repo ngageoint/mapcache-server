@@ -58,7 +58,7 @@ function getRandomStyle() {
 var formatDataSources = [/*{
   id: 'test-xyz',
   name: 'osm',
-  url: 'http://osm.geointapps.org/osm',
+  url: 'http://osm.geointservices.io/osm_tiles',
   format: 'xyz',
   zOrder: 0
 },{
@@ -94,8 +94,8 @@ mocks.mapMocks.wmsDatasource,{
   name: 'rivers-gp',
   vector: true,
   file: {
-    path:__dirname + '/rivers-test.gpkg',
-    name: 'rivers_test.gpkg'
+    path:__dirname + '/rivers.gpkg',
+    name: 'rivers.gpkg'
   },
   format: 'geopackage',
   zOrder: 2,

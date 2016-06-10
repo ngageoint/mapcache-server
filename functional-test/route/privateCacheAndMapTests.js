@@ -32,7 +32,7 @@ function afterTest(test) {
 describe("Private cache and map tests", function() {
 
   var sandbox;
-  before(function() {
+  before(function(done) {
     sandbox = sinon.sandbox.create();
     var mongodbConfig = config.server.mongodb;
 
@@ -42,6 +42,7 @@ describe("Private cache and map tests", function() {
         console.log('Error connecting to mongo database, please make sure mongodb is running...');
         throw err;
       }
+      done();
     });
     mongoose.set('debug', true);
   });
@@ -141,10 +142,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM',
         permission: 'USER'
@@ -181,10 +182,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         permission: 'MAPCACHE',
         name: 'OSM' }
@@ -220,10 +221,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -260,10 +261,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM',
         permission: 'USER'
@@ -304,10 +305,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         permission: 'MAPCACHE',
         name: 'OSM' }
@@ -351,10 +352,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -400,10 +401,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -464,10 +465,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -529,10 +530,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -594,10 +595,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -661,10 +662,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )
@@ -731,10 +732,10 @@ describe("Private cache and map tests", function() {
       .send({
         dataSources: [{
           zOrder: 0,
-          url: 'http://osm.geointapps.org/osm',
+          url: 'http://osm.geointservices.io/osm_tiles',
           format: 'xyz',
           valid: true,
-          name: 'http://osm.geointapps.org/osm'
+          name: 'http://osm.geointservices.io/osm_tiles'
         }],
         name: 'OSM' }
       )

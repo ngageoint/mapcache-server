@@ -1,7 +1,5 @@
 var request = require('request')
   , proj4 = require('proj4')
-  , Canvas = require('canvas')
-  , Image = Canvas.Image
   , turf = require('turf');
 
 var ArcGIS = function(config) {
@@ -50,34 +48,10 @@ ArcGIS.prototype.getTile = function(format, z, x, y, params, callback) {
   var url = this.source.wmsGetCapabilities.tileServers[getRandomInt(0, this.source.wmsGetCapabilities.tileServers.length)] + "/tile/"+z+"/"+y+"/"+x;
   var req = null;
 
-  console.log('url', url);
-
-  if (format === 'jpg' || format === 'jpeg') {
-    var canvas = new Canvas(256,256);
-    var ctx = canvas.getContext('2d');
-    var height = canvas.height;
-
-    ctx.clearRect(0, 0, height, height);
-
-    req = request.get({url: url,
-      headers: {'Content-Type': 'image/png'},
-      encoding: null
-    }, function(err, response, image) {
-  		if (err){
-  			console.log('error in testing', err);
-  		}
-      if (err) throw err;
-      var img = new Image();
-      img.src = image;
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-      callback(null, canvas.jpegStream());
-    });
-  } else {
-    req = request.get({url: url,
-      headers: {'Content-Type': 'image/png'},
-    });
-    callback(null, req);
-  }
+  req = request.get({url: url,
+    headers: {'Content-Type': 'image/png'},
+  });
+  callback(null, req);
 };
 
 ArcGIS.prototype.generateCache = function(doneCallback) {

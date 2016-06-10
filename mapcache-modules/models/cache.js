@@ -43,8 +43,6 @@ var CacheSchema = new Schema({
 	sourceId: { type: Schema.Types.ObjectId, ref: 'Source', required: true },
   userId: {type: Schema.Types.ObjectId, required: false, sparse: true},
   permission: {type: String, required: false}
-},{
-	strict: true
 });
 
 CacheSchema.index({'name': 1});
@@ -75,6 +73,15 @@ function transform(cache, ret) {
 CacheSchema.set("toJSON", {
   transform: transform
 });
+
+function transformCacheToObject(cache, ret) {
+	ret.id = ret._id;
+}
+
+CacheSchema.set('toObject', {
+  transform: transformCacheToObject
+});
+
 var Cache;
 if (mongoose.models.Cache) {
 	Cache = mongoose.model('Cache');
@@ -138,6 +145,7 @@ exports.deleteFormat = function(cache, formatName, callback) {
 };
 
 exports.deleteCache = function(cache, callback) {
+  if (!cache) return callback();
 	Cache.remove({_id: cache.id}, callback);
 };
 

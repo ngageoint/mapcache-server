@@ -160,6 +160,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
 
   $scope.$watch('options.source', function() {
     if ($scope.options.source.dataSources) {
+      $scope.options.currentDatasources = $scope.options.source.dataSources;
       var merged = _.reduce($scope.options.source.dataSources, function(merge, dataSource) {
         if (dataSource.geometry) {
           return turf.union(merge, dataSource.geometry);
@@ -177,7 +178,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
     }
     sourceLayer = LeafletUtilities.tileLayer($scope.options.source, defaultLayer, options, $scope.options.style, styleFunction, $scope.options.currentDatasources);
     if (!sourceLayer) return;
-    sourceLayer.addTo(map);
+    map.addLayer(sourceLayer);
   }
 
   function styleFunction(feature) {

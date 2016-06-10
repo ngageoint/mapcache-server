@@ -21,10 +21,9 @@ describe('Map API', function() {
         console.log('Error connecting to mongo database, please make sure mongodb is running...');
         throw err;
       }
+      done();
     });
     mongoose.set('debug', true);
-
-    done();
   });
 
   after(function(done) {
@@ -66,7 +65,7 @@ describe('Map API', function() {
 
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };
@@ -114,7 +113,7 @@ describe('Map API', function() {
 
     var osmDataSource = {
       name: 'osm',
-      url: 'http://osm.geointapps.org/osm',
+      url: 'http://osm.geointservices.io/osm_tiles',
       format: 'xyz',
       zOrder: 0
     };
@@ -197,7 +196,7 @@ describe('Map API', function() {
 
       var osmDataSource = {
         name: 'osm',
-        url: 'http://osm.geointapps.org/osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
         format: 'xyz',
         zOrder: 0
       };
@@ -224,6 +223,67 @@ describe('Map API', function() {
           console.log('new map', JSON.stringify(newMap, null, 2));
           done();
         });
+      });
+    });
+
+    it('should get create a map with files and pull the overview tile', function(done) {
+      this.timeout(5000);
+      log.info('Creating a map');
+
+      var osmDataSource = {
+        name: 'osm',
+        url: 'http://osm.geointservices.io/osm_tiles',
+        format: 'xyz',
+        zOrder: 0
+      };
+
+      var riversDataSource = {
+        name: 'rivers',
+        file: {
+          path: __dirname + '/maptest.geojson',
+          name: 'maptest.geojson'
+        },
+        format: 'geojson',
+        zOrder: 1
+      };
+
+      var map = {
+        name: 'Map Route Test',
+        dataSources: [osmDataSource, riversDataSource]
+      };
+
+      Map.create(map, function(err, newMap) {
+        Map.getById(newMap.id, function(err, created) {
+          createdMap = created;
+          Map.getOverviewTile(newMap, function(err, tile) {
+            console.log('tile', tile);
+
+            var ws = fs.createOutputStream('/tmp/map_test.png');
+            ws.on('close', function() {
+              var imageDiff = require('image-diff');
+              imageDiff({
+                actualImage: '/tmp/map_test.png',
+                expectedImage: __dirname + '/map_test.png',
+                diffImage: '/tmp/difference.png',
+              }, function (err, imagesAreSame) {
+                console.log('images the same? ', imagesAreSame);
+                console.log('err', err);
+                should.not.exist(err);
+                imagesAreSame.should.be.true();
+                done();
+              });
+            });
+            tile.pipe(ws);
+          });
+        });
+        // log.info('Created a map %s with id %s', newMap.name, newMap.id);
+        // Map.getById(newMap.id, function(err, newMap) {
+        //   var m = new Map(newMap);
+        //   m.getOverviewTile(function(err, tile) {
+        //     console.log('tile', tile);
+        //     done();
+        //   });
+        // });
       });
     });
   });
