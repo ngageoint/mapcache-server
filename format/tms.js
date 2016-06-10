@@ -1,5 +1,4 @@
-var tileImage = require('tile-image')
-  , log = require('mapcache-log')
+var log = require('mapcache-log')
   , fs = require('fs-extra')
   , xyzTileUtils = require('xyz-tile-utils')
   , turf = require('turf')

@@ -1,5 +1,4 @@
-var tileImage = require('tile-image')
-  , fs = require('fs-extra')
+var fs = require('fs-extra')
   , request = require('request')
   , turf = require('turf')
   , path = require('path')
