@@ -159,6 +159,7 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
           });
           tileStream.on('end', function() {
             var type = fileType(buffer);
+            if (!type) return callback();
             lwip.open(buffer, type.ext, function(err, dsImage) {
               image.paste(0, 0, dsImage, function(err, image) {
                 callback();
