@@ -92,52 +92,6 @@ sudo make install
 
 yum install xz-utils
 
-Install Cairo - instructions from here were changed to work: https://github.com/Automattic/node-canvas/wiki/Installation---Amazon-Linux-AMI-(EC2)
-sudo yum erase cairo
-export PKG_CONFIG_PATH='/usr/local/lib/pkgconfig'
-export LD_LIBRARY_PATH='/usr/local/lib':$LD_LIBRARY_PATH
-go get libpng http://sourceforge.net/projects/libpng/files/libpng16/1.6.17/libpng-1.6.17.tar.gz/download
-tar xzf libpng-1.6.17.tar.gz
-cd libpng-1.6.17
-./configure --prefix=/usr/local
-make
-sudo make install
-
-
-
-cd ~
-curl http://www.ijg.org/files/jpegsrc.v8d.tar.gz -o jpegsrc.tar.gz
-tar -zxf jpegsrc.tar.gz && cd jpeg-8d/
-./configure --disable-dependency-tracking --prefix=/usr/local
-make
-sudo make install
-cd ~
-curl http://www.cairographics.org/releases/pixman-0.28.2.tar.gz -o pixman.tar.gz
-tar -zxf pixman.tar.gz && cd pixman-0.28.2/
-$ ./configure --prefix=/usr/local
-$ make
-$ sudo make install
-// this may not work
-// if not use this command.  Cairo will fail to configure itself because pixman is not present
-sudo yum install -y pixman pixman-devel
-
-
-
-// maybe don’t need this or try yum install freetype
-cd ~
-curl http://public.p-knowledge.co.jp/Savannah-nongnu-mirror//freetype/freetype-2.4.11.tar.gz -o freetype.tar.gz
-$ tar -zxf freetype.tar.gz && cd freetype-2.4.11/
-$ ./configure --prefix=/usr/local
-$ make
-$ sudo make install
-
-curl http://cairographics.org/releases/cairo-1.12.14.tar.xz -o cairo.tar.xz
-$ tar -xJf cairo.tar.xz && cd cairo-1.12.14/
-$ ./configure --disable-dependency-tracking --without-x --prefix=/usr/local
-$ make
-$ sudo make install
-
-sudo yum install giflib-devel
 
 do this in the folder that you get the source into
 npm install gdal --build-from-source --shared_gdal
