@@ -94,8 +94,8 @@ mocks.mapMocks.wmsDatasource,{
   name: 'rivers-gp',
   vector: true,
   file: {
-    path:__dirname + '/rivers-test.gpkg',
-    name: 'rivers_test.gpkg'
+    path:__dirname + '/rivers.gpkg',
+    name: 'rivers.gpkg'
   },
   format: 'geopackage',
   zOrder: 2,
