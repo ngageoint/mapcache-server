@@ -1,9 +1,9 @@
 var log = require('mapcache-log')
-  , Canvas = require('canvas')
+  , lwip = require('lwip')
   , xyzTileUtils = require('xyz-tile-utils')
-  , Image = Canvas.Image
   , Feature = require('mapcache-models').Feature
   , Formats = require('../format')
+  , BufferStream = require('simple-bufferstream')
   , turf = require('turf')
   , fs = require('fs-extra')
   , async = require('async')
@@ -108,9 +108,10 @@ Map.prototype.getOverviewTile = function(callback) {
     if (ds.geometry && !merged) {
       merged = ds.geometry;
     } else {
-      merged = turf.merge(merged, ds.geometry);
+      merged = turf.union(merged, ds.geometry);
     }
   }
+
   var extent;
   if (merged) {
     extent = turf.extent(merged);
@@ -143,37 +144,38 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
         params.dataSources.push(sorted[i].source.id);
       }
     }
-    var canvas = new Canvas(256,256);
-    var ctx = canvas.getContext('2d');
-    var height = canvas.height;
 
-    ctx.clearRect(0, 0, height, height);
-    async.eachSeries(sorted, function iterator(s, callback) {
-      if (params.dataSources.indexOf(s.source.id) === -1 || self.dataSourceErrors[s.source.id]) return callback();
-      s.getTile(format, z, x, y, params, function(err, tileStream) {
-        if (!tileStream) return callback();
+    lwip.create(256, 256, function(err, image) {
 
-        var buffer = new Buffer(0);
-        tileStream.on('data', function(chunk) {
-          buffer = Buffer.concat([buffer, chunk]);
+      async.eachSeries(sorted, function iterator(s, callback) {
+        if (params.dataSources.indexOf(s.source.id) === -1 || self.dataSourceErrors[s.source.id]) return callback();
+        s.getTile(format, z, x, y, params, function(err, tileStream) {
+          if (!tileStream) return callback();
+
+          var buffer = new Buffer(0);
+          tileStream.on('data', function(chunk) {
+            buffer = Buffer.concat([buffer, chunk]);
+          });
+          tileStream.on('end', function() {
+            lwip.open(buffer, 'png', function(err, dsImage) {
+              image.paste(0, 0, dsImage, function(err, image) {
+                callback();
+              });
+            });
+          });
         });
-        tileStream.on('end', function() {
-          var img = new Image();
-          img.onload = function() {
-            ctx.drawImage(img, 0, 0, img.width, img.height);
-            callback();
-          };
-          img.src = buffer;
+      }, function done() {
+        image.toBuffer('png', function(err, buffer) {
+          if (dir) {
+            console.log('path.join(dir, filename)', path.join(dir, filename));
+            var stream = fs.createOutputStream(path.join(dir, filename));
+            stream.write(buffer);
+          }
+          callback(null, new BufferStream(buffer));
+          log.info('[Tile Created]:\t %d %d %d for map %s', z, x, y, self.map.id.toString());
         });
       });
-    }, function done() {
-      if (dir) {
-        var stream = fs.createOutputStream(path.join(dir, filename));
-        canvas.pngStream().pipe(stream);
-      }
 
-      log.info('[Tile Created]:\t %d %d %d for map %s', z, x, y, self.map.id.toString());
-      callback(null, canvas.pngStream());
     });
   });
 };

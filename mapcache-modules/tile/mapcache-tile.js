@@ -2,10 +2,10 @@ var fs = require('fs-extra')
 	, path = require('path')
 	, turf = require('turf')
 	, log = require('mapcache-log')
-	, Canvas = require('canvas')
+	, PureImage = require('pureimage')
 	, Readable = require('stream').Readable
 	, xyzTileUtils = require('xyz-tile-utils')
-	, Image = Canvas.Image
+  , Through = require('through')
 	, async = require('async')
 	, config = require('mapcache-config')
 	, mapcacheModels = require('mapcache-models')
@@ -107,7 +107,6 @@ exports.createImage = function(tile, style, callback) {
 	var canvases = {};
 
 	console.time('creating image');
-	// console.time('creating image for tile', tile);
 	var ratio = 256 / 4096;
 	var features = tile;
 	log.info('creating image with %d features', features.length);
@@ -121,21 +120,19 @@ exports.createImage = function(tile, style, callback) {
 			var type = feature.type;
 			var ctx;
 			var styles = styleFunction(geoJsonFeature, style);
-			// console.log('styles.styleId', styles.styleId);
 	    if (styles && !canvases[styles.styleId]) {
-				var canvas = new Canvas(256,256);
+				var canvas = PureImage.make(256,256,{fillval: 0x00000000});
 			  ctx = canvas.getContext('2d');
 				canvases[styles.styleId] = {canvas: canvas, ctx: ctx};
-	      var rgbFill = hexToRgb(styles.fillColor);
-	      ctx.fillStyle = "rgba("+rgbFill.r+","+rgbFill.g+","+rgbFill.b+","+styles.fillOpacity+")";
+        ctx.fillStyle = styles.fillColor;
 	      ctx.lineWidth = styles.weight;
-	      var rgbStroke = hexToRgb(styles.color);
-	      ctx.strokeStyle = "rgba("+rgbStroke.r+","+rgbStroke.g+","+rgbStroke.b+","+styles.opacity+")";
+	      ctx.strokeStyle = styles.color;
 	    } else {
 				ctx = canvases[styles.styleId].ctx;
 			}
 
 	    ctx.beginPath();
+      ctx.mode = 'REPLACE';
 
 	    var geom = feature.coordinates;
 
@@ -181,21 +178,18 @@ exports.createImage = function(tile, style, callback) {
 			callback();
 		});
 	}, function() {
-		var finalCanvas = new Canvas(256,256);
+		var finalCanvas = PureImage.make(256,256,{fillval: 0x00000000});
 		var finalCtx = finalCanvas.getContext('2d');
 		async.forEachOfSeries(canvases, function(canvas, key, callback) {
-			var img = new Image();
-
-			img.onload = function() {
-				finalCtx.drawImage(img, 0, 0, 256, 256);
-				callback();
-			};
-			img.src = canvases[key].canvas.toBuffer();
+      finalCtx.mode = 'REPLACE';
+      finalCtx.drawImage(canvases[key].canvas, 0, 0);
+      callback();
 		}, function() {
 			console.timeEnd('creating image');
 			log.info('finished creating image with %d features', drawnFeatures);
-
-		  callback(null, finalCanvas.pngStream());
+      var ts = Through();
+      PureImage.encodePNG(finalCanvas, ts, function(err) { });
+      callback(null, ts);
 		});
 	});
 };
