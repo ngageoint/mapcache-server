@@ -7,16 +7,16 @@ turf centroid module
 
 ### `turf.centroid(features)`
 
-Takes a Feature or FeatureCollection of any type and calculates the centroid using the arithmetic mean of all vertices.
+Takes one or more features and calculates the centroid using the arithmetic mean of all vertices.
 This lessens the effect of small islands and artifacts when calculating
 the centroid of a set of polygons.
 
 
 ### Parameters
 
-| parameter  | type    | description                                |
-| ---------- | ------- | ------------------------------------------ |
-| `features` | GeoJSON | a Feature or FeatureCollection of any type |
+| parameter  | type                       | description    |
+| ---------- | -------------------------- | -------------- |
+| `features` | Feature\,FeatureCollection | input features |
 
 
 ### Example
@@ -47,6 +47,9 @@ var result = {
 //=result
 ```
 
+
+**Returns** `Feature.<Point>`, the centroid of the input features
+
 ## Installation
 
 Requires [nodejs](http://nodejs.org/).
@@ -60,4 +63,5 @@ $ npm install turf-centroid
 ```sh
 $ npm test
 ```
+
 

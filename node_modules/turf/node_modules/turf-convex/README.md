@@ -7,41 +7,86 @@
 
 ### `turf.convex(input)`
 
-Takes any GeoJSON object and returns a 
+Takes a set of Point|points and returns a
 [convex hull](http://en.wikipedia.org/wiki/Convex_hull) polygon.
 
-Internally this implements
-a [Monotone chain algorithm](http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript).
+Internally this uses
+the [convex-hull](https://github.com/mikolalysenko/convex-hull) module that
+implements a [monotone chain hull](http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain).
 
 
 ### Parameters
 
-| parameter | type    | description        |
-| --------- | ------- | ------------------ |
-| `input`   | GeoJSON | any GeoJSON object |
+| parameter | type                         | description  |
+| --------- | ---------------------------- | ------------ |
+| `input`   | FeatureCollection\.\<Point\> | input points |
 
 
 ### Example
 
 ```js
-var points = turf.featurecollection([
-  turf.point([10.195312, 43.755225]),
-  turf.point([10.404052, 43.8424511]),
-  turf.point([10.579833, 43.659924]),
-  turf.point([10.360107, 43.516688]),
-  turf.point([10.14038, 43.588348]),
-  turf.point([10.195312, 43.755225])]);
+var points = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.195312, 43.755225]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.404052, 43.8424511]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.579833, 43.659924]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.360107, 43.516688]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.14038, 43.588348]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.195312, 43.755225]
+      }
+    }
+  ]
+};
 
 var hull = turf.convex(points);
 
-var result = turf.featurecollection(
-  points.features.concat(hull));
+var resultFeatures = points.features.concat(hull);
+var result = {
+  "type": "FeatureCollection",
+  "features": resultFeatures
+};
 
 //=result
 ```
 
 
-**Returns** `Feature`, a Polygon feature
+**Returns** `Feature.<Polygon>`, a convex hull
 
 ## Installation
 
@@ -56,4 +101,5 @@ $ npm install turf-convex
 ```sh
 $ npm test
 ```
+
 

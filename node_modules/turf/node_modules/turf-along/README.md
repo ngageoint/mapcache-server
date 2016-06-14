@@ -5,18 +5,18 @@
 
 
 
-### `turf.along(Line, Distance, [units=miles])`
+### `turf.along(line, distance, [units=miles])`
 
-Returns a point at a specified distance along a line.
+Takes a LineString|line and returns a Point|point at a specified distance along the line.
 
 
 ### Parameters
 
-| parameter       | type       | description                                               |
-| --------------- | ---------- | --------------------------------------------------------- |
-| `Line`          | LineString | to move along                                             |
-| `Distance`      | Number     | to move                                                   |
-| `[units=miles]` | String     | _optional:_ can be degrees, radians, miles, or kilometers |
+| parameter       | type                    | description                                               |
+| --------------- | ----------------------- | --------------------------------------------------------- |
+| `line`          | Feature\.\<LineString\> | input line                                                |
+| `distance`      | Number                  | distance along the line                                   |
+| `[units=miles]` | String                  | _optional:_ can be degrees, radians, miles, or kilometers |
 
 
 ### Example
@@ -28,37 +28,28 @@ var line = {
   "geometry": {
     "type": "LineString",
     "coordinates": [
-      [
-        -77.0316696166992,
-        38.878605901789236
-      ],
-      [
-        -77.02960968017578,
-        38.88194668656296
-      ],
-      [
-        -77.02033996582031,
-        38.88408470638821
-      ],
-      [
-        -77.02566146850586,
-        38.885821800123196
-      ],
-      [
-        -77.02188491821289,
-        38.88956308852534
-      ],
-      [
-        -77.01982498168944,
-        38.89236892551996
-      ]
+      [-77.031669, 38.878605],
+      [-77.029609, 38.881946],
+      [-77.020339, 38.884084],
+      [-77.025661, 38.885821],
+      [-77.021884, 38.889563],
+      [-77.019824, 38.892368]
     ]
   }
-}
+};
 
 var along = turf.along(line, 1, 'miles');
-//=along
+
+var result = {
+  "type": "FeatureCollection",
+  "features": [line, along]
+};
+
+//=result
 ```
+
+
+**Returns** `Feature.<Point>`, Point `distance` `units` along the line
 
 ## Installation
 
@@ -73,4 +64,5 @@ $ npm install turf-along
 ```sh
 $ npm test
 ```
+
 

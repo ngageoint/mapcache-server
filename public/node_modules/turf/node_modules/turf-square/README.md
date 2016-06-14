@@ -12,22 +12,31 @@ Takes a bounding box and calculates the minimum square bounding box that would c
 
 ### Parameters
 
-| parameter | type           | description    |
-| --------- | -------------- | -------------- |
-| `bbox`    | Array.<number> | a bounding box |
+| parameter | type              | description    |
+| --------- | ----------------- | -------------- |
+| `bbox`    | Array\.\<number\> | a bounding box |
 
 
 ### Example
 
 ```js
 var bbox = [-20,-20,-15,0];
+
 var squared = turf.square(bbox);
-var features = turf.featurecollection([
-  turf.bboxPolygon(bbox),
-  turf.bboxPolygon(squared)]);
+
+var features = {
+  "type": "FeatureCollection",
+  "features": [
+    turf.bboxPolygon(bbox),
+    turf.bboxPolygon(squared)
+  ]
+};
 
 //=features
 ```
+
+
+**Returns** `Array.<number>`, a square surrounding `bbox`
 
 ## Installation
 
@@ -42,4 +51,5 @@ $ npm install turf-square
 ```sh
 $ npm test
 ```
+
 

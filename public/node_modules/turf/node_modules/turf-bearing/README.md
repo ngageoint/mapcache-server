@@ -7,26 +7,45 @@ turf bearing module
 
 ### `turf.bearing(start, end)`
 
-Takes two Point features and finds the bearing between them.
+Takes two Point|points and finds the geographic bearing between them.
 
 
 ### Parameters
 
-| parameter | type  | description    |
-| --------- | ----- | -------------- |
-| `start`   | Point | starting Point |
-| `end`     | Point | ending Point   |
+| parameter | type               | description    |
+| --------- | ------------------ | -------------- |
+| `start`   | Feature\.\<Point\> | starting Point |
+| `end`     | Feature\.\<Point\> | ending Point   |
 
 
 ### Example
 
 ```js
-var point1 = turf.point([-75.343, 39.984]);
-point1.properties['marker-color'] = '#f00';
-var point2 = turf.point([-75.534, 39.123]);
-point2.properties['marker-color'] = '#0f0';
+var point1 = {
+  "type": "Feature",
+  "properties": {
+    "marker-color": '#f00'
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-75.343, 39.984]
+  }
+};
+var point2 = {
+  "type": "Feature",
+  "properties": {
+    "marker-color": '#0f0'
+  },
+  "geometry": {
+    "type": "Point",
+    "coordinates": [-75.534, 39.123]
+  }
+};
 
-var points = turf.featurecollection([point1, point2]);
+var points = {
+  "type": "FeatureCollection",
+  "features": [point1, point2]
+};
 
 //=points
 
@@ -51,4 +70,5 @@ $ npm install turf-bearing
 ```sh
 $ npm test
 ```
+
 

@@ -5,10 +5,9 @@
 turf point-on-surface module
 
 
-### `turf.pointOnSurface(input)`
+### `turf.point-on-surface(input)`
 
-Finds a Point guaranteed to be on the surface of
-GeoJSON object.
+Takes a feature and returns a Point guaranteed to be on the surface of the feature.
 
 * Given a Polygon, the point will be in the area of the polygon
 * Given a LineString, the point will be along the string
@@ -17,9 +16,9 @@ GeoJSON object.
 
 ### Parameters
 
-| parameter | type    | description        |
-| --------- | ------- | ------------------ |
-| `input`   | GeoJSON | any GeoJSON object |
+| parameter | type                       | description                    |
+| --------- | -------------------------- | ------------------------------ |
+| `input`   | Feature\,FeatureCollection | any feature or set of features |
 
 
 ### Example
@@ -28,16 +27,21 @@ GeoJSON object.
 // create a random polygon
 var polygon = turf.random('polygon');
 
-// place a point on it
+//=polygon
+
 var pointOnPolygon = turf.pointOnSurface(polygon);
 
-// show both of them
-var fc = turf.featurecollection([polygon, pointOnPolygon]);
-//=fc
+var resultFeatures = polygon.features.concat(pointOnPolygon);
+var result = {
+  "type": "FeatureCollection",
+  "features": resultFeatures
+};
+
+//=result
 ```
 
 
-**Returns** `Feature`, a point on the surface
+**Returns** `Feature`, a point on the surface of `input`
 
 ## Installation
 
@@ -52,4 +56,5 @@ $ npm install turf-point-on-surface
 ```sh
 $ npm test
 ```
+
 

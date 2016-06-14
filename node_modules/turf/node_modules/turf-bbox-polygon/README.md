@@ -7,14 +7,14 @@ turf bboxPolygon module
 
 ### `turf.bbox-polygon(bbox)`
 
-Takes a bbox and returns the equivalent Polygon feature.
+Takes a bbox and returns an equivalent Polygon|polygon.
 
 
 ### Parameters
 
-| parameter | type           | description                                                                        |
-| --------- | -------------- | ---------------------------------------------------------------------------------- |
-| `bbox`    | Array.<number> | an Array of bounding box coordinates in the form: ```[xLow, yLow, xHigh, yHigh]``` |
+| parameter | type              | description                                                                        |
+| --------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `bbox`    | Array\.\<number\> | an Array of bounding box coordinates in the form: ```[xLow, yLow, xHigh, yHigh]``` |
 
 
 ### Example
@@ -26,6 +26,9 @@ var poly = turf.bboxPolygon(bbox);
 
 //=poly
 ```
+
+
+**Returns** `Feature.<Polygon>`, a Polygon representation of the bounding box
 
 ## Installation
 
@@ -40,4 +43,5 @@ $ npm install turf-bbox-polygon
 ```sh
 $ npm test
 ```
+
 

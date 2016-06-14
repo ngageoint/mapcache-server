@@ -7,25 +7,60 @@ calculate the area of a polygon or multipolygon feature
 
 ### `turf.area(input)`
 
-Given any kind of GeoJSON feature, return the area of that feature,
+Takes a one or more features and returns their area
 in square meters.
+
 
 ### Parameters
 
-| parameter | type    | description |
-| --------- | ------- | ----------- |
-| `input`   | GeoJSON |             |
+| parameter | type                       | description    |
+| --------- | -------------------------- | -------------- |
+| `input`   | Feature\,FeatureCollection | input features |
 
 
 ### Example
 
 ```js
-var polygons = turf.featurecollection([
-  turf.polygon([[[0,0],[10,0],[10,10],[0,10],[0,0]]]),
-  turf.polygon([[[10,0],[20,10],[20,20], [20,0]]])]);
+var polygons = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-67.031021, 10.458102],
+          [-67.031021, 10.53372],
+          [-66.929397, 10.53372],
+          [-66.929397, 10.458102],
+          [-67.031021, 10.458102]
+        ]]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-66.919784, 10.397325],
+          [-66.919784, 10.513467],
+          [-66.805114, 10.513467],
+          [-66.805114, 10.397325],
+          [-66.919784, 10.397325]
+        ]]
+      }
+    }
+  ]
+};
+
 var area = turf.area(polygons);
+
 //=area
 ```
+
+
+**Returns** `Number`, area in square meters
 
 ## Installation
 
@@ -40,4 +75,5 @@ $ npm install turf-area
 ```sh
 $ npm test
 ```
+
 

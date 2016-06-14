@@ -7,29 +7,31 @@ turf sample module
 
 ### `turf.sample(features, n)`
 
-Selects a given number of Feature|features from a FeatureCollection
-at random.
+Takes a FeatureCollection and returns a FeatureCollection with given number of Feature|features at random.
 
 
 ### Parameters
 
 | parameter  | type              | description                  |
 | ---------- | ----------------- | ---------------------------- |
-| `features` | FeatureCollection |                              |
-| `n`        | number            | number of features to select |
+| `features` | FeatureCollection | set of input features        |
+| `n`        | Number            | number of features to select |
 
 
 ### Example
 
 ```js
-// create a lot of points
 var points = turf.random('points', 1000);
+
 //=points
 
-// sample just a few of them
 var sample = turf.sample(points, 10);
+
 //=sample
 ```
+
+
+**Returns** `FeatureCollection`, a FeatureCollection with `n` features
 
 ## Installation
 
@@ -44,4 +46,5 @@ $ npm install turf-sample
 ```sh
 $ npm test
 ```
+
 

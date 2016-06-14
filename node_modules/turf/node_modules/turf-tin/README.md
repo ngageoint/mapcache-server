@@ -7,7 +7,7 @@ turf tin module
 
 ### `turf.tin(points, propertyName)`
 
-Takes a set of points and the name of a z-value property and
+Takes a set of Point|points and the name of a z-value property and
 creates a [Triangulated Irregular Network](http://en.wikipedia.org/wiki/Triangulated_irregular_network),
 or a TIN for short, returned as a collection of Polygons. These are often used
 for developing elevation contour maps or stepped heat visualizations.
@@ -19,10 +19,10 @@ the points that represent the corners of the triangle.
 
 ### Parameters
 
-| parameter      | type              | description                                                                                                                                                      |
-| -------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `points`       | FeatureCollection | - a GeoJSON FeatureCollection containing Features with Point geometries                                                                                          |
-| `propertyName` | string            | _optional:_ - name of the property from which to pull z values. This is optional: if not given, then there will be no extra data added to the derived triangles. |
+| parameter      | type                         | description                                                                                                                                                   |
+| -------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `points`       | FeatureCollection\.\<Point\> | input points                                                                                                                                                  |
+| `propertyName` | String                       | _optional:_ name of the property from which to pull z values This is optional: if not given, then there will be no extra data added to the derived triangles. |
 
 
 ### Example
@@ -49,6 +49,9 @@ for (var i = 0; i < tin.features.length; i++) {
 //=tin
 ```
 
+
+**Returns** `FeatureCollection.<Polygon>`, TIN output
+
 ## Installation
 
 Requires [nodejs](http://nodejs.org/).
@@ -62,4 +65,5 @@ $ npm install turf-tin
 ```sh
 $ npm test
 ```
+
 

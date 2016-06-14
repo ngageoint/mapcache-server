@@ -12,23 +12,42 @@ Combines a FeatureCollection of Point, LineString, or Polygon features into Mult
 
 ### Parameters
 
-| parameter | type              | description                     |
-| --------- | ----------------- | ------------------------------- |
-| `fc`      | FeatureCollection | a FeatureCollection of any type |
+| parameter | type                                            | description                     |
+| --------- | ----------------------------------------------- | ------------------------------- |
+| `fc`      | FeatureCollection\.\<Point|LineString|Polygon\> | a FeatureCollection of any type |
 
 
 ### Example
 
 ```js
-var fc = turf.featurecollection([
-  turf.point([19.026432, 47.49134]),
-  turf.point([19.074497, 47.509548])
-]);
+var fc = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.026432, 47.49134]
+      }
+    }, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [19.074497, 47.509548]
+      }
+    }
+  ]
+};
 
 var combined = turf.combine(fc);
 
 //=combined
 ```
+
+
+**Returns** `FeatureCollection.<MultiPoint|MultiLineString|MultiPolygon>`, a FeatureCollection of corresponding type to input
 
 ## Installation
 
@@ -43,4 +62,5 @@ $ npm install turf-combine
 ```sh
 $ npm test
 ```
+
 

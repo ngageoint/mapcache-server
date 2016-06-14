@@ -7,15 +7,15 @@ turf flip module
 
 ### `turf.flip(input)`
 
-Takes a GeoJSON object of any type and flips all of its coordinates
+Takes input features and flips all of their coordinates
 from `[x, y]` to `[y, x]`.
 
 
 ### Parameters
 
-| parameter | type    | description          |
-| --------- | ------- | -------------------- |
-| `input`   | GeoJSON | input GeoJSON object |
+| parameter | type                       | description    |
+| --------- | -------------------------- | -------------- |
+| `input`   | Feature\,FeatureCollection | input features |
 
 
 ### Example
@@ -38,7 +38,7 @@ var saudiArabia = turf.flip(serbia);
 ```
 
 
-**Returns** `GeoJSON`, a GeoJSON object of the same type as `input` with flipped coordinates
+**Returns** `Feature,FeatureCollection`, a feature or set of features of the same type as `input` with flipped coordinates
 
 ## Installation
 
@@ -53,4 +53,5 @@ $ npm install turf-flip
 ```sh
 $ npm test
 ```
+
 
