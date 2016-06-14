@@ -81,7 +81,7 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
   $scope.calculateCacheSize = function(cache, minZoom, maxZoom) {
     if (!cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !cache.geometry) return;
 
-    var extent = turf.extent(cache.geometry);
+    var extent = turf.bbox(cache.geometry);
     cache.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, minZoom, maxZoom);
     cache.totalCacheSize = cache.totalCacheTiles * (cache.source.tileSize/cache.source.tileSizeCount);
   };

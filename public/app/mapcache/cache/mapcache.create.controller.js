@@ -267,7 +267,7 @@ MapcacheCreateController.prototype._calculateCacheSize = function() {
     return;
   }
 
-  var extent = turf.extent(this.cache.geometry);
+  var extent = turf.bbox(this.cache.geometry);
   this.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, this.cache.minZoom, this.cache.maxZoom);
   this.totalCacheSize = this.totalCacheTiles * (this.cache.source.tileSize/this.cache.source.tileSizeCount);
 };
@@ -286,7 +286,7 @@ MapcacheCreateController.prototype._boundariesDrawn = function(event, geometry) 
     return;
   }
   this.boundsSet = true;
-  var extent = turf.extent(geometry);
+  var extent = turf.bbox(geometry);
   this.bb.north = extent[3];
   this._setDirectionDMS(this.bb.north, this.north);
   this.bb.south = extent[1];

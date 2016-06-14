@@ -115,7 +115,7 @@ Map.prototype.getOverviewTile = function(callback) {
 
   var extent;
   if (merged) {
-    extent = turf.extent(merged);
+    extent = turf.bbox(merged);
   } else {
     extent = [-180, -85, 180, 85];
   }

@@ -5,7 +5,7 @@ module.exports = function turfFilter() {
     if (!input) return null;
 
   	if (operation === 'extent') {
-      var e = turf.extent(input);
+      var e = turf.bbox(input);
       if (option) {
         switch(option) {
           case 'w':

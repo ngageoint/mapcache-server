@@ -270,6 +270,7 @@ describe('Cache API', function() {
     });
 
     before(function(done) {
+      this.timeout(3000);
       Map.create(map, function(err, map) {
         createdMap = map;
         log.info('Created a map %s with id %s', map.name, map.id);

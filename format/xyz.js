@@ -73,13 +73,13 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     percentComplete: 0
   };
 
-  cache.formats.xyz.totalTiles = xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom);
+  cache.formats.xyz.totalTiles = xyzTileUtils.tileCountInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom);
 
   cache.formats.xyz.zoomLevelStatus = [];
   for (var i = cache.minZoom; i <= cache.maxZoom; i++) {
     cache.formats.xyz.zoomLevelStatus[i] = {
       generatedTiles: 0,
-      totalTiles: xyzTileUtils.tileCountInExtent(turf.extent(cache.geometry), i, i),
+      totalTiles: xyzTileUtils.tileCountInExtent(turf.bbox(cache.geometry), i, i),
       complete: false,
       percentComplete: 0,
       size: 0
@@ -87,7 +87,7 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
   }
   progressCallback(cache, function(err, updatedCache) {
     cache = updatedCache;
-    xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
+    xyzTileUtils.iterateAllTilesInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
         var dir = path.join(self.config.outputDirectory, cacheId.toString(), 'xyztiles', tile.z.toString(), tile.x.toString());
         var filename = tile.y + '.png';
 

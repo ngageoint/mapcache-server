@@ -148,7 +148,7 @@ describe('generic', function() {
     describe('xyz tests', function() {
       it('should iterate', function(done) {
         var xyzTileUtils = require('xyz-tile-utils');
-        xyzTileUtils.iterateAllTilesInExtent(turf.extent(turf.bboxPolygon([-180, -85, 180, 85])), 2, 2, {test: 'ing'}, function(tile, callback) {
+        xyzTileUtils.iterateAllTilesInExtent(turf.bbox(turf.bboxPolygon([-180, -85, 180, 85])), 2, 2, {test: 'ing'}, function(tile, callback) {
           console.log('process the tile', tile);
           callback(tile.z == 2 && tile.x == 1, tile);
         },

@@ -215,7 +215,7 @@ describe('Format Tests', function() {
         if (!dataSource.geometry) {
           return done(new Error('no geom for source ' + dataSource.format));
         }
-        var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.extent(dataSource.geometry));
+        var xyz = xyzTileUtils.getXYZFullyEncompassingExtent(turf.bbox(dataSource.geometry));
         f.getTile('png', xyz.z, xyz.x, xyz.y, dataSource.testParams || {}, function(err, tileStream) {
           if (err) {
             console.log('there was an err', err);

@@ -28,7 +28,7 @@
     "pbkdf2": "file:../../modules/pbkdf2",
     "proj4": "^2.3.6",
     "shortid": "^2.2.2",
-    "turf": "^2.0.2"
+    "turf": "^3.0.5"
   },
   "bundleDependencies": [],
   "private": true,

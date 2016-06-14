@@ -130,7 +130,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
 
     if (!centered) {
       if (cacheCenters && cacheCenters.length > 0) {
-        var extent = turf.extent(turf.featurecollection(cacheCenters));
+        var extent = turf.bbox(turf.featurecollection(cacheCenters));
         map.fitBounds([
           [extent[1],extent[0]],
           [extent[3], extent[2]]
@@ -193,7 +193,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
     }
     highlightedCache = cache;
 
-    var extent = turf.extent(cache.geometry);
+    var extent = turf.bbox(cache.geometry);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]
@@ -336,7 +336,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
         }
         return merge;
       }, $scope.map.dataSources[0].geometry);
-      updateMapExtent(turf.extent(merged));
+      updateMapExtent(turf.bbox(merged));
     }
     addMapLayer();
   });
@@ -473,7 +473,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
   }
 
   function updateMapExtent(extent) {
-    extent = extent || turf.extent($scope.map.geometry);
+    extent = extent || turf.bbox($scope.map.geometry);
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]

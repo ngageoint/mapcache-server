@@ -72,7 +72,7 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
 
   $scope.calculateCacheSize = function(minZoom, maxZoom) {
     if (!$scope.cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !$scope.cache.geometry) return;
-    var extent = turf.extent($scope.cache.geometry);
+    var extent = turf.bbox($scope.cache.geometry);
     $scope.cache.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, minZoom, maxZoom);
     $scope.cache.totalCacheSize = $scope.cache.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
   };

@@ -167,7 +167,7 @@ exports.createCache = function(cache, callback) {
 				log.warn('cache.source', cache.source.id);
 
 				if (cache.source.vector) {
-					var extent = turf.extent(cache.geometry);
+					var extent = turf.bbox(cache.geometry);
 					FeatureModel.createCacheFeaturesFromSource(cache.source.id, cache.id, extent[0], extent[1], extent[2], extent[3], function(err) {
 						return callback(err, cache);
 					});

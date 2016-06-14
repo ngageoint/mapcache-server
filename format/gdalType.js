@@ -92,7 +92,7 @@ GdalType.prototype.getTile = function(format, z, x, y, params, callback) {
     return callback();
   }
 
-  var fullExtent = turf.extent(source.geometry);
+  var fullExtent = turf.bbox(source.geometry);
 
   var cutline = createCutlineInProjection(tileEnvelope, gdal.SpatialReference.fromEPSG(3857));
   var srcCutline = createPixelCoordinateCutline({west: fullExtent[0], south: fullExtent[1], east: fullExtent[2], north: fullExtent[3]}, gdalFile);

@@ -46,7 +46,7 @@ function getXRow(xyzSource, xRow, yRange, zoom, xRowDone, downloadTile, shouldCo
 exports.createXYZTiles = function(xyzSource, minZoom, maxZoom, downloadTile, shouldContinueFunction, zoomLevelCompleteFunction, callback) {
     xyzSource.status.zoomLevelStatus = xyzSource.status.zoomLevelStatus || [];
 
-    var extent = turf.extent(xyzSource.geometry);
+    var extent = turf.bbox(xyzSource.geometry);
     extent[0] = Math.max(-180, extent[0]);
     extent[1] = Math.max(-85, extent[1]);
     extent[2] = Math.min(180, extent[2]);

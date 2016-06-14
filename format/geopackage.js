@@ -296,7 +296,7 @@ GeoPackage.prototype.generateCache = function(doneCallback, progressCallback) {
 };
 
 GeoPackage.prototype._calculateExtentFromGeometry = function(geometry) {
-  var extent = turf.extent(geometry);
+  var extent = turf.bbox(geometry);
   extent[0] = Math.max(-180, extent[0]);
   extent[1] = Math.max(-85, extent[1]);
   extent[2] = Math.min(180, extent[2]);
@@ -390,7 +390,7 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
 
   var self = this;
   this.geoPackage.createTileTable(extent, tableName, cache.minZoom, cache.maxZoom, function() {
-    xyzTileUtils.iterateAllTilesInExtent(turf.extent(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
+    xyzTileUtils.iterateAllTilesInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
         var xRange = xyzTileUtils.calculateXTileRange(totalTileExtent, tile.z);
         var yRange = xyzTileUtils.calculateYTileRange(totalTileExtent, tile.z);
 

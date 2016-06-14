@@ -167,7 +167,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
         }
         return merge;
       }, $scope.options.source.dataSources[0].geometry);
-      updateMapExtent(turf.extent(merged));
+      updateMapExtent(turf.bbox(merged));
     }
     addMapLayer();
   });

@@ -60,7 +60,7 @@ Cache.prototype._updateDataSourceParams = function(callback) {
         self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
         return sourceFinishedCallback();
       }
-      var extent = turf.extent(self.cache.geometry);
+      var extent = turf.bbox(self.cache.geometry);
       extent[0] = Math.max(-180, extent[0]);
       extent[1] = Math.max(-85, extent[1]);
       extent[2] = Math.min(180, extent[2]);
