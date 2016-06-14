@@ -130,6 +130,19 @@ exports.calculateYTileRange = function(bbox, z) {
 };
 
 exports.tilesInGeometry = function(geometry, minZoom, maxZoom) {
+  var bufferedFeatures = [];
+  turfMeta.featureEach(geometry, function(feature) {
+    if (feature.geometry
+    && (feature.geometry.type === "LineString"
+    || feature.geometry.type === "Point")) {
+      bufferedFeatures.push(turf.buffer(feature, .01, 'miles'));
+    } else {
+      bufferedFeatures.push(feature);
+    }
+  });
+
+  geometry = turf.featureCollection(bufferedFeatures);
+
   // get the overall envelope of all features
   var envelope = turf.envelope(geometry);
   var extent = turf.bbox(envelope);
@@ -197,6 +210,7 @@ function determineGeometryMatch(geometry, tileExtent) {
   var found;
   turfMeta.featureEach(geometry, function(feature) {
     if (!found) {
+      // console.log('feature', feature);
       found = turf.intersect(feature, extentPoly);
     }
   });

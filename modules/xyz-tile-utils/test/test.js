@@ -131,39 +131,36 @@ describe('XYZ Tile Utils Tests', function() {
     Object.keys(tiles[2]).length.should.be.equal(Math.pow(2, 2*2));
   });
 
-  it('should calculate the number of tiles in the 5 and 6 zoom level by geometry aurora reservoir', function(done) {
-    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+  describe('Aurora Reservoir geometry tests', function() {
+    var json;
+    var fc;
+
+    before(function(done) {
+      fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+        json = fc;
+        done();
+      });
+    });
+
+    beforeEach(function(done) {
+      fc = JSON.parse(JSON.stringify(json));
+      done();
+    });
+
+    it('should calculate the number of tiles in the 5 and 6 zoom level', function() {
       var zoom = 5;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
       Object.keys(tiles[5]).length.should.be.equal(1);
       Object.keys(tiles[6]).length.should.be.equal(1);
-      done();
     });
-  });
 
-  it('should calculate the number of tiles in the 12 zoom level by geometry aurora reservoir', function(done) {
-    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+    it('should calculate the number of tiles in the 12 zoom level', function() {
       var zoom = 12;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
       Object.keys(tiles[12]).length.should.be.equal(2);
-      done();
     });
-  });
 
-  it('should calculate the number of tiles in the 17 zoom level by geometry aurora reservoir', function(done) {
-    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
-      var zoom = 17;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
-      Object.keys(tiles[17]).length.should.be.equal(87);
-
-      var fc = xyzTileUtils.tilesToFeatureCollection(tiles[17], 17);
-      turf.area(fc).should.be.equal(4827145.47187383);
-      done();
-    });
-  });
-
-  it('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir', function(done) {
-    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+    it('should calculate the number of tiles in the 1 - 17 zoom level', function() {
       var zoom = 17;
       var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
       Object.keys(tiles[17]).length.should.be.equal(87);
@@ -188,40 +185,40 @@ describe('XYZ Tile Utils Tests', function() {
       //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
       //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
       // }
-      done();
     });
+
   });
 
-  it('should calculate the number of tiles in the 5 and 6 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+  describe('Aurora Reservoir and Cherry Creek Reservoir geometry tests', function() {
+    var fc;
+    var json;
+
+    before(function(done) {
+      fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+        json = fc;
+        done();
+      });
+    });
+
+    beforeEach(function(done) {
+      fc = JSON.parse(JSON.stringify(json));
+      done();
+    });
+
+    it('should calculate the number of tiles in the 5 and 6 zoom level', function() {
       var zoom = 5;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
       Object.keys(tiles[5]).length.should.be.equal(1);
       Object.keys(tiles[6]).length.should.be.equal(1);
-      done();
     });
-  });
 
-  it('should calculate the number of tiles in the 12 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+    it('should calculate the number of tiles in the 12 zoom level by geometry', function() {
       var zoom = 12;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
       Object.keys(tiles[12]).length.should.be.equal(6);
-      done();
     });
-  });
 
-  it('should calculate the number of tiles in the 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
-      var zoom = 17;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
-      Object.keys(tiles[17]).length.should.be.equal(174);
-      done();
-    });
-  });
-
-  it('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+    it('should calculate the number of tiles in the 1 - 17 zoom level by geometry', function() {
       var zoom = 17;
       var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
       Object.keys(tiles[17]).length.should.be.equal(174);
@@ -246,9 +243,125 @@ describe('XYZ Tile Utils Tests', function() {
       //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
       //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
       // }
+    });
+
+  });
+
+  describe('Aurora Reservoir and Cherry Creek Reservoir with connecting road geometry tests', function() {
+    var fc;
+    var json;
+
+    before(function(done) {
+      fs.readJson(__dirname + '/arccroad.geojson', function(err, fc) {
+        json = fc;
+        done();
+      });
+    });
+
+    beforeEach(function(done) {
+      fc = JSON.parse(JSON.stringify(json));
       done();
+    });
+
+    it('should calculate the number of tiles in the 5 and 6 zoom level by geometry', function() {
+      var zoom = 5;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+    });
+
+    it('should calculate the number of tiles in the 12 zoom level by geometry', function() {
+      var zoom = 12;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      Object.keys(tiles[12]).length.should.be.equal(6);
+    });
+
+    it('should calculate the number of tiles in the 1 - 17 zoom level by geometry', function() {
+      var zoom = 17;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+
+      // for (var i = 1; i <= zoom; i++) {
+      //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
+      //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
+      // }
+
+      Object.keys(tiles[17]).length.should.be.equal(316);
+      Object.keys(tiles[16]).length.should.be.equal(123);
+      Object.keys(tiles[15]).length.should.be.equal(49);
+      Object.keys(tiles[14]).length.should.be.equal(22);
+      Object.keys(tiles[13]).length.should.be.equal(11);
+      Object.keys(tiles[12]).length.should.be.equal(6);
+      Object.keys(tiles[11]).length.should.be.equal(3);
+      Object.keys(tiles[10]).length.should.be.equal(3);
+      Object.keys(tiles[9]).length.should.be.equal(2);
+      Object.keys(tiles[8]).length.should.be.equal(1);
+      Object.keys(tiles[7]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[4]).length.should.be.equal(1);
+      Object.keys(tiles[3]).length.should.be.equal(1);
+      Object.keys(tiles[2]).length.should.be.equal(1);
+      Object.keys(tiles[1]).length.should.be.equal(1);
     });
   });
 
+  describe('Aurora Reservoir and Cherry Creek Reservoir with connecting road and airport point geometry tests', function() {
+    var fc;
+    var json;
+
+    before(function(done) {
+      fs.readJson(__dirname + '/arccroadairport.geojson', function(err, fc) {
+        json = fc;
+        done();
+      });
+    });
+
+    beforeEach(function(done) {
+      fc = JSON.parse(JSON.stringify(json));
+      done();
+    });
+
+    it('should calculate the number of tiles in the 5 and 6 zoom level by geometry', function() {
+      var zoom = 5;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+    });
+
+    it('should calculate the number of tiles in the 12 zoom level by geometry', function() {
+      var zoom = 12;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      Object.keys(tiles[12]).length.should.be.equal(7);
+    });
+
+    it('should calculate the number of tiles in the 1 - 17 zoom level by geometry', function() {
+      var zoom = 17;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+
+      // for (var i = 1; i <= zoom; i++) {
+      //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
+      //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
+      // }
+
+      Object.keys(tiles[17]).length.should.be.equal(320);
+      Object.keys(tiles[16]).length.should.be.equal(125);
+      Object.keys(tiles[15]).length.should.be.equal(50);
+      Object.keys(tiles[14]).length.should.be.equal(23);
+      Object.keys(tiles[13]).length.should.be.equal(12);
+      Object.keys(tiles[12]).length.should.be.equal(7);
+      Object.keys(tiles[11]).length.should.be.equal(4);
+      Object.keys(tiles[10]).length.should.be.equal(4);
+      Object.keys(tiles[9]).length.should.be.equal(2);
+      Object.keys(tiles[8]).length.should.be.equal(1);
+      Object.keys(tiles[7]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[4]).length.should.be.equal(1);
+      Object.keys(tiles[3]).length.should.be.equal(1);
+      Object.keys(tiles[2]).length.should.be.equal(1);
+      Object.keys(tiles[1]).length.should.be.equal(1);
+
+    });
+  });
 
 });
