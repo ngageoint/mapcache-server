@@ -1,27 +1,265 @@
-var xyzTileUtils = require('xyz-tile-utils');
+var xyzTileUtils = require('../xyz-tile-utils');
+
+var turf = require('turf')
+  , fs = require('fs-extra');
 
 describe('XYZ Tile Utils Tests', function() {
 
-  it('should calculate the number of tiles in the zoom level', function(done) {
+  it('should calculate the number of tiles in the zoom level', function() {
     var extent = [120.937500, 49.837982, 156.093750, 63.548552];
     var zoom = 8;
     var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
-    console.log('tile count: %d', tiles);
-
-    var yRange = xyzTileUtils.calculateYTileRange(extent, zoom);
-    var xRange = xyzTileUtils.calculateXTileRange(extent, zoom);
-
-    console.log('yrange:', yRange);
-    console.log('xrange:', xRange);
-
-    var yTiles = 1+(yRange.max - yRange.min);
-    var xTiles = 1+(xRange.max - xRange.min);
-
-    var tiles = yTiles * xTiles;
-
-    console.log('tiles', tiles);
-
-    done();
+    tiles.should.be.equal(494);
   });
+
+  it('should calculate the number of tiles in the 0 zoom level', function() {
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, 0, 0);
+    tiles.should.be.equal(1);
+  });
+
+  it('should calculate the number of tiles in the 1 zoom level', function() {
+    var zoom = 1;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 2 zoom level', function() {
+    var zoom = 2;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 3 zoom level', function() {
+    var zoom = 3;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 4 zoom level', function() {
+    var zoom = 4;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 5 zoom level', function() {
+    var zoom = 6;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 7 zoom level', function() {
+    var zoom = 7;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 8 zoom level', function() {
+    var zoom = 8;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 9 zoom level', function() {
+    var zoom = 9;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 10 zoom level', function() {
+    var zoom = 10;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 11 zoom level', function() {
+    var zoom = 11;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 12 zoom level', function() {
+    var zoom = 12;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 13 zoom level', function() {
+    var zoom = 13;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 14 zoom level', function() {
+    var zoom = 14;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 15 zoom level', function() {
+    var zoom = 15;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 16 zoom level', function() {
+    var zoom = 16;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 17 zoom level', function() {
+    var zoom = 17;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+  it('should calculate the number of tiles in the 18 zoom level', function() {
+    var zoom = 18;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tiles = xyzTileUtils.tileCountInExtent(extent, zoom, zoom);
+    tiles.should.be.equal(Math.pow(2, 2*zoom));
+  });
+
+  it('should calculate the number of tiles in the 5 and 6 zoom level by geometry rectangle', function() {
+    this.timeout(30000);
+    var zoom = 1;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var poly = turf.bboxPolygon(extent);
+    var fc = turf.featureCollection([poly]);
+    var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+    Object.keys(tiles[1]).length.should.be.equal(Math.pow(2, 2*1));
+    Object.keys(tiles[2]).length.should.be.equal(Math.pow(2, 2*2));
+  });
+
+  it('should calculate the number of tiles in the 5 and 6 zoom level by geometry aurora reservoir', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+      var zoom = 5;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      done();
+    });
+  });
+
+  it('should calculate the number of tiles in the 12 zoom level by geometry aurora reservoir', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+      var zoom = 12;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      Object.keys(tiles[12]).length.should.be.equal(2);
+      done();
+    });
+  });
+
+  it('should calculate the number of tiles in the 17 zoom level by geometry aurora reservoir', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+      var zoom = 17;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      Object.keys(tiles[17]).length.should.be.equal(87);
+
+      var fc = xyzTileUtils.tilesToFeatureCollection(tiles[17], 17);
+      turf.area(fc).should.be.equal(4827145.47187383);
+      done();
+    });
+  });
+
+  it('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
+      var zoom = 17;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+      Object.keys(tiles[17]).length.should.be.equal(87);
+      Object.keys(tiles[16]).length.should.be.equal(29);
+      Object.keys(tiles[15]).length.should.be.equal(11);
+      Object.keys(tiles[14]).length.should.be.equal(5);
+      Object.keys(tiles[13]).length.should.be.equal(3);
+      Object.keys(tiles[12]).length.should.be.equal(2);
+      Object.keys(tiles[11]).length.should.be.equal(1);
+      Object.keys(tiles[10]).length.should.be.equal(1);
+      Object.keys(tiles[9]).length.should.be.equal(1);
+      Object.keys(tiles[8]).length.should.be.equal(1);
+      Object.keys(tiles[7]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[4]).length.should.be.equal(1);
+      Object.keys(tiles[3]).length.should.be.equal(1);
+      Object.keys(tiles[2]).length.should.be.equal(1);
+      Object.keys(tiles[1]).length.should.be.equal(1);
+
+      // for (var i = 1; i <= zoom; i++) {
+      //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
+      //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
+      // }
+      done();
+    });
+  });
+
+  it('should calculate the number of tiles in the 5 and 6 zoom level by geometry aurora reservoir and cherry creek', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+      var zoom = 5;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      done();
+    });
+  });
+
+  it('should calculate the number of tiles in the 12 zoom level by geometry aurora reservoir and cherry creek', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+      var zoom = 12;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      Object.keys(tiles[12]).length.should.be.equal(6);
+      done();
+    });
+  });
+
+  it('should calculate the number of tiles in the 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+      var zoom = 17;
+      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      Object.keys(tiles[17]).length.should.be.equal(174);
+      done();
+    });
+  });
+
+  it.only('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
+    this.timeout(30000);
+    fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
+      var zoom = 17;
+      console.time('calculate tiles');
+      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+      console.timeEnd('calculate tiles');
+      Object.keys(tiles[17]).length.should.be.equal(174);
+      Object.keys(tiles[16]).length.should.be.equal(56);
+      Object.keys(tiles[15]).length.should.be.equal(20);
+      Object.keys(tiles[14]).length.should.be.equal(9);
+      Object.keys(tiles[13]).length.should.be.equal(7);
+      Object.keys(tiles[12]).length.should.be.equal(6);
+      Object.keys(tiles[11]).length.should.be.equal(3);
+      Object.keys(tiles[10]).length.should.be.equal(3);
+      Object.keys(tiles[9]).length.should.be.equal(2);
+      Object.keys(tiles[8]).length.should.be.equal(1);
+      Object.keys(tiles[7]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+      Object.keys(tiles[4]).length.should.be.equal(1);
+      Object.keys(tiles[3]).length.should.be.equal(1);
+      Object.keys(tiles[2]).length.should.be.equal(1);
+      Object.keys(tiles[1]).length.should.be.equal(1);
+
+      // for (var i = 1; i <= zoom; i++) {
+      //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
+      //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
+      // }
+      done();
+    });
+  });
+
 
 });

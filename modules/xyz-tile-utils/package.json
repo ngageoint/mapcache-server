@@ -19,5 +19,19 @@
     "npm": ">= 1.2.0"
   },
   "private": true,
-  "main": "xyz-tile-utils.js"
+  "main": "xyz-tile-utils.js",
+  "devDependencies": {
+    "chai": "*",
+    "fs-extra": "^0.30.0",
+    "mocha": "*",
+    "should": "^7.1.1"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "fs-extra": "^0.30.0",
+    "turf": "^3.0.5",
+    "turf-meta": "^3.0.1"
+  }
 }

@@ -1,4 +1,6 @@
-var async = require('async');
+var async = require('async')
+  , turf = require('turf')
+  , turfMeta = require('turf-meta');
 
 Math.radians = function(degrees) {
   return degrees * Math.PI / 180;
@@ -73,6 +75,41 @@ exports.tileBboxCalculator = function(x, y, z) {
   return tileBounds;
 };
 
+exports.tileExtentCalculator = function(x, y, z) {
+  x = Number(x);
+  y = Number(y);
+  var tileBounds = [
+    tile2lon(x, z),
+    tile2lat(y+1, z),
+    tile2lon(x+1, z),
+    tile2lat(y, z)
+  ];
+
+  return tileBounds;
+};
+
+exports.tilesToFeatureCollection = function(tiles, zoom) {
+  var features = [];
+  for (var key in tiles) {
+    var tile = tiles[key];
+    var extent = exports.tileExtentCalculator(tile.x, tile.y, zoom);
+    features.push(turf.bboxPolygon(extent));
+  }
+  var fc = turf.featureCollection(features);
+  return fc;
+};
+
+exports.mergeFeatureCollection = function(featureCollection) {
+  var merged = JSON.parse(JSON.stringify(featureCollection.features[0]));
+  var features = featureCollection.features;
+  for (var i = 0; i < features.length; i++) {
+    if (features[i].geometry) {
+      merged = turf.union(merged, features[i]);
+    }
+  }
+  return merged;
+};
+
 exports.calculateXTileRange = function(bbox, z) {
   var west = long2tile(bbox[0], z);
   var east = long2tile(bbox[2], z);
@@ -91,6 +128,75 @@ exports.calculateYTileRange = function(bbox, z) {
     current: Math.max(0,Math.min(south, north))
   };
 };
+
+exports.tilesInGeometry = function(geometry, minZoom, maxZoom) {
+  // get the overall envelope of all features
+  var envelope = turf.envelope(geometry);
+  var extent = turf.bbox(envelope);
+
+  var yRange = exports.calculateYTileRange(extent, minZoom);
+  var xRange = exports.calculateXTileRange(extent, minZoom);
+
+  var tiles = {};
+
+  tiles[minZoom] = {};
+
+  // now iterate and get the tiles
+  for (var x = xRange.min; x <= xRange.max; x++) {
+    for (var y = yRange.min; y <= yRange.max; y++) {
+      // verify this tile matches the geometry
+      var tileExtent = exports.tileExtentCalculator(x, y, minZoom);
+      var matches = determineGeometryMatch(geometry, tileExtent);
+      if (matches) {
+        var tile = {x: x, y: y};
+        tiles[minZoom][minZoom+'-'+x+'-'+y] = tile;//.push(tile);
+        diveDown(tiles, geometry, x, y, minZoom, maxZoom);
+      }
+    }
+  }
+
+  return tiles;
+}
+
+function diveDown(tiles, geometry, x, y, zoom, maxZoom) {
+  if (zoom+1 > maxZoom) {
+    return tiles;
+  }
+  var extent = exports.tileExtentCalculator(x, y, zoom);
+
+  zoom = zoom + 1;
+
+  tiles[zoom] = tiles[zoom] || {};
+  var yRange = exports.calculateYTileRange(extent, zoom);
+  var xRange = exports.calculateXTileRange(extent, zoom);
+  // now iterate and get the tiles
+  for (var x = xRange.min; x <= xRange.max; x++) {
+    for (var y = yRange.min; y <= yRange.max; y++) {
+      var tileExtent = exports.tileExtentCalculator(x, y, zoom);
+
+      var matches = determineGeometryMatch(geometry, tileExtent);
+      if (matches) {
+        var tile = {x: x, y: y};
+        // tile[zoom+'-'+x+'-'+y] = {x: x, y: y};
+        tiles[zoom][zoom+'-'+x+'-'+y] = tile;
+        diveDown(tiles, geometry, x, y, zoom, maxZoom);
+      }
+    }
+  }
+
+  return tiles;
+}
+
+function determineGeometryMatch(geometry, tileExtent) {
+  var extentPoly = turf.bboxPolygon(tileExtent);
+  var found;
+  turfMeta.featureEach(geometry, function(feature) {
+    if (!found) {
+      found = turf.intersect(feature, extentPoly);
+    }
+  });
+  return found;
+}
 
 exports.tileCountInExtent = function(extent, minZoom, maxZoom) {
   var tiles = 0;
