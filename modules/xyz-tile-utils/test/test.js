@@ -122,7 +122,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 5 and 6 zoom level by geometry rectangle', function() {
-    this.timeout(30000);
     var zoom = 1;
     var extent = [-180, -85.0511, 180, 85.0511];
     var poly = turf.bboxPolygon(extent);
@@ -133,7 +132,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 5 and 6 zoom level by geometry aurora reservoir', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
       var zoom = 5;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
@@ -144,7 +142,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 12 zoom level by geometry aurora reservoir', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
       var zoom = 12;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
@@ -154,7 +151,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 17 zoom level by geometry aurora reservoir', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
       var zoom = 17;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
@@ -167,7 +163,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/aurora-reservoir.geojson', function(err, fc) {
       var zoom = 17;
       var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
@@ -198,7 +193,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 5 and 6 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
       var zoom = 5;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
@@ -209,7 +203,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 12 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
       var zoom = 12;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
@@ -219,7 +212,6 @@ describe('XYZ Tile Utils Tests', function() {
   });
 
   it('should calculate the number of tiles in the 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    this.timeout(30000);
     fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
       var zoom = 17;
       var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
@@ -228,13 +220,10 @@ describe('XYZ Tile Utils Tests', function() {
     });
   });
 
-  it.only('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
-    this.timeout(30000);
+  it('should calculate the number of tiles in the 1 - 17 zoom level by geometry aurora reservoir and cherry creek', function(done) {
     fs.readJson(__dirname + '/arcc.geojson', function(err, fc) {
       var zoom = 17;
-      console.time('calculate tiles');
       var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
-      console.timeEnd('calculate tiles');
       Object.keys(tiles[17]).length.should.be.equal(174);
       Object.keys(tiles[16]).length.should.be.equal(56);
       Object.keys(tiles[15]).length.should.be.equal(20);

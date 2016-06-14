@@ -162,13 +162,19 @@ function diveDown(tiles, geometry, x, y, zoom, maxZoom) {
   if (zoom+1 > maxZoom) {
     return tiles;
   }
-  var extent = exports.tileExtentCalculator(x, y, zoom);
-
   zoom = zoom + 1;
-
   tiles[zoom] = tiles[zoom] || {};
-  var yRange = exports.calculateYTileRange(extent, zoom);
-  var xRange = exports.calculateXTileRange(extent, zoom);
+
+  var yRange = {
+    min: y*2,
+    max: (y*2)+1
+  };
+
+  var xRange = {
+    min: x*2,
+    max: (x*2)+1
+  };
+
   // now iterate and get the tiles
   for (var x = xRange.min; x <= xRange.max; x++) {
     for (var y = yRange.min; y <= yRange.max; y++) {
@@ -177,7 +183,6 @@ function diveDown(tiles, geometry, x, y, zoom, maxZoom) {
       var matches = determineGeometryMatch(geometry, tileExtent);
       if (matches) {
         var tile = {x: x, y: y};
-        // tile[zoom+'-'+x+'-'+y] = {x: x, y: y};
         tiles[zoom][zoom+'-'+x+'-'+y] = tile;
         diveDown(tiles, geometry, x, y, zoom, maxZoom);
       }
