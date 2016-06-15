@@ -121,12 +121,30 @@ describe('XYZ Tile Utils Tests', function() {
     tiles.should.be.equal(Math.pow(2, 2*zoom));
   });
 
+  it.only('should iterate the tiles from 0 - 3 zoom level', function(done) {
+    var zoom = 3;
+    var extent = [-180, -85.0511, 180, 85.0511];
+    var tilesCalled = 0;
+    var zoomsCalled = 0;
+    xyzTileUtils.iterateAllTilesInExtent(extent, 0, 3, {data: 'no'}, function(tile, callback) {
+      tilesCalled++;
+      callback();
+    }, function(zoom, callback) {
+      zoomsCalled++;
+      callback();
+    }, function(err, data) {
+      zoomsCalled.should.be.equal(4);
+      tilesCalled.should.be.equal(85);
+      done();
+    });
+  });
+
   it('should calculate the number of tiles in the 5 and 6 zoom level by geometry rectangle', function() {
     var zoom = 1;
     var extent = [-180, -85.0511, 180, 85.0511];
     var poly = turf.bboxPolygon(extent);
     var fc = turf.featureCollection([poly]);
-    var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+    var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom+1);
     Object.keys(tiles[1]).length.should.be.equal(Math.pow(2, 2*1));
     Object.keys(tiles[2]).length.should.be.equal(Math.pow(2, 2*2));
   });
@@ -149,20 +167,20 @@ describe('XYZ Tile Utils Tests', function() {
 
     it('should calculate the number of tiles in the 5 and 6 zoom level', function() {
       var zoom = 5;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom+1);
       Object.keys(tiles[5]).length.should.be.equal(1);
       Object.keys(tiles[6]).length.should.be.equal(1);
     });
 
     it('should calculate the number of tiles in the 12 zoom level', function() {
       var zoom = 12;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom);
       Object.keys(tiles[12]).length.should.be.equal(2);
     });
 
     it('should calculate the number of tiles in the 1 - 17 zoom level', function() {
       var zoom = 17;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, 1, zoom);
       Object.keys(tiles[17]).length.should.be.equal(87);
       Object.keys(tiles[16]).length.should.be.equal(29);
       Object.keys(tiles[15]).length.should.be.equal(11);
@@ -207,20 +225,20 @@ describe('XYZ Tile Utils Tests', function() {
 
     it('should calculate the number of tiles in the 5 and 6 zoom level', function() {
       var zoom = 5;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom+1);
       Object.keys(tiles[5]).length.should.be.equal(1);
       Object.keys(tiles[6]).length.should.be.equal(1);
     });
 
     it('should calculate the number of tiles in the 12 zoom level by geometry', function() {
       var zoom = 12;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom);
       Object.keys(tiles[12]).length.should.be.equal(6);
     });
 
     it('should calculate the number of tiles in the 1 - 17 zoom level by geometry', function() {
       var zoom = 17;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, 1, zoom);
       Object.keys(tiles[17]).length.should.be.equal(174);
       Object.keys(tiles[16]).length.should.be.equal(56);
       Object.keys(tiles[15]).length.should.be.equal(20);
@@ -265,20 +283,20 @@ describe('XYZ Tile Utils Tests', function() {
 
     it('should calculate the number of tiles in the 5 and 6 zoom level by geometry', function() {
       var zoom = 5;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom+1);
       Object.keys(tiles[5]).length.should.be.equal(1);
       Object.keys(tiles[6]).length.should.be.equal(1);
     });
 
     it('should calculate the number of tiles in the 12 zoom level by geometry', function() {
       var zoom = 12;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom);
       Object.keys(tiles[12]).length.should.be.equal(6);
     });
 
     it('should calculate the number of tiles in the 1 - 17 zoom level by geometry', function() {
       var zoom = 17;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, 1, zoom);
 
       // for (var i = 1; i <= zoom; i++) {
       //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
@@ -323,20 +341,20 @@ describe('XYZ Tile Utils Tests', function() {
 
     it('should calculate the number of tiles in the 5 and 6 zoom level by geometry', function() {
       var zoom = 5;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom+1);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom+1);
       Object.keys(tiles[5]).length.should.be.equal(1);
       Object.keys(tiles[6]).length.should.be.equal(1);
     });
 
     it('should calculate the number of tiles in the 12 zoom level by geometry', function() {
       var zoom = 12;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, zoom, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, zoom, zoom);
       Object.keys(tiles[12]).length.should.be.equal(7);
     });
 
     it('should calculate the number of tiles in the 1 - 17 zoom level by geometry', function() {
       var zoom = 17;
-      var tiles = xyzTileUtils.tilesInGeometry(fc, 1, zoom);
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, 1, zoom);
 
       // for (var i = 1; i <= zoom; i++) {
       //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
@@ -360,6 +378,53 @@ describe('XYZ Tile Utils Tests', function() {
       Object.keys(tiles[3]).length.should.be.equal(1);
       Object.keys(tiles[2]).length.should.be.equal(1);
       Object.keys(tiles[1]).length.should.be.equal(1);
+
+    });
+
+    it('should iterate the number of tiles in the 1 - 17 zoom level by geometry', function(done) {
+      var zoom = 17;
+      var tiles = xyzTileUtils.tilesInFeatureCollection(fc, 5, zoom);
+
+      var zoomDoneCalled = 0;
+      var tilesCalled = [];
+      var tileFunctionCalled = 0;
+
+      // for (var i = 1; i <= zoom; i++) {
+      //   var fc = xyzTileUtils.tilesToFeatureCollection(tiles[i], i);
+      //   fs.writeJsonSync('/tmp/zoom'+i+'.geojson', fc);
+      // }
+
+      Object.keys(tiles[17]).length.should.be.equal(320);
+      Object.keys(tiles[16]).length.should.be.equal(125);
+      Object.keys(tiles[15]).length.should.be.equal(50);
+      Object.keys(tiles[14]).length.should.be.equal(23);
+      Object.keys(tiles[13]).length.should.be.equal(12);
+      Object.keys(tiles[12]).length.should.be.equal(7);
+      Object.keys(tiles[11]).length.should.be.equal(4);
+      Object.keys(tiles[10]).length.should.be.equal(4);
+      Object.keys(tiles[9]).length.should.be.equal(2);
+      Object.keys(tiles[8]).length.should.be.equal(1);
+      Object.keys(tiles[7]).length.should.be.equal(1);
+      Object.keys(tiles[6]).length.should.be.equal(1);
+      Object.keys(tiles[5]).length.should.be.equal(1);
+
+      xyzTileUtils.iterateTiles(tiles, 5, 17, {data: 'no'}, function(tile, callback) {
+        // console.log('tile', tile);
+        tileFunctionCalled++;
+        callback();
+      }, function(zoom, callback) {
+        // console.log('zoom done', zoom);
+        zoomDoneCalled++;
+        callback();
+      }, function(err, data) {
+        // console.log('done', err);
+        // console.log('data', data);
+        console.log('tileFunctionCalled', tileFunctionCalled);
+        console.log('zoomDoneCalled', zoomDoneCalled);
+        zoomDoneCalled.should.be.equal(13);
+        tileFunctionCalled.should.be.equal(551);
+        done();
+      });
 
     });
   });

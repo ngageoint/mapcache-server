@@ -129,23 +129,23 @@ exports.calculateYTileRange = function(bbox, z) {
   };
 };
 
-exports.tilesInGeometry = function(geometry, minZoom, maxZoom) {
+exports.tilesInFeatureCollection = function(featureCollection, minZoom, maxZoom, bufferSize, bufferUnits) {
   var bufferedFeatures = [];
-  turfMeta.featureEach(geometry, function(feature) {
+  turfMeta.featureEach(featureCollection, function(feature) {
     if (feature.geometry
     && (feature.geometry.type === "LineString"
     || feature.geometry.type === "Point")) {
-      bufferedFeatures.push(turf.buffer(feature, .01, 'miles'));
+      bufferedFeatures.push(turf.buffer(feature, bufferSize || .01, bufferUnits || 'miles'));
     } else {
       bufferedFeatures.push(feature);
     }
   });
 
-  geometry = turf.featureCollection(bufferedFeatures);
+  featureCollection = turf.featureCollection(bufferedFeatures);
 
   // get the overall envelope of all features
-  var envelope = turf.envelope(geometry);
-  var extent = turf.bbox(envelope);
+  var envelope = turf.envelope(featureCollection);
+  var extent = turf.bbox(featureCollection);
 
   var yRange = exports.calculateYTileRange(extent, minZoom);
   var xRange = exports.calculateXTileRange(extent, minZoom);
@@ -159,11 +159,11 @@ exports.tilesInGeometry = function(geometry, minZoom, maxZoom) {
     for (var y = yRange.min; y <= yRange.max; y++) {
       // verify this tile matches the geometry
       var tileExtent = exports.tileExtentCalculator(x, y, minZoom);
-      var matches = determineGeometryMatch(geometry, tileExtent);
+      var matches = determineGeometryMatch(featureCollection, tileExtent);
       if (matches) {
         var tile = {x: x, y: y};
         tiles[minZoom][minZoom+'-'+x+'-'+y] = tile;//.push(tile);
-        diveDown(tiles, geometry, x, y, minZoom, maxZoom);
+        diveDown(tiles, featureCollection, x, y, minZoom, maxZoom);
       }
     }
   }
@@ -171,7 +171,7 @@ exports.tilesInGeometry = function(geometry, minZoom, maxZoom) {
   return tiles;
 }
 
-function diveDown(tiles, geometry, x, y, zoom, maxZoom) {
+function diveDown(tiles, featureCollection, x, y, zoom, maxZoom) {
   if (zoom+1 > maxZoom) {
     return tiles;
   }
@@ -193,17 +193,53 @@ function diveDown(tiles, geometry, x, y, zoom, maxZoom) {
     for (var y = yRange.min; y <= yRange.max; y++) {
       var tileExtent = exports.tileExtentCalculator(x, y, zoom);
 
-      var matches = determineGeometryMatch(geometry, tileExtent);
+      var matches = determineGeometryMatch(featureCollection, tileExtent);
       if (matches) {
         var tile = {x: x, y: y};
         tiles[zoom][zoom+'-'+x+'-'+y] = tile;
-        diveDown(tiles, geometry, x, y, zoom, maxZoom);
+        diveDown(tiles, featureCollection, x, y, zoom, maxZoom);
       }
     }
   }
 
   return tiles;
 }
+
+exports.iterateTiles = function(tileList, minZoom, maxZoom, data, processTileCallback, zoomCompleteCallback, completeCallback) {
+  var zoom = minZoom;
+  async.whilst(
+    function (stopIterating) {
+      return zoom <= maxZoom && !stopIterating;
+    },
+    function (zoomLevelDone) {
+      async.setImmediate(function() {
+        var tiles = [];
+
+        var q = async.queue(processTileCallback, 100);
+
+        q.drain = function() {
+          zoomCompleteCallback(zoom, function(stop) {
+            zoom++;
+            zoomLevelDone(stop);
+          });
+        }
+
+        for (var key in tileList[zoom]) {
+          var tile = tileList[zoom][key];
+          q.push({z:zoom, x: tile.x, y: tile.y, data: data}, function(stop) {
+            if (stop) {
+              q.kill();
+              zoomLevelDone(true);
+            }
+          });
+        }
+      });
+    },
+    function (err) {
+      completeCallback(err, data);
+    }
+  );
+};
 
 function determineGeometryMatch(geometry, tileExtent) {
   var extentPoly = turf.bboxPolygon(tileExtent);
@@ -228,66 +264,8 @@ exports.tileCountInExtent = function(extent, minZoom, maxZoom) {
 };
 
 exports.iterateAllTilesInExtent = function(extent, minZoom, maxZoom, data, processTileCallback, zoomCompleteCallback, completeCallback) {
-  var zoom = minZoom;
-  async.whilst(
-    function (stopIterating) {
-      return zoom <= maxZoom && !stopIterating;
-    },
-    function (zoomLevelDone) {
-      var yRange = exports.calculateYTileRange(extent, zoom);
-      var xRange = exports.calculateXTileRange(extent, zoom);
-      var currentx = xRange.min;
-
-      async.doWhilst(
-        function(xRowDone) {
-          getXRow(data, currentx, yRange, zoom, xRowDone, processTileCallback);
-        },
-        function (stopIterating) {
-          currentx++;
-          return currentx <= xRange.max && !stopIterating;
-        },
-        function (stop) {
-          zoomCompleteCallback(zoom, function() {
-            zoom++;
-            zoomLevelDone(stop);
-          });
-        }
-      );
-    },
-    function (err) {
-      completeCallback(err, data);
-    }
-  );
+  var poly = turf.bboxPolygon(extent);
+  var fc = turf.featureCollection([poly]);
+  var tiles = exports.tilesInFeatureCollection(fc, minZoom, maxZoom);
+  exports.iterateTiles(tiles, minZoom, maxZoom, data, processTileCallback, zoomCompleteCallback, completeCallback);
 };
-
-function pushNextTileTasks(q, data, zoom, x, yRange, numberOfTasks, stopCallback) {
-  if (yRange.current > yRange.max) return false;
-  for (var i = yRange.current; i <= yRange.current + numberOfTasks && i <= yRange.max; i++) {
-    q.push({z:zoom, x: x, y: i, data: data}, stopCallback);
-  }
-  yRange.current = yRange.current + numberOfTasks + 1;
-  return true;
-}
-
-function getXRow(data, xRow, yRange, zoom, xRowDone, processTileCallback) {
-  var q = async.queue(processTileCallback, 100);
-
-  q.drain = function() {
-    var tasksPushed = pushNextTileTasks(q, data, zoom, xRow, yRange, 10, function(stop) {
-      if (stop) {
-        q.kill();
-        xRowDone(true);
-      }
-    });
-    if (!tasksPushed) {
-      yRange.current = yRange.min;
-      xRowDone();
-    }
-  };
-  pushNextTileTasks(q, data, zoom, xRow, yRange, 10, function(stop) {
-    if (stop) {
-      q.kill();
-      xRowDone(true);
-    }
-  });
-}
