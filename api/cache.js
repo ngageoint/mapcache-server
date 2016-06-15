@@ -48,13 +48,25 @@ Cache.create = function(cache, callback, progressCallback) {
     }
   }
 
-  var cachePoly = cache.geometry.type === 'Feature' ? cache.geometry : {
-    type: "Feature",
-    properties: {},
-    geometry: cache.geometry
-  };
+  // var cachePoly = (cache.geometry.type === 'Feature' || cache.geometry.type === 'FeatureCollection') ? cache.geometry : {
+  //   type: "Feature",
+  //   properties: {},
+  //   geometry: cache.geometry
+  // };
 
-  cache.geometry = turf.intersect(cachePoly, turf.bboxPolygon([-180, -85, 180, 85]));
+  if (cache.geometry.type === 'FeatureCollection') {
+    cache.geometry = cache.geometry;
+  } else if (cache.geometry.type === 'Feature') {
+    cache.geometry = turf.featureCollection([cache.geometry]);
+  } else {
+    cache.geometry = turf.featureCollection([{
+      type: "Feature",
+      properties: {},
+      geometry: cache.geometry
+    }]);
+  }
+
+  // cache.geometry = turf.intersect(cachePoly, turf.bboxPolygon([-180, -85, 180, 85]));
 
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);
@@ -164,8 +176,11 @@ Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
 };
 
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {
+  console.log('get the tile');
   var cacheApi = new CacheApi(this.cacheModel);
+  console.log('cacheapi', cacheApi);
   cacheApi.callbackWhenInitialized(function() {
+    console.log('inited cache api');
     cacheApi.getTile(format, z, x, y, params, callback);
   });
 };

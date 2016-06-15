@@ -159,7 +159,7 @@ exports.tilesInFeatureCollection = function(featureCollection, minZoom, maxZoom,
     for (var y = yRange.min; y <= yRange.max; y++) {
       // verify this tile matches the geometry
       var tileExtent = exports.tileExtentCalculator(x, y, minZoom);
-      var matches = determineGeometryMatch(featureCollection, tileExtent);
+      var matches = exports.determineGeometryMatch(featureCollection, tileExtent);
       if (matches) {
         var tile = {x: x, y: y};
         tiles[minZoom][minZoom+'-'+x+'-'+y] = tile;//.push(tile);
@@ -193,7 +193,7 @@ function diveDown(tiles, featureCollection, x, y, zoom, maxZoom) {
     for (var y = yRange.min; y <= yRange.max; y++) {
       var tileExtent = exports.tileExtentCalculator(x, y, zoom);
 
-      var matches = determineGeometryMatch(featureCollection, tileExtent);
+      var matches = exports.determineGeometryMatch(featureCollection, tileExtent);
       if (matches) {
         var tile = {x: x, y: y};
         tiles[zoom][zoom+'-'+x+'-'+y] = tile;
@@ -241,12 +241,11 @@ exports.iterateTiles = function(tileList, minZoom, maxZoom, data, processTileCal
   );
 };
 
-function determineGeometryMatch(geometry, tileExtent) {
+exports.determineGeometryMatch = function(geometry, tileExtent) {
   var extentPoly = turf.bboxPolygon(tileExtent);
   var found;
   turfMeta.featureEach(geometry, function(feature) {
     if (!found) {
-      // console.log('feature', feature);
       found = turf.intersect(feature, extentPoly);
     }
   });

@@ -72,19 +72,24 @@ XYZ.prototype.generateCache = function(callback, progressCallback) {
     size: 0,
     percentComplete: 0
   };
+  var tiles = xyzTileUtils.tilesInFeatureCollection(cache.geometry, cache.minZoom, cache.maxZoom);
 
-  cache.formats.xyz.totalTiles = xyzTileUtils.tileCountInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom);
-
+  var totalTiles = 0;
   cache.formats.xyz.zoomLevelStatus = [];
   for (var i = cache.minZoom; i <= cache.maxZoom; i++) {
+    var zoomTiles = Object.keys(tiles[i]).length;
+    totalTiles += zoomTiles;
     cache.formats.xyz.zoomLevelStatus[i] = {
       generatedTiles: 0,
-      totalTiles: xyzTileUtils.tileCountInExtent(turf.bbox(cache.geometry), i, i),
+      totalTiles: zoomTiles,
       complete: false,
       percentComplete: 0,
       size: 0
     };
   }
+
+  cache.formats.xyz.totalTiles = totalTiles;
+
   progressCallback(cache, function(err, updatedCache) {
     cache = updatedCache;
     xyzTileUtils.iterateAllTilesInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
@@ -179,6 +184,7 @@ function getTileForCache(cache, z, x, y, format, params, outputDirectory, callba
     return callback(null, fs.createReadStream(path.join(dir, filename)));
   }
   // var map = cache.source.map;
+
   cache.getTile(format, z, x, y, params, function(err, stream) {
     log.debug('Got the stream for the tile %d %d %d for cache %s', z, x, y, cache.id);
     if (err) {

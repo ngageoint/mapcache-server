@@ -58,20 +58,23 @@ TMS.prototype.generateCache = function(callback, progressCallback) {
     percentComplete: 0
   };
 
-  cache.formats.tms.totalTiles = xyzTileUtils.tileCountInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom);
+  var tiles = xyzTileUtils.tilesInFeatureCollection(cache.geometry, cache.minZoom, cache.maxZoom);
 
-  console.log('cache.status', cache.formats.tms);
-
+  var totalTiles = 0;
   cache.formats.tms.zoomLevelStatus = [];
   for (var i = cache.minZoom; i <= cache.maxZoom; i++) {
+    var zoomTiles = Object.keys(tiles[i]).length;
+    totalTiles += zoomTiles;
     cache.formats.tms.zoomLevelStatus[i] = {
       generatedTiles: 0,
-      totalTiles: xyzTileUtils.tileCountInExtent(turf.bbox(cache.geometry), i, i),
+      totalTiles: zoomTiles,
       complete: false,
       percentComplete: 0,
       size: 0
     };
   }
+
+  cache.formats.tms.totalTiles = totalTiles;
   progressCallback(cache, function(err, updatedCache) {
     cache = updatedCache;
     xyzTileUtils.iterateAllTilesInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
