@@ -38,6 +38,7 @@
     "sinon-as-promised": "^4.0.0",
     "turf": "^3.0.5",
     "underscore": "^1.8.3",
+    "wkx": "^0.2.0",
     "xyz-tile-utils": "file:../modules/xyz-tile-utils"
   },
   "devDependencies": {

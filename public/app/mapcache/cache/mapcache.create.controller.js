@@ -1,9 +1,11 @@
-var angular = require('angular');
-var turf = require('turf');
-var _ = require('underscore');
+var angular = require('angular')
+  , turf = require('turf')
+  , _ = require('underscore')
+  , wxk = require('wkx');
+
 var xyzTileUtils = require('xyz-tile-utils');
 
-var MapcacheCreateController = function($scope, $location, $http, $routeParams, $modal, $rootScope, ServerService, CacheService, MapService, LocalStorageService) {
+var MapcacheCreateController = function($scope, $location, $http, $routeParams, $rootScope, ServerService, CacheService, MapService, LocalStorageService) {
   this.MapService = MapService;
   this.ServerService = ServerService;
   this.CacheService = CacheService;
@@ -21,6 +23,61 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   $scope.$watch('create.cache.source.previewLayer', this._layerWatch.bind(this));
   $scope.$watch('create.cache.create', this._cacheCreateWatch.bind(this), true);
   $scope.$watch('create.cache.minZoom+create.cache.maxZoom+create.tileCacheRequested', this._calculateCacheSize.bind(this));
+
+  $scope.$on('location-url', function(e, location) {
+    if (!location) {
+      $scope.mapDatasource = {};
+      return;
+    }
+    $scope.urlDiscovery = true;
+    $scope.mapDatasource.url = location;
+    urlChecker();
+  });
+
+  $scope.$watch('create.file', this.boundaryFileChosen.bind(this));
+
+  $scope.$on('location-file', function(e, uploadFile) {
+    $scope.create.text = undefined;
+    $scope.create.file = uploadFile;
+  });
+
+  $scope.$on('location-text', function(e, text) {
+    $scope.create.file = undefined;
+    $scope.create.text = text;
+    try {
+      var geometry = wxk.Geometry.parse(text);
+      $scope.create.locationStatus = undefined;
+      var json = geometry.toGeoJSON();
+      var fc = turf.featureCollection([{
+          type: 'Feature',
+          properties: {},
+          geometry: json
+      }]);
+      $scope.create.cache.geometry = fc;
+      $scope.$broadcast('extentChanged', fc);
+      $scope.create.cache.extent = fc;
+    } catch (e) {
+      // try to parse as WSEN
+      var wsen = text.split(',');
+      if (wsen.length === 4 && !isNaN(Number.parseFloat(wsen[0])) && !isNaN(Number.parseFloat(wsen[1])) && !isNaN(Number.parseFloat(wsen[2])) && !isNaN(Number.parseFloat(wsen[3])))  {
+        var poly = turf.bboxPolygon(wsen);
+        var fc = turf.featureCollection([poly]);
+        $scope.create.cache.geometry = fc;
+        $scope.$broadcast('extentChanged', fc);
+        $scope.create.cache.extent = fc;
+        $scope.create.locationStatus = undefined;
+        return;
+      }
+      $scope.create.locationStatus = 'error';
+      $scope.$broadcast('extentChanged', null);
+      $scope.create.cache.geometry = undefined;
+      $scope.create.cache.extent = undefined;
+    }
+  });
+
+  $scope.$on('location-url', function(e, uploadFile) {
+    // $scope.create.file = uploadFile;
+  });
 
   $rootScope.title = 'Create A Cache';
   this.token = LocalStorageService.getToken();
@@ -83,6 +140,30 @@ MapcacheCreateController.prototype.initialize = function () {
   this.ServerService.getMaxCacheSize(function(data) {
     this.storage = data;
   }.bind(this));
+};
+
+MapcacheCreateController.prototype.boundaryFileChosen = function(file) {
+  if (!file) return;
+  this.boundaryLocation = file.name;
+  var fr = new FileReader();
+  fr.onload = function() {
+    var text = fr.result;
+    try {
+      var json = JSON.parse(text);
+      this.boundaryJson = json;
+      this.locationStatus = undefined;
+      this.cache.geometry = json;
+      this.$scope.$broadcast('extentChanged', json);
+      this.cache.extent = json;
+    } catch (e) {
+      this.locationStatus = 'error';
+      this.$scope.$broadcast('extentChanged', null);
+      this.$scope.create.cache.geometry = undefined;
+      this.$scope.create.cache.extent = undefined;
+    }
+    this.$scope.$apply();
+  }.bind(this);
+  var text = fr.readAsText(file);
 };
 
 MapcacheCreateController.prototype.useCurrentView = function() {

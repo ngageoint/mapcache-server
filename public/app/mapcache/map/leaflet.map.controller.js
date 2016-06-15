@@ -130,7 +130,7 @@ module.exports = function LeafletMapController($scope, $element, $rootScope, Loc
 
     if (!centered) {
       if (cacheCenters && cacheCenters.length > 0) {
-        var extent = turf.bbox(turf.featurecollection(cacheCenters));
+        var extent = turf.bbox(turf.featureCollection(cacheCenters));
         map.fitBounds([
           [extent[1],extent[0]],
           [extent[3], extent[2]]

@@ -1,5 +1,7 @@
 module.exports = function LocationChooserController($scope, $element) {
 
+  $scope.placeholder = $scope.placeholder || 'e.g. http://osm.geointservices.io/osm_tiles';
+
   $scope.$watch('file', function() {
     if ($scope.file) {
       $scope.location = $scope.file.name;
@@ -34,8 +36,11 @@ module.exports = function LocationChooserController($scope, $element) {
   }
 
   $scope.$watch('location', function(location) {
-    if (location && isValidURL(location)) {
+    if (!location) return;
+    if (isValidURL(location)) {
       $scope.$emit('location-url', location, isValidURL(location));
+    } else {
+      $scope.$emit('location-text', location);
     }
   });
 };

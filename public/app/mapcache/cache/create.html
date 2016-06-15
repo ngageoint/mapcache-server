@@ -63,9 +63,16 @@
         </div>
       </div>
 
-      <span class="page-sub-entity-title one-line-ellipsis">Cache Boundaries</span>
+      <div class="form-group has-feedback" ng-class="{'has-success':create.locationStatus == 'success', 'has-warning': create.locationStatus == 'warning', 'has-error': create.locationStatus == 'error'}">
+        <span class="control-label page-sub-entity-title">Choose a GeoJSON file or type WKT or an extent in the form W, S, E, N to set the cache boundaries</span>
+        <div location-chooser location-status="create.locationStatus" file="create.boundaryFile" placeholder="'Choose a file or type WKT or an extent in the form W, S, E, N'"></div>
+        <p ng-if="create.locationStatus" class="help-block">
+          <span ng-if="create.locationStatus == 'error' && create.file">{{create.boundaryLocation}} is not valid GeoJSON.</span>
+          <span ng-if="create.locationStatus == 'error' && create.text">{{create.text}} is not valid well known text or sounds specified as W, S, E, N.</span>
+        </p>
+      </div>
 
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group north-group" ng-class="{'has-error': create.nsError}">
             <label>Northern Boundary</label>
@@ -83,9 +90,9 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="row">
-        <div class="col-sm-2" style="height: 500px">
+        <!-- <div class="col-sm-2" style="height: 500px">
           <div class="form-group west-group vertical-center" ng-class="{'has-error': create.ewError}">
             <label>Western Boundary</label>
             <div class="input-group merged">
@@ -101,15 +108,15 @@
               <span class="input-group-addon">&quot;</span>
             </div>
           </div>
-        </div>
-        <div class="col-sm-8">
+        </div> -->
+        <div class="col-sm-12">
           <p><a ng-click="create.useCurrentView()">Set cache boundaries to current view</a></p>
           <div leaflet-create options="create.cache"></div>
             <div class="pull-right" ng-if="create.cache.source.geometry">
               Green box indicates map boundaries
             </div>
         </div>
-        <div class="col-sm-2" style="height: 500px">
+        <!-- <div class="col-sm-2" style="height: 500px">
           <div class="form-group east-group vertical-center" ng-class="{'has-error': create.ewError}">
             <label>Eastern Boundary</label>
             <div class="input-group merged">
@@ -125,9 +132,9 @@
               <span class="input-group-addon">&quot;</span>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-sm-2 col-sm-offset-5">
           <div class="form-group south-group" ng-class="{'has-error': create.nsError}">
             <label>Southern Boundary</label>
@@ -145,7 +152,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
     <div class="visible-xs-block">
       <div class="row">

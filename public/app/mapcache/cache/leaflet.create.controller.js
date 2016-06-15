@@ -124,11 +124,22 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
   $scope.$on('extentChanged', function(event, envelope) {
     drawnItems.removeLayer(cacheFootprintLayer);
     cacheFootprintLayer = null;
-    if (envelope) {
+    if (envelope && envelope.west) {
       var gj = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
       $scope.options.geometry = gj.geometry;
       cacheFootprintLayer = L.rectangle([[envelope.south, envelope.west], [envelope.north, envelope.east]]);
       cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
+      drawnItems.addLayer(cacheFootprintLayer);
+    } else if (envelope) {
+      cacheFootprintLayer = L.geoJson(envelope, {
+          style: function (feature) {
+              return {
+                color: "#0072c5",
+                weight: 2,
+                opacity: 1
+              };
+          }
+      });
       drawnItems.addLayer(cacheFootprintLayer);
     }
   });
@@ -140,6 +151,13 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
   });
 
   function updateMapExtent(extent) {
+    if (extent[0] && extent[0] === -180 && extent[2] === 180) {
+      map.setZoom(3);
+      return;
+    }
+    if (extent.features) {
+      extent = turf.bbox(extent);
+    }
     map.fitBounds([
       [extent[1],extent[0]],
       [extent[3], extent[2]]

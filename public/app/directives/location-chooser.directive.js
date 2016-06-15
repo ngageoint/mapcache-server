@@ -5,7 +5,8 @@ module.exports = function locationChooser() {
     scope: {
       accept: '=',
       locationStatus: '=',
-      file: '='
+      file: '=',
+      placeholder: '='
     },
     controller: 'LocationChooserController',
     bindToController: true
