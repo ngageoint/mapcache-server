@@ -39,6 +39,6 @@ exports.server = {
     "maximumCacheSize":2048
   };
 exports.sourceCacheTypes = {
-    "vector": [{"type":"geojson", "required": false, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}],
-    "raster": [{"type":"xyz", "required": false}, {"type":"tms", "required": false, "depends": "xyz"}, {"type":"geopackage", "required": false, "depends": "xyz"}]
+    "vector": [{"type":"geojson", "required": false, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"geopackage", "required": false, "vector": true}],
+    "raster": [{"type":"xyz", "required": false}, {"type":"tms", "required": false, "depends": "xyz"}]
   };
