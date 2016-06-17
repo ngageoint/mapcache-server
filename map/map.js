@@ -126,9 +126,9 @@ Map.prototype.getOverviewTile = function(callback) {
 Map.prototype.getTile = function(format, z, x, y, params, callback) {
   log.info('[Retrieve Tile]:\t %d %d %d for map %s', z, x, y, this.map.id.toString());
   this.initPromise.then(function(self) {
-
-    if (self.config && self.config.outputDirectory) {
-      var dir = path.join(self.config.outputDirectory, self.map.id, 'tiles', z.toString(), x.toString());
+    var dir;
+    if (self.config && self.config.outputDirectory && !params.cacheId) {
+      dir = path.join(self.config.outputDirectory, self.map.id, 'tiles', z.toString(), x.toString());
       var filename = y + '.png';
 
       if (fs.existsSync(path.join(dir, filename)) && (!params || (params && !params.noCache))) {

@@ -70,6 +70,13 @@ module.exports = function(app, security) {
 
   // Grab the cache for any endpoint that uses cacheId
   app.param('sourceId', function(req, res, next, sourceId) {
+    if (req.param('noProperties')) {
+      Source.getSourceNoProperties(sourceId, function(err, source) {
+        if (!source) return res.status(404).send('Source ' + sourceId + ' not found');
+        req.source = source;
+        next();
+      });
+    } else {
       Source.getSourceById(sourceId, function(err, source) {
         if (!source) return res.status(404).send('Source ' + sourceId + ' not found');
         if (source.permission === 'USER') {
@@ -80,6 +87,7 @@ module.exports = function(app, security) {
         req.source = source;
         next();
       });
+    }
   });
 
   // Grab the cache for any endpoint that uses cacheId

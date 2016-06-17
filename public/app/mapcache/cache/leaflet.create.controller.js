@@ -37,7 +37,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
   var drawOptions = {
     draw: {
         polyline: false,
-        polygon: false,
+        polygon: true,
         circle: false, // Turns off this drawing tool
         rectangle: {
             shapeOptions: {

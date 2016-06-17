@@ -124,13 +124,13 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
 
 MapcacheCreateController.prototype.initialize = function () {
   if (this.mapId) {
-    this.MapService.getMap({id:this.mapId}, function(map) {
+    this.MapService.getMapNoProperties({id:this.mapId}, function(map) {
       this.cache.source = map;
       this.cache.permission = map.permission;
       this.loadingMaps = false;
     }.bind(this));
   } else {
-    this.MapService.getAllMaps(true).then(function(maps) {
+    this.MapService.getAllMapsNoProperties(true).then(function(maps) {
       this.loadingMaps = false;
       this.maps = maps;
     }.bind(this), function() {
@@ -171,7 +171,6 @@ MapcacheCreateController.prototype.useCurrentView = function() {
 };
 
 MapcacheCreateController.prototype.dmsChange = function(direction, dms) {
-  console.log('dms', dms);
   this.bb[direction] = (!isNaN(dms.degrees) ? Number(dms.degrees) : 0) + (!isNaN(dms.minutes) ? dms.minutes/60 : 0) + (!isNaN(dms.seconds) ? dms.seconds/(60*60) : 0);
   this.manualEntry();
 };
@@ -348,8 +347,9 @@ MapcacheCreateController.prototype._calculateCacheSize = function() {
     return;
   }
 
-  var extent = turf.bbox(this.cache.geometry);
-  this.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, this.cache.minZoom, this.cache.maxZoom);
+  var tiles = xyzTileUtils.tilesInFeatureCollection(this.cache.geometry, this.cache.minZoom, this.cache.maxZoom);
+
+  this.totalCacheTiles = Object.keys(tiles).length;
   this.totalCacheSize = this.totalCacheTiles * (this.cache.source.tileSize/this.cache.source.tileSizeCount);
 };
 

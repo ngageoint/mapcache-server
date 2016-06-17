@@ -55,9 +55,9 @@ exports.getVectorTileWithLayer = function(source, layer, format, z, x, y, params
 		return callback(null, fs.createReadStream(imageTile));
 	} else {
 		log.debug('getting tile from db', imageTile);
-		if (source.source) {
-			FeatureModel.fetchTileForCacheId(source.id, bbox, z, function(err, tile) {
-				handleTileData(tile, format, source.source, imageTile, callback);
+		if (params.cacheId) {
+			FeatureModel.fetchTileForSourceIdAndCacheId(source.id, params.cacheId, bbox, z, function(err, tile) {
+				handleTileData(tile, format, source, imageTile, callback);
 			});
 		} else {
 			if (layer) {

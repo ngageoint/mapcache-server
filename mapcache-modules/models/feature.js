@@ -139,7 +139,6 @@ exports.findFeaturesByCacheIdWithin = function(cacheId, west, south, east, north
 		    callback(null, collection);
 		  });
 		});
-
 	});
 };
 
@@ -165,12 +164,33 @@ exports.getAllFeaturesByCacheIdAndSourceId = function(cacheId, sourceId, west, s
 	});
 };
 
-exports.createCacheFeaturesFromSource = function(sourceId, cacheId, west, south, east, north, callback) {
+exports.createCacheFeaturesFromSource = function(sourceId, cacheId, geojson, callback) {
 	knex(function(knex) {
-			knex.raw('WITH row AS (SELECT source_id, \''+cacheId + '\' as cache_id, box, geometry, properties FROM features WHERE source_id = \''+ sourceId + '\' and cache_id is null and ST_Intersects(geometry, ST_Transform(ST_MakeEnvelope('+west+','+south+','+east+','+north+', 4326), 3857))) INSERT INTO features (source_id, cache_id, box, geometry, properties) (SELECT * from row)')
-		.then(function(collection) {
-			callback(null, collection);
-		});
+    var count = 0;
+    async.eachSeries(geojson.features, function(feature, callback) {
+      knex.raw('WITH row AS (' +
+        'SELECT source_id, \''+cacheId + '\' as cache_id, box, geometry, properties '+
+        'FROM features '+
+        'WHERE source_id = \''+ sourceId + '\' '+
+          'and cache_id is null '+
+          'and ST_Intersects(geometry, '+
+            'ST_Transform('+
+              'ST_SetSRID('+
+                'ST_GeomFromGeoJSON(\''+JSON.stringify(feature.geometry)+'\'), 4326'+
+              '),'+
+            ' 3857)'+
+          ')'+
+        ') INSERT INTO features (source_id, cache_id, box, geometry, properties)'+
+        '(SELECT * from row)')
+  		.then(function(collection) {
+        count += collection.rowCount;
+  			callback(null, collection);
+  		});
+    }, function() {
+      callback(null, {
+        rowCount: count
+      });
+    });
 	});
 };
 
@@ -337,6 +357,41 @@ exports.fetchTileForSourceId = function(sourceId, bbox, z, projection, callback)
 		});
 	});
 };
+
+exports.fetchTileForSourceIdAndCacheId = function(sourceId, cacheId, bbox, z, projection, callback) {
+	if (!callback && typeof projection === 'function') {
+		callback = projection;
+		projection = null;
+	}
+	console.time('fetching data');
+
+	var bufferedBox = {
+		west: Math.max(-180, bbox.west - Math.abs((bbox.east - bbox.west) * 0.02)),
+		south: Math.max(-85, bbox.south - Math.abs((bbox.north - bbox.south) * 0.02)),
+		east: Math.min(180, bbox.east + Math.abs((bbox.east - bbox.west) * 0.02)),
+		north: Math.min(85, bbox.north + Math.abs((bbox.north - bbox.south) * 0.02))
+	};
+
+	var epsg3857ll = proj4('EPSG:3857', [bbox.west, bbox.south]);
+	var epsg3857ur = proj4('EPSG:3857', [bbox.east, bbox.north]);
+	console.log('epsg3857ll', epsg3857ll);
+
+	createGeometrySelect(projection, bufferedBox, {west: epsg3857ll[0], south: epsg3857ll[1], east: epsg3857ur[0], north: epsg3857ur[1]}, function(geometrySelect) {
+		knex(function(knex) {
+			knex.select(geometrySelect,'properties')
+			.from('features')
+			.whereRaw('ST_Intersects(box, ST_MakeEnvelope('+bufferedBox.west+","+bufferedBox.south+","+bufferedBox.east+","+bufferedBox.north+', 4326))')
+			.andWhere({source_id: sourceId, cache_id: cacheId}) // jshint ignore:line
+			// .limit(100000)
+			.then(function(collection){
+				console.timeEnd('fetching data');
+				console.log('returned ' + collection.length + ' features');
+		    callback(null, collection);
+		  });
+		});
+	});
+};
+
 
 exports.fetchTileForSourceIdAndLayerId = function(sourceId, layerId, bbox, z, projection, callback) {
 	if (!callback && typeof projection === 'function') {

@@ -18,18 +18,26 @@ exports.isAlreadyProcessed = function(source, callback) {
 };
 
 function setSourceCount(source, callback) {
+  console.time('Set source count ' + source.id);
+
   if (source.status.totalFeatures) {
+    console.timeEnd('Set source count ' + source.id);
+
     return callback(null, source);
   }
   FeatureModel.getFeatureCount({sourceId: source.id, cacheId: null}, function(resultArray){
     source.status.totalFeatures = parseInt(resultArray[0].count);
     source.status.generatedFeatures = parseInt(resultArray[0].count);
+    console.timeEnd('Set source count ' + source.id);
+
     callback(null, source);
   });
 }
 
 function setSourceExtent(source, callback) {
+  console.time('Set source extent ' + source.id);
   if (source.geometry) {
+    console.timeEnd('Set source extent ' + source.id);
     return callback(null, source);
   }
   FeatureModel.getExtentOfSource({sourceId:source.id}, function(resultArray) {
@@ -37,6 +45,7 @@ function setSourceExtent(source, callback) {
       type: "Feature",
       geometry: JSON.parse(resultArray[0].extent)
     };
+    console.timeEnd('Set source extent ' + source.id);
     callback(null, source);
   });
 }
@@ -62,8 +71,10 @@ function setSourceStyle(source, callback) {
   callback(null, source);
 }
 
-function setSourceProperties(source, callback) {
+exports.setSourceProperties = function(source, callback) {
+  console.time('Set source properties ' + source.id);
   if (source.properties) {
+    console.timeEnd('Set source properties ' + source.id);
     return callback(null, source);
   }
   source.properties = [];
@@ -76,6 +87,8 @@ function setSourceProperties(source, callback) {
         propertyDone();
       });
     }, function() {
+      console.timeEnd('Set source properties ' + source.id);
+      console.log('source.properties', source.properties);
       callback(null, source);
     });
   });
@@ -88,8 +101,9 @@ exports.completeProcessing = function(source, callback) {
     },
     setSourceCount,
     setSourceExtent,
-    setSourceStyle,
-    setSourceProperties
+    setSourceStyle
+    /*,
+    exports.setSourceProperties*/
   ], function (err, source){
     source.status.complete = true;
     source.status.message = "Complete";

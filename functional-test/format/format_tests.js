@@ -128,7 +128,19 @@ mocks.mapMocks.wmsDatasource,{
   testParams: {
     featureCount: 3807
   }
-}*/];
+},*/{
+  id: 'test-shapefile',
+  name: 'mines',
+  file: {
+    path:__dirname + '/mines.zip',
+    name: 'mines.zip'
+  },
+  format: 'shapefile',
+  zOrder: 0,
+  testParams: {
+    featureCount: 2996
+  }
+}];
 
 describe('Format Tests', function() {
 

@@ -70,7 +70,6 @@ Cache.create = function(cache, callback, progressCallback) {
 
   CacheModel.createCache(cache, function(err, newCache) {
     if (err) return callback(err);
-    progressCallback(null, newCache);
     createFormat(formats, newCache, callback, progressCallback);
   });
 };
@@ -79,6 +78,7 @@ function createFormat(formats, cache, callback, progressCallback) {
   callback = callback || function() {};
   var cacheApi = new CacheApi(cache);
   cacheApi.callbackWhenInitialized(function(err, cache) {
+    progressCallback(err, cache);
     async.eachSeries(formats, function(format, done) {
       var Format = require('../format/'+format);
       var cacheFormat = new Format({cache: cache, outputDirectory: config.server.cacheDirectory.path});
@@ -176,11 +176,8 @@ Cache.prototype.getData = function(format, minZoom, maxZoom, callback) {
 };
 
 Cache.prototype.getTile = function(format, z, x, y, params, callback) {
-  console.log('get the tile');
   var cacheApi = new CacheApi(this.cacheModel);
-  console.log('cacheapi', cacheApi);
   cacheApi.callbackWhenInitialized(function() {
-    console.log('inited cache api');
     cacheApi.getTile(format, z, x, y, params, callback);
   });
 };

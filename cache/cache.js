@@ -57,15 +57,15 @@ Cache.prototype._updateDataSourceParams = function(callback) {
     FeatureModel.getFeatureCount({sourceId: s.source.id, cacheId: self.cache.id}, function(countResults) {
       console.log('count results', countResults);
       if (countResults[0].count !== '0') {
-        self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
+        // self.cache.status.totalFeatures = self.cache.status.totalFeatures + Number(countResults[0].count);
         return sourceFinishedCallback();
       }
-      var extent = turf.bbox(self.cache.geometry);
-      extent[0] = Math.max(-180, extent[0]);
-      extent[1] = Math.max(-85, extent[1]);
-      extent[2] = Math.min(180, extent[2]);
-      extent[3] = Math.min(85, extent[3]);
-      FeatureModel.createCacheFeaturesFromSource(s.source.id, self.cache.id, extent[0], extent[1], extent[2], extent[3], function(err, features) {
+      // var extent = turf.bbox(self.cache.geometry);
+      // extent[0] = Math.max(-180, extent[0]);
+      // extent[1] = Math.max(-85, extent[1]);
+      // extent[2] = Math.min(180, extent[2]);
+      // extent[3] = Math.min(85, extent[3]);
+      FeatureModel.createCacheFeaturesFromSource(s.source.id, self.cache.id, self.cache.geometry, function(err, features) {
         log.info('Created %d features for the cache %s from the source %s', features.rowCount, self.cache.id, s.source.id);
         self.cache.status.totalFeatures = self.cache.status.totalFeatures + features.rowCount;
         return sourceFinishedCallback();
@@ -115,6 +115,9 @@ Cache.prototype.getTile = function(format, z, x, y, params, callback) {
     if (!match) {
       return callback(null, null);
     }
+
+    params.geometry = self.cache.geometry;
+    params.cacheId = self.cache.id;
 
     self.map.getTile(format, z, x, y, params, function(err, tileStream) {
       callback(null, tileStream);

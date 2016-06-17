@@ -9,10 +9,12 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
 
   var service = {
     getAllMaps: getAllMaps,
+    getAllMapsNoProperties: getAllMapsNoProperties,
     deleteMap: deleteMap,
     createMap: createMap,
     saveMap: saveMap,
     getMap: getMap,
+    getMapNoProperties: getMapNoProperties,
     discoverMap: discoverMap,
     getWmsGetCapabilities: getWmsGetCapabilities,
     deleteDataSource: deleteDataSource,
@@ -43,6 +45,25 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
     return resolveAllMaps;
   }
 
+  function getAllMapsNoProperties(forceRefresh) {
+    if (forceRefresh) {
+        resolvedMaps = {};
+        resolveAllMaps = undefined;
+    }
+
+    resolveAllMaps = resolveAllMaps || $http.get('/api/maps?noProperties=true').then(function(data) {
+      return data.data;
+    });
+
+    resolveAllMaps.then(function(maps) {
+      for (var i = 0; i < maps.length; i++) {
+        resolvedMaps[maps[i].id] = $q.when(maps[i]);
+      }
+    });
+
+    return resolveAllMaps;
+  }
+
   function getCachesForMap(map, success, error) {
     $http.get('/api/maps/'+map.id+'/caches')
       .then(function(data) { return data.data; })
@@ -51,6 +72,11 @@ module.exports = function MapService($q, $http, $rootScope, LocalStorageService)
 
   function getMap(map, success, error) {
     $http.get('/api/maps/'+map.id)
+      .then(function(data) { return data.data; }).then(success, error);
+  }
+
+  function getMapNoProperties(map, success, error) {
+    $http.get('/api/maps/'+map.id + '?noProperties=true')
       .then(function(data) { return data.data; }).then(success, error);
   }
 

@@ -2,9 +2,11 @@ var assert = require('assert')
   , FeatureModel = require('mapcache-models').Feature
   , turf = require('turf')
   , lengthStream = require('length-stream')
-  , fs = require('fs')
+  , fs = require('fs-extra')
   , Map = require('../../map/map')
-  , should = require('should');
+  , Cache = require('../../cache/cache')
+  , should = require('should')
+  , path = require('path');
 
 // var geotiffDataSource = {
 //   id: 'test-ds',
@@ -17,20 +19,20 @@ var assert = require('assert')
 //   zOrder: 0
 // };
 
-var geotiffDataSource = {
+var ds = {
   id: 'test-ds',
-  name: 'geotiff',
-  format: 'mrsid',
+  name: 'mines',
+  format: 'shapefile',
   file: {
-    path: __dirname + '/5682de4cfff8e4894de8fcda',
-    name: '5682de4cfff8e4894de8fcda'
+    path: __dirname + '/mines.zip',
+    name: 'mines.zip'
   },
   zOrder: 0
 };
 
 var mapModel = {
   id: 'test-map',
-  dataSources: [geotiffDataSource]
+  dataSources: [ds]
 };
 
 /* Bounds of denver.tif *
@@ -42,39 +44,60 @@ Lower Right (  515154.296, 4388316.166) (104d49'24.16"W, 39d38'40.20"N) (-104.82
 Center      (  513902.796, 4389778.166) (104d50'16.56"W, 39d39'27.69"N)
 */
 
-var cache = {
+var cacheModel = {
   id: 'test-cache',
   name: 'generic test cache',
-  minZoom: 0,
-  maxZoom: 12,
-  formats: ['xyz'],
-  outputDirectory: '/tmp/mapcache-test'
+  outputDirectory: '/tmp/mapcache-test',
+  geometry: turf.polygon([[
+    [-180, -85],
+    [-180, 85],
+    [180, 85],
+    [180, -85],
+    [-180, -85]
+  ]]).geometry,
+  source: mapModel
 };
 
 var tmpImage = '/tmp/geotiff_test.png';
 
-describe.skip('geotiff source tests', function() {
+describe.only('one off source tests', function() {
   var map;
   before(function(done) {
     this.timeout(60000);
-    map = new Map(mapModel);
-    map.callbackWhenInitialized(function() {
-      done();
+    fs.remove('/tmp/mapcache-test', function(err) {
+      fs.copy(ds.file.path, '/tmp/mapcache-test/'+ds.file.name, function(err) {
+        ds.file.path = '/tmp/mapcache-test/mines.zip';
+        done();
+        // map = new Map(mapModel);
+        // map.callbackWhenInitialized(function() {
+        //   done();
+        // });
+      });
     });
   });
   after(function() {
-    // fs.remove(path.join(cache.outputDirectory, cache.id), function(err) {
-    //   fs.remove(path.join(cache.outputDirectory, map.id), function(err) {
-    //     done();
-    //   });
-    // });
+    fs.remove(path.join(cacheModel.outputDirectory, cacheModel.id), function(err) {
+      fs.remove(path.join(cacheModel.outputDirectory, mapModel.id), function(err) {
+        FeatureModel.deleteFeaturesBySourceId(ds.id, function(count) {
+          log.info('deleted %d %s features', count, ds.id);
+          done();
+        });
+      });
+    });
   });
-  it('should show the map', function(done) {
-    map.getOverviewTile(function(err, tileStream) {
-      var ws = fs.createWriteStream(tmpImage);
-      tileStream.pipe(ws);
-      ws.on('close', function() {
+
+  it('should generate a geopackage cache', function(done) {
+    this.timeout(0);
+    console.log('Created a map %s with id %s', mapModel.name, mapModel.id);
+    cache = new Cache(cacheModel);
+    cache.callbackWhenInitialized(function() {
+      cache.generateFormat('geopackage', function(err, complete) {
+        console.log('done', complete);
+        console.log('cache.formats.geopackage', complete.cache.formats.geopackage);
         done();
+      }, function(cache, callback) {
+        console.log('Cache progress', cache);
+        callback(null, cache);
       });
     });
   });
