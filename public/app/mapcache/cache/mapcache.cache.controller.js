@@ -2,6 +2,7 @@ var turf = require('turf');
 var _ = require('underscore');
 var xyzTileUtils = require('xyz-tile-utils');
 var config = require('../../config');
+var mapcacheConfig = require('mapcache-config')
 
 module.exports = function MapcacheCacheController($scope, $location, $timeout, $routeParams, $rootScope, CacheService, LocalStorageService) {
 
@@ -48,6 +49,14 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
       $scope.formatGenerating = _.some($scope.cache.formats, function(format) {
         return !format.complete;
       });
+      for (var i = 0; i < mapcacheConfig.sourceCacheTypes.raster.length; i++) {
+        var type = mapcacheConfig.sourceCacheTypes.raster[i];
+        if ($scope.cache.formats[type.type]) {
+          $scope.minZoom = $scope.cache.formats[type.type].minZoom;
+          $scope.maxZoom = $scope.cache.formats[type.type].maxZoom;
+          $scope.rasterCacheExists = true;
+        }
+      }
 
       if ($scope.formatGenerating) {
         $timeout(getCache, 5000);

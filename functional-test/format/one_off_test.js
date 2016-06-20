@@ -60,7 +60,7 @@ var cacheModel = {
 
 var tmpImage = '/tmp/geotiff_test.png';
 
-describe.only('one off source tests', function() {
+describe('one off source tests', function() {
   var map;
   before(function(done) {
     this.timeout(60000);

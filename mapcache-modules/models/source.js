@@ -37,6 +37,8 @@ var DatasourceSchema = new Schema({
     resolution: { type: Number, required: true},
     path: { type: String, required: true}
   }],
+  minZoom: { type: Number, required: false},
+  maxZoom: { type: Number, required: false},
   size: { type: Number, required: false},
   tilesLackExtensions: {type: Boolean, default: false},
   zOrder: { type: Number, required: false, default: -1},
