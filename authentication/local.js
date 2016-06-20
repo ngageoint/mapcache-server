@@ -40,6 +40,7 @@ module.exports = function(passport) {
   passport.use(new BearerStrategy(
     {passReqToCallback: true},
     function(req, token, done) {
+      console.log('bearer token', token);
       Token.getToken(token, function(err, credentials) {
         if (err) { return done(err); }
         if (!credentials || !credentials.user) {
@@ -55,6 +56,7 @@ module.exports = function(passport) {
   passport.use('oauth', new BearerStrategy(
     {passReqToCallback: true},
     function(req, token, done) {
+      console.log('oauth token', token);
       // check here for oauth token
       return models.oauth.AccessToken.findOne({ token: token }).populate('user').populate('grant').exec(function(error, token) {
         if (token && token.active && token.grant.active && token.user) {

@@ -38,15 +38,15 @@ module.exports = function($scope, $rootScope, $location, UserService) {
     };
 
     var complete = function() {
-      $scope.$apply(function() {
+      // $scope.$apply(function() {
         $scope.showStatusMessage("Success", "Account created, contact an administrator to activate your account.", "alert-success");
-      });
+      // });
     };
 
     var failed = function(data) {
-      $scope.$apply(function() {
+      // $scope.$apply(function() {
         $scope.showStatusMessage("There was a problem creating your account", data.responseText, "alert-danger");
-      });
+      // });
     };
 
     UserService.signup(user, complete, failed, progress);

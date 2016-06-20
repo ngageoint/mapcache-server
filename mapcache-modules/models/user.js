@@ -170,11 +170,17 @@ exports.createUser = function(user, callback) {
 };
 
 exports.updateUser = function(id, update, callback) {
-  User.findByIdAndUpdate(id, update, function(err, updatedUser) {
-    if (err) console.log('Could not update user', err);
-
-    callback(err, updatedUser);
+  exports.getUserById(id, function(err, user) {
+    for (var key in update) {
+      user[key] = update[key];
+    }
+    user.save(callback);
   });
+  // User.findByIdAndUpdate(id, update, function(err, updatedUser) {
+  //   if (err) console.log('Could not update user', err);
+  //
+  //   callback(err, updatedUser);
+  // });
 };
 
 exports.deleteUser = function(user, callback) {

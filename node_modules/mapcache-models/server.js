@@ -37,7 +37,8 @@ exports.serverModel = Server;
 exports.getInfo = function(callback) {
   Server.findOne().exec(function(err, server) {
     if (server) {
-      updateServer(server, callback);
+      callback(null, server);
+      // updateServer(server, callback);
     } else {
       Server.create({
         total: config.server.storageLimit * 1024 * 1024,

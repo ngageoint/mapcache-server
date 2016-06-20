@@ -17,7 +17,11 @@ module.exports = function(app, security) {
       passport.authenticate(strategy, function(err, user) {
         if (err) return next(err);
 
-        if (user) req.user = user;
+        if (user) {
+          req.user = user;
+        } else {
+          req.user = undefined;
+        }
 
         next();
 
