@@ -66,9 +66,10 @@
       <div class="form-group has-feedback" ng-class="{'has-success':create.locationStatus == 'success', 'has-warning': create.locationStatus == 'warning', 'has-error': create.locationStatus == 'error'}">
         <span class="control-label page-sub-entity-title">Choose a GeoJSON file or type WKT or an extent in the form W, S, E, N to set the cache boundaries</span>
         <div location-chooser location-status="create.locationStatus" file="create.boundaryFile" placeholder="'Choose a file or type WKT or an extent in the form W, S, E, N'"></div>
-        <p ng-if="create.locationStatus" class="help-block">
-          <span ng-if="create.locationStatus == 'error' && create.file">{{create.boundaryLocation}} is not valid GeoJSON.</span>
-          <span ng-if="create.locationStatus == 'error' && create.text">{{create.text}} is not valid well known text or sounds specified as W, S, E, N.</span>
+        <p class="help-block">
+          <span ng-if="create.locationStatus !== 'error'">Choose a GeoJSON file or type WKT or an extent in the form W, S, E, N to set the cache boundaries.  You can also draw boundaries on the map below.</span>
+          <span ng-if="create.locationStatus === 'error' && create.file">{{create.boundaryLocation}} is not valid GeoJSON.</span>
+          <span ng-if="create.locationStatus === 'error' && create.text">{{create.text}} is not valid well known text or sounds specified as W, S, E, N.</span>
         </p>
       </div>
 
