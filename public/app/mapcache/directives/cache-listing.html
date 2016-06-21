@@ -29,12 +29,12 @@
               </div>
               <div class="row">
                 <div class="col-md-12">
-                  <div class="row" ng-show="cache.status.complete && hasVectorSources">
+                  <div class="row" ng-show="cache.hasVectorSources">
                     <div class="col-md-12">
                       <span class="small">Vectors:</span>
                     </div>
                   </div>
-                  <div class="row" ng-show="hasVectorSources">
+                  <div class="row" ng-show="cache.hasVectorSources">
                     <div class="col-md-12">
                       <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes | filter: {vector: true}">
                         <div ng-if="cache.formats[cacheType.type] || !cacheType.secondary || (cacheType.secondary && cacheType.depends && cache.formats[cacheType.depends])">
@@ -61,7 +61,7 @@
                       <span class="small">Tiles:<span> Zoom Levels {{cache.minZoom}} - {{cache.maxZoom}}</span></span>
                     </div>
                   </div>
-                  <div class="row" ng-show="cache.formats['xyz']">
+                  <div class="row" ng-show="cache.rasterCacheExists">
                     <div class="col-md-12">
                       <div ng-if="cache.source" ng-repeat="cacheType in cache.source.cacheTypes | filter: {vector: '!true'}">
                         <div ng-if="cache.formats[cacheType.type] || !cacheType.secondary || (cacheType.secondary && cacheType.depends && cache.formats[cacheType.depends])">
@@ -91,7 +91,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="row top-gap-s" ng-show="!cache.formats['xyz']">
+                  <div class="row top-gap-s" ng-show="!cache.rasterCacheExists">
                     <div class="col-md-12">
                       <div class="col-md-12 cache-type-details" style="text-align: left;">
                           <div class="cache-type">Generate Tiles</div>

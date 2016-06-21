@@ -1,6 +1,7 @@
 var turf = require('turf');
 var xyzTileUtils = require('xyz-tile-utils');
 var config = require('../../config');
+var mapcacheConfig = require('mapcache-config');
 module.exports = function CacheListingController($scope, $rootScope, $timeout, LocalStorageService, CacheService) {
 
   $scope.token = LocalStorageService.getToken();
@@ -9,6 +10,27 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
 
   var cacheHighlightPromise;
   $scope.showingCache = undefined;
+
+  $scope.$watch('caches', function() {
+    if (!$scope.caches) return;
+    for (var j = 0; j < $scope.caches.length; j++) {
+      var cache = $scope.caches[j];
+      for (var i = 0; i < mapcacheConfig.sourceCacheTypes.raster.length; i++) {
+        var type = mapcacheConfig.sourceCacheTypes.raster[i];
+        if (cache.formats[type.type]) {
+          cache.minZoom = cache.formats[type.type].minZoom;
+          cache.maxZoom = cache.formats[type.type].maxZoom;
+          cache.rasterCacheExists = true;
+          cache.rasterTiles = cache.formats[type.type].generatedTiles;
+        }
+      }
+      for (var i = 0; i < cache.source.dataSources.length; i++) {
+        if (cache.source.dataSources[i].vector) {
+          cache.hasVectorSources = true;
+        }
+      }
+    }
+  });
 
   $scope.mouseClick = function(cache) {
     if (cacheHighlightPromise) {
