@@ -64,8 +64,8 @@ MBTiles.prototype.processMetadataFile = function(callback) {
       }
       source.geometry = turf.bboxPolygon(bbox);
     }
-    if (json.minZoom || json.maxZoomLevel) {
-      source.minZoom = parseInt(json.minZoom || json.maxZoomLevel);
+    if (json.minzoom || json.maxZoomLevel) {
+      source.minZoom = parseInt(json.minzoom || json.maxZoomLevel);
     }
     if (json.maxzoom || json.minZoomLevel) {
       source.maxZoom = parseInt(json.maxzoom || json.minZoomLevel);
