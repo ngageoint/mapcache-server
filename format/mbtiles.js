@@ -55,18 +55,21 @@ MBTiles.prototype.extractMBTiles = function(callback) {
 MBTiles.prototype.processMetadataFile = function(callback) {
   var dir = this.extractDirectory;
   var source = this.source;
-  console.log('reading metadata.json', path.join(dir, 'metadata.json'));
   fs.readJson(path.join(dir, 'metadata.json'), function(err, json) {
-    console.log('json', json);
     var bbox = [];
-    var split = json.bounds.split(',');
-    for (var i = 0; i < split.length; i++) {
-      bbox.push(parseFloat(split[i]));
+    if (json.bounds) {
+      var split = json.bounds.split(',');
+      for (var i = 0; i < split.length; i++) {
+        bbox.push(parseFloat(split[i]));
+      }
+      source.geometry = turf.bboxPolygon(bbox);
     }
-    source.geometry = turf.bboxPolygon(bbox);
-    source.minZoom = parseInt(json.minzoom);
-    source.maxZoom = parseInt(json.maxzoom);
-    console.log('source', source);
+    if (json.minZoom || json.maxZoomLevel) {
+      source.minZoom = parseInt(json.minZoom || json.maxZoomLevel);
+    }
+    if (json.maxzoom || json.minZoomLevel) {
+      source.maxZoom = parseInt(json.maxzoom || json.minZoomLevel);
+    }
     callback(null);
   });
 }
@@ -205,6 +208,7 @@ MBTiles.prototype.generateCache = function(callback, progressCallback) {
       });
     }, function done(err, data) {
       log.info('all tiles are done for %s', cacheId);
+      self._createMetadataFile();
       self.createMBTilesFile(function(err, file) {
         data.formats.mbtiles.complete = true;
         var stats = fs.statSync(file);
@@ -216,6 +220,16 @@ MBTiles.prototype.generateCache = function(callback, progressCallback) {
   });
 };
 
+MBTiles.prototype._createMetadataFile = function() {
+  var metadataFile = path.join(this.config.outputDirectory, this.cache.cache.id.toString(), 'xyztiles', 'metadata.json');
+  fs.outputJsonSync(metadataFile, {
+    "name": this.cache.cache.name,
+    "minzoom": this.cache.cache.minZoom+'',
+    "maxzoom": this.cache.cache.maxZoom+'',
+    "bounds": turf.bbox(this.cache.cache.geometry).join(',')
+  });
+}
+
 MBTiles.prototype.createMBTilesFile = function(callback) {
   var dir = path.join(this.config.outputDirectory, this.cache.cache.id.toString(), 'xyztiles');
   var mbtilesFile = path.join(this.config.outputDirectory, this.cache.cache.id.toString(), this.cache.cache.id.toString()+'.mbtiles');
@@ -223,6 +237,13 @@ MBTiles.prototype.createMBTilesFile = function(callback) {
   var command = path.join('..', 'utilities', 'mbutil', 'mb-util')
   var mbUtil = cp.spawn(command, args, {cwd: __dirname}).on('close', function(code) {
     callback(null, mbtilesFile);
+  });
+  // not sure why I have to listen to these to process the entire file....
+  mbUtil.stdout.on('data', function(data) {
+    console.log('mbutil stdout: ' + data);
+  });
+  mbUtil.stderr.on('data', function(data) {
+    console.log('mbutil stderr: ' + data);
   });
 }
 
