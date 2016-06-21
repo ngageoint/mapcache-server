@@ -13,12 +13,12 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   this.$scope = $scope;
 
   $scope.create = this;
-  // $scope.$watch('create.cache.geometry', this._cacheGeometryWatch.bind(this));
+  $scope.$watch('create.polygonBoundaries', this._cachePolygonWatch.bind(this));
   $scope.$on('draw:drawstart', this._boundariesDrawn.bind(this));
   $scope.$on('draw:created', this._boundariesDrawn.bind(this));
   $scope.$on('draw:edited', this._boundariesDrawn.bind(this));
 
-  $scope.$watch('create.cache.geometry', this._boundariesDrawn.bind(this, undefined));
+  $scope.$watch('create.cache.geometry', this._cacheGeometryWatch.bind(this));
   $scope.$watch('create.cache.source', this._cacheSourceWatch.bind(this));
   $scope.$watch('create.cache.source.previewLayer', this._layerWatch.bind(this));
   $scope.$watch('create.cache.create', this._cacheCreateWatch.bind(this), true);
@@ -217,7 +217,7 @@ MapcacheCreateController.prototype.manualEntry = function() {
     west: parseFloat(this.bb.west),
     east: parseFloat(this.bb.east)
   };
-  this.cache.geometry = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
+  this.cache.geometry = turf.featureCollection([turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north])]);
   this.$scope.$broadcast('extentChanged', envelope);
   this._calculateCacheSize();
 };
@@ -347,9 +347,10 @@ MapcacheCreateController.prototype._calculateCacheSize = function() {
     return;
   }
 
-  var tiles = xyzTileUtils.tilesInFeatureCollection(this.cache.geometry, this.cache.minZoom, this.cache.maxZoom);
+  var tiles = xyzTileUtils.fastTileEstimateInFeatureCollection(this.cache.geometry, this.cache.minZoom, this.cache.maxZoom);
+  console.log('tiles', tiles);
 
-  this.totalCacheTiles = Object.keys(tiles).length;
+  this.totalCacheTiles = tiles;
   this.totalCacheSize = this.totalCacheTiles * (this.cache.source.tileSize/this.cache.source.tileSizeCount);
 };
 
@@ -377,10 +378,23 @@ MapcacheCreateController.prototype._boundariesDrawn = function(event, geometry) 
   this.bb.east = extent[2];
   this._setDirectionDMS(this.bb.east, this.east);
 
-  this.cache.geometry = geometry;
-
-  this._calculateCacheSize();
+  this.polygonBoundaries = geometry;
 };
+
+MapcacheCreateController.prototype._cachePolygonWatch = function() {
+  if (!this.polygonBoundaries) return;
+  var feature = {
+    "type": "Feature",
+    "geometry": this.polygonBoundaries
+  };
+
+  this.cache.geometry = turf.featureCollection([feature]);
+}
+
+MapcacheCreateController.prototype._cacheGeometryWatch = function() {
+  if (!this.cache.geometry) return;
+  this._calculateCacheSize();
+}
 
 MapcacheCreateController.prototype._cacheSourceWatch = function(map) {
   if (!map) return;

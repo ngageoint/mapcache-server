@@ -92,13 +92,12 @@
     </div>
   </div>
 </div>
-
 <div class="container">
   <div class="row">
     <div class="col-md-12">
-      <div ng-show="cache.formats['xyz']">
+      <div ng-show="rasterCacheExists">
         <div><span class="page-sub-entity-label">Zoom Levels: <span class="page-sub-entity-title">{{cache.minZoom}} - {{cache.maxZoom}}</span></div>
-        <div><span class="page-sub-entity-label">Total Tiles: <span class="page-sub-entity-title">{{cache.status.generatedTiles}}</span></div>
+        <div><span class="page-sub-entity-label">Total Tiles: <span class="page-sub-entity-title">{{rasterTiles}}</span></div>
       </div>
         <div><span class="page-sub-entity-label">Bounding Box: <span class="page-sub-entity-title">West: {{cache.geometry | turf : 'extent' : 'w' | number : 6}} South: {{cache.geometry | turf : 'extent' : 's' | number : 6}} East: {{cache.geometry | turf : 'extent' : 'e' | number : 6}} North: {{cache.geometry | turf : 'extent' : 'n' | number : 6}}</span></div>
         <div><span class="page-sub-entity-label">Map: <span class="page-sub-entity-title"><a ng-href="/#/map/{{cache.source.id}}">{{cache.source.name}}</a></span></div>

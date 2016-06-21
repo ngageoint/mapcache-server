@@ -129,6 +129,31 @@ exports.calculateYTileRange = function(bbox, z) {
   };
 };
 
+exports.fastTileEstimateInFeatureCollection = function(featureCollection, minZoom, maxZoom, bufferSize, bufferUnits) {
+  var bufferedFeatures = [];
+  turfMeta.featureEach(featureCollection, function(feature) {
+    if (feature.geometry
+    && (feature.geometry.type === "LineString"
+    || feature.geometry.type === "Point")) {
+      bufferedFeatures.push(turf.buffer(feature, bufferSize || .01, bufferUnits || 'miles'));
+    } else {
+      bufferedFeatures.push(feature);
+    }
+  });
+
+  featureCollection = turf.featureCollection(bufferedFeatures);
+
+  // get the area of the featureCollection
+  var area = turf.area(featureCollection);
+
+  // get the area of the envelope
+  var envelopeArea = turf.area(turf.envelope(featureCollection));
+
+  var extent = turf.bbox(featureCollection);
+  var totalTiles = exports.tileCountInExtent(extent, minZoom, maxZoom);
+  return Math.floor(totalTiles * (area / envelopeArea));
+}
+
 exports.tilesInFeatureCollection = function(featureCollection, minZoom, maxZoom, bufferSize, bufferUnits) {
   var bufferedFeatures = [];
   turfMeta.featureEach(featureCollection, function(feature) {

@@ -55,6 +55,7 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
           $scope.minZoom = $scope.cache.formats[type.type].minZoom;
           $scope.maxZoom = $scope.cache.formats[type.type].maxZoom;
           $scope.rasterCacheExists = true;
+          $scope.rasterTiles = $scope.cache.formats[type.type].generatedTiles;
         }
       }
 
