@@ -39,6 +39,13 @@ MBTiles.prototype.extractMBTiles = function(callback) {
   var mbUtil = cp.spawn(command, args, {cwd: __dirname}).on('close', function(code) {
     callback(null, dir);
   });
+  // not sure why I have to listen to these to process the entire file....
+  mbUtil.stdout.on('data', function(data) {
+    // console.log('mbutil stdout: ' + data);
+  });
+  mbUtil.stderr.on('data', function(data) {
+    // console.log('mbutil stderr: ' + data);
+  });
 }
 
 MBTiles.prototype.processMetadataFile = function(callback) {
