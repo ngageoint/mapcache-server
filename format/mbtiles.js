@@ -16,7 +16,7 @@ var MBTiles = function(config) {
 MBTiles.prototype.initialize = function() {
 };
 
-MBTiles.prototype.processSource = function(doneCallback) {
+MBTiles.prototype.processSource = function(doneCallback, progressCallback) {
   this.source.status = this.source.status || {};
   this.extractDirectory = path.join(path.dirname(this.source.file.path), 'mbtiles');
   if (this.source.status.complete) {
@@ -28,7 +28,10 @@ MBTiles.prototype.processSource = function(doneCallback) {
   ], function(err, results) {
     this.source.status.message = "Complete";
     this.source.status.complete = true;
-    doneCallback(err, this.source);
+    console.log('done with the source', this.source);
+    progressCallback(this.source, function(err, updatedSource) {
+      doneCallback(err, updatedSource);
+    })
   }.bind(this));
 };
 
@@ -37,21 +40,24 @@ MBTiles.prototype.extractMBTiles = function(callback) {
   var args = [this.source.file.path, dir];
   var command = path.join('..', 'utilities', 'mbutil', 'mb-util')
   var mbUtil = cp.spawn(command, args, {cwd: __dirname}).on('close', function(code) {
+    console.log('mbUtil executed with code ' + code);
     callback(null, dir);
   });
   // not sure why I have to listen to these to process the entire file....
   mbUtil.stdout.on('data', function(data) {
-    // console.log('mbutil stdout: ' + data);
+    console.log('mbutil stdout: ' + data);
   });
   mbUtil.stderr.on('data', function(data) {
-    // console.log('mbutil stderr: ' + data);
+    console.log('mbutil stderr: ' + data);
   });
 }
 
 MBTiles.prototype.processMetadataFile = function(callback) {
   var dir = this.extractDirectory;
   var source = this.source;
+  console.log('reading metadata.json', path.join(dir, 'metadata.json'));
   fs.readJson(path.join(dir, 'metadata.json'), function(err, json) {
+    console.log('json', json);
     var bbox = [];
     var split = json.bounds.split(',');
     for (var i = 0; i < split.length; i++) {
@@ -60,6 +66,7 @@ MBTiles.prototype.processMetadataFile = function(callback) {
     source.geometry = turf.bboxPolygon(bbox);
     source.minZoom = parseInt(json.minzoom);
     source.maxZoom = parseInt(json.maxzoom);
+    console.log('source', source);
     callback(null);
   });
 }
