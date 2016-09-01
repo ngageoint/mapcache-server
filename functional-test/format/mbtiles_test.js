@@ -7,10 +7,11 @@ var path = require('path')
 
 var MBTiles = require('../../format/mbtiles');
 
-describe.only('mbtiles tests', function() {
+describe('mbtiles tests', function() {
 
   it('should extract the mbtiles file', function(done) {
-    var file = path.join(__filename, '..', '..', '..', 'utilities', 'mbutil', 'test', 'data', 'one_tile.mbtiles');
+    // var file = path.join(__filename, '..', '..', '..', 'utilities', 'mbutil', 'test', 'data', 'one_tile.mbtiles');
+    var file = path.join(__filename, '..', '..', '..', 'faa.mbtiles');
     fs.copy(file, '/tmp/mbtiles_ex.mbtiles', function(err) {
       var source = {
         file: {
@@ -63,7 +64,8 @@ describe.only('mbtiles tests', function() {
   });
 
   it('should get the 0/0/0 tile for the mbtiles source', function(done) {
-    var file = path.join(__filename, '..', '..', '..', 'utilities', 'mbutil', 'test', 'data', 'one_tile.mbtiles');
+    // var file = path.join(__filename, '..', '..', '..', 'utilities', 'mbutil', 'test', 'data', 'one_tile.mbtiles');
+    var file = path.join(__filename, '..', '..', '..', 'crazy.mbtiles');
     fs.copy(file, '/tmp/mbtiles_ex.mbtiles', function(err) {
       var source = {
         file: {

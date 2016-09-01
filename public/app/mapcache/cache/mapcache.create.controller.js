@@ -13,7 +13,7 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   this.$scope = $scope;
 
   $scope.create = this;
-  $scope.$watch('create.polygonBoundaries', this._cachePolygonWatch.bind(this));
+  $scope.$watch('create.cache.polygonBoundaries', this._cachePolygonWatch.bind(this));
   $scope.$on('draw:drawstart', this._boundariesDrawn.bind(this));
   $scope.$on('draw:created', this._boundariesDrawn.bind(this));
   $scope.$on('draw:edited', this._boundariesDrawn.bind(this));
@@ -378,14 +378,14 @@ MapcacheCreateController.prototype._boundariesDrawn = function(event, geometry) 
   this.bb.east = extent[2];
   this._setDirectionDMS(this.bb.east, this.east);
 
-  this.polygonBoundaries = geometry;
+  this.cache.polygonBoundaries = geometry;
 };
 
 MapcacheCreateController.prototype._cachePolygonWatch = function() {
-  if (!this.polygonBoundaries) return;
+  if (!this.cache.polygonBoundaries) return;
   var feature = {
     "type": "Feature",
-    "geometry": this.polygonBoundaries
+    "geometry": this.cache.polygonBoundaries
   };
 
   this.cache.geometry = turf.featureCollection([feature]);

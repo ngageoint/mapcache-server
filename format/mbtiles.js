@@ -37,6 +37,7 @@ MBTiles.prototype.processSource = function(doneCallback, progressCallback) {
 
 MBTiles.prototype.extractMBTiles = function(callback) {
   var dir = this.extractDirectory;
+  console.log('extract dir', dir);
   var args = [this.source.file.path, dir];
   var command = path.join('..', 'utilities', 'mbutil', 'mb-util')
   var mbUtil = cp.spawn(command, args, {cwd: __dirname}).on('close', function(code) {

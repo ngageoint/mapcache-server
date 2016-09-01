@@ -29,6 +29,7 @@ module.exports = function(app, auth) {
     } else {
       req.newSource.dataSources = source.dataSources;
     }
+    removeDollars(req.newSource);
     next();
   };
 
@@ -235,6 +236,24 @@ module.exports = function(app, auth) {
       });
     }
   );
+
+  function removeDollars(json) {
+  if (json instanceof Array) {
+    for (var i = 0; i < json.length; i++) {
+      removeDollars(json[i]);
+    }
+  } else {
+    for (var prop in json) {
+      console.log('prop', prop);
+      if (prop.indexOf('$') === 0) {
+        delete json[prop];
+      } else if (json[prop] instanceof Object) {
+        removeDollars(json[prop]);
+      }
+    }
+  }
+}
+
 
   // get source
   app.get(

@@ -1,4 +1,5 @@
-var GeoPackageApi = require('geopackage')
+var GeoPackageAPI = require('geopackage')
+  , BoundingBox = GeoPackageAPI.BoundingBox
   , FeatureModel = require('mapcache-models').Feature
   , path = require('path')
   , fs = require('fs-extra')
@@ -331,6 +332,7 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
   var extent = this._calculateExtentFromGeometry(cache.geometry);
 
   var propertyColumnNames = [];
+
   async.waterfall([
     function(callback) {
       if (!vectorSource.source.properties) {
@@ -341,37 +343,81 @@ GeoPackage.prototype._addVectorSourceToGeoPackage = function(vectorSource, progr
         callback(null, vectorSource.source);
       }
     }, function(source, callback) {
-      for (var i = 0; vectorSource.source.properties && i < vectorSource.source.properties.length; i++) {
-        propertyColumnNames.push(vectorSource.source.properties[i].key);
-      }
-      console.log('property column names', propertyColumnNames);
-      var sourceFeaturesCreated = 0;
-      // write these to the geoPackage
 
-      FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, vectorSource.source.id, extent[0], extent[1], extent[2], extent[3], '3857', function(err, features) {
+
+      var FeatureColumn = GeoPackageAPI.FeatureColumn;
+      var GeometryColumns = GeoPackageAPI.GeometryColumns;
+      var DataTypes = GeoPackageAPI.DataTypes;
+
+      var geometryColumns = new GeometryColumns();
+      geometryColumns.table_name = tableName;
+      geometryColumns.column_name = 'geometry';
+      geometryColumns.geometry_type_name = 'GEOMETRY';
+      geometryColumns.z = 0;
+      geometryColumns.m = 0;
+
+      var columns = [];
+      columns.push(FeatureColumn.createPrimaryKeyColumnWithIndexAndName(0, 'id'));
+      columns.push(FeatureColumn.createGeometryColumn(1, 'geometry', 'GEOMETRY', false, null));
+      var index = 2;
+
+
+      for (var i = 0; vectorSource.source.properties && i < vectorSource.source.properties.length; i++) {
+        var name = vectorSource.source.properties[i].key;
+        var type = typeof vectorSource.source.properties[i].values[0];
+        if (type === 'object') {
+          if (feature.properties[key] instanceof Date) {
+            type = 'Date';
+          }
+        }
+        switch(type) {
+          case 'Date':
+            type = 'DATETIME';
+            break;
+          case 'number':
+            type = 'DOUBLE';
+            break;
+          case 'string':
+            type = 'TEXT';
+            break;
+          case 'boolean':
+            type = 'BOOLEAN';
+            break;
+        }
+        columns.push(FeatureColumn.createColumnWithIndex(index, name, DataTypes.fromName(type), false, null));
+        index++;
+      }
+
+      FeatureModel.getAllFeaturesByCacheIdAndSourceId(cache.id, vectorSource.source.id, extent[0], extent[1], extent[2], extent[3], '4326', function(err, features) {
+        if (features.length === 0) {
+          return sourceFinishedCallback();
+        }
         log.info('Adding %d features to the GeoPackage', features.length);
-        self.geoPackage.createFeatureTable(extent, tableName, propertyColumnNames, function(err) {
+
+        GeoPackageAPI.createFeatureTable(self.geoPackage, tableName, geometryColumns, columns, function(err, featureDao) {
           if (err) {
             console.log('Failure to create the feature table', err);
             return sourceFinishedCallback(err);
           }
-          self.geoPackage.addFeaturesToGeoPackage(features, tableName, function(err) {
+          async.eachSeries(features, function featureIterator(feature, callback) {
+            async.setImmediate(function() {
+              GeoPackageAPI.addGeoJSONFeatureToGeoPackage(self.geoPackage, feature, tableName, function() {
+                cache.formats.geopackage.generatedFeatures++;
+                cache.formats.geopackage.percentComplete += (100 * (cache.formats.geopackage.generatedFeatures / features.length)) / self.cache.map.dataSources.length;
+                progressCallback(cache, callback);
+              });
+            });
+          }, function done(err) {
             if (err) {
               console.log('Failed to add features to the GeoPackage', err);
               return sourceFinishedCallback(err);
             }
             console.log('features.length', features.length);
-            if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
-              self.geoPackage.indexGeoPackage(tableName, sourceFinishedCallback);
-            } else {
+            // if (!cache.cacheCreationParams || !cache.cacheCreationParams.noGeoPackageIndex) {
+            //   self.geoPackage.indexGeoPackage(tableName, sourceFinishedCallback);
+            // } else {
               sourceFinishedCallback();
-            }
-          }, function(progress, callback) {
-            cache.formats.geopackage.generatedFeatures = cache.formats.geopackage.generatedFeatures + progress.featuresAdded - sourceFeaturesCreated;
-            cache.formats.geopackage.percentComplete += (100 * ((progress.featuresAdded - sourceFeaturesCreated) / features.length)) / self.cache.map.dataSources.length;
-            sourceFeaturesCreated = progress.featuresAdded;
-
-            progressCallback(cache, callback);
+            // }
           });
         });
       });
@@ -399,18 +445,31 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
 
   var generatedTiles = 0;
 
-  var self = this;
-  this.geoPackage.createTileTable(extent, tableName, cache.minZoom, cache.maxZoom, function() {
-    xyzTileUtils.iterateAllTilesInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
-        var xRange = xyzTileUtils.calculateXTileRange(totalTileExtent, tile.z);
-        var yRange = xyzTileUtils.calculateYTileRange(totalTileExtent, tile.z);
+  var boundingBox = new BoundingBox(llCorner.west, urCorner.east, llCorner.south, urCorner.north);
+  boundingBox = boundingBox.projectBoundingBox('EPSG:4326', 'EPSG:3857');
 
-        var tileRow = tile.y - yRange.min;
-        var tileColumn = tile.x - xRange.min;
-        rasterSource.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
-          if (err || !tileStream) { return tileDone();}
-          log.info('Adding the tile zoom: %d, row: %d, column: %d', tile.z, tileRow, tileColumn);
-          self.geoPackage.addTileToGeoPackage(tileStream, tableName, tile.z, tileRow, tileColumn, function(err) {
+  var self = this;
+  GeoPackageAPI.createStandardWebMercatorTileTable(this.geoPackage, tableName, boundingBox, 3857, boundingBox, 3857, cache.minZoom, cache.maxZoom, function(err, tileMatrixSet) {
+    xyzTileUtils.iterateAllTilesInExtent(turf.bbox(cache.geometry), cache.minZoom, cache.maxZoom, cache, function(tile, tileDone) {
+      var xRange = xyzTileUtils.calculateXTileRange(totalTileExtent, tile.z);
+      var yRange = xyzTileUtils.calculateYTileRange(totalTileExtent, tile.z);
+
+      var tileRow = tile.y - yRange.min;
+      var tileColumn = tile.x - xRange.min;
+      rasterSource.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
+        if (err || !tileStream) { return tileDone();}
+        log.info('Adding the tile zoom: %d, row: %d, column: %d', tile.z, tileRow, tileColumn);
+        console.log('tileStream', tileStream);
+        console.log('tableName', tableName);
+
+        var buffers = [];
+        tileStream.on('data', function(buffer) {
+          buffers.push(buffer);
+        });
+        tileStream.on('end', function() {
+          var buffer = Buffer.concat(buffers);
+
+          self.geoPackage.addTile(buffer, tableName, tile.z, tileRow, tileColumn, function(err, result) {
             if (err) {
               console.log('error adding tile zoom: %d, row: %d, column: %d', tile.z, tile.x, tile.y);
             }
@@ -422,17 +481,17 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
             });
           });
         });
-      },
-      function(zoom, zoomFinishedCallback) {
-        log.info('zoom level %d is done for %s', zoom, cache.id);
-        zoomFinishedCallback();
-      },
-      function(err, data) {
-        log.info('all tiles are done for %s', cache.id);
-        self.cache.cache = data;
-        sourceFinishedCallback(null, self.cache);
-      }
-    );
+      });
+    },
+    function(zoom, zoomFinishedCallback) {
+      log.info('zoom level %d is done for %s', zoom, cache.id);
+      zoomFinishedCallback();
+    },
+    function(err, data) {
+      log.info('all tiles are done for %s', cache.id);
+      self.cache.cache = data;
+      sourceFinishedCallback(null, self.cache);
+    });
   });
 };
 
@@ -448,24 +507,24 @@ GeoPackage.prototype.getDataWithin = function(west, south, east, north, projecti
 
 GeoPackage.prototype._createGeoPackage = function(callback) {
   log.info('Opening a new GeoPackage at %s', this.filePath);
-  this.geoPackage = new GeoPackageApi();
-  this.geoPackage.createAndOpenGeoPackageFile(this.filePath, function() {
+  GeoPackageAPI.createGeoPackage(this.filePath, function(err, geopackage) {
+    this.geoPackage = geopackage
     callback(null, this.geoPackage);
-  });
+  }.bind(this));
 };
 
 GeoPackage.prototype._openGeoPackage = function(path, callback) {
   log.info('Opening GeoPackage at %s', path);
-  this.geoPackage = new GeoPackageApi();
-  this.geoPackage.openGeoPackageFile(path, function(err) {
+  GeoPackageAPI.openGeoPackage(path, function(err, geopackage) {
+    this.geoPackage = geopackage;
     callback(err, this.geoPackage);
-  });
+  }.bind(this));
 };
 
 GeoPackage.prototype._insertTileLayers = function(callback) {
   console.log('insert tile layers');
   var self = this;
-  this.geoPackage.getTileTables(function(err, tileTables) {
+  GeoPackageAPI.getTileTables(this.geoPackage, function(err, tileTables) {
 
     console.log('tileTables', tileTables.length);
     var tileTableLength = tileTables.length;
@@ -500,7 +559,7 @@ GeoPackage.prototype._insertVectorLayers = function(callback) {
 
   var gp = this.geoPackage;
   var self = this;
-  gp.getFeatureTables(function(err, featureTables) {
+  GeoPackageAPI.getFeatureTables(gp, function(err, featureTables) {
     console.log('featureTables', featureTables.length);
 
     var featureTableLength = featureTables.length;
@@ -513,7 +572,7 @@ GeoPackage.prototype._insertVectorLayers = function(callback) {
         log.info('Getting features from table %d', count);
         var featureTable = featureTables[count];
         log.info('feature table', featureTable);
-        gp.iterateFeaturesFromTable(featureTable, function(err, feature, callback) {
+        GeoPackageAPI.iterateGeoJSONFeaturesFromTable(gp, featureTable, function(err, feature, callback) {
           FeatureModel.createFeature(feature, {sourceId: self.source.id, layerId: count}, function() {
             callback();
           });

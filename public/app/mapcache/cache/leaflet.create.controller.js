@@ -29,7 +29,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
   baseLayer.addTo(map);
   map.addControl(new L.Control.ZoomIndicator());
 
-  var cacheFootprintLayer = null;
+  var currentViewLayer = null;
 
   var drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
@@ -39,24 +39,25 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
         polyline: false,
         polygon: true,
         circle: false, // Turns off this drawing tool
-        rectangle: {
+        rectangle: true,
+        /*: {
             shapeOptions: {
-                clickable: false,
+                clickable: true,
                 color: "#0072c5"
             }
-        },
+        },*/
         marker: false
     },
     edit: {
-      featureGroup: drawnItems,
-      remove: false,
+      featureGroup: drawnItems/*,
+      remove: true,
       edit: {
         selectedPathOptions: {
           maintainColor: true,
           opacity: 0.5,
           dashArray:"10, 10"
         }
-      }
+      }*/
     }
   };
 
@@ -64,18 +65,17 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
   map.addControl(drawControl);
 
   map.on('draw:drawstart', function () {
-    if (cacheFootprintLayer) {
-      drawnItems.removeLayer(cacheFootprintLayer);
-      cacheFootprintLayer = null;
-      $scope.$apply(function() {
-        $scope.$emit('draw:drawstart');
-      });
+    if (currentViewLayer) {
+      drawnItems.removeLayer(currentViewLayer);
+      currentViewLayer = null;
     }
   });
 
   map.on('draw:created', function (e) {
     var layer = e.layer;
     cacheFootprintLayer = layer;
+    console.log('popup');
+    cacheFootprintLayer.bindPopup('A popup!');
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
@@ -89,7 +89,7 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
 
     drawnItems.addLayer(cacheFootprintLayer);
     $scope.$apply(function() {
-      $scope.$emit('draw:edited', cacheFootprintLayer.toGeoJSON().geometry);
+      $scope.$emit('draw:edited', drawnItems.toGeoJSON().geometry);
     });
   });
 
@@ -121,29 +121,6 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
     }
   });
 
-  $scope.$on('extentChanged', function(event, envelope) {
-    drawnItems.removeLayer(cacheFootprintLayer);
-    cacheFootprintLayer = null;
-    if (envelope && envelope.west) {
-      var gj = turf.bboxPolygon([envelope.west, envelope.south, envelope.east, envelope.north]);
-      $scope.options.geometry = gj.geometry;
-      cacheFootprintLayer = L.rectangle([[envelope.south, envelope.west], [envelope.north, envelope.east]]);
-      cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
-      drawnItems.addLayer(cacheFootprintLayer);
-    } else if (envelope) {
-      cacheFootprintLayer = L.geoJson(envelope, {
-          style: function (feature) {
-              return {
-                color: "#0072c5",
-                weight: 2,
-                opacity: 1
-              };
-          }
-      });
-      drawnItems.addLayer(cacheFootprintLayer);
-    }
-  });
-
   $scope.$watch('options.extent', function(extent) {
     if (extent) {
       updateMapExtent(extent);
@@ -166,14 +143,17 @@ module.exports = function LeafletCreateController($scope, $element, LocalStorage
 
   $scope.$watch('options.useCurrentView', function(newValue, oldValue) {
     if (!$scope.options.useCurrentView || oldValue === newValue) return;
-    drawnItems.removeLayer(cacheFootprintLayer);
-    cacheFootprintLayer = null;
+    drawnItems.eachLayer(function(layer) {
+      drawnItems.removeLayer(layer);
+    });
+    // drawnItems.removeLayer(cacheFootprintLayer);
+    // cacheFootprintLayer = null;
     var bounds = map.getBounds();
     var gj = turf.bboxPolygon([Math.max(-180,bounds.getWest()), Math.max(-90,bounds.getSouth()), Math.min(180,bounds.getEast()), Math.min(90,bounds.getNorth())]);
-    $scope.options.geometry = gj.geometry;
-    cacheFootprintLayer = L.rectangle([bounds]);
-    cacheFootprintLayer.setStyle({color: "#0072c5", clickable: false});
-    drawnItems.addLayer(cacheFootprintLayer);
+    $scope.options.polygonBoundaries = gj.geometry;
+    currentViewLayer = L.rectangle([bounds]);
+    currentViewLayer.setStyle({color: "#0072c5", clickable: true});
+    drawnItems.addLayer(currentViewLayer);
   });
 
   $scope.$watch('options.source', function() {

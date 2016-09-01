@@ -31,6 +31,7 @@ MapcacheController.prototype.getCaches = function() {
       var cache = caches[i];
       for (var format in cache.formats) {
         if(cache.formats.hasOwnProperty(format)){
+
           if (cache.formats[format].generating) {
             currentlyGenerating = true;
           }
