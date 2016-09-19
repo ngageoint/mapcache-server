@@ -25,8 +25,8 @@ exports.server = {
     },
     "postgres": {
       "host": "127.0.0.1",
-      "user": "postgres",
-      "password": "postgres",
+      // "user": "postgres",
+      // "password": "postgres",
       "database": "mapcache"
     },
     "cacheDirectory": {
@@ -39,6 +39,6 @@ exports.server = {
     "maximumCacheSize":2048
   };
 exports.sourceCacheTypes = {
-    "vector": [{"type":"geojson", "required": false, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}, {"type":"geopackage", "required": false, "vector": true}],
+    "vector": [{"type":"geojson", "required": false, "vector": true}, {"type":"shapefile", "required": false, "vector": true}, {"type":"kml", "required": false, "vector": true}],
     "raster": [{"type":"xyz", "required": false}, {"type":"tms", "required": false, "depends": "xyz"}, {"type":"mbtiles", "required": false}]
   };

@@ -459,8 +459,6 @@ GeoPackage.prototype._addRasterSourceToGeoPackage = function(rasterSource, progr
       rasterSource.getTile('png', tile.z, tile.x, tile.y, cache.cacheCreationParams, function(err, tileStream) {
         if (err || !tileStream) { return tileDone();}
         log.info('Adding the tile zoom: %d, row: %d, column: %d', tile.z, tileRow, tileColumn);
-        console.log('tileStream', tileStream);
-        console.log('tableName', tableName);
 
         var buffers = [];
         tileStream.on('data', function(buffer) {

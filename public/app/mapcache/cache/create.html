@@ -9,7 +9,7 @@
   <div class="row">
     <div class="col-md-12">
       <div class="form-group">
-        <span class="page-sub-entity-title one-line-ellipsis">Cache Name</span>
+        <span class="page-sub-entity-title one-line-ellipsis">1. Cache Name</span>
         <input class="form-control" tabindex="1" ng-model="create.cache.name" placeholder="e.g. Denver, CO">
       </div>
     </div>
@@ -53,7 +53,7 @@
     <div class="hidden-xs">
       <div class="row bottom-gap" ng-if="create.cache.source.dataSources.length != 1">
         <div class="col-sm-12">
-          <span class="page-sub-entity-title one-line-ellipsis">Data Sources - choose at least one</span>
+          <span class="page-sub-entity-title one-line-ellipsis">2. Data Sources - choose at least one</span>
           <div class="row">
           <div ng-repeat="ds in create.cache.source.dataSources" class="col-sm-4 nice-check">
               <input value="{{ds.id}}" id="{{ds.id}}" ng-model="create.selectedDatasources[ds.id]" ng-change="create.toggleDataSource(ds.id, ds);" type="checkbox" class="checkbox" name="{{ds.id}}" checked>
@@ -64,7 +64,7 @@
       </div>
 
       <div class="form-group has-feedback" ng-class="{'has-success':create.locationStatus == 'success', 'has-warning': create.locationStatus == 'warning', 'has-error': create.locationStatus == 'error'}">
-        <span class="control-label page-sub-entity-title">Choose a GeoJSON file or type WKT or an extent in the form W, S, E, N to set the cache boundaries</span>
+        <span class="control-label page-sub-entity-title">3. Choose a GeoJSON file or type WKT or an extent in the form W, S, E, N to set the cache boundaries</span>
         <div location-chooser location-status="create.locationStatus" file="create.boundaryFile" placeholder="'Choose a file or type WKT or an extent in the form W, S, E, N'"></div>
         <p class="help-block">
           <span ng-if="create.locationStatus !== 'error'">Choose a GeoJSON file or type WKT or an extent in the form W, S, E, N to set the cache boundaries.  You can also draw boundaries on the map below.</span>
@@ -73,43 +73,7 @@
         </p>
       </div>
 
-      <!-- <div class="row">
-        <div class="col-sm-2 col-sm-offset-5">
-          <div class="form-group north-group" ng-class="{'has-error': create.nsError}">
-            <label>Northern Boundary</label>
-            <div class="input-group merged">
-              <input class="form-control" tabindex="2" ng-change="create.manualEntry()" ng-model="create.bb.north" placeholder="e.g. 39.9">
-              <span class="input-group-addon">&deg;</span>
-            </div>
-            <div class="input-group merged top-gap-s">
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('north', create.north)" ng-model="create.north.degrees">
-              <span class="input-group-addon">&deg;</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('north', create.north)" ng-model="create.north.minutes">
-              <span class="input-group-addon">'</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('north', create.north)" ng-model="create.north.seconds">
-              <span class="input-group-addon">&quot;</span>
-            </div>
-          </div>
-        </div>
-      </div> -->
       <div class="row">
-        <!-- <div class="col-sm-2" style="height: 500px">
-          <div class="form-group west-group vertical-center" ng-class="{'has-error': create.ewError}">
-            <label>Western Boundary</label>
-            <div class="input-group merged">
-              <input class="form-control" tabindex="2" ng-change="create.manualEntry()" ng-model="create.bb.west" placeholder="e.g. -105.2">
-              <span class="input-group-addon">&deg;</span>
-            </div>
-            <div class="input-group merged top-gap-s">
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('west', create.west)" ng-model="create.west.degrees">
-              <span class="input-group-addon">&deg;</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('west', create.west)" ng-model="create.west.minutes">
-              <span class="input-group-addon">'</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('west', create.west)" ng-model="create.west.seconds">
-              <span class="input-group-addon">&quot;</span>
-            </div>
-          </div>
-        </div> -->
         <div class="col-sm-12">
           <p><a ng-click="create.useCurrentView()">Set cache boundaries to current view</a></p>
           <div leaflet-create options="create.cache"></div>
@@ -117,43 +81,7 @@
               Green box indicates map boundaries
             </div>
         </div>
-        <!-- <div class="col-sm-2" style="height: 500px">
-          <div class="form-group east-group vertical-center" ng-class="{'has-error': create.ewError}">
-            <label>Eastern Boundary</label>
-            <div class="input-group merged">
-              <input class="form-control" tabindex="2" ng-change="create.manualEntry()" ng-model="create.bb.east" placeholder="e.g. -104.8">
-              <span class="input-group-addon">&deg;</span>
-            </div>
-            <div class="input-group merged top-gap-s">
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('east', create.east)" ng-model="create.east.degrees">
-              <span class="input-group-addon">&deg;</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('east', create.east)" ng-model="create.east.minutes">
-              <span class="input-group-addon">'</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('east', create.east)" ng-model="create.east.seconds">
-              <span class="input-group-addon">&quot;</span>
-            </div>
-          </div>
-        </div> -->
       </div>
-      <!-- <div class="row">
-        <div class="col-sm-2 col-sm-offset-5">
-          <div class="form-group south-group" ng-class="{'has-error': create.nsError}">
-            <label>Southern Boundary</label>
-            <div class="input-group merged">
-              <input class="form-control" tabindex="2" ng-change="create.manualEntry()" ng-model="create.bb.south" placeholder="e.g. 39.5">
-              <span class="input-group-addon">&deg;</span>
-            </div>
-            <div class="input-group merged top-gap-s">
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('south', create.south)" ng-model="create.south.degrees">
-              <span class="input-group-addon">&deg;</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('south', create.south)" ng-model="create.south.minutes">
-              <span class="input-group-addon">'</span>
-              <input type="text" tabindex="3" class="form-control" ng-change="create.dmsChange('south', create.south)" ng-model="create.south.seconds">
-              <span class="input-group-addon">&quot;</span>
-            </div>
-          </div>
-        </div>
-      </div> -->
     </div>
     <div class="visible-xs-block">
       <div class="row">
@@ -190,7 +118,31 @@
       </div>
     </div>
 
-    <div class="row bottom-gap">
+    <div class="row top-gap">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-12">
+            <span class="page-sub-entity-title">4. Tile zoom levels to create</span>
+          </div>
+        </div>
+        <div class="row top-gap-s">
+          <div class="col-md-6">
+            <div class="form-group" ng-class="{'has-error': create.cache.minZoom < 0 || create.cache.minZoom > create.cache.maxZoom}">
+              <label class="control-label">Minimum Zoom Level</label>
+              <input class="form-control" type="number" ng-model="create.cache.minZoom" placeholder="e.g. 0">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group" ng-class="{'has-error': create.cache.maxZoom < create.cache.minZoom}">
+              <label class="control-label">Maximum Zoom Level</label>
+              <input class="form-control" type="number" ng-model="create.cache.maxZoom" placeholder="e.g. 18">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="row bottom-gap">
       <div class="col-md-12">
         <div class="row">
           <div class="col-md-12">
@@ -232,7 +184,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     <div class="row" ng-show="create.totalCacheSize">
       <div class="col-md-12">
         <div class="form-group">

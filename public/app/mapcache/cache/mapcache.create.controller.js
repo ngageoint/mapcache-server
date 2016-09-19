@@ -86,7 +86,9 @@ var MapcacheCreateController = function($scope, $location, $http, $routeParams, 
   this.cache = {
     format: "xyz",
     permission: 'MAPCACHE',
-    create: {}
+    create: {
+      'geopackage': true
+    }
   };
 
   this.bb = {};
@@ -276,17 +278,6 @@ MapcacheCreateController.prototype.requiredFieldsSet = function() {
     }
   }
 
-  var cacheTypeSet = false;
-  for (var type in this.cache.create) {
-    if (this.cache.create[type] === true) {
-      cacheTypeSet = true;
-    }
-  }
-
-  if (!cacheTypeSet) {
-    this.unsetFields.push('type of cache to create');
-  }
-
   if (!zoomValidated) {
     this.unsetFields.push('zoom levels');
   }
@@ -403,14 +394,14 @@ MapcacheCreateController.prototype._cacheSourceWatch = function(map) {
   _.each(map.dataSources, function(ds) {
     this.selectedDatasources[ds.id] = true;
   }.bind(this));
-  this.cache.create = {};
+  // this.cache.create = {};
   if (this.cache.source) {
     this.cache.style = this.cache.source.style;
     this.cache.permission = this.cache.source.permission;
-    for (var i = 0; i < this.cache.source.cacheTypes.length; i++) {
-      var type = this.cache.source.cacheTypes[i];
-      this.cache.create[type.type] = type.required;
-    }
+    // for (var i = 0; i < this.cache.source.cacheTypes.length; i++) {
+    //   var type = this.cache.source.cacheTypes[i];
+    //   this.cache.create[type.type] = type.required;
+    // }
     this.requiredFieldsSet();
   }
 
