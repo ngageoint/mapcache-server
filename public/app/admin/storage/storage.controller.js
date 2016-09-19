@@ -1,6 +1,6 @@
 var _ = require('underscore');
 
-module.exports = function StorageController($scope, $http, $location, $injector, CacheService, MapService, FormatService, LocalStorageService, UserService, ServerService) {
+module.exports = function StorageController($scope, $http, $location, $injector, CacheService, MapService, FormatService, LoginService, LocalStorageService, UserService, ServerService) {
 
   $scope.formatName = function(name) {
     return FormatService[name];
@@ -204,6 +204,55 @@ module.exports = function StorageController($scope, $http, $location, $injector,
     }, function() {
 
     });
+  };
+
+  var firstLogin;
+
+  LoginService.query({limit: $scope.loginResultsLimit}).success(function(loginPage) {
+    $scope.loginPage = loginPage;
+    $scope.showNext = loginPage.logins.length !== 0;
+    $scope.showPrevious = false;
+    if (loginPage.logins.length) {
+      firstLogin = loginPage.logins[0];
+    }
+  });
+
+  $scope.pageLogin = function(url) {
+    LoginService.query({url: url, filter: {}, limit: $scope.loginResultsLimit}).success(function(loginPage) {
+
+      if (loginPage.logins.length) {
+        $scope.loginPage = loginPage;
+        $scope.showNext = loginPage.logins.length !== 0;
+        $scope.showPrevious = loginPage.logins[0].id !== firstLogin.userId.id;
+      }
+    });
+  };
+
+  $scope.filterLogins = function() {
+
+    LoginService.query({filter: {}, limit: $scope.loginResultsLimit}).success(function(loginPage) {
+      $scope.showNext = loginPage.logins.length !== 0;
+      $scope.showPrevious = false;
+      $scope.loginPage = loginPage;
+    });
+  };
+
+  $scope.openLoginStart = function($event) {
+    $event.preventDefault();
+    $event.stopPropagation();
+
+    $scope.login.startDateOpened = true;
+  };
+
+  $scope.openLoginEnd = function($event) {
+    $event.preventDefault();
+    $event.stopPropagation();
+
+    $scope.login.endDateOpened = true;
+  };
+
+  $scope.loginResultsLimitChanged = function() {
+    $scope.filterLogins();
   };
 
 };

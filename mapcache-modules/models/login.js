@@ -30,6 +30,48 @@ if (mongoose.models.Login) {
   Login = mongoose.model('Login', LoginSchema);
 }
 
+exports.getLogins = function(options, callback) {
+  var conditions = {};
+  var filter = options.filter || {};
+
+  if (filter.userId) {
+    conditions.userId = filter.userId;
+  }
+
+  if (filter.deviceId) {
+    conditions.deviceId = filter.deviceId;
+  }
+
+  if (filter.startDate) {
+    conditions._id = {$gte: objectIdForDate(filter.startDate)};
+  }
+  if (filter.endDate) {
+    conditions._id = conditions._id || {};
+    conditions._id.$lte = objectIdForDate(filter.endDate);
+  }
+
+  if (options.lastLoginId) {
+    conditions._id = conditions._id || {};
+    conditions._id.$lt = mongoose.Types.ObjectId(options.lastLoginId);
+  }
+
+  if (options.firstLoginId) {
+    conditions._id = conditions._id || {};
+    conditions._id.$gt = mongoose.Types.ObjectId(options.firstLoginId);
+  }
+
+  var o = {
+    limit: options.limit || 10,
+    sort: {
+      _id: options.firstLoginId ? 1 : -1
+    }
+  };
+console.log('find logins with conditions', conditions);
+  Login.find(conditions, null, o).populate([{path: 'userId'}, {path: 'deviceId'}]).exec(function (err, logins) {
+    callback(err, options.firstLoginId ? logins.reverse() : logins);
+  });
+};
+
 exports.getLoginsForUser = function(user, options, callback) {
   var conditions = {
     userId: user._id

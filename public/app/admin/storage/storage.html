@@ -161,7 +161,8 @@
         </div>
       </div>
     </div>
-    <div class="row" ng-show="current == 'users'">
+    <div ng-show="current == 'users'">
+    <div class="row">
       <div class="col-md-4">
         <div class="row admin-header">
           <div class="col-md-12">
@@ -293,6 +294,73 @@
           </div>
         </div>
       </div>
+    </div>
+
+      <div class="row top-gap-l">
+        <div class="col-md-12">
+          <nav class="navbar navbar-default admin-dashboard-navbar">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="admin-navbar-toggle navbar-toggle collapsed" data-toggle="collapse" data-target="#login-nav" aria-expanded="false">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand">Logins</a>
+              </div>
+
+              <div class="collapse navbar-collapse admin-navbar-collapse" id="login-nav">
+                <form class="navbar-form navbar-right">
+                  <div class="form-group">
+                    <span class="navbar-text-inverse">Results: </span>
+                    <select class="form-control" ng-init="loginResultsLimit = 10" ng-model="loginResultsLimit" ng-change="loginResultsLimitChanged()" ng-options="o as o for o in [10, 25, 50, 100]"></select>
+                  </div>
+                </form>
+              </div>
+
+            </div>
+          </nav>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="admin-table">
+            <div class="well-item" ng-repeat="login in loginPage.logins" >
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="right-gap pull-left">
+                    <i class="fa fa-fw fa-sign-in"></i>
+                  </div>
+                  <strong class="right-gap">{{login.userId.firstname}} {{login.userId.lastname}}</strong>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="right-gap pull-left">
+                    <i class="fa fa-fw"></i>
+                  </div>
+                  <span>{{login.timestamp | moment:'fromNow'}} ({{login.timestamp | moment:'MMM D YYYY hh:mm:ss A'}})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <ul class="pager pull-right">
+            <li ng-class="{'disabled': !showPrevious}">
+              <a href="javascript:void(0);" ng-click="!showPrevious || pageLogin(loginPage.prev)">&larr; Previous</a>
+            </li>
+            <li ng-class="{'disabled': !showNext}">
+              <a href="javascript:void(0);" ng-click="!showNext || pageLogin(loginPage.next)">Next &rarr;</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
     </div>
   </div>
 </div>
