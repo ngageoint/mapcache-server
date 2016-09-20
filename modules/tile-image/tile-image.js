@@ -1,9 +1,8 @@
-var Canvas = require('canvas')
-  , Image = Canvas.Image
+var lwip = require('lwip')
   , request = require('request');
 
 exports.pngRequestToJpegStream = function(url, callback) {
-  var canvas = new Canvas(256,256);
+  var canvas = PureImage.make(256,256);
   var ctx = canvas.getContext('2d');
   var height = canvas.height;
 
@@ -17,9 +16,8 @@ exports.pngRequestToJpegStream = function(url, callback) {
 			console.log('error retrieving image ' + url, err);
       return callback(err, null);
 		}
-    var img = new Image();
-    img.src = image;
-    ctx.drawImage(img, 0, 0, img.width, img.height);
-    callback(null, canvas.jpegStream());
+    lwip.open(image, 'png', function(err, image) {
+      image.toBuffer('jpg', callback);
+    });
   });
 };

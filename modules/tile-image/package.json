@@ -19,7 +19,7 @@
     "npm": ">= 1.2.0"
   },
   "dependencies": {
-    "canvas": "^1.2.3",
+    "lwip": "0.0.9",
     "request": "2.51.x"
   },
   "private": true,

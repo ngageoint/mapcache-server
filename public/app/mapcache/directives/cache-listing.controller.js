@@ -17,9 +17,9 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
       var cache = $scope.caches[j];
       for (var i = 0; i < mapcacheConfig.sourceCacheTypes.raster.length; i++) {
         var type = mapcacheConfig.sourceCacheTypes.raster[i];
-        if (cache.formats[type.type]) {
-          cache.minZoom = cache.formats[type.type].minZoom;
-          cache.maxZoom = cache.formats[type.type].maxZoom;
+        if (cache.formats && cache.formats[type.type]) {
+          // cache.minZoom = cache.formats[type.type].minZoom;
+          // cache.maxZoom = cache.formats[type.type].maxZoom;
           cache.rasterCacheExists = true;
           cache.rasterTiles = cache.formats[type.type].generatedTiles;
         }
