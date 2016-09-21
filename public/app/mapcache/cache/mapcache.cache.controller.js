@@ -21,14 +21,9 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
     $location.path('/mapcache');
   };
 
-  $scope.generateFormat = function(format) {
-    CacheService.createCacheFormat($scope.cache, format, function() {
-      $scope.cache.formats = $scope.cache.formats || {};
-      $scope.cache.formats[format] = $scope.cache.formats[format] || {};
-      $scope.cache.formats[format].generating = true;
-      getCache($scope.cache.id);
-    });
-  };
+  $scope.$on('refreshCaches', function(event, cache, format) {
+    getCache(cache.id);
+  });
 
   function getCache(id) {
     $scope.hasVectorSources = false;
@@ -68,22 +63,4 @@ module.exports = function MapcacheCacheController($scope, $location, $timeout, $
   }
 
   getCache($routeParams.cacheId);
-
-  $scope.createTiles = function(minZoom, maxZoom) {
-    $scope.cache.minZoom = minZoom;
-    $scope.cache.maxZoom = maxZoom;
-    CacheService.createCacheFormat($scope.cache, 'xyz', function() {
-      $scope.cache.formats = $scope.cache.formats || {};
-      $scope.cache.formats.xyz = $scope.cache.formats.xyz || {};
-      $scope.cache.formats.xyz.generating = true;
-      getCache($scope.cache.id);
-    });
-  };
-
-  $scope.calculateCacheSize = function(minZoom, maxZoom) {
-    if (!$scope.cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !$scope.cache.geometry) return;
-    var extent = turf.bbox($scope.cache.geometry);
-    $scope.cache.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, minZoom, maxZoom);
-    $scope.cache.totalCacheSize = $scope.cache.totalCacheTiles * ($scope.cache.source.tileSize/$scope.cache.source.tileSizeCount);
-  };
 };

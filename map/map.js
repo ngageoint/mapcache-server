@@ -166,6 +166,10 @@ Map.prototype.getTile = function(format, z, x, y, params, callback) {
               });
             });
           });
+          tileStream.on('error', function() {
+            console.log('tile stream error');
+            callback();
+          });
         });
       }, function done() {
         image.toBuffer('png', function(err, buffer) {

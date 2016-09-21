@@ -11,27 +11,6 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
   var cacheHighlightPromise;
   $scope.showingCache = undefined;
 
-  $scope.$watch('caches', function() {
-    if (!$scope.caches) return;
-    for (var j = 0; j < $scope.caches.length; j++) {
-      var cache = $scope.caches[j];
-      for (var i = 0; i < mapcacheConfig.sourceCacheTypes.raster.length; i++) {
-        var type = mapcacheConfig.sourceCacheTypes.raster[i];
-        if (cache.formats && cache.formats[type.type]) {
-          // cache.minZoom = cache.formats[type.type].minZoom;
-          // cache.maxZoom = cache.formats[type.type].maxZoom;
-          cache.rasterCacheExists = true;
-          cache.rasterTiles = cache.formats[type.type].generatedTiles;
-        }
-      }
-      for (var i = 0; i < cache.source.dataSources.length; i++) {
-        if (cache.source.dataSources[i].vector) {
-          cache.hasVectorSources = true;
-        }
-      }
-    }
-  });
-
   $scope.mouseClick = function(cache) {
     if (cacheHighlightPromise) {
       $timeout.cancel(cacheHighlightPromise);
@@ -84,28 +63,5 @@ module.exports = function CacheListingController($scope, $rootScope, $timeout, L
       }
     }
   });
-
-  $scope.generateFormat = function(cache, format) {
-    $scope.$emit('generateFormat', cache, format);
-  };
-
-  $scope.createTiles = function(cache, minZoom, maxZoom) {
-    cache.minZoom = minZoom;
-    cache.maxZoom = maxZoom;
-    CacheService.createCacheFormat(cache, 'xyz', function() {
-      cache.formats = cache.formats || {};
-      cache.formats.xyz = cache.formats.xyz || {};
-      cache.formats.xyz.generating = true;
-    });
-    $scope.$emit('refreshCaches');
-  };
-
-  $scope.calculateCacheSize = function(cache, minZoom, maxZoom) {
-    if (!cache.source || ((isNaN(minZoom) || isNaN(maxZoom))) || !cache.geometry) return;
-
-    var extent = turf.bbox(cache.geometry);
-    cache.totalCacheTiles = xyzTileUtils.tileCountInExtent(extent, minZoom, maxZoom);
-    cache.totalCacheSize = cache.totalCacheTiles * (cache.source.tileSize/cache.source.tileSizeCount);
-  };
 
 };

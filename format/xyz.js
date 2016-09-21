@@ -206,6 +206,7 @@ function getTileFromSource(source, z, x, y, format, callback) {
   } else {
     req = request.get({url: url,
       headers: {'Content-Type': 'image/png'},
+      timeout: 30000
     });
     callback(null, req);
   }

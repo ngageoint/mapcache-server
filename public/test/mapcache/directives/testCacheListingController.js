@@ -125,12 +125,4 @@ describe('CacheListingController tests', function() {
     spy.alwaysCalledWithExactly('refreshCaches').should.be.equal(true);
   });
 
-  it('should calculate cache size', function() {
-    var cache = JSON.parse(JSON.stringify(mocks.cacheMocks.xyzCache));
-
-    scope.calculateCacheSize(cache, 0, 1);
-    cache.totalCacheTiles.should.be.equal(5);
-    cache.totalCacheSize.should.be.equal(5*cache.source.tileSize/cache.source.tileSizeCount);
-  });
-
 });

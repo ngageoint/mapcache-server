@@ -23,13 +23,8 @@ module.exports = function MapController($scope, $location, $timeout, $routeParam
     $scope.caches = $filter('filter')($filter('filter')(allCaches, filter.cacheFilter), filter.mapFilter);
   });
 
-  $scope.$on('generateFormat', function(event, cache, format) {
-    CacheService.createCacheFormat(cache, format, function() {
-      cache.formats = cache.formats || {};
-      cache.formats[format] = cache.formats[format] || {};
-      cache.formats[format].generating = true;
-      getCaches();
-    });
+  $scope.$on('refreshCaches', function(event) {
+    getCaches();
   });
 
   function getCaches() {
