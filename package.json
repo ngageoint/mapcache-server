@@ -37,7 +37,7 @@
     "gdal": "^0.4.4",
     "geojson-merge": "^0.1.0",
     "geojson-stream": "0.0.1",
-    "geopackage": "https://github.com/ngageoint/geopackage-js.git",
+    "geopackage": "ngageoint/geopackage-js#develop",
     "knex": "^0.9.0",
     "length-stream": "^0.1.1",
     "lwip": "0.0.9",

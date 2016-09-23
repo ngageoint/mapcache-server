@@ -11,7 +11,8 @@ var log = require('mapcache-log')
   , path = require('path')
   , async = require('async')
   , Transform = require('stream').Transform
-  , shp2json = require('shp2json');
+  , shp2json = require('shp2json')
+  , GeoPackage = require('geopackage');
 
 var Shapefile = function(config) {
   log.debug('Constructing a Shapefile format');
@@ -24,11 +25,64 @@ var Shapefile = function(config) {
 };
 
 Shapefile.prototype.generateCache = function(doneCallback, progressCallback) {
-  doneCallback(null, null);
+  var cacheObj = this.cache;
+
+  cacheObj.cache.formats = cacheObj.cache.formats || {};
+
+  if (cacheObj.cache.formats.geopackage) {
+    var gpdir = path.join(this.config.outputDirectory, cacheObj.cache.id, 'gpkg');
+    var gpfilename = cacheObj.cache.id + '.gpkg';
+    var gpfilepath = path.join(gpdir, gpfilename);
+
+    var dir = path.join(this.config.outputDirectory, cacheObj.cache.id, 'shapefile');
+    var filename = cacheObj.cache.id + '.zip';
+    var filePath = path.join(dir, filename);
+
+    if (fs.existsSync(filePath)) {
+      log.info('Cache %s already exists, returning', filePath);
+      return doneCallback(null, cacheObj);
+    } else {
+      cacheObj.cache.formats.shapefile = {
+        complete: false,
+        generatedFeatures: 0,
+        percentComplete: 0
+      };
+      fs.emptyDirSync(dir);
+      console.log('open the geopackage');
+      GeoPackage.openGeoPackage(gpfilepath, function(err, gp) {
+        console.log('error opening', err);
+        GeoPackage.ShapefileToGeoPackage.extract(gp, undefined, function(err, result) {
+          console.log('err', err);
+          console.log('result', result);
+          fs.writeFile(filePath, result, function(err) {
+            console.log('err', err);
+            var stats = fs.statSync(filePath);
+            cacheObj.cache.formats.shapefile.complete = true;
+            cacheObj.cache.formats.shapefile.percentComplete = 100;
+            cacheObj.cache.formats.shapefile.size = stats.size;
+            doneCallback(err, cacheObj);
+          });
+        });
+      });
+    }
+
+  } else {
+    doneCallback(null, null);
+  }
 };
 
 Shapefile.prototype.getData = function(minZoom, maxZoom, callback) {
-  callback(null, []);
+  var cacheObj = this.cache;
+  var dir = path.join(this.config.outputDirectory, cacheObj.cache.id, 'shapefile');
+  var filename = cacheObj.cache.id + '.zip';
+  var filePath = path.join(dir, filename);
+
+  if (fs.existsSync(filePath)) {
+    var stream = fs.createReadStream(filePath);
+    callback(null, {stream: stream, extension: '.zip'});
+  } else {
+    callback(null, null);
+  }
 };
 
 Shapefile.prototype.processSource = function(doneCallback, progressCallback) {
