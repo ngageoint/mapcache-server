@@ -29,21 +29,22 @@ GeoJSON.prototype.generateCache = function(doneCallback, progressCallback) {
   var cache = this.cache.cache;
   cache.formats = cache.formats || {};
 
+  var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
+  var filename = cache.id + '.geojson';
+  console.log('dir', dir);
+  
+  if (fs.existsSync(path.join(dir, filename))) {
+    log.info('Cache already exists, returning');
+    return doneCallback(null, cacheObj);
+  }
+
+  fs.emptyDirSync(dir);
+
   cache.formats.geojson = {
     complete: false,
     generatedFeatures: 0,
     percentComplete: 0
   };
-
-  var dir = path.join(this.config.outputDirectory, cache.id, 'geojson');
-  var filename = cache.id + '.geojson';
-  console.log('dir', dir);
-  fs.emptyDirSync(dir);
-
-  if (fs.existsSync(path.join(dir, filename))) {
-    log.info('Cache already exists, returning');
-    return doneCallback(null, cacheObj);
-  }
 
   FeatureModel.getFeatureCount({cacheId: cache.id}, function(countResults) {
     cache.formats.geojson.generatedFeatures = parseInt(countResults[0].count);
