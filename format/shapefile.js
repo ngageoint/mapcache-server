@@ -48,14 +48,9 @@ Shapefile.prototype.generateCache = function(doneCallback, progressCallback) {
         percentComplete: 0
       };
       fs.emptyDirSync(dir);
-      console.log('open the geopackage');
       GeoPackage.openGeoPackage(gpfilepath, function(err, gp) {
-        console.log('error opening', err);
         GeoPackage.ShapefileToGeoPackage.extract(gp, undefined, function(err, result) {
-          console.log('err', err);
-          console.log('result', result);
           fs.writeFile(filePath, result, function(err) {
-            console.log('err', err);
             var stats = fs.statSync(filePath);
             cacheObj.cache.formats.shapefile.complete = true;
             cacheObj.cache.formats.shapefile.percentComplete = 100;
