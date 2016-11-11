@@ -25,7 +25,7 @@ module.exports = function CacheFormatsController($scope, $rootScope, $timeout, L
       $scope.cache.formats = $scope.cache.formats || {};
       $scope.cache.formats[format] = $scope.cache.formats[format] || {};
       $scope.cache.formats[format].generating = true;
-      $scope.$emit('refreshCaches');
+      $scope.$emit('refreshCaches', $scope.cache);
     });
 
   };
