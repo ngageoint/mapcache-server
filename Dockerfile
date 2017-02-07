@@ -102,8 +102,6 @@ RUN . $NVM_DIR/nvm.sh \
     && if [ -d "node_modules" ]; then rm -rf "node_modules"; fi \
     && mkdir node_modules \
     && npm install \
-    && npm uninstall mongodb --save \
-    && npm install mongoose --save \
     && npm uninstall gdal --save \
     && npm install gdal --build-from-source --shared-gdal
 
