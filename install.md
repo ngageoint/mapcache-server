@@ -1924,17 +1924,23 @@ alter user postgres password 'postgres';
 \q
 ```
 
-``` vi /var/lib/pgsql93/data/pg_hba.conf```
+``` 
+vi /var/lib/pgsql93/data/pg_hba.conf
+```
 Change the connection configurations from ident to trust  
 Now run:  
-```sudo /etc/init.d/postgresql93 reload```
+```
+sudo /etc/init.d/postgresql93 reload
+```
 
 ## Install mb-util as ec2-user
 
-```git clone git://github.com/mapbox/mbutil.git
+```
+git clone git://github.com/mapbox/mbutil.git
 cd mbutil
 sudo python setup.py install
-mb-util```
+mb-util
+```
 
 ## Install Java as ec2-user
 ```
@@ -1944,20 +1950,26 @@ sudo yum install java-1.8.0-openjdk-devel
 ## Clone the mapcache Repository as the ec2-user
 
 Ensure git is installed:
-```sudo yum install git```
+```
+sudo yum install git
+```
 
 ```
 cd /opt/mapcache
-git clone https://github.com/ngageoint/mapcache-server.git```
+git clone https://github.com/ngageoint/mapcache-server.git
+```
 
 ## Link gdal to the node library
 
 ```
 cd /opt/mapcache/mapcache-server  
-npm install gdal --build-from-source --shared_gdal```
+npm install gdal --build-from-source --shared_gdal
+```
 
 ## Start mongo
-```sudo service mongod start```
+```
+sudo service mongod start
+```
 
 ## Install the mapcache code
 ```
@@ -1966,17 +1978,20 @@ npm install
 cd public
 npm install
 npm build
+
 ```
 
 ## Initiate the mongo database
 ```
 cd /opt/mapcache/mapcache-server
 ./node_modules/.bin/mm
+
 ```
 ## Create directories
 ```
 sudo mkdir -p /data/mapcache
 sudo chown ec2-user /data/mapcache
+
 ```
 
 ## Start mapcache
@@ -1984,4 +1999,5 @@ sudo chown ec2-user /data/mapcache
 npm install -g forever
 cd /opt/mapcache/mapcache-server
 forever start app.js
+
 ```
