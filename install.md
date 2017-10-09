@@ -30,7 +30,9 @@ mb-util
 Please use these instructions to install on Linux.  Docker is still being worked.
 
 ## Install mongo 2.6
-```vi /etc/yum.repos.d/mongodb-org-2.6.repo```  
+```
+vi /etc/yum.repos.d/mongodb-org-2.6.repo
+```  
 
 Add this:   
 ```
@@ -38,11 +40,15 @@ Add this:
 name=MongoDB 2.6 Repository
 baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
 gpgcheck=0
-enabled=1```
+enabled=1
+```
 
 Run this:  
 
-```sudo yum install -y mongodb-org```
+```
+sudo yum install -y mongodb-org
+
+```
 
 <details><summary>Results of commands</summary><p>
 
