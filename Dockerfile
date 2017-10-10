@@ -20,6 +20,7 @@ RUN apt-get update && apt-get -y install \
         curl \
         wget \
         python \
+        python-setuptools \
         pkgconf \
         postgis \
         mongodb \
@@ -68,16 +69,17 @@ RUN sed -i 's| md5| trust|g' /etc/postgresql/9.4/main/pg_hba.conf \
        -d mapcache -f /workspace/postgis/mapcache.sql
 EXPOSE 5432
 
-WORKDIR /workspace/mrsid
-ENV MRSID_TARBALL MrSID_DSDK-9.5.1.4427-linux.x86-64.gcc48.tar.gz
-ENV MRSID_DIR /workspace/mrsid/MrSID_DSDK
-ENV MRSID_RASTER_DIR $MRSID_DIR/Raster_DSDK
-ENV MRSID_LIDAR_DIR $MRSID_DIR/Lidar_DSDK
-COPY $MRSID_TARBALL $MRSID_TARBALL
-RUN mkdir MrSID_DSDK \
-    && tar -xzf $MRSID_TARBALL -C MrSID_DSDK --strip-components 1 \
-    && ln -s $MRSID_LIDAR_DIR/lib/liblti_lidar_dsdk.so /usr/local/lib/. \
-    && ln -s $MRSID_RASTER_DIR/lib/libltidsdk.so /usr/local/lib/.
+#
+# WORKDIR /workspace/mrsid
+# ENV MRSID_TARBALL MrSID_DSDK-9.5.1.4427-linux.x86-64.gcc48.tar.gz
+# ENV MRSID_DIR /workspace/mrsid/MrSID_DSDK
+# ENV MRSID_RASTER_DIR $MRSID_DIR/Raster_DSDK
+# ENV MRSID_LIDAR_DIR $MRSID_DIR/Lidar_DSDK
+# COPY $MRSID_TARBALL $MRSID_TARBALL
+# RUN mkdir MrSID_DSDK \
+#     && tar -xzf $MRSID_TARBALL -C MrSID_DSDK --strip-components 1 \
+#     && ln -s $MRSID_LIDAR_DIR/lib/liblti_lidar_dsdk.so /usr/local/lib/. \
+#     && ln -s $MRSID_RASTER_DIR/lib/libltidsdk.so /usr/local/lib/.
 
 WORKDIR /workspace/gdal
 ENV GDAL_VER 2.0.1
@@ -87,8 +89,8 @@ RUN export CC="gcc-4.8 -fPIC" && export CXX="g++-4.8 -fPIC" \
     && tar -xzvf gdal-$GDAL_VER.tar.gz \
     && cd $GDAL_DIR \
     && ./configure \
-        --with-mrsid=$MRSID_RASTER_DIR \
-        --with-mrsid_lidar=$MRSID_LIDAR_DIR \
+#        --with-mrsid=$MRSID_RASTER_DIR \
+#        --with-mrsid_lidar=$MRSID_LIDAR_DIR \
         --with-jp2mrsid \
         --with-libtiff \
     && make -j10 && make install
